@@ -42,7 +42,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
   late String selectedModel;
   bool _isPasswordVisible = false;
   bool _isSaving = false;
+  bool _isSaved = false;
   bool _isDeleting = false;
+  int _editRevision = 0;
   File? avatarImage;
 
   @override
@@ -70,6 +72,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
     if (imagePath != null && mounted) {
       setState(() {
         avatarImage = File(imagePath);
+        _editRevision += 1;
+        _isSaved = false;
       });
     }
   }
@@ -289,9 +293,11 @@ class _EditAIBotPageState extends State<EditBotPage> {
                         children: [
                           ShadButton(
                             key: const ValueKey<String>('desktop-bot-save'),
-                            enabled: !_isSaving && !_isDeleting,
+                            enabled: !_isSaving && !_isSaved && !_isDeleting,
                             onPressed:
-                                _isSaving || _isDeleting ? null : _saveBot,
+                                _isSaving || _isSaved || _isDeleting
+                                    ? null
+                                    : _saveBot,
                             leading:
                                 _isSaving
                                     ? SizedBox.square(
@@ -304,8 +310,19 @@ class _EditAIBotPageState extends State<EditBotPage> {
                                             ).colorScheme.primaryForeground,
                                       ),
                                     )
-                                    : const Icon(Icons.check_rounded, size: 17),
-                            child: Text(S.of(context).saveChanges),
+                                    : Icon(
+                                      _isSaved
+                                          ? Icons.check_circle_outline_rounded
+                                          : Icons.check_rounded,
+                                      size: 17,
+                                    ),
+                            child: Text(
+                              _isSaving
+                                  ? S.of(context).savingChanges
+                                  : _isSaved
+                                  ? S.of(context).changesSaved
+                                  : S.of(context).saveChanges,
+                            ),
                           ),
                         ],
                       ),
@@ -406,17 +423,34 @@ class _EditAIBotPageState extends State<EditBotPage> {
       modifyTimestamp: DateTime.now(),
     );
 
-    setState(() => _isSaving = true);
+    final saveRevision = _editRevision;
+    var saved = false;
+    setState(() {
+      _isSaving = true;
+      _isSaved = false;
+    });
     try {
       await widget.onBotUpdated(updatedBot);
+      saved = true;
       if (!widget.embedded && mounted) {
         navigator.pop();
       }
     } finally {
       if (mounted) {
-        setState(() => _isSaving = false);
+        setState(() {
+          _isSaving = false;
+          _isSaved = widget.embedded && saved && _editRevision == saveRevision;
+        });
       }
     }
+  }
+
+  void _markUnsaved(String _) {
+    if (!mounted) return;
+    setState(() {
+      _editRevision += 1;
+      _isSaved = false;
+    });
   }
 
   Widget _buildDesktopInput({
@@ -469,6 +503,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     required IconData icon,
     required TextEditingController controller,
     String? placeholder,
+    ValueChanged<String>? onChanged,
   }) {
     final shadTheme = ShadTheme.of(context);
     return Column(
@@ -484,6 +519,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
             leading: Icon(icon, size: 17),
             minHeight: 112,
             maxHeight: 220,
+            onChanged: onChanged,
           ),
         ),
       ],
@@ -656,6 +692,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.auto_awesome_outlined,
         controller: nameController,
         placeholder: S.of(context).enterBotName,
+        onChanged: _markUnsaved,
       );
     }
     return TextField(
@@ -835,6 +872,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.subject_rounded,
         controller: systemPromptController,
         placeholder: S.of(context).enterSystemPrompt,
+        onChanged: _markUnsaved,
       );
     }
     return TextField(

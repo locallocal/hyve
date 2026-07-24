@@ -301,6 +301,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("保存修改"),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("保存中..."),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("已保存"),
     "saveImage": MessageLookupByLibrary.simpleMessage("保存图片"),
     "saveImageFailed": m26,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage("保存到相册失败"),

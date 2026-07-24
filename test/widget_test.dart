@@ -1452,6 +1452,68 @@ void main() {
     expect(updatedBot?.model, bot.model);
   });
 
+  testWidgets('desktop bot save button shows saving and saved states', (
+    tester,
+  ) async {
+    final saveCompleter = Completer<void>();
+    final bot = Bot(
+      id: 'bot-save-status',
+      name: 'Researcher',
+      avatar: '',
+      provider: 'OpenAI',
+      baseURL: 'https://example.invalid',
+      apiKey: 'secret',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'gpt-test',
+      systemPrompt: 'Be helpful',
+      createTimestamp: DateTime(2026),
+      modifyTimestamp: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      _shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: EditBotPage(
+                bot: bot,
+                embedded: true,
+                onBotUpdated: (_) => saveCompleter.future,
+                onBotDeleted: () async {},
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final saveButtonFinder = find.byKey(
+      const ValueKey<String>('desktop-bot-save'),
+    );
+    await tester.tap(saveButtonFinder);
+    await tester.pump();
+
+    expect(find.text('保存中...'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(tester.widget<ShadButton>(saveButtonFinder).enabled, isFalse);
+
+    saveCompleter.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('已保存'), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_outline_rounded), findsOneWidget);
+    expect(tester.widget<ShadButton>(saveButtonFinder).enabled, isFalse);
+
+    final nameField = find.descendant(
+      of: find.byKey(const ValueKey<String>('desktop-bot-name')),
+      matching: find.byType(EditableText),
+    );
+    await tester.enterText(nameField, 'Updated Researcher');
+    await tester.pump();
+
+    expect(find.text('保存修改'), findsOneWidget);
+    expect(tester.widget<ShadButton>(saveButtonFinder).enabled, isTrue);
+  });
+
   testWidgets('desktop command shortcuts share the shell actions', (
     tester,
   ) async {

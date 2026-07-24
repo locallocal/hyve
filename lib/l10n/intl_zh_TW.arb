@@ -398,6 +398,14 @@
     "@saveChanges": {
         "description": "儲存修改"
     },
+    "savingChanges": "儲存中...",
+    "@savingChanges": {
+        "description": "正在儲存智能體修改時顯示的狀態"
+    },
+    "changesSaved": "已儲存",
+    "@changesSaved": {
+        "description": "智能體修改儲存完成後顯示的狀態"
+    },
     "botUpdated": "智能體 {botName} 已更新",
     "@botUpdated": {
         "placeholders": {

@@ -151,6 +151,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "responseError": m12,
     "save": MessageLookupByLibrary.simpleMessage("儲存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("儲存修改"),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("儲存中..."),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("已儲存"),
     "selectBot": MessageLookupByLibrary.simpleMessage("選擇智能體"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("選擇語言"),
     "selectModel": MessageLookupByLibrary.simpleMessage("選擇模型:"),

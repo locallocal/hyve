@@ -27,7 +27,6 @@ Future<bool> showClearChatDialog(BuildContext context, String botName) async {
             ),
             actions: [
               ShadButton.outline(
-                autofocus: true,
                 onPressed: () => Navigator.of(dialogContext).pop(false),
                 child: Text(S.of(dialogContext).cancel),
               ),

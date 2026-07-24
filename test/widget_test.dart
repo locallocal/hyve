@@ -21,6 +21,7 @@ import 'package:stars/ui/features/bots/views/add_bot.dart';
 import 'package:stars/ui/features/bots/views/bots.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chat/views/message_list.dart';
 import 'package:stars/ui/features/chats/views/chat_item.dart';
 import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
@@ -1097,6 +1098,43 @@ void main() {
         findsOneWidget,
       );
       expect(find.bySemanticsLabel('清空会话记录'), findsOneWidget);
+    });
+  });
+
+  testWidgets('desktop clear chat cancel matches delete bot styling', (
+    tester,
+  ) async {
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: ShadButton(
+                  onPressed:
+                      () => unawaited(showClearChatDialog(context, '测试智能体')),
+                  child: const Text('打开清空会话弹窗'),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('打开清空会话弹窗'));
+      await tester.pumpAndSettle();
+
+      final cancelButtonFinder =
+          find
+              .ancestor(of: find.text('取消'), matching: find.byType(ShadButton))
+              .first;
+      final cancelButton = tester.widget<ShadButton>(cancelButtonFinder);
+      expect(cancelButton.variant, ShadButtonVariant.outline);
+      expect(cancelButton.autofocus, isFalse);
+
+      await tester.tap(cancelButtonFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('取消'), findsNothing);
     });
   });
 

@@ -941,6 +941,26 @@ class S {
     );
   }
 
+  /// `Saving...`
+  String get savingChanges {
+    return Intl.message(
+      'Saving...',
+      name: 'savingChanges',
+      desc: 'Status shown while bot changes are being saved',
+      args: [],
+    );
+  }
+
+  /// `Saved`
+  String get changesSaved {
+    return Intl.message(
+      'Saved',
+      name: 'changesSaved',
+      desc: 'Status shown after bot changes are saved',
+      args: [],
+    );
+  }
+
   /// `Bot {botName} has been updated`
   String botUpdated(String botName) {
     return Intl.message(

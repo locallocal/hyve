@@ -405,6 +405,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
     "saveImageFailed": m26,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(

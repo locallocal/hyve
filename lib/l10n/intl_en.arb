@@ -410,6 +410,14 @@
     "@saveChanges": {
         "description": "Save changes button"
     },
+    "savingChanges": "Saving...",
+    "@savingChanges": {
+        "description": "Status shown while bot changes are being saved"
+    },
+    "changesSaved": "Saved",
+    "@changesSaved": {
+        "description": "Status shown after bot changes are saved"
+    },
     "botUpdated": "Bot {botName} has been updated",
     "@botUpdated": {
         "placeholders": {

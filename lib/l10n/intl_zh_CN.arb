@@ -410,6 +410,14 @@
     "@saveChanges": {
         "description": "保存修改"
     },
+    "savingChanges": "保存中...",
+    "@savingChanges": {
+        "description": "正在保存智能体修改时显示的状态"
+    },
+    "changesSaved": "已保存",
+    "@changesSaved": {
+        "description": "智能体修改保存完成后显示的状态"
+    },
     "botUpdated": "智能体 {botName} 已更新",
     "@botUpdated": {
         "placeholders": {

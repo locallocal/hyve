@@ -72,7 +72,8 @@ void main() {
       tokens.windowBackground,
     );
     expect(DesktopThemeTokens.sidebarWidth, 300);
-    expect(DesktopThemeTokens.inspectorWidth, 320);
+    expect(DesktopThemeTokens.inspectorWidth, 360);
+    expect(DesktopThemeTokens.inspectorMaxWidth, 420);
     expect(DesktopThemeTokens.toolbarHeight, 50);
     expect(DesktopThemeTokens.menuBarHeight, 50);
     expect(DesktopThemeTokens.sidebarDecoration(testContext).border, isNull);
@@ -1101,6 +1102,42 @@ void main() {
     });
   });
 
+  testWidgets('desktop chat inspector uses the wider responsive sheet', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 800);
+    addTearDown(tester.view.reset);
+    final bot = Bot(
+      id: 'bot-1',
+      name: 'Researcher',
+      avatar: '',
+      provider: 'OpenAI',
+      baseURL: 'https://example.invalid',
+      apiKey: '',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'gpt-test',
+      systemPrompt: '',
+      createTimestamp: DateTime(2026),
+      modifyTimestamp: DateTime(2026),
+    );
+
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(_desktopHarness(selectedChatBot: bot));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('desktop-toolbar-inspector')),
+      );
+      await tester.pumpAndSettle();
+
+      final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
+      expect(sheet.constraints?.minWidth, DesktopThemeTokens.inspectorWidth);
+      expect(sheet.constraints?.maxWidth, DesktopThemeTokens.inspectorWidth);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   testWidgets('desktop clear chat cancel matches delete bot styling', (
     tester,
   ) async {
@@ -2015,6 +2052,7 @@ Widget _addBotDialogHarness({
 Widget _desktopHarness({
   int currentIndex = 0,
   Bot? bot,
+  Bot? selectedChatBot,
   String? selectedChatId,
   VoidCallback? onCreateChat,
   VoidCallback? onSearchRequested,
@@ -2032,6 +2070,7 @@ Widget _desktopHarness({
               Center(child: Text('profile')),
             ],
             selectedChatId: selectedChatId,
+            selectedChatBot: selectedChatBot,
             selectedBot: bot,
             onCreateChat: onCreateChat,
             onSearchRequested: onSearchRequested,

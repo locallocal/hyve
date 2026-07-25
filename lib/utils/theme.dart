@@ -691,9 +691,9 @@ class DesktopThemeTokens {
   static const double sidebarMaxWidth = 360;
   static const double listPanelWidth = 300;
   static const double profileRailWidth = 300;
-  static const double inspectorWidth = 320;
+  static const double inspectorWidth = 360;
   static const double inspectorMinWidth = 280;
-  static const double inspectorMaxWidth = 380;
+  static const double inspectorMaxWidth = 420;
   static const double detailMinWidth = 560;
   static const double toolbarHeight = 50;
   static const double menuBarHeight = toolbarHeight;

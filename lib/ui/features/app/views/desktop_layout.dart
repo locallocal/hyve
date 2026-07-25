@@ -574,7 +574,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     final targetWidth =
         overlay == _ChatOverlay.sidebar
             ? DesktopThemeTokens.sidebarWidth
-            : 320.0;
+            : DesktopThemeTokens.inspectorWidth;
     final closed = showChatShadSheet<void>(
       context: context,
       side: side,

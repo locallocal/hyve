@@ -216,7 +216,7 @@ class MiniMax extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data['choices'] == null ||
                 data['choices'].isEmpty ||
                 data['choices'][0]['delta'] == null) {
@@ -307,7 +307,7 @@ class MiniMax extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         if (data['base_resp']['status_code'] != 0) {
           throw Exception(
             'Generate image failed: ${data['base_resp']['status_msg']}',
@@ -380,7 +380,7 @@ class MiniMax extends Provider {
     }
 
     final responseBytes = await response.stream.toBytes();
-    final data = jsonDecode(utf8.decode(responseBytes));
+    final data = decodeProviderResponse(utf8.decode(responseBytes));
     if (data['base_resp']['status_code'] != 0) {
       throw Exception(
         'Generate speech failed: ${data['base_resp']['status_msg']}',
@@ -436,7 +436,7 @@ class MiniMax extends Provider {
     }
 
     final responseBytes = await response.stream.toBytes();
-    final data = jsonDecode(utf8.decode(responseBytes));
+    final data = decodeProviderResponse(utf8.decode(responseBytes));
     if (data['base_resp']['status_code'] != 0) {
       throw Exception(
         'Generate music failed: ${data['base_resp']['status_msg']}',
@@ -495,7 +495,7 @@ class MiniMax extends Provider {
       );
     }
     final responseBytes = await response.stream.toBytes();
-    final data = jsonDecode(utf8.decode(responseBytes));
+    final data = decodeProviderResponse(utf8.decode(responseBytes));
     if (data['base_resp']['status_code'] != 0) {
       throw Exception(
         'Generate video failed: ${data['base_resp']['status_msg']}',
@@ -542,7 +542,7 @@ class MiniMax extends Provider {
       throw Exception('获取音乐上传授权失败, ${response.statusCode}, $errorBody');
     }
     final responseBytes = await response.stream.toBytes();
-    final data = jsonDecode(utf8.decode(responseBytes));
+    final data = decodeProviderResponse(utf8.decode(responseBytes));
     if (data['base_resp']['status_code'] != 0) {
       throw Exception('获取音乐上传授权失败: $data');
     }
@@ -563,7 +563,7 @@ class MiniMax extends Provider {
           'content-type': 'application/json',
         },
       );
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       if (data['base_resp']['status_code'] != 0) {
         throw Exception('获取视频生成授权失败: $data');
       }
@@ -596,7 +596,7 @@ class MiniMax extends Provider {
     }
 
     // 检查响应内容类型
-    final data = jsonDecode(utf8.decode(response.bodyBytes));
+    final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
     // 如果是JSON响应，可能需要从中提取真正的视频URL
     if (data['file']['download_url'] != null) {
       final videoUrl = data['file']['download_url'];

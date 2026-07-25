@@ -24,6 +24,10 @@ void main() {
       expect(rows.map((row) => row['run_id']), everyElement(''));
       expect(rows.map((row) => row['terminal_state']), everyElement(''));
       expect(rows.map((row) => row['has_partial_content']), everyElement(0));
+      expect(rows.map((row) => row['token_model']), everyElement(''));
+      expect(rows.map((row) => row['input_token_count']), everyElement(0));
+      expect(rows.map((row) => row['output_token_count']), everyElement(0));
+      expect(rows.map((row) => row['total_token_count']), everyElement(0));
       final profiles = await database.query('profile');
       expect(profiles.single['show_execution_status'], 1);
 
@@ -32,8 +36,43 @@ void main() {
         (index) => index['name'] == 'messages_message_id_unique',
       );
       expect(identityIndex['unique'], 1);
+      expect(
+        indexes.any((index) => index['name'] == 'messages_bot_id_index'),
+        isTrue,
+      );
+      final tokenUsageColumns = await database.rawQuery(
+        'PRAGMA table_info(token_usage_records)',
+      );
+      expect(
+        tokenUsageColumns.map((column) => column['name']),
+        containsAll(<String>[
+          'message_id',
+          'chat_id',
+          'bot_id',
+          'token_model',
+          'input_token_count',
+          'output_token_count',
+          'total_token_count',
+          'timestamp',
+        ]),
+      );
     },
   );
+
+  test('version 6 migration backfills token usage records', () async {
+    final database = await _openMigratedV5Database();
+    addTearDown(database.close);
+
+    final records = await database.query('token_usage_records');
+    expect(records, hasLength(1));
+    expect(records.single['message_id'], 'assistant-with-usage');
+    expect(records.single['chat_id'], 'chat-1');
+    expect(records.single['bot_id'], 'bot-1');
+    expect(records.single['token_model'], 'model-a');
+    expect(records.single['input_token_count'], 120);
+    expect(records.single['output_token_count'], 30);
+    expect(records.single['total_token_count'], 150);
+  });
 
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
@@ -113,6 +152,32 @@ Future<Database> _openMigratedV2Database() async {
   await DatabaseService.migrateSchema(
     database,
     2,
+    DatabaseService.databaseVersion,
+  );
+  return database;
+}
+
+Future<Database> _openMigratedV5Database() async {
+  final database = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
+  await DatabaseService.createSchema(database, 5);
+  await database.execute('DROP TABLE token_usage_records');
+  await database.insert('messages', <String, Object?>{
+    'message_id': 'assistant-with-usage',
+    'turn_id': 'turn-1',
+    'chat_id': 'chat-1',
+    'bot_id': 'bot-1',
+    'sender_id': 'bot-1',
+    'content': 'response',
+    'token_model': 'model-a',
+    'input_token_count': 120,
+    'output_token_count': 30,
+    'total_token_count': 150,
+    'timestamp': DateTime(2026, 7, 25, 10).millisecondsSinceEpoch,
+  });
+
+  await DatabaseService.migrateSchema(
+    database,
+    5,
     DatabaseService.databaseVersion,
   );
   return database;

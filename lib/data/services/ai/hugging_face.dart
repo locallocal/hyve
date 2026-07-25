@@ -109,7 +109,7 @@ class HuggingFace extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data as List).map((model) {
               final m = model['id'] as String;
@@ -171,7 +171,7 @@ class HuggingFace extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             onResponse(delta);
           } catch (e) {

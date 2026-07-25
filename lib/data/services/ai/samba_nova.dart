@@ -47,7 +47,7 @@ class SambaNova extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -109,7 +109,7 @@ class SambaNova extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             var delta = data['choices'][0]['delta']['content'] ?? '';
 
             if (stage.isEmpty) {

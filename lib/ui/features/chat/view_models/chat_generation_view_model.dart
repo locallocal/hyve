@@ -40,6 +40,7 @@ class ChatGenerationSnapshot {
     this.reasoningResponse = '',
     this.toolCalls = const [],
     this.commandExecutions = const [],
+    this.tokenUsage = ModelTokenUsage.empty,
     this.supportsCancellation = false,
     this.userPersisted = false,
     this.error,
@@ -54,6 +55,7 @@ class ChatGenerationSnapshot {
   final String reasoningResponse;
   final List<MessageToolCall> toolCalls;
   final List<MessageCommandExecution> commandExecutions;
+  final ModelTokenUsage tokenUsage;
   final bool supportsCancellation;
   final bool userPersisted;
   final String? error;
@@ -80,6 +82,7 @@ class ChatGenerationSnapshot {
     String? reasoningResponse,
     List<MessageToolCall>? toolCalls,
     List<MessageCommandExecution>? commandExecutions,
+    ModelTokenUsage? tokenUsage,
     bool? supportsCancellation,
     bool? userPersisted,
     String? error,
@@ -96,6 +99,7 @@ class ChatGenerationSnapshot {
       reasoningResponse: reasoningResponse ?? this.reasoningResponse,
       toolCalls: toolCalls ?? this.toolCalls,
       commandExecutions: commandExecutions ?? this.commandExecutions,
+      tokenUsage: tokenUsage ?? this.tokenUsage,
       supportsCancellation: supportsCancellation ?? this.supportsCancellation,
       userPersisted: userPersisted ?? this.userPersisted,
       error: clearError ? null : error ?? this.error,
@@ -248,6 +252,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
       onReasoningResponse: (text) => _onReasoning(runId, text),
       onToolCall: (toolCall) => _onToolCall(runId, toolCall),
       onCommandExecution: (execution) => _onCommandExecution(runId, execution),
+      onTokenUsage: (usage) => _onTokenUsage(runId, usage),
       onComplete: () {},
       onError: (_) {},
       onTerminal: (event) => _onProviderTerminal(runId, event),
@@ -367,6 +372,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
       reasoningResponse: '',
       toolCalls: const [],
       commandExecutions: const [],
+      tokenUsage: ModelTokenUsage.empty,
       supportsCancellation: false,
       userPersisted: false,
       clearError: true,
@@ -407,6 +413,14 @@ class ChatGenerationViewModel extends ChangeNotifier {
     if (!_canReduceProviderEvent(runId)) return;
     _snapshot = _snapshot.copyWith(
       commandExecutions: [..._snapshot.commandExecutions, execution],
+    );
+    notifyListeners();
+  }
+
+  void _onTokenUsage(String runId, ModelTokenUsage usage) {
+    if (!_canReduceProviderEvent(runId)) return;
+    _snapshot = _snapshot.copyWith(
+      tokenUsage: _snapshot.tokenUsage.merge(usage),
     );
     notifyListeners();
   }
@@ -472,6 +486,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
             _snapshot.commandExecutions,
           ),
         ),
+        tokenUsage: _snapshot.tokenUsage,
         terminalOutcome: outcome,
         hasPartialContent:
             hasGeneratedContent &&

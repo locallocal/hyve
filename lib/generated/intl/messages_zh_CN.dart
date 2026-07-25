@@ -379,5 +379,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "请等待生成完成。",
     ),
     "webSearch": MessageLookupByLibrary.simpleMessage("联网搜索"),
+    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token 用量"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("输入 Token"),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("输出 Token"),
+    "totalTokens": MessageLookupByLibrary.simpleMessage("Token 总量"),
+    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
+      "暂无 Token 用量记录",
+    ),
+    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("每日用量"),
+    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("小时用量"),
+    "backToDailyUsage": MessageLookupByLibrary.simpleMessage("返回每日用量"),
+    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
+      "选择一天查看小时用量",
+    ),
   };
 }

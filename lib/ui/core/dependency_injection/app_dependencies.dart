@@ -27,7 +27,9 @@ import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
 import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
@@ -129,6 +131,12 @@ class AppDependencies {
     attachmentRepository: attachmentRepository,
   );
 
+  BotTokenUsageViewModel createBotTokenUsageViewModel(String botId) =>
+      BotTokenUsageViewModel(
+        botId: botId,
+        messageRepository: messageRepository,
+      );
+
   ProfileViewModel createProfileViewModel() => ProfileViewModel(
     profileRepository: profileRepository,
     attachmentRepository: attachmentRepository,
@@ -152,4 +160,11 @@ class AppDependencies {
     attachmentRepository: attachmentRepository,
     generationRegistry: generationRegistry,
   );
+
+  ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>
+      ChatTokenUsageViewModel(
+        chatId: chatId,
+        messageRepository: messageRepository,
+        chatRepository: chatRepository,
+      );
 }

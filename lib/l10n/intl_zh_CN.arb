@@ -778,5 +778,14 @@
         "placeholders": {
             "error": {"type": "String"}
         }
-    }
+    },
+    "tokenUsage": "Token 用量",
+    "inputTokens": "输入 Token",
+    "outputTokens": "输出 Token",
+    "totalTokens": "Token 总量",
+    "noTokenUsageRecorded": "暂无 Token 用量记录",
+    "dailyTokenUsage": "每日用量",
+    "hourlyTokenUsage": "小时用量",
+    "backToDailyUsage": "返回每日用量",
+    "clickDayForHourlyUsage": "选择一天查看小时用量"
 }

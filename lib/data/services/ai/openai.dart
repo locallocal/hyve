@@ -142,7 +142,7 @@ class OpenAI extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -183,6 +183,7 @@ class OpenAI extends Provider {
               'messages': processMessagesWithImages(messages),
               'response_format': {'type': 'text'},
               'stream': true,
+              'stream_options': {'include_usage': true},
             });
 
       final streamedResponse = await request.send();
@@ -210,7 +211,7 @@ class OpenAI extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             onResponse(delta);
           } catch (e) {
@@ -219,7 +220,7 @@ class OpenAI extends Provider {
         }
       }
       if (responseContent.contains('error')) {
-        final errorData = jsonDecode(responseContent);
+        final errorData = decodeProviderResponse(responseContent);
         final errorMessage = errorData['error']['message'];
         final errorCode = errorData['error']['code'];
         final errorType = errorData['error']['type'];
@@ -291,7 +292,7 @@ class OpenAI extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

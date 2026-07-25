@@ -134,7 +134,7 @@ class VolcanoEngine extends Provider {
       await for (final line in stream) {
         if (isCancelled) break;
         if (line.contains('error')) {
-          final data = jsonDecode(line);
+          final data = decodeProviderResponse(line);
           if (data['error'] != null && onError != null) {
             throw Exception(
               'Code: ${data['error']['code']}, Message: ${data['error']['message']}',
@@ -152,7 +152,7 @@ class VolcanoEngine extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (deepThinking &&
                 data['choices'][0]['delta'].containsKey('reasoning_content')) {
               final reasoning =
@@ -240,7 +240,7 @@ class VolcanoEngine extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
 
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
@@ -353,7 +353,7 @@ class VolcanoEngine extends Provider {
       );
     }
     final responseBytes = await response.stream.toBytes();
-    final data = jsonDecode(utf8.decode(responseBytes));
+    final data = decodeProviderResponse(utf8.decode(responseBytes));
 
     final videoUrl = await _waitVideoFinished(data['id']);
     return await _downloadVideo(videoUrl, outputDirPath);
@@ -373,7 +373,7 @@ class VolcanoEngine extends Provider {
           'content-type': 'application/json',
         },
       );
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       if (data['status'] == 'succeeded') {
         return data['content']['video_url'];
       }

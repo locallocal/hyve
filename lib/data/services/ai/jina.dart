@@ -83,7 +83,7 @@ class Jina extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data.containsKey('choices') &&
                 data['choices'].isNotEmpty &&
                 data['choices'][0].containsKey('delta')) {

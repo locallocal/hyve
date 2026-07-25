@@ -63,7 +63,7 @@ class InfiniAI extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -126,7 +126,7 @@ class InfiniAI extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             if (delta == '<think>') {
               stage = 'thinking';

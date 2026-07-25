@@ -49,7 +49,7 @@ class Moonshot extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -116,7 +116,7 @@ class Moonshot extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (deepThinking) {
               // 处理深度思考的情况
               final reasonContent =
@@ -134,7 +134,7 @@ class Moonshot extends Provider {
         }
       }
       if (responseContent.contains('error')) {
-        final errorData = jsonDecode(responseContent);
+        final errorData = decodeProviderResponse(responseContent);
         final errorMessage = errorData['error']['message'];
         final errorCode = errorData['error']['code'];
         final errorType = errorData['error']['type'];

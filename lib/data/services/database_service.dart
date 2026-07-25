@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 4;
+  static const int databaseVersion = 6;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -85,6 +85,10 @@ class DatabaseService {
             audio TEXT,
             music TEXT,
             video TEXT,
+            token_model TEXT NOT NULL DEFAULT '',
+            input_token_count INTEGER NOT NULL DEFAULT 0,
+            output_token_count INTEGER NOT NULL DEFAULT 0,
+            total_token_count INTEGER NOT NULL DEFAULT 0,
             terminal_state TEXT NOT NULL DEFAULT '',
             has_partial_content INTEGER NOT NULL DEFAULT 0,
             timestamp INTEGER
@@ -94,6 +98,8 @@ class DatabaseService {
       'CREATE UNIQUE INDEX messages_message_id_unique '
       'ON messages(message_id)',
     );
+    await db.execute('CREATE INDEX messages_bot_id_index ON messages(bot_id)');
+    await _createTokenUsageSchema(db);
 
     // 创建智能体表
     await db.execute('''
@@ -181,6 +187,91 @@ class DatabaseService {
         'INTEGER NOT NULL DEFAULT 1',
       );
     }
+    if (oldVersion < 5) {
+      await _addColumnIfMissing(
+        db,
+        'messages',
+        'token_model',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'messages',
+        'input_token_count',
+        'INTEGER NOT NULL DEFAULT 0',
+      );
+      await _addColumnIfMissing(
+        db,
+        'messages',
+        'output_token_count',
+        'INTEGER NOT NULL DEFAULT 0',
+      );
+      await _addColumnIfMissing(
+        db,
+        'messages',
+        'total_token_count',
+        'INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS messages_bot_id_index '
+        'ON messages(bot_id)',
+      );
+    }
+    if (oldVersion < 6) {
+      await _createTokenUsageSchema(db);
+      await db.execute('''
+        INSERT OR REPLACE INTO token_usage_records (
+          message_id,
+          chat_id,
+          bot_id,
+          token_model,
+          input_token_count,
+          output_token_count,
+          total_token_count,
+          timestamp
+        )
+        SELECT
+          message_id,
+          COALESCE(chat_id, ''),
+          COALESCE(bot_id, ''),
+          COALESCE(token_model, ''),
+          COALESCE(input_token_count, 0),
+          COALESCE(output_token_count, 0),
+          COALESCE(total_token_count, 0),
+          COALESCE(timestamp, 0)
+        FROM messages
+        WHERE message_id IS NOT NULL
+          AND message_id != ''
+          AND (
+            COALESCE(input_token_count, 0) > 0
+            OR COALESCE(output_token_count, 0) > 0
+            OR COALESCE(total_token_count, 0) > 0
+          )
+      ''');
+    }
+  }
+
+  static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS token_usage_records (
+        message_id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL DEFAULT '',
+        bot_id TEXT NOT NULL DEFAULT '',
+        token_model TEXT NOT NULL DEFAULT '',
+        input_token_count INTEGER NOT NULL DEFAULT 0,
+        output_token_count INTEGER NOT NULL DEFAULT 0,
+        total_token_count INTEGER NOT NULL DEFAULT 0,
+        timestamp INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS token_usage_records_chat_id_index '
+      'ON token_usage_records(chat_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS token_usage_records_bot_id_index '
+      'ON token_usage_records(bot_id)',
+    );
   }
 
   static Future<void> _addColumnIfMissing(

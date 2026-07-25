@@ -4,6 +4,7 @@ import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
+import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/domain/models/models.dart';
@@ -111,6 +112,106 @@ void main() {
       expect(changes, [updated]);
     },
   );
+
+  test('message repository aggregates persisted token usage by bot', () async {
+    final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    final timestamp = DateTime(2026, 7, 25);
+    await repository.upsertMessages([
+      Message(
+        messageId: 'assistant-1',
+        turnId: 'turn-1',
+        chatId: 'chat-1',
+        botId: 'bot-1',
+        senderId: 'bot-1',
+        content: 'First',
+        tokenUsage: const ModelTokenUsage(
+          model: 'model-a',
+          inputTokens: 100,
+          outputTokens: 40,
+          totalTokens: 140,
+        ),
+        timestamp: timestamp,
+      ),
+      Message(
+        messageId: 'assistant-2',
+        turnId: 'turn-2',
+        chatId: 'chat-2',
+        botId: 'bot-1',
+        senderId: 'bot-1',
+        content: 'Second',
+        tokenUsage: const ModelTokenUsage(
+          model: 'model-b',
+          inputTokens: 80,
+          outputTokens: 20,
+          totalTokens: 100,
+        ),
+        timestamp: timestamp,
+      ),
+      Message(
+        messageId: 'other-bot',
+        turnId: 'turn-3',
+        chatId: 'chat-3',
+        botId: 'bot-2',
+        senderId: 'bot-2',
+        content: 'Other',
+        tokenUsage: const ModelTokenUsage(
+          inputTokens: 1000,
+          outputTokens: 1000,
+          totalTokens: 2000,
+        ),
+        timestamp: timestamp,
+      ),
+    ]);
+
+    final usage = await repository.getTokenUsageForBot('bot-1');
+    expect(usage.inputTokens, 180);
+    expect(usage.outputTokens, 60);
+    expect(usage.effectiveTotalTokens, 240);
+
+    final persisted = await repository.getMessages('chat-1');
+    expect(persisted.single.tokenUsage.model, 'model-a');
+    expect(persisted.single.tokenUsage.effectiveTotalTokens, 140);
+  });
+
+  test('clearing chat content retains persisted token usage', () async {
+    final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    await repository.upsertMessage(
+      Message(
+        messageId: 'assistant-clear',
+        turnId: 'turn-clear',
+        chatId: 'chat-clear',
+        botId: 'bot-1',
+        senderId: 'bot-1',
+        content: 'Response to clear',
+        tokenUsage: const ModelTokenUsage(
+          model: 'model-a',
+          inputTokens: 90,
+          outputTokens: 30,
+          totalTokens: 120,
+        ),
+        timestamp: DateTime(2026, 7, 25, 10),
+      ),
+    );
+
+    await chatRepository.clearHistory('chat-clear');
+
+    expect(await repository.getMessages('chat-clear'), isEmpty);
+    final records = await repository.getTokenUsageRecordsForChat('chat-clear');
+    expect(records, hasLength(1));
+    expect(records.single.usage.effectiveTotalTokens, 120);
+    expect(
+      (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
+      120,
+    );
+
+    await localDatabase.deleteChat('chat-clear');
+
+    expect(await repository.getTokenUsageRecordsForChat('chat-clear'), isEmpty);
+    expect(
+      (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
+      0,
+    );
+  });
 }
 
 Bot _bot() => Bot(

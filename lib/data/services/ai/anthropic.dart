@@ -63,7 +63,7 @@ class Anthropic extends Provider {
         'List Models Failed: ${response.statusCode} - ${response.body}',
       );
     }
-    final data = jsonDecode(utf8.decode(response.bodyBytes));
+    final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
     final models =
         (data['data'] as List).map((model) => model['id'] as String).toList();
     models.sort();
@@ -118,7 +118,7 @@ class Anthropic extends Provider {
           if (jsonStr == '[DONE]') return;
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data['type'] == 'content_block_delta') {
               final delta = data['delta'];
               if (delta['type'] == 'text_delta') {

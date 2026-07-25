@@ -15,6 +15,7 @@ abstract class AiProvider {
   StreamResponseCallback? onReasoningResponse;
   ToolCallCallback? onToolCall;
   CommandExecutionCallback? onCommandExecution;
+  TokenUsageCallback? onTokenUsage;
   ProviderCompleteCallback? onComplete;
   ProviderErrorCallback? onError;
   ProviderTerminalCallback? onTerminal;
@@ -43,6 +44,7 @@ abstract class AiProvider {
     StreamResponseCallback? onReasoningResponse,
     ToolCallCallback? onToolCall,
     CommandExecutionCallback? onCommandExecution,
+    TokenUsageCallback? onTokenUsage,
     ProviderCompleteCallback? onComplete,
     ProviderErrorCallback? onError,
     ProviderTerminalCallback? onTerminal,
@@ -51,6 +53,7 @@ abstract class AiProvider {
     this.onReasoningResponse = onReasoningResponse;
     this.onToolCall = onToolCall;
     this.onCommandExecution = onCommandExecution;
+    this.onTokenUsage = onTokenUsage;
     this.onTerminal = onTerminal;
     this.onComplete = () {
       final type =

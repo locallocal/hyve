@@ -44,7 +44,7 @@ class Fireworks extends Provider {
           .get(uri, headers: {'Authorization': 'Bearer ${bot.apiKey}'})
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['models'] as List)
                 .map((model) => model['name'] as String)
@@ -106,7 +106,7 @@ class Fireworks extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['message']['content'] ?? '';
             onResponse(delta);
           } catch (e) {

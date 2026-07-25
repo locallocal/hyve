@@ -42,7 +42,7 @@ class Cohere extends Provider {
       },
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models =
           (data['models'] as List)
               .map((model) => model['name'] as String)
@@ -101,7 +101,7 @@ class Cohere extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data['type' == 'message-start'] ||
                 data['type' == 'content-delta']) {
               final delta = data['delta']['message']['content']['text'] ?? '';

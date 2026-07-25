@@ -37,7 +37,7 @@ class ZeroOneAI extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -114,7 +114,7 @@ class ZeroOneAI extends Provider {
           }
 
           try {
-            final jsonData = jsonDecode(data);
+            final jsonData = decodeProviderResponse(data);
             final delta = jsonData['choices'][0]['delta'];
             if (delta.containsKey('content')) {
               final content = delta['content'];

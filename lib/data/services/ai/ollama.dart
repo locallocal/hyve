@@ -15,7 +15,7 @@ class Ollama extends Provider {
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models =
           (data['models'] as List)
               .map((model) => model['name'] as String)
@@ -64,7 +64,7 @@ class Ollama extends Provider {
         if (isCancelled) break;
 
         try {
-          final data = jsonDecode(line);
+          final data = decodeProviderResponse(line);
           if (data.containsKey('message')) {
             final content = data['message']['content'] ?? '';
             onResponse(content);

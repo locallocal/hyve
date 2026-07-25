@@ -69,7 +69,7 @@ class DeepInfra extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -131,7 +131,7 @@ class DeepInfra extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             onResponse(delta);
           } catch (e) {
@@ -203,7 +203,7 @@ class DeepInfra extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

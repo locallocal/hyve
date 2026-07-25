@@ -246,30 +246,25 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
           children: [
             widget.child,
             if (_canCopy)
-              SizedBox(
-                height: 26,
-                child: OverflowBox(
-                  alignment:
-                      widget.isCurrentUser
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                  minHeight: 44,
-                  maxHeight: 44,
-                  child: AnimatedOpacity(
-                    opacity: _showActions ? 1 : 0,
-                    duration:
-                        MediaQuery.disableAnimationsOf(context)
-                            ? Duration.zero
-                            : const Duration(milliseconds: 100),
-                    child: ExcludeFocus(
-                      excluding: !_showActions,
-                      child: IgnorePointer(
-                        ignoring: !_showActions,
-                        child: StarsDesktopIconAction(
-                          icon: LucideIcons.copy,
-                          label: copyLabel,
-                          onPressed: _copyMessage,
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: AnimatedOpacity(
+                  opacity: _showActions ? 1 : 0,
+                  duration:
+                      MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 100),
+                  child: ExcludeFocus(
+                    excluding: !_showActions,
+                    child: IgnorePointer(
+                      ignoring: !_showActions,
+                      child: StarsDesktopIconAction(
+                        key: const ValueKey<String>(
+                          'desktop-message-copy-action',
                         ),
+                        icon: LucideIcons.copy,
+                        label: copyLabel,
+                        onPressed: _copyMessage,
                       ),
                     ),
                   ),

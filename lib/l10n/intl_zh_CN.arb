@@ -787,5 +787,6 @@
     "dailyTokenUsage": "每日用量",
     "hourlyTokenUsage": "小时用量",
     "backToDailyUsage": "返回每日用量",
-    "clickDayForHourlyUsage": "选择一天查看小时用量"
+    "clickDayForHourlyUsage": "选择一天查看小时用量",
+    "enterDisplayName": "请输入展示名称"
 }

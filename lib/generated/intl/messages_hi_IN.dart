@@ -88,7 +88,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("बॉट का नाम"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("रद्द करें"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("अवतार बदलें"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
+      "चैट निष्पादन स्थिति",
+    ),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "चैट इतिहास मिटा दिया गया",
     ),
@@ -125,6 +129,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("हटाएं"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("बॉट हटाएं"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("चैट हटाएं"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "ऐप के बारे में और कानूनी जानकारी",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "दिखावट और भाषा",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "अपना अवतार और प्रदर्शन नाम बदलें।",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("सामान्य"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage(
+      "सहायता और समर्थन",
+    ),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage(
+      "व्यक्तिगत जानकारी",
+    ),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "बदलाव तुरंत लागू होते हैं और स्थानीय रूप से सहेजे जाते हैं।",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -138,6 +164,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterBotName": MessageLookupByLibrary.simpleMessage(
       "बॉट का नाम दर्ज करें...",
+    ),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage(
+      "प्रदर्शन नाम दर्ज करें",
     ),
     "enterNewName": MessageLookupByLibrary.simpleMessage(
       "कृपया नया नाम दर्ज करें",
@@ -246,6 +275,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "रोक दिया गया · आंशिक उत्तर रखा गया",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage(
+      "डिफ़ॉल्ट पर रीसेट करें",
+    ),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
@@ -256,6 +288,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("थीम चुनें"),
     "send": MessageLookupByLibrary.simpleMessage("भेजें"),
     "settings": MessageLookupByLibrary.simpleMessage("सेटिंग्स"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "बातचीत के संदेशों में निष्पादन विवरण दिखाएँ।",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "चैट शुरू करने के लिए नीचे इनपुट फील्ड में संदेश भेजें",
     ),

@@ -787,5 +787,6 @@
     "dailyTokenUsage": "Daily usage",
     "hourlyTokenUsage": "Hourly usage",
     "backToDailyUsage": "Back to daily usage",
-    "clickDayForHourlyUsage": "Select a day to view hourly usage"
+    "clickDayForHourlyUsage": "Select a day to view hourly usage",
+    "enterDisplayName": "Enter a display name"
 }

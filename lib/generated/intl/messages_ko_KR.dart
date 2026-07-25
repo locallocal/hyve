@@ -84,7 +84,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("봇 이름"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("취소"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("아바타 변경"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("채팅 실행 상태"),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage("채팅 기록이 지워졌습니다"),
     "chats": MessageLookupByLibrary.simpleMessage("채팅"),
     "clear": MessageLookupByLibrary.simpleMessage("지우기"),
@@ -113,6 +115,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("삭제"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("봇 삭제"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("채팅 삭제"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "앱 정보 및 법적 고지",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "모양 및 언어",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "아바타와 표시 이름을 변경합니다.",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("일반"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage("도움말 및 지원"),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage("개인 정보"),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "변경 사항은 즉시 적용되며 로컬에 저장됩니다.",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "프로필, 모양, 언어 및 앱 지원을 관리합니다.",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("봇 편집"),
     "editName": MessageLookupByLibrary.simpleMessage("이름 수정"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -121,6 +141,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterApiAddress": MessageLookupByLibrary.simpleMessage("API 주소 입력..."),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("API 키 입력..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("봇 이름 입력..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage("표시 이름을 입력하세요"),
     "enterNewName": MessageLookupByLibrary.simpleMessage("새 이름을 입력하세요"),
     "enterProviderName": MessageLookupByLibrary.simpleMessage("제공업체 이름 입력..."),
     "enterSystemPrompt": MessageLookupByLibrary.simpleMessage("시스템 프롬프트 입력..."),
@@ -200,6 +221,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "중지됨 · 부분 응답 유지",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage("기본값으로 재설정"),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("저장"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("변경사항 저장"),
@@ -210,6 +232,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("테마 선택"),
     "send": MessageLookupByLibrary.simpleMessage("보내기"),
     "settings": MessageLookupByLibrary.simpleMessage("설정"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "대화 메시지에 실행 세부 정보를 표시합니다.",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "채팅을 시작하려면 아래 입력 필드에 메시지를 보내세요",
     ),

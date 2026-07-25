@@ -532,5 +532,18 @@
     "outputTokens": "출력 토큰",
     "uploadImage": "이미지 업로드",
     "uploadFile": "파일 업로드",
-    "deepThinking": "심층 사고"
+    "deepThinking": "심층 사고",
+    "desktopPersonalInformation": "개인 정보",
+    "desktopAppearanceAndLanguage": "모양 및 언어",
+    "desktopGeneral": "일반",
+    "desktopHelpAndSupport": "도움말 및 지원",
+    "desktopAboutAndLegal": "앱 정보 및 법적 고지",
+    "desktopSettingsDescription": "프로필, 모양, 언어 및 앱 지원을 관리합니다.",
+    "desktopEditProfileDescription": "아바타와 표시 이름을 변경합니다.",
+    "desktopSavedImmediatelyDescription": "변경 사항은 즉시 적용되며 로컬에 저장됩니다.",
+    "chatExecutionStatus": "채팅 실행 상태",
+    "showExecutionStatusDescription": "대화 메시지에 실행 세부 정보를 표시합니다.",
+    "changeAvatar": "아바타 변경",
+    "resetToDefault": "기본값으로 재설정",
+    "enterDisplayName": "표시 이름을 입력하세요"
 }

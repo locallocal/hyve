@@ -532,5 +532,18 @@
     "outputTokens": "Ausgabe-Token",
     "uploadImage": "Bild hochladen",
     "uploadFile": "Datei hochladen",
-    "deepThinking": "Tiefes Denken"
+    "deepThinking": "Tiefes Denken",
+    "desktopPersonalInformation": "Persönliche Informationen",
+    "desktopAppearanceAndLanguage": "Erscheinungsbild und Sprache",
+    "desktopGeneral": "Allgemein",
+    "desktopHelpAndSupport": "Hilfe und Support",
+    "desktopAboutAndLegal": "Info und Rechtliches",
+    "desktopSettingsDescription": "Verwalte dein Profil, das Erscheinungsbild, die Sprache und den App-Support.",
+    "desktopEditProfileDescription": "Ändere deinen Avatar und Anzeigenamen.",
+    "desktopSavedImmediatelyDescription": "Änderungen werden sofort wirksam und lokal gespeichert.",
+    "chatExecutionStatus": "Ausführungsstatus des Chats",
+    "showExecutionStatusDescription": "Ausführungsdetails in Unterhaltungsnachrichten anzeigen.",
+    "changeAvatar": "Avatar ändern",
+    "resetToDefault": "Auf Standard zurücksetzen",
+    "enterDisplayName": "Anzeigenamen eingeben"
 }

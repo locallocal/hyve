@@ -2435,6 +2435,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Enter a display name`
+  String get enterDisplayName {
+    return Intl.message(
+      'Enter a display name',
+      name: 'enterDisplayName',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

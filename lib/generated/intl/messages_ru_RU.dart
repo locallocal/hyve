@@ -90,7 +90,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("Имя бота"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Отмена"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("Изменить аватар"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
+      "Статус выполнения чата",
+    ),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "История чата очищена",
     ),
@@ -131,6 +135,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Удалить"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Удалить бота"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Удалить чат"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "О приложении и правовая информация",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "Внешний вид и язык",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "Измените аватар и отображаемое имя.",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("Общие"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage(
+      "Помощь и поддержка",
+    ),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage(
+      "Личная информация",
+    ),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "Изменения применяются сразу и сохраняются локально.",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("Редактировать бота"),
     "editName": MessageLookupByLibrary.simpleMessage("Изменить имя"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -141,6 +167,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("Введите ключ API..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("Введите имя бота..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Введите отображаемое имя",
+    ),
     "enterNewName": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите новое имя",
     ),
@@ -260,6 +289,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "Остановлено · Частичный ответ сохранён",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage(
+      "Восстановить значения по умолчанию",
+    ),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения"),
@@ -272,6 +304,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("Выбрать тему"),
     "send": MessageLookupByLibrary.simpleMessage("Отправить"),
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "Показывать сведения о выполнении в сообщениях беседы.",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Отправьте сообщение в поле ввода ниже, чтобы начать чат",
     ),

@@ -436,6 +436,73 @@ enum MessageTerminalOutcome {
   }
 }
 
+/// Immutable token accounting for one model response or an aggregate.
+///
+/// Providers do not all return a total, so [effectiveTotalTokens] falls back
+/// to the input/output sum. [model] is populated for per-response records and
+/// intentionally left empty for aggregates that may span multiple models.
+class ModelTokenUsage {
+  const ModelTokenUsage({
+    this.model = '',
+    this.inputTokens = 0,
+    this.outputTokens = 0,
+    this.totalTokens = 0,
+  });
+
+  static const empty = ModelTokenUsage();
+
+  final String model;
+  final int inputTokens;
+  final int outputTokens;
+  final int totalTokens;
+
+  int get effectiveTotalTokens =>
+      totalTokens > 0 ? totalTokens : inputTokens + outputTokens;
+
+  bool get hasData => inputTokens > 0 || outputTokens > 0 || totalTokens > 0;
+
+  ModelTokenUsage merge(ModelTokenUsage newer) {
+    return ModelTokenUsage(
+      model: newer.model.isNotEmpty ? newer.model : model,
+      inputTokens: newer.inputTokens > 0 ? newer.inputTokens : inputTokens,
+      outputTokens: newer.outputTokens > 0 ? newer.outputTokens : outputTokens,
+      totalTokens: newer.totalTokens > 0 ? newer.totalTokens : totalTokens,
+    );
+  }
+
+  ModelTokenUsage operator +(ModelTokenUsage other) {
+    return ModelTokenUsage(
+      inputTokens: inputTokens + other.inputTokens,
+      outputTokens: outputTokens + other.outputTokens,
+      totalTokens: effectiveTotalTokens + other.effectiveTotalTokens,
+    );
+  }
+
+  static ModelTokenUsage sum(Iterable<ModelTokenUsage> usages) {
+    return usages.fold(empty, (total, usage) => total + usage);
+  }
+}
+
+/// Immutable accounting record for one model response.
+///
+/// The record is stored independently from message content so clearing a
+/// conversation does not erase historical usage.
+class ModelTokenUsageRecord {
+  const ModelTokenUsageRecord({
+    required this.messageId,
+    required this.chatId,
+    required this.botId,
+    required this.timestamp,
+    required this.usage,
+  });
+
+  final String messageId;
+  final String chatId;
+  final String botId;
+  final DateTime timestamp;
+  final ModelTokenUsage usage;
+}
+
 class Message {
   final String messageId;
   final String turnId;
@@ -451,6 +518,7 @@ class Message {
   final String audio;
   final String music;
   final String video;
+  final ModelTokenUsage tokenUsage;
   final MessageTerminalOutcome? terminalOutcome;
   final bool hasPartialContent;
   final DateTime timestamp;
@@ -470,6 +538,7 @@ class Message {
     this.audio = '',
     this.music = '',
     this.video = '',
+    this.tokenUsage = ModelTokenUsage.empty,
     this.terminalOutcome,
     this.hasPartialContent = false,
     required this.timestamp,
@@ -521,6 +590,12 @@ class Message {
       audio: (map['audio'] ?? '') as String,
       music: (map['music'] ?? '') as String,
       video: (map['video'] ?? '') as String,
+      tokenUsage: ModelTokenUsage(
+        model: (map['token_model'] ?? '').toString(),
+        inputTokens: _storageInt(map['input_token_count']),
+        outputTokens: _storageInt(map['output_token_count']),
+        totalTokens: _storageInt(map['total_token_count']),
+      ),
       terminalOutcome: MessageTerminalOutcome.fromStorage(
         map['terminal_state'],
       ),
@@ -548,6 +623,7 @@ class Message {
     String? audio,
     String? music,
     String? video,
+    ModelTokenUsage? tokenUsage,
     MessageTerminalOutcome? terminalOutcome,
     bool clearTerminalOutcome = false,
     bool? hasPartialContent,
@@ -568,6 +644,7 @@ class Message {
       audio: audio ?? this.audio,
       music: music ?? this.music,
       video: video ?? this.video,
+      tokenUsage: tokenUsage ?? this.tokenUsage,
       terminalOutcome:
           clearTerminalOutcome ? null : terminalOutcome ?? this.terminalOutcome,
       hasPartialContent: hasPartialContent ?? this.hasPartialContent,
@@ -591,11 +668,23 @@ class Message {
       'audio': audio,
       'music': music,
       'video': video,
+      'token_model': tokenUsage.model,
+      'input_token_count': tokenUsage.inputTokens,
+      'output_token_count': tokenUsage.outputTokens,
+      'total_token_count': tokenUsage.effectiveTotalTokens,
       'terminal_state': terminalOutcome?.name ?? '',
       'has_partial_content': hasPartialContent ? 1 : 0,
       'timestamp': timestamp.millisecondsSinceEpoch,
     };
   }
+}
+
+int _storageInt(Object? value) {
+  return switch (value) {
+    final int number => number,
+    final num number => number.toInt(),
+    _ => int.tryParse(value?.toString() ?? '') ?? 0,
+  };
 }
 
 // 聊天信息

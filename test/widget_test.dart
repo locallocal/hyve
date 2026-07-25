@@ -1299,8 +1299,16 @@ void main() {
     final modelSection = find.byKey(
       const ValueKey<String>('desktop-bot-model-section'),
     );
-    expect(find.byType(ShadCard), findsNWidgets(3));
-    for (final section in [basicSection, providerSection, modelSection]) {
+    final tokenUsageSection = find.byKey(
+      const ValueKey<String>('desktop-bot-token-usage-section'),
+    );
+    expect(find.byType(ShadCard), findsNWidgets(4));
+    for (final section in [
+      basicSection,
+      providerSection,
+      modelSection,
+      tokenUsageSection,
+    ]) {
       expect(section, findsOneWidget);
       expect(
         tester.getSize(section).width,
@@ -1312,6 +1320,7 @@ void main() {
       (basicSection, '基本信息'),
       (providerSection, '提供商信息'),
       (modelSection, '模型配置'),
+      (tokenUsageSection, 'Token 用量'),
     ]) {
       final titleText = tester.widget<Text>(
         find.descendant(of: section, matching: find.text(title)),
@@ -1321,6 +1330,13 @@ void main() {
         DesktopThemeTokens.botFormSectionTitleFontSize,
       );
     }
+    expect(
+      find.descendant(
+        of: tokenUsageSection,
+        matching: find.byIcon(Icons.data_usage_rounded),
+      ),
+      findsOneWidget,
+    );
     expect(
       tester.getRect(basicSection).bottom,
       lessThan(tester.getRect(providerSection).top),

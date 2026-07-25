@@ -113,7 +113,7 @@ class PPIO extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             if (delta == '<think>') {
               stage = 'thinking';

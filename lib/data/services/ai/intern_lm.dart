@@ -49,7 +49,7 @@ class InternLM extends Provider {
       },
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models =
           (data['data'] as List).map((model) => model['id'] as String).toList();
       return models;
@@ -108,7 +108,7 @@ class InternLM extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data.containsKey('choices') &&
                 data['choices'].isNotEmpty &&
                 data['choices'][0].containsKey('delta')) {

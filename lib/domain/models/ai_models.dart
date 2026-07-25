@@ -19,6 +19,7 @@ typedef StreamResponseCallback = void Function(String text);
 typedef ToolCallCallback = void Function(MessageToolCall toolCall);
 typedef CommandExecutionCallback =
     void Function(MessageCommandExecution commandExecution);
+typedef TokenUsageCallback = void Function(ModelTokenUsage usage);
 typedef ProviderCompleteCallback = void Function();
 typedef ProviderErrorCallback = void Function(String error);
 

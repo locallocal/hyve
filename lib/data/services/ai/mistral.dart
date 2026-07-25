@@ -50,7 +50,7 @@ class Mistral extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -126,7 +126,7 @@ class Mistral extends Provider {
           if (line.startsWith('data: ')) {
             final jsonData = line.substring(6);
             try {
-              final data = jsonDecode(jsonData);
+              final data = decodeProviderResponse(jsonData);
               final choices = data['choices'] as List;
               if (choices.isNotEmpty) {
                 final delta = choices[0]['delta'];
@@ -153,7 +153,7 @@ class Mistral extends Provider {
           return errorMessage;
         }
 
-        final data = jsonDecode(response.body);
+        final data = decodeProviderResponse(response.body);
         final content = data['choices'][0]['message']['content'] as String;
         return content;
       }
@@ -166,7 +166,7 @@ class Mistral extends Provider {
 
   String _extractErrorMessage(String responseBody) {
     try {
-      final data = jsonDecode(responseBody);
+      final data = decodeProviderResponse(responseBody);
       if (data.containsKey('error')) {
         return data['error']['message'] ?? 'Unknown error';
       }

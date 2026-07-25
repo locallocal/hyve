@@ -135,7 +135,7 @@ class Stability extends Provider {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
+        final responseData = decodeProviderResponse(response.body);
         final List<String> generatedImagePaths = [];
 
         // 检查响应数据中是否包含图像

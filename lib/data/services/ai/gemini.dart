@@ -75,7 +75,7 @@ class Gemini extends Provider {
         .get(Uri.parse(url), headers: {'Content-Type': 'application/json'})
         .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models =
           (data['models'] as List)
               .map((model) => model['name'] as String)
@@ -211,7 +211,7 @@ class Gemini extends Provider {
   }
 
   String _processResponse(http.Response response) {
-    final data = jsonDecode(utf8.decode(response.bodyBytes));
+    final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
     if (data['candidates'] != null && data['candidates'].isEmpty) {
       throw Exception('No response content found');
     }

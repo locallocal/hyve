@@ -84,7 +84,7 @@ class BaiChuan extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             onResponse(delta);
           } catch (e) {
@@ -92,7 +92,7 @@ class BaiChuan extends Provider {
           }
         } else if (line.isNotEmpty) {
           try {
-            final data = jsonDecode(line);
+            final data = decodeProviderResponse(line);
             if (data['error'] != null && onError != null) {
               onError!(
                 'Code: ${data['error']['code']}, Message: ${data['error']['message']}',

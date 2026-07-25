@@ -507,5 +507,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Wait for generation to finish.",
     ),
     "webSearch": MessageLookupByLibrary.simpleMessage("Web Search"),
+    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("Input tokens"),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("Output tokens"),
+    "totalTokens": MessageLookupByLibrary.simpleMessage("Total tokens"),
+    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
+      "No token usage recorded",
+    ),
+    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
+    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
+    "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
+      "Back to daily usage",
+    ),
+    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
+      "Select a day to view hourly usage",
+    ),
   };
 }

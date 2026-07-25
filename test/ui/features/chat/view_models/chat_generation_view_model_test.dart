@@ -41,6 +41,42 @@ void main() {
       expect(harness.lastMessages, <String>['Hello', 'answer']);
     });
 
+    test(
+      'provider token usage is attached once to the terminal message',
+      () async {
+        final harness = _ControllerHarness(cancellable: true);
+        final controller = harness.controller;
+        addTearDown(controller.dispose);
+
+        await controller.startText(
+          userMessage: _userMessage(),
+          messages: <ChatMessage>[ChatMessage(role: 'user', content: 'Hello')],
+        );
+        final provider = harness.runProvider;
+        provider.emitUsage(
+          const ModelTokenUsage(
+            model: 'test-model',
+            inputTokens: 120,
+            outputTokens: 30,
+            totalTokens: 150,
+          ),
+        );
+        provider.emitToken('answer');
+        provider.emitTerminal(ProviderTerminalType.completed);
+        await _waitFor(
+          () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+        );
+
+        final assistantMessages = harness.persisted.where(
+          (message) => message.senderId == _bot.id,
+        );
+        expect(assistantMessages, hasLength(1));
+        expect(assistantMessages.single.tokenUsage.inputTokens, 120);
+        expect(assistantMessages.single.tokenUsage.outputTokens, 30);
+        expect(assistantMessages.single.tokenUsage.effectiveTotalTokens, 150);
+      },
+    );
+
     test('cancellation persists partial content as cancelled', () async {
       final harness = _ControllerHarness(cancellable: true);
       final controller = harness.controller;
@@ -329,6 +365,8 @@ class _FakeProvider extends AiProvider {
   }
 
   void emitToken(String token) => onResponse(token);
+
+  void emitUsage(ModelTokenUsage usage) => onTokenUsage?.call(usage);
 
   void emitTerminal(ProviderTerminalType type) {
     onTerminal?.call(ProviderTerminalEvent(type: type));

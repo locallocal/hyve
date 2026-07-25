@@ -1,0 +1,284 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
+import 'package:stars/utils/theme.dart';
+
+void main() {
+  testWidgets('selecting a day drills into hours and back restores days', (
+    tester,
+  ) async {
+    final viewModel = ChatTokenUsageViewModel(
+      chatId: 'chat-1',
+      messageRepository: _FakeMessageRepository([
+        _message(DateTime(2026, 7, 24, 10), 120, 30),
+        _message(DateTime(2026, 7, 24, 15), 40, 10),
+        _message(DateTime(2026, 7, 25, 8), 80, 20),
+      ]),
+      chatRepository: _FakeChatRepository(),
+      now: () => DateTime(2026, 7, 25, 8, 30),
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    await tester.pumpWidget(_Harness(viewModel: viewModel));
+    await tester.pumpAndSettle();
+
+    final summary = find.byKey(
+      const ValueKey<String>('inspector-token-usage-summary'),
+    );
+    final totalMetric = find.byKey(
+      const ValueKey<String>('inspector-token-usage-total'),
+    );
+    final inputMetric = find.byKey(
+      const ValueKey<String>('inspector-token-usage-input'),
+    );
+    final outputMetric = find.byKey(
+      const ValueKey<String>('inspector-token-usage-output'),
+    );
+    final totalRect = tester.getRect(totalMetric);
+    final inputRect = tester.getRect(inputMetric);
+    final outputRect = tester.getRect(outputMetric);
+
+    expect(summary, findsOneWidget);
+    expect(
+      find.descendant(of: summary, matching: find.byType(DecoratedBox)),
+      findsNothing,
+    );
+    expect(totalRect.left, closeTo(inputRect.left, 0.01));
+    expect(totalRect.left, closeTo(outputRect.left, 0.01));
+    expect(totalRect.width, closeTo(inputRect.width, 0.01));
+    expect(totalRect.width, closeTo(outputRect.width, 0.01));
+    expect(inputRect.top, greaterThan(totalRect.top));
+    expect(outputRect.top, greaterThan(inputRect.top));
+
+    final totalLabel = tester.widget<Text>(find.text('Token 总量'));
+    final inputLabel = tester.widget<Text>(find.text('输入 Token'));
+    final outputLabel = tester.widget<Text>(find.text('输出 Token'));
+    expect(totalLabel.style, inputLabel.style);
+    expect(totalLabel.style, outputLabel.style);
+    expect(
+      totalLabel.style?.fontSize,
+      Theme.of(
+        tester.element(find.text('Token 总量')),
+      ).textTheme.bodyMedium?.fontSize,
+    );
+
+    final tokenUsageTitleFinder = find.byKey(
+      const ValueKey<String>('token-usage-section-title'),
+    );
+    final dailyUsageTitleFinder = find.byKey(
+      const ValueKey<String>('token-usage-granularity-title'),
+    );
+    final sectionDividerFinder = find.byKey(
+      const ValueKey<String>('token-usage-section-divider'),
+    );
+    final drilldownHintFinder = find.byKey(
+      const ValueKey<String>('token-usage-drilldown-hint'),
+    );
+    final tokenUsageTitle = tester.widget<Text>(tokenUsageTitleFinder);
+    final dailyUsageTitle = tester.widget<Text>(dailyUsageTitleFinder);
+    final drilldownHint = tester.widget<Text>(drilldownHintFinder);
+    expect(find.byIcon(Icons.query_stats_rounded), findsNothing);
+    expect(sectionDividerFinder, findsOneWidget);
+    expect(
+      tokenUsageTitle.style,
+      DesktopThemeTokens.sectionTitleStyle(
+        tester.element(tokenUsageTitleFinder),
+      ),
+    );
+    expect(dailyUsageTitle.style, tokenUsageTitle.style);
+    expect(
+      tester.getTopLeft(dailyUsageTitleFinder).dx,
+      closeTo(tester.getTopLeft(tokenUsageTitleFinder).dx, 0.01),
+    );
+    expect(
+      tester.getCenter(sectionDividerFinder).dy,
+      allOf(
+        greaterThan(tester.getBottomLeft(summary).dy),
+        lessThan(tester.getTopLeft(dailyUsageTitleFinder).dy),
+      ),
+    );
+    expect(
+      drilldownHint.style,
+      DesktopThemeTokens.metaStyle(tester.element(drilldownHintFinder)),
+    );
+    expect(
+      tester.getTopLeft(drilldownHintFinder).dx,
+      closeTo(tester.getTopLeft(dailyUsageTitleFinder).dx, 0.01),
+    );
+
+    expect(find.text('每日用量'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-back-to-daily')),
+      findsNothing,
+    );
+    final firstDailyBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-day-2026-07-24'),
+    );
+    expect(firstDailyBar, findsOneWidget);
+    expect(
+      tester.getSize(firstDailyBar).width,
+      greaterThan(tester.getSize(firstDailyBar).height),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-24')),
+    );
+    await tester.pump();
+
+    expect(find.text('小时用量'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-10')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-23')),
+      findsOneWidget,
+    );
+    final firstHourlyBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-hour-10'),
+    );
+    expect(firstHourlyBar, findsOneWidget);
+    expect(
+      tester.getSize(firstHourlyBar).width,
+      greaterThan(tester.getSize(firstHourlyBar).height),
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-back-to-daily')),
+      findsOneWidget,
+    );
+    final hourlyHeader = find.byKey(
+      const ValueKey<String>('token-usage-granularity-header'),
+    );
+    final backButton = find.byKey(
+      const ValueKey<String>('token-usage-back-to-daily'),
+    );
+    expect(
+      find.descendant(of: hourlyHeader, matching: backButton),
+      findsOneWidget,
+    );
+    expect(
+      tester.getCenter(backButton).dx,
+      greaterThan(tester.getCenter(dailyUsageTitleFinder).dx),
+    );
+
+    await tester.tap(backButton);
+    await tester.pump();
+
+    expect(find.text('每日用量'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-25')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-25')),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-8')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-9')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-23')),
+      findsNothing,
+    );
+  });
+}
+
+Message _message(DateTime timestamp, int input, int output) {
+  return Message(
+    messageId: 'message-${timestamp.microsecondsSinceEpoch}',
+    turnId: 'turn-${timestamp.microsecondsSinceEpoch}',
+    chatId: 'chat-1',
+    botId: 'bot-1',
+    senderId: 'bot-1',
+    content: 'response',
+    tokenUsage: ModelTokenUsage(
+      inputTokens: input,
+      outputTokens: output,
+      totalTokens: input + output,
+    ),
+    timestamp: timestamp,
+  );
+}
+
+class _Harness extends StatelessWidget {
+  const _Harness({required this.viewModel});
+
+  final ChatTokenUsageViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      locale: const Locale('zh', 'CN'),
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
+      home: Scaffold(
+        body: SizedBox(
+          width: 320,
+          child: SingleChildScrollView(
+            child: ConversationTokenUsagePanel(viewModel: viewModel),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FakeMessageRepository implements MessageRepository {
+  _FakeMessageRepository(this.messages);
+
+  final List<Message> messages;
+
+  @override
+  Stream<void> get changes => const Stream<void>.empty();
+
+  @override
+  Future<List<Message>> getMessages(String chatId) async => messages;
+
+  @override
+  Future<List<ModelTokenUsageRecord>> getTokenUsageRecordsForChat(
+    String chatId,
+  ) async {
+    return [
+      for (final message in messages)
+        ModelTokenUsageRecord(
+          messageId: message.messageId,
+          chatId: message.chatId,
+          botId: message.botId,
+          timestamp: message.timestamp,
+          usage: message.tokenUsage,
+        ),
+    ];
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeChatRepository implements ChatRepository {
+  @override
+  Stream<List<Chat>> get changes => const Stream<List<Chat>>.empty();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

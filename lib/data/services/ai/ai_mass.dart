@@ -105,7 +105,7 @@ class AiMass extends Provider {
       await for (final line in stream) {
         // 检查错误范围
         if (line.contains('error')) {
-          final errorData = jsonDecode(line);
+          final errorData = decodeProviderResponse(line);
           final errorMessage = errorData['error']['message'];
           throw Exception('Send Message Failed: $errorMessage');
         }
@@ -123,7 +123,7 @@ class AiMass extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             var delta = data['choices'][0]['delta']['content'] ?? '';
             if (stage.isEmpty) {
               if (delta.contains('<think>')) {

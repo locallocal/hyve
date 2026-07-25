@@ -7,10 +7,13 @@ class AppScope extends InheritedWidget {
   final AppDependencies dependencies;
 
   static AppDependencies of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
+    final scope = maybeOf(context);
     assert(scope != null, 'No AppScope found above this context.');
-    return scope!.dependencies;
+    return scope!;
   }
+
+  static AppDependencies? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AppScope>()?.dependencies;
 
   @override
   bool updateShouldNotify(AppScope oldWidget) =>

@@ -142,7 +142,7 @@ class AlibabaCloud extends Provider {
       },
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models =
           (data['data'] as List).map((model) => model['id'] as String).toList();
       if (!models.contains('wanx2.1-t2i-turbo')) {
@@ -197,7 +197,7 @@ class AlibabaCloud extends Provider {
       await for (final line in stream) {
         if (isCancelled) break;
         if (line.contains('error')) {
-          final data = jsonDecode(line);
+          final data = decodeProviderResponse(line);
           if (data['error'] != null && onError != null) {
             throw Exception(
               'Code: ${data['error']['code']}, Message: ${data['error']['message']}',
@@ -215,7 +215,7 @@ class AlibabaCloud extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data['choices'][0]['delta'].containsKey('reasoning_content')) {
               final reasoning =
                   data['choices'][0]['delta']['reasoning_content'] ?? '';
@@ -296,7 +296,7 @@ class AlibabaCloud extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final pollingId = data['output']['task_id'];
         final pollingUrl =
             'https://dashscope.aliyuncs.com/api/v1/tasks/$pollingId';
@@ -314,7 +314,7 @@ class AlibabaCloud extends Provider {
           );
 
           if (resultResponse.statusCode == 200) {
-            final resultData = jsonDecode(
+            final resultData = decodeProviderResponse(
               utf8.decode(resultResponse.bodyBytes),
             );
             final status = resultData['output']['task_status'];

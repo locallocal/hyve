@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:stars/domain/models/ai_models.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 
 export 'package:stars/domain/models/ai_models.dart';
@@ -13,6 +14,109 @@ extension ChatMessageJson on ChatMessage {
 /// Shared implementation helpers for vendor-specific AI service adapters.
 abstract class Provider extends AiProvider {
   Provider(super.bot);
+
+  ModelTokenUsage _capturedTokenUsage = ModelTokenUsage.empty;
+
+  /// Decodes a provider response and extracts token usage when the response
+  /// exposes one of the common OpenAI, Anthropic, Gemini, or Ollama shapes.
+  dynamic decodeProviderResponse(String source) {
+    final decoded = jsonDecode(source);
+    _captureTokenUsage(decoded);
+    return decoded;
+  }
+
+  @override
+  void resetCancelState() {
+    _capturedTokenUsage = ModelTokenUsage.empty;
+    super.resetCancelState();
+  }
+
+  void _captureTokenUsage(Object? payload) {
+    final usage = _findTokenUsage(payload);
+    if (usage == null || !usage.hasData) return;
+    _capturedTokenUsage = _capturedTokenUsage.merge(usage);
+    onTokenUsage?.call(_capturedTokenUsage);
+  }
+
+  ModelTokenUsage? _findTokenUsage(Object? value) {
+    if (value is List) {
+      for (final item in value) {
+        final usage = _findTokenUsage(item);
+        if (usage != null) return usage;
+      }
+      return null;
+    }
+    if (value is! Map) return null;
+
+    final map = value.cast<Object?, Object?>();
+    final direct = _tokenUsageFromMap(map);
+    if (direct != null) return direct;
+
+    const preferredKeys = <String>[
+      'usage',
+      'usageMetadata',
+      'usage_metadata',
+      'token_usage',
+      'message',
+    ];
+    for (final key in preferredKeys) {
+      final usage = _findTokenUsage(map[key]);
+      if (usage != null) return usage;
+    }
+    for (final nested in map.values) {
+      final usage = _findTokenUsage(nested);
+      if (usage != null) return usage;
+    }
+    return null;
+  }
+
+  ModelTokenUsage? _tokenUsageFromMap(Map<Object?, Object?> map) {
+    final input = _firstCount(map, const <String>[
+      'input_tokens',
+      'inputTokens',
+      'inputTokenCount',
+      'prompt_tokens',
+      'promptTokens',
+      'promptTokenCount',
+      'prompt_eval_count',
+    ]);
+    final output = _firstCount(map, const <String>[
+      'output_tokens',
+      'outputTokens',
+      'outputTokenCount',
+      'completion_tokens',
+      'completionTokens',
+      'completionTokenCount',
+      'candidatesTokenCount',
+      'eval_count',
+    ]);
+    final total = _firstCount(map, const <String>[
+      'total_tokens',
+      'totalTokens',
+      'totalTokenCount',
+    ]);
+    if (input == null && output == null && total == null) return null;
+
+    return ModelTokenUsage(
+      model: bot.model,
+      inputTokens: input ?? 0,
+      outputTokens: output ?? 0,
+      totalTokens: total ?? 0,
+    );
+  }
+
+  int? _firstCount(Map<Object?, Object?> map, List<String> keys) {
+    for (final key in keys) {
+      final value = map[key];
+      final count = switch (value) {
+        final int count => count,
+        final num count => count.toInt(),
+        _ => int.tryParse(value?.toString() ?? ''),
+      };
+      if (count != null && count >= 0) return count;
+    }
+    return null;
+  }
 
   List<Map<String, dynamic>> processMessagesWithImages(
     List<ChatMessage> messages,

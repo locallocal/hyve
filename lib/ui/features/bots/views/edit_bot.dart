@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
+import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -46,6 +50,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _isDeleting = false;
   int _editRevision = 0;
   File? avatarImage;
+  BotTokenUsageViewModel? _tokenUsageViewModel;
 
   @override
   void initState() {
@@ -64,6 +69,22 @@ class _EditAIBotPageState extends State<EditBotPage> {
     if (widget.bot.avatar.isNotEmpty) {
       avatarImage = File(widget.bot.avatar);
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_tokenUsageViewModel != null) return;
+    final dependencies = AppScope.maybeOf(context);
+    if (dependencies == null) return;
+    _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
+      widget.bot.id,
+    )..addListener(_handleTokenUsageChanged);
+    unawaited(_tokenUsageViewModel!.load());
+  }
+
+  void _handleTokenUsageChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _pickImage() async {
@@ -87,6 +108,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
     baseURLController.dispose();
     selectedModelController.dispose();
     systemPromptController.dispose();
+    _tokenUsageViewModel
+      ?..removeListener(_handleTokenUsageChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -270,6 +294,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     'desktop-bot-model-section',
                   ),
                 ),
+                SizedBox(height: widget.embedded ? 20 : 16),
+                _buildFormSection(
+                  context,
+                  S.of(context).tokenUsage,
+                  [_buildTokenUsage()],
+                  sectionKey: const ValueKey<String>(
+                    'desktop-bot-token-usage-section',
+                  ),
+                ),
               ],
             ),
           ),
@@ -348,6 +381,23 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   ),
                 ),
               ),
+    );
+  }
+
+  Widget _buildTokenUsage() {
+    final viewModel = _tokenUsageViewModel;
+    if (viewModel?.isLoading ?? false) {
+      return const Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox.square(
+          dimension: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    return TokenUsageIndicator(
+      usage: viewModel?.usage ?? ModelTokenUsage.empty,
+      showBreakdown: true,
     );
   }
 

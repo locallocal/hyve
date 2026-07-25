@@ -64,7 +64,7 @@ class AiHubMix extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -133,7 +133,7 @@ class AiHubMix extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final choices = data is Map ? data['choices'] : null;
             if (choices is! List) {
               throw const FormatException('Missing choices in stream event');
@@ -208,7 +208,7 @@ class AiHubMix extends Provider {
     }
     if (response.statusCode == 200) {
       final responseBody = await response.stream.bytesToString();
-      final data = jsonDecode(responseBody);
+      final data = decodeProviderResponse(responseBody);
       final multiModalContent =
           data['choices'][0]['message']['multi_mod_content'] ?? [];
       if (multiModalContent.isNotEmpty) {

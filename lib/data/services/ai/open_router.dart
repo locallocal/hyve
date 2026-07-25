@@ -22,7 +22,7 @@ class OpenRouter extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = decodeProviderResponse(response.body);
         final models = data['data'] as List<dynamic>;
         return models.map((model) => model['id'] as String).toList();
       } else {
@@ -73,7 +73,7 @@ class OpenRouter extends Provider {
         if (line.startsWith('data: ')) {
           line = line.substring(6);
           try {
-            final data = jsonDecode(line);
+            final data = decodeProviderResponse(line);
             final content = data['choices'][0]['delta']['content'] ?? '';
             if (content.isNotEmpty) {
               onResponse(content);

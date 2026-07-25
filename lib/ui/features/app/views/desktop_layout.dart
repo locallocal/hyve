@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
+import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
+import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
+import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -79,6 +83,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
 
   String? _chatPageKeyId;
   GlobalKey<ChatPageState>? _chatPageKey;
+  AppDependencies? _dependencies;
+  ChatTokenUsageViewModel? _tokenUsageViewModel;
 
   Bot? get _activeBot => switch (widget.currentIndex) {
     0 => widget.selectedChatBot,
@@ -87,11 +93,23 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   };
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final dependencies = AppScope.maybeOf(context);
+    if (_dependencies == dependencies) return;
+    _tokenUsageViewModel?.dispose();
+    _tokenUsageViewModel = null;
+    _dependencies = dependencies;
+    _replaceTokenUsageViewModel();
+  }
+
+  @override
   void didUpdateWidget(covariant DesktopLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedChatId != widget.selectedChatId) {
       _chatPageKeyId = null;
       _chatPageKey = null;
+      _replaceTokenUsageViewModel();
     }
     if (widget.currentIndex == 2 && _inspectorOpen) {
       _inspectorOpen = false;
@@ -120,7 +138,21 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       );
     }
     _inspectorScrollController.dispose();
+    _tokenUsageViewModel?.dispose();
     super.dispose();
+  }
+
+  void _replaceTokenUsageViewModel() {
+    final chatId = widget.selectedChatId;
+    if (_tokenUsageViewModel?.chatId == chatId && chatId != null) return;
+    _tokenUsageViewModel?.dispose();
+    final dependencies = _dependencies;
+    _tokenUsageViewModel =
+        chatId == null || dependencies == null
+            ? null
+            : dependencies.createChatTokenUsageViewModel(chatId);
+    final viewModel = _tokenUsageViewModel;
+    if (viewModel != null) unawaited(viewModel.load());
   }
 
   @override
@@ -1078,6 +1110,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               label: S.of(context).model,
               value: bot.model.isEmpty ? '—' : bot.model,
             ),
+            if (widget.currentIndex == 0 && _tokenUsageViewModel != null)
+              ConversationTokenUsagePanel(viewModel: _tokenUsageViewModel!),
           ],
         ],
       ),

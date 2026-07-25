@@ -66,6 +66,11 @@ class LocalDatabaseService {
         where: 'chat_id = ?',
         whereArgs: [id],
       );
+      await transaction.delete(
+        'token_usage_records',
+        where: 'chat_id = ?',
+        whereArgs: [id],
+      );
       await transaction.delete('chats', where: 'id = ?', whereArgs: [id]);
     });
   }
@@ -119,24 +124,46 @@ class LocalDatabaseService {
     );
   }
 
+  Future<Map<String, Object?>> loadTokenUsageForBot(String botId) async {
+    final database = await _databaseProvider();
+    final rows = await database.rawQuery(
+      '''
+      SELECT
+        COALESCE(SUM(input_token_count), 0) AS input_token_count,
+        COALESCE(SUM(output_token_count), 0) AS output_token_count,
+        COALESCE(SUM(total_token_count), 0) AS total_token_count
+      FROM token_usage_records
+      WHERE bot_id = ?
+      ''',
+      [botId],
+    );
+    return rows.single;
+  }
+
+  Future<List<Map<String, Object?>>> loadTokenUsageRecordsForChat(
+    String chatId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'token_usage_records',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+      orderBy: 'timestamp ASC',
+    );
+  }
+
   Future<void> upsertMessage(Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await database.insert(
-      'messages',
-      values,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await database.transaction((transaction) async {
+      await _upsertMessageAndTokenUsage(transaction, values);
+    });
   }
 
   Future<void> upsertMessages(Iterable<Map<String, Object?>> records) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
       for (final values in records) {
-        await transaction.insert(
-          'messages',
-          values,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await _upsertMessageAndTokenUsage(transaction, values);
       }
     });
   }
@@ -164,4 +191,49 @@ class LocalDatabaseService {
     final database = await _databaseProvider();
     await database.update('profile', values, where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> _upsertMessageAndTokenUsage(
+    DatabaseExecutor database,
+    Map<String, Object?> values,
+  ) async {
+    await database.insert(
+      'messages',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    final messageId = values['message_id']?.toString() ?? '';
+    if (messageId.isEmpty) return;
+    final inputTokens = _readCount(values['input_token_count']);
+    final outputTokens = _readCount(values['output_token_count']);
+    final totalTokens = _readCount(values['total_token_count']);
+    final hasUsage = inputTokens > 0 || outputTokens > 0 || totalTokens > 0;
+    if (!hasUsage) {
+      await database.delete(
+        'token_usage_records',
+        where: 'message_id = ?',
+        whereArgs: [messageId],
+      );
+      return;
+    }
+
+    await database.insert('token_usage_records', <String, Object?>{
+      'message_id': messageId,
+      'chat_id': values['chat_id']?.toString() ?? '',
+      'bot_id': values['bot_id']?.toString() ?? '',
+      'token_model': values['token_model']?.toString() ?? '',
+      'input_token_count': inputTokens,
+      'output_token_count': outputTokens,
+      'total_token_count': totalTokens,
+      'timestamp': _readCount(values['timestamp']),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+}
+
+int _readCount(Object? value) {
+  return switch (value) {
+    final int count => count,
+    final num count => count.toInt(),
+    _ => int.tryParse(value?.toString() ?? '') ?? 0,
+  };
 }

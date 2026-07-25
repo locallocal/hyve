@@ -177,7 +177,7 @@ class Zhipu extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final content = data['choices'][0]['delta']['content'] ?? '';
 
             // 处理深度思考模式
@@ -336,7 +336,7 @@ class Zhipu extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

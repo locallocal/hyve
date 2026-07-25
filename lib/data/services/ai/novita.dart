@@ -48,7 +48,7 @@ class Novita extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -111,7 +111,7 @@ class Novita extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             var delta = data['choices'][0]['delta']['content'] ?? '';
             if (stage.isEmpty) {
               if (delta.contains('<think>')) {
@@ -190,7 +190,7 @@ class Novita extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

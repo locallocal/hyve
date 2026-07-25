@@ -29,6 +29,10 @@ void main() {
                   'system_fingerprint': '',
                   'usage': {'prompt_tokens': 1656},
                 })}'
+                '${_event({
+                  'choices': <Object>[],
+                  'usage': {'completion_tokens': 344},
+                })}'
                 'data: [DONE]\n\n',
               ),
             ),
@@ -38,12 +42,14 @@ void main() {
     final responses = <String>[];
     final errors = <String>[];
     final terminalEvents = <ProviderTerminalEvent>[];
+    final usages = <ModelTokenUsage>[];
 
     provider.setCallbacks(
       onResponse: responses.add,
       onComplete: () {},
       onError: errors.add,
       onTerminal: terminalEvents.add,
+      onTokenUsage: usages.add,
     );
 
     await provider.generateText([ChatMessage(role: 'user', content: 'Hello')]);
@@ -52,6 +58,11 @@ void main() {
     expect(errors, isEmpty);
     expect(terminalEvents, hasLength(1));
     expect(terminalEvents.single.type, ProviderTerminalType.completed);
+    expect(usages, hasLength(2));
+    expect(usages.last.model, 'test-model');
+    expect(usages.last.inputTokens, 1656);
+    expect(usages.last.outputTokens, 344);
+    expect(usages.last.effectiveTotalTokens, 2000);
   });
 }
 

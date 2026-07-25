@@ -107,7 +107,7 @@ class Flux extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final pollingUrl = data['polling_url'];
 
         // 轮询获取生成结果
@@ -124,7 +124,7 @@ class Flux extends Provider {
           );
 
           if (resultResponse.statusCode == 200) {
-            final resultData = jsonDecode(
+            final resultData = decodeProviderResponse(
               utf8.decode(resultResponse.bodyBytes),
             );
             final status = resultData['status'];

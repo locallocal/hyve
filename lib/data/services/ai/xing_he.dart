@@ -108,7 +108,7 @@ class Xinghe extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             final delta = data['choices'][0]['delta']['content'] ?? '';
             onResponse(delta);
           } catch (e) {
@@ -116,7 +116,7 @@ class Xinghe extends Provider {
           }
         } else if (line.isNotEmpty) {
           try {
-            final data = jsonDecode(line);
+            final data = decodeProviderResponse(line);
             if (data['error'] != null && onError != null) {
               onError!(
                 'Code: ${data['error']['code']}, Message: ${data['error']['message']}',
@@ -182,7 +182,7 @@ class Xinghe extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

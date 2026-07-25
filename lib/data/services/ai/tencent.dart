@@ -101,7 +101,7 @@ class Tencent extends Provider {
       await for (final line in stream) {
         if (isCancelled) break;
         if (line.contains('error')) {
-          final data = jsonDecode(line);
+          final data = decodeProviderResponse(line);
           throw Exception(
             'Code: ${data['error']['code']}, Message: ${data['error']['message']}',
           );
@@ -118,7 +118,7 @@ class Tencent extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (data['choices'][0]['delta'].containsKey('reasoning_content')) {
               final reasoning =
                   data['choices'][0]['delta']['reasoning_content'] ?? '';

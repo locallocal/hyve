@@ -71,7 +71,7 @@ class TogetherAI extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data as List).map((model) => model['id'] as String).toList();
         return models;
@@ -121,7 +121,7 @@ class TogetherAI extends Provider {
         // 检查是否已取消
         if (isCancelled) break;
         if (line.contains('error')) {
-          final errorData = jsonDecode(line);
+          final errorData = decodeProviderResponse(line);
           final errorMessage = errorData['error']['message'];
           throw Exception('Request failed: $errorMessage');
         }
@@ -137,7 +137,7 @@ class TogetherAI extends Provider {
           }
 
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             var delta = data['choices'][0]['delta']['content'] ?? '';
             if (stage.isEmpty) {
               if (delta.contains('<think>')) {
@@ -253,7 +253,7 @@ class TogetherAI extends Provider {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final imageUrl = data['data'][0]['url'];
         final imageResponse = await http.get(Uri.parse(imageUrl));
 

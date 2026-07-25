@@ -67,7 +67,7 @@ class SenseNova extends Provider {
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models =
             (data['data'] as List)
                 .map((model) => model['id'] as String)
@@ -130,7 +130,7 @@ class SenseNova extends Provider {
             return;
           }
           try {
-            final data = jsonDecode(jsonStr);
+            final data = decodeProviderResponse(jsonStr);
             if (deepThinking &&
                 data['data']['choices'][0].containsKey('reasoning_content')) {
               final reasoning =
@@ -148,7 +148,7 @@ class SenseNova extends Provider {
           }
         } else if (line.isNotEmpty) {
           try {
-            final data = jsonDecode(line);
+            final data = decodeProviderResponse(line);
             if (data['error'] != null && onError != null) {
               onError!(
                 'Code: ${data['error']['code']}, Message: ${data['error']['message']}',

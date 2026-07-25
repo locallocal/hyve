@@ -2352,6 +2352,91 @@ class S {
       args: [error],
     );
   }
+
+  /// `Token usage`
+  String get tokenUsage {
+    return Intl.message('Token usage', name: 'tokenUsage', desc: '', args: []);
+  }
+
+  /// `Input tokens`
+  String get inputTokens {
+    return Intl.message(
+      'Input tokens',
+      name: 'inputTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Output tokens`
+  String get outputTokens {
+    return Intl.message(
+      'Output tokens',
+      name: 'outputTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total tokens`
+  String get totalTokens {
+    return Intl.message(
+      'Total tokens',
+      name: 'totalTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No token usage recorded`
+  String get noTokenUsageRecorded {
+    return Intl.message(
+      'No token usage recorded',
+      name: 'noTokenUsageRecorded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily usage`
+  String get dailyTokenUsage {
+    return Intl.message(
+      'Daily usage',
+      name: 'dailyTokenUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hourly usage`
+  String get hourlyTokenUsage {
+    return Intl.message(
+      'Hourly usage',
+      name: 'hourlyTokenUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Back to daily usage`
+  String get backToDailyUsage {
+    return Intl.message(
+      'Back to daily usage',
+      name: 'backToDailyUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a day to view hourly usage`
+  String get clickDayForHourlyUsage {
+    return Intl.message(
+      'Select a day to view hourly usage',
+      name: 'clickDayForHourlyUsage',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -805,6 +805,37 @@ void main() {
     expect(outputPosition.dy, durationPosition.dy);
     expect(inputPosition.dx, greaterThan(durationPosition.dx));
     expect(outputPosition.dx, greaterThan(inputPosition.dx));
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: Offset.zero);
+    await mouse.moveTo(tester.getCenter(content));
+    await tester.pumpAndSettle();
+
+    final copyAction = find.byKey(
+      const ValueKey<String>('desktop-message-copy-action'),
+    );
+    final executionCard = find.ancestor(
+      of: executionStatus,
+      matching: find.byType(ShadCard),
+    );
+    expect(copyAction, findsOneWidget);
+    expect(executionCard, findsOneWidget);
+    expect(
+      tester
+          .widget<AnimatedOpacity>(
+            find.ancestor(
+              of: copyAction,
+              matching: find.byType(AnimatedOpacity),
+            ),
+          )
+          .opacity,
+      1,
+    );
+    final copyRect = tester.getRect(copyAction);
+    final executionRect = tester.getRect(executionCard);
+    expect(copyRect.left, executionRect.left);
+    expect(copyRect.top - executionRect.bottom, greaterThanOrEqualTo(4));
   });
 
   testWidgets('message execution status omits tokens without usage data', (

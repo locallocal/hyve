@@ -48,7 +48,17 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
 
-  static String m12(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m12(count) => "${count} कमांड निष्पादन";
+
+  static String m13(duration) => "अवधि ${duration}";
+
+  static String m14(count) => "${count} फ़ाइल बदलाव";
+
+  static String m15(count) => "${count} टूल कॉल";
+
+  static String m16(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+
+  static String m17(duration) => "सोचना पूर्ण · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -94,6 +104,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clickToStartChat": MessageLookupByLibrary.simpleMessage(
       "बातचीत बनाने के लिए नई चैट पर क्लिक करें",
     ),
+    "commandExecutions": MessageLookupByLibrary.simpleMessage("कमांड निष्पादन"),
     "confirm": MessageLookupByLibrary.simpleMessage("पुष्टि करें"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -107,6 +118,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars टीम"),
     "customProvider": MessageLookupByLibrary.simpleMessage("कस्टम प्रदाता..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("डार्क मोड"),
+    "deepThinking": MessageLookupByLibrary.simpleMessage("गहन चिंतन"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "आप एक सहायक AI हैं। कृपया हिंदी में उत्तर दें।",
     ),
@@ -139,6 +151,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "सामग्री लोड करने में त्रुटि, कृपया बाद में पुनः प्रयास करें।",
     ),
+    "executionStatus": MessageLookupByLibrary.simpleMessage("निष्पादन स्थिति"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "कृपया प्रतिक्रिया सामग्री दर्ज करें",
     ),
@@ -160,6 +173,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले मॉडल सूची प्राप्त करें",
     ),
+    "fileStatus": MessageLookupByLibrary.simpleMessage("फ़ाइल स्थिति"),
+    "fileTypeMusic": MessageLookupByLibrary.simpleMessage("संगीत"),
+    "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("वाणी"),
+    "fileTypeVideo": MessageLookupByLibrary.simpleMessage("वीडियो"),
     "fillRequiredFields": MessageLookupByLibrary.simpleMessage(
       "कृपया बॉट का नाम, API पता और API कुंजी भरें",
     ),
@@ -170,10 +187,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "फॉन्ट साइज़ अपडेट किया गया",
     ),
+    "generationFailed": MessageLookupByLibrary.simpleMessage("जनरेशन विफल"),
+    "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
+      "जनरेशन विफल · आंशिक उत्तर रखा गया",
+    ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage(
       "सहायता और प्रतिक्रिया",
     ),
     "home": MessageLookupByLibrary.simpleMessage("होम"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("इनपुट टोकन"),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
     "languageChanged": m9,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
@@ -189,24 +211,42 @@ class MessageLookup extends MessageLookupByLibrary {
       "कोई बॉट उपलब्ध नहीं है",
     ),
     "noChats": MessageLookupByLibrary.simpleMessage("अभी तक कोई चैट नहीं"),
+    "noContentReturned": MessageLookupByLibrary.simpleMessage(
+      "कोई सामग्री नहीं मिली",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "कोई मॉडल प्राप्त नहीं हुआ",
     ),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
+    "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("उत्पादन रोकें"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले API कुंजी दर्ज करें",
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
+    "processInformation": MessageLookupByLibrary.simpleMessage(
+      "प्रक्रिया जानकारी",
+    ),
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
     ),
     "provider": MessageLookupByLibrary.simpleMessage("प्रदाता"),
+    "reasoningCompleted": MessageLookupByLibrary.simpleMessage("तर्क पूर्ण"),
+    "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
+    "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "उत्तर रद्द किया गया",
     ),
-    "responseError": m12,
+    "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
+      "रोक दिया गया · आंशिक उत्तर रखा गया",
+    ),
+    "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
     "selectBot": MessageLookupByLibrary.simpleMessage("बॉट चुनें"),
@@ -220,6 +260,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "चैट शुरू करने के लिए नीचे इनपुट फील्ड में संदेश भेजें",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("चैटिंग शुरू करें"),
+    "statusAttached": MessageLookupByLibrary.simpleMessage("संलग्न"),
+    "statusCancelled": MessageLookupByLibrary.simpleMessage("रद्द"),
+    "statusCompleted": MessageLookupByLibrary.simpleMessage("पूर्ण"),
+    "statusFailed": MessageLookupByLibrary.simpleMessage("विफल"),
+    "statusGenerated": MessageLookupByLibrary.simpleMessage("जनरेट किया गया"),
+    "statusInProgress": MessageLookupByLibrary.simpleMessage("प्रगति में"),
+    "statusRecorded": MessageLookupByLibrary.simpleMessage("दर्ज"),
+    "statusRunning": MessageLookupByLibrary.simpleMessage("चल रहा है"),
+    "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
+      "संरचित प्रक्रिया जानकारी",
+    ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("प्रतिक्रिया भेजें"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("सिस्टम प्रॉम्प्ट"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -232,7 +283,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "थीम सिस्टम के अनुसार सेट की गई",
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
+    "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
+    "thinkingCompletedWithDuration": m17,
+    "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
+    "toolCalls": MessageLookupByLibrary.simpleMessage("टूल कॉल"),
     "typing": MessageLookupByLibrary.simpleMessage("टाइप कर रहा है..."),
+    "uploadFile": MessageLookupByLibrary.simpleMessage("फ़ाइल अपलोड करें"),
+    "uploadImage": MessageLookupByLibrary.simpleMessage("छवि अपलोड करें"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता समझौता"),
     "version": MessageLookupByLibrary.simpleMessage("संस्करण 1.0.0"),
   };

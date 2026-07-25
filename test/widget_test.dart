@@ -696,7 +696,7 @@ void main() {
     );
   });
 
-  testWidgets('message execution status follows the response content', (
+  testWidgets('desktop message execution status is the final message block', (
     tester,
   ) async {
     final scrollController = ScrollController();
@@ -710,13 +710,27 @@ void main() {
               body: Column(
                 children: [
                   MessageList(
-                    messages: const [],
+                    messages: [
+                      Message(
+                        messageId: 'message-1',
+                        chatId: 'chat-1',
+                        botId: 'bot-1',
+                        senderId: 'bot-1',
+                        content: '回复信息',
+                        processInfo: const MessageProcessInfo(durationMs: 1200),
+                        tokenUsage: const ModelTokenUsage(
+                          inputTokens: 120,
+                          outputTokens: 30,
+                        ),
+                        files: const ['/tmp/output.txt'],
+                        terminalOutcome: MessageTerminalOutcome.failed,
+                        hasPartialContent: true,
+                        timestamp: DateTime(2026),
+                      ),
+                    ],
                     scrollController: scrollController,
-                    isStreaming: true,
-                    streamingResponse: '回复信息',
-                    streamingProcessInfo: const MessageProcessInfo(
-                      durationMs: 1200,
-                    ),
+                    isStreaming: false,
+                    streamingResponse: '',
                     currentUserId: 'user',
                     isDesktop: true,
                   ),
@@ -728,13 +742,93 @@ void main() {
     await tester.pumpAndSettle();
 
     final content = find.text('回复信息');
+    final fileResult = find.text('文件结果');
+    final terminalStatus = find.text('生成失败 · 保留部分回复');
     final executionStatus = find.text('执行状态');
+    final duration = find.text('耗时 1.2s');
+    final inputTokens = find.text('输入 Token 120');
+    final outputTokens = find.text('输出 Token 30');
     expect(content, findsOneWidget);
+    expect(fileResult, findsOneWidget);
+    expect(terminalStatus, findsOneWidget);
     expect(executionStatus, findsOneWidget);
+    expect(duration, findsOneWidget);
+    expect(inputTokens, findsOneWidget);
+    expect(outputTokens, findsOneWidget);
+    expect(find.text('包含耗时'), findsNothing);
     expect(
-      tester.getTopLeft(executionStatus).dy,
-      greaterThan(tester.getBottomLeft(content).dy),
+      find.byKey(const ValueKey<String>('execution-header-metrics')),
+      findsOneWidget,
     );
+    final headerMetrics = find.byKey(
+      const ValueKey<String>('execution-header-metrics'),
+    );
+    final durationIcon = find.descendant(
+      of: headerMetrics,
+      matching: find.byIcon(LucideIcons.clock3),
+    );
+    expect(durationIcon, findsOneWidget);
+    expect(
+      find.descendant(
+        of: headerMetrics,
+        matching: find.byIcon(Icons.login_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: headerMetrics,
+        matching: find.byIcon(Icons.logout_rounded),
+      ),
+      findsOneWidget,
+    );
+    final executionTop = tester.getTopLeft(executionStatus).dy;
+    expect(executionTop, greaterThan(tester.getBottomLeft(content).dy));
+    expect(executionTop, greaterThan(tester.getBottomLeft(fileResult).dy));
+    expect(executionTop, greaterThan(tester.getBottomLeft(terminalStatus).dy));
+    final durationPosition = tester.getTopLeft(duration);
+    final inputPosition = tester.getTopLeft(inputTokens);
+    final outputPosition = tester.getTopLeft(outputTokens);
+    final durationText = tester.widget<Text>(duration);
+    final inputText = tester.widget<Text>(inputTokens);
+    final outputText = tester.widget<Text>(outputTokens);
+    expect(durationText.style?.fontSize, 12);
+    expect(durationText.style?.height, 1.2);
+    expect(durationText.style?.fontWeight, FontWeight.w400);
+    expect(inputText.style, durationText.style);
+    expect(outputText.style, durationText.style);
+    expect(
+      tester.getTopLeft(durationIcon).dx,
+      tester.getTopLeft(executionStatus).dx,
+    );
+    expect(inputPosition.dy, durationPosition.dy);
+    expect(outputPosition.dy, durationPosition.dy);
+    expect(inputPosition.dx, greaterThan(durationPosition.dx));
+    expect(outputPosition.dx, greaterThan(inputPosition.dx));
+  });
+
+  testWidgets('message execution status omits tokens without usage data', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => const Scaffold(
+              body: ProcessInfoSection(
+                processInfo: MessageProcessInfo(durationMs: 800),
+                isDesktop: true,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('执行状态'), findsOneWidget);
+    expect(find.text('耗时 800ms'), findsOneWidget);
+    expect(find.text('包含耗时'), findsNothing);
+    expect(find.textContaining('输入 Token'), findsNothing);
+    expect(find.textContaining('输出 Token'), findsNothing);
   });
 
   testWidgets('message execution status can be hidden by preference', (
@@ -771,6 +865,8 @@ void main() {
 
     expect(find.text('回复信息'), findsOneWidget);
     expect(find.text('执行状态'), findsNothing);
+    expect(find.textContaining('输入 Token'), findsNothing);
+    expect(find.textContaining('输出 Token'), findsNothing);
   });
 
   testWidgets('chat row menu does not show a row focus ring on pointer use', (

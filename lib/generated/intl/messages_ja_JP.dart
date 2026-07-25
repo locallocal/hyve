@@ -48,7 +48,17 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "${count}個のモデルが正常に取得されました";
 
-  static String m12(error) => "応答の取得に失敗しました：${error}";
+  static String m12(count) => "コマンド実行 ${count} 件";
+
+  static String m13(duration) => "所要時間 ${duration}";
+
+  static String m14(count) => "ファイル更新 ${count} 件";
+
+  static String m15(count) => "ツール呼び出し ${count} 件";
+
+  static String m16(error) => "応答の取得に失敗しました：${error}";
+
+  static String m17(duration) => "思考完了 · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -90,6 +100,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clickToStartChat": MessageLookupByLibrary.simpleMessage(
       "新しいチャットをクリックして会話を作成",
     ),
+    "commandExecutions": MessageLookupByLibrary.simpleMessage("コマンド実行"),
     "confirm": MessageLookupByLibrary.simpleMessage("確認"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("削除の確認"),
@@ -99,6 +110,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Starsチーム"),
     "customProvider": MessageLookupByLibrary.simpleMessage("カスタムプロバイダー..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("ダークモード"),
+    "deepThinking": MessageLookupByLibrary.simpleMessage("深い思考"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "あなたは役立つAIアシスタントです。日本語で回答してください。",
     ),
@@ -121,6 +133,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "コンテンツの読み込み中にエラーが発生しました。後でもう一度お試しください。",
     ),
+    "executionStatus": MessageLookupByLibrary.simpleMessage("実行状態"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "フィードバック内容を入力してください",
     ),
@@ -140,14 +153,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "まずモデルリストを取得してください",
     ),
+    "fileStatus": MessageLookupByLibrary.simpleMessage("ファイル状態"),
+    "fileTypeMusic": MessageLookupByLibrary.simpleMessage("音楽"),
+    "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("音声"),
+    "fileTypeVideo": MessageLookupByLibrary.simpleMessage("動画"),
     "fillRequiredFields": MessageLookupByLibrary.simpleMessage(
       "ボット名、APIアドレス、APIキーを入力してください",
     ),
     "followSystem": MessageLookupByLibrary.simpleMessage("システムに従う"),
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("フォントサイズ"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("フォントサイズが更新されました"),
+    "generationFailed": MessageLookupByLibrary.simpleMessage("生成に失敗"),
+    "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
+      "生成に失敗 · 部分回答を保持",
+    ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage("ヘルプとフィードバック"),
     "home": MessageLookupByLibrary.simpleMessage("ホーム"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("入力トークン"),
     "justNow": MessageLookupByLibrary.simpleMessage("たった今"),
     "languageChanged": m9,
     "languageSettings": MessageLookupByLibrary.simpleMessage("言語設定"),
@@ -161,18 +183,34 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChat": MessageLookupByLibrary.simpleMessage("新しいチャット"),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("利用可能なボットがありません"),
     "noChats": MessageLookupByLibrary.simpleMessage("まだチャットがありません"),
+    "noContentReturned": MessageLookupByLibrary.simpleMessage(
+      "コンテンツが返されませんでした",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage("モデルが取得されませんでした"),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("出力トークン"),
+    "partialResponse": MessageLookupByLibrary.simpleMessage("部分回答"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("生成を一時停止"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "APIキーを先に入力してください",
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("テキスト効果のプレビュー"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("プライバシーポリシー"),
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
+    "processInformation": MessageLookupByLibrary.simpleMessage("処理情報"),
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("プロフィール"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("ご意見やご提案をお寄せください"),
     "provider": MessageLookupByLibrary.simpleMessage("プロバイダー"),
+    "reasoningCompleted": MessageLookupByLibrary.simpleMessage("推論完了"),
+    "reasoningInProgress": MessageLookupByLibrary.simpleMessage("推論中"),
+    "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("推論中断"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("応答がキャンセルされました"),
-    "responseError": m12,
+    "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
+      "停止済み · 部分回答を保持",
+    ),
+    "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存"),
     "selectBot": MessageLookupByLibrary.simpleMessage("ボットを選択"),
@@ -186,6 +224,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "下の入力欄にメッセージを送信してチャットを開始してください",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("チャットを始めましょう"),
+    "statusAttached": MessageLookupByLibrary.simpleMessage("添付済み"),
+    "statusCancelled": MessageLookupByLibrary.simpleMessage("キャンセル済み"),
+    "statusCompleted": MessageLookupByLibrary.simpleMessage("完了"),
+    "statusFailed": MessageLookupByLibrary.simpleMessage("失敗"),
+    "statusGenerated": MessageLookupByLibrary.simpleMessage("生成済み"),
+    "statusInProgress": MessageLookupByLibrary.simpleMessage("進行中"),
+    "statusRecorded": MessageLookupByLibrary.simpleMessage("記録済み"),
+    "statusRunning": MessageLookupByLibrary.simpleMessage("実行中"),
+    "structuredProcessInfo": MessageLookupByLibrary.simpleMessage("構造化された処理情報"),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("フィードバックを送信"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("システムプロンプト"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -198,7 +245,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "テーマがシステムに従うように設定されました",
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("テーマ設定"),
+    "thinkingCompleted": MessageLookupByLibrary.simpleMessage("思考完了"),
+    "thinkingCompletedWithDuration": m17,
+    "thinkingInProgress": MessageLookupByLibrary.simpleMessage("思考中…"),
+    "toolCalls": MessageLookupByLibrary.simpleMessage("ツール呼び出し"),
     "typing": MessageLookupByLibrary.simpleMessage("入力中..."),
+    "uploadFile": MessageLookupByLibrary.simpleMessage("ファイルをアップロード"),
+    "uploadImage": MessageLookupByLibrary.simpleMessage("画像をアップロード"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("ユーザー同意"),
     "version": MessageLookupByLibrary.simpleMessage("バージョン 1.0.0"),
   };

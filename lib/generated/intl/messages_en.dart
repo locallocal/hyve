@@ -33,7 +33,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "Chat with ${botName} deleted";
 
-  static String m13(error) => "Could not clear chat history: ${error}";
+  static String m18(error) => "Could not clear chat history: ${error}";
 
   static String m6(botName) =>
       "Are you sure you want to clear all chat history with \"${botName}\"? This action cannot be undone.";
@@ -44,21 +44,21 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "Deleting this chat will clear all chat history. Are you sure you want to delete the chat with ${botName}?";
 
-  static String m14(error) => "Could not create the chat: ${error}";
+  static String m19(error) => "Could not create the chat: ${error}";
 
-  static String m15(error) => "Could not delete the chat: ${error}";
+  static String m20(error) => "Could not delete the chat: ${error}";
 
-  static String m16(count) => "${count} files";
+  static String m21(count) => "${count} files";
 
-  static String m17(error) => "Generate image failed: ${error}";
+  static String m22(error) => "Generate image failed: ${error}";
 
-  static String m18(error) => "Could not generate music: ${error}";
+  static String m23(error) => "Could not generate music: ${error}";
 
-  static String m19(error) => "Could not generate speech: ${error}";
+  static String m24(error) => "Could not generate speech: ${error}";
 
-  static String m20(error) => "Could not generate video: ${error}";
+  static String m25(error) => "Could not generate video: ${error}";
 
-  static String m21(count) => "${count} items";
+  static String m26(count) => "${count} items";
 
   static String m9(language) => "Language set to ${language}";
 
@@ -66,21 +66,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "Successfully retrieved ${count} models";
 
-  static String m22(count) => "${count} command runs";
+  static String m12(count) => "${count} command runs";
 
-  static String m23(duration) => "Duration ${duration}";
+  static String m13(duration) => "Duration ${duration}";
 
-  static String m24(count) => "${count} file updates";
+  static String m14(count) => "${count} file updates";
 
-  static String m25(count) => "${count} tool calls";
+  static String m15(count) => "${count} tool calls";
 
-  static String m12(error) => "Failed to get response: ${error}";
+  static String m16(error) => "Failed to get response: ${error}";
 
-  static String m26(error) => "Could not save image: ${error}";
+  static String m27(error) => "Could not save image: ${error}";
 
-  static String m27(error) => "Could not share image: ${error}";
+  static String m28(error) => "Could not share image: ${error}";
 
-  static String m28(duration) => "Thinking complete · ${duration}";
+  static String m17(duration) => "Thinking complete · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -112,6 +112,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
+    "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
+      "Back to daily usage",
+    ),
     "basicInformation": MessageLookupByLibrary.simpleMessage(
       "Basic Information",
     ),
@@ -131,7 +134,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("Change avatar"),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
+      "Chat execution status",
+    ),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "Chat history cleared",
     ),
@@ -139,20 +146,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Search matches bot names and the latest message.",
     ),
     "chats": MessageLookupByLibrary.simpleMessage("Chats"),
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
-      "Chat execution status",
-    ),
     "chooseFromGallery": MessageLookupByLibrary.simpleMessage("Gallery"),
     "clear": MessageLookupByLibrary.simpleMessage("Clear"),
     "clearAttachments": MessageLookupByLibrary.simpleMessage(
       "Clear attachments",
     ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Clear Chat"),
-    "clearChatFailed": m13,
+    "clearChatFailed": m18,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Clear chat history",
     ),
     "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
+    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
+      "Select a day to view hourly usage",
+    ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "Click + in the top right to create a new bot",
     ),
@@ -172,11 +179,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
-    "createChatFailed": m14,
+    "createChatFailed": m19,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Custom Provider...",
     ),
+    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("Dark Mode"),
     "deepThinking": MessageLookupByLibrary.simpleMessage("Deep Thinking"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
@@ -185,7 +193,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Delete Bot"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Delete Chat"),
-    "deleteChatFailed": m15,
+    "deleteChatFailed": m20,
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
       "About & Legal",
     ),
@@ -253,7 +261,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Please fetch model list first",
     ),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m16,
+    "fileCount": m21,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("File status"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Music"),
@@ -267,10 +275,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Font size updated",
     ),
-    "generateImageFailed": m17,
-    "generateMusicFailed": m18,
-    "generateSpeechFailed": m19,
-    "generateVideoFailed": m20,
+    "generateImageFailed": m22,
+    "generateMusicFailed": m23,
+    "generateSpeechFailed": m24,
+    "generateVideoFailed": m25,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -287,6 +295,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "hideInspector": MessageLookupByLibrary.simpleMessage("Hide Bot Info"),
     "hideSidebar": MessageLookupByLibrary.simpleMessage("Hide Sidebar"),
     "home": MessageLookupByLibrary.simpleMessage("Home"),
+    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
     "imageAttachment": MessageLookupByLibrary.simpleMessage("Image attachment"),
     "imageResult": MessageLookupByLibrary.simpleMessage("Image result"),
     "imageSavedToGallery": MessageLookupByLibrary.simpleMessage(
@@ -297,7 +306,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "includesDuration": MessageLookupByLibrary.simpleMessage(
       "Includes duration",
     ),
-    "itemCount": m21,
+    "inputTokens": MessageLookupByLibrary.simpleMessage("Input tokens"),
+    "itemCount": m26,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Just now"),
     "languageChanged": m9,
@@ -345,9 +355,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "No models retrieved",
     ),
+    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
+      "No token usage recorded",
+    ),
     "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
       "Delete this orphaned chat or recreate the missing bot.",
     ),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("Output tokens"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Partial response"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("Pause generation"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
@@ -367,13 +381,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("Preview text effect"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
-    "processCommandCount": m22,
-    "processDuration": m23,
-    "processFileCount": m24,
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Process information",
     ),
-    "processToolCount": m25,
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("Profile"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Provide your suggestions and feedback",
@@ -401,17 +415,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stopped · Partial response kept",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
-    "responseError": m12,
+    "responseError": m16,
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
-    "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
-    "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m26,
+    "saveImageFailed": m27,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("Search bots"),
     "searchChats": MessageLookupByLibrary.simpleMessage("Search conversations"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),
@@ -422,15 +435,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("Send"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m27,
+    "shareImageFailed": m28,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
-    "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "Show execution details in conversation messages.",
     ),
+    "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),
     "speechGenerated": MessageLookupByLibrary.simpleMessage("Speech generated"),
     "speechResult": MessageLookupByLibrary.simpleMessage("Speech result"),
@@ -477,9 +490,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Thinking complete",
     ),
-    "thinkingCompletedWithDuration": m28,
+    "thinkingCompletedWithDuration": m17,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Thinking…"),
+    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Tool calls"),
+    "totalTokens": MessageLookupByLibrary.simpleMessage("Total tokens"),
     "tryDifferentSearch": MessageLookupByLibrary.simpleMessage(
       "Try a different search, or create a new item.",
     ),
@@ -507,20 +522,5 @@ class MessageLookup extends MessageLookupByLibrary {
       "Wait for generation to finish.",
     ),
     "webSearch": MessageLookupByLibrary.simpleMessage("Web Search"),
-    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
-    "inputTokens": MessageLookupByLibrary.simpleMessage("Input tokens"),
-    "outputTokens": MessageLookupByLibrary.simpleMessage("Output tokens"),
-    "totalTokens": MessageLookupByLibrary.simpleMessage("Total tokens"),
-    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
-      "No token usage recorded",
-    ),
-    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
-    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
-    "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
-      "Back to daily usage",
-    ),
-    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
-      "Select a day to view hourly usage",
-    ),
   };
 }

@@ -532,5 +532,18 @@
     "outputTokens": "出力トークン",
     "uploadImage": "画像をアップロード",
     "uploadFile": "ファイルをアップロード",
-    "deepThinking": "深い思考"
+    "deepThinking": "深い思考",
+    "desktopPersonalInformation": "個人情報",
+    "desktopAppearanceAndLanguage": "外観と言語",
+    "desktopGeneral": "一般",
+    "desktopHelpAndSupport": "ヘルプとサポート",
+    "desktopAboutAndLegal": "このアプリについて・法的情報",
+    "desktopSettingsDescription": "プロフィール、外観、言語、アプリのサポートを管理します。",
+    "desktopEditProfileDescription": "アバターと表示名を変更します。",
+    "desktopSavedImmediatelyDescription": "変更はすぐに反映され、ローカルに保存されます。",
+    "chatExecutionStatus": "チャットの実行状況",
+    "showExecutionStatusDescription": "会話メッセージに実行の詳細を表示します。",
+    "changeAvatar": "アバターを変更",
+    "resetToDefault": "デフォルトに戻す",
+    "enterDisplayName": "表示名を入力してください"
 }

@@ -944,7 +944,7 @@ class _ProfilePageState extends State<ProfilePage> {
         builder:
             (dialogContext) => ShadDialog(
               title: Text(S.of(dialogContext).editName),
-              description: Text(S.of(dialogContext).enterBotName),
+              description: Text(S.of(dialogContext).enterDisplayName),
               actions: [
                 ShadButton.outline(
                   onPressed: () => Navigator.pop(dialogContext),
@@ -962,7 +962,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: ShadInput(
                     controller: controller,
                     autofocus: true,
-                    placeholder: Text(S.of(dialogContext).enterBotName),
+                    placeholder: Text(S.of(dialogContext).enterDisplayName),
                     leading: const Padding(
                       padding: EdgeInsetsDirectional.only(end: 8),
                       child: Icon(Icons.person_outline_rounded, size: 18),
@@ -992,7 +992,7 @@ class _ProfilePageState extends State<ProfilePage> {
             content: TextField(
               controller: controller,
               decoration: InputDecoration(
-                hintText: S.of(context).enterBotName,
+                hintText: S.of(context).enterDisplayName,
                 hintStyle: TextStyle(
                   fontSize: _fontSize,
                   color: Theme.of(

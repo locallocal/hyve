@@ -90,7 +90,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("Nombre del bot"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Cancelar"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("Cambiar avatar"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
+      "Estado de ejecución del chat",
+    ),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "Historial de chat borrado",
     ),
@@ -133,6 +137,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Eliminar"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Eliminar bot"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Eliminar chat"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "Acerca de e información legal",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "Apariencia e idioma",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "Cambia tu avatar y nombre para mostrar.",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("General"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage(
+      "Ayuda y soporte",
+    ),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage(
+      "Información personal",
+    ),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "Los cambios se aplican de inmediato y se guardan localmente.",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "Gestiona tu perfil, apariencia, idioma y soporte de la aplicación.",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("Editar bot"),
     "editName": MessageLookupByLibrary.simpleMessage("Editar nombre"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -146,6 +172,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterBotName": MessageLookupByLibrary.simpleMessage(
       "Introduzca el nombre del bot...",
+    ),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Introduce un nombre para mostrar",
     ),
     "enterNewName": MessageLookupByLibrary.simpleMessage(
       "Por favor, introduce un nuevo nombre",
@@ -276,6 +305,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "Detenido · Se conserva la respuesta parcial",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage(
+      "Restablecer valores predeterminados",
+    ),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Guardar cambios"),
@@ -290,6 +322,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("Seleccionar tema"),
     "send": MessageLookupByLibrary.simpleMessage("Enviar"),
     "settings": MessageLookupByLibrary.simpleMessage("Ajustes"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "Mostrar detalles de ejecución en los mensajes de la conversación.",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Envía un mensaje en el campo de texto de abajo para comenzar a chatear",
     ),

@@ -543,5 +543,15 @@
     "outputTokens": "輸出 Token",
     "uploadImage": "上傳圖片",
     "uploadFile": "上傳檔案",
-    "deepThinking": "深度思考"
+    "deepThinking": "深度思考",
+    "desktopPersonalInformation": "個人資訊",
+    "desktopAppearanceAndLanguage": "外觀與語言",
+    "desktopHelpAndSupport": "幫助與支援",
+    "desktopAboutAndLegal": "關於與法律資訊",
+    "desktopSettingsDescription": "管理個人資訊、外觀、語言與應用程式支援。",
+    "desktopEditProfileDescription": "修改頭像與顯示名稱。",
+    "desktopSavedImmediatelyDescription": "修改會立即生效並儲存於本機。",
+    "changeAvatar": "更換頭像",
+    "resetToDefault": "恢復預設值",
+    "enterDisplayName": "請輸入顯示名稱"
 }

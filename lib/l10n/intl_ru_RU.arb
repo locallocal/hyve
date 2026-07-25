@@ -532,5 +532,18 @@
     "outputTokens": "Выходные токены",
     "uploadImage": "Загрузить изображение",
     "uploadFile": "Загрузить файл",
-    "deepThinking": "Глубокое мышление"
+    "deepThinking": "Глубокое мышление",
+    "desktopPersonalInformation": "Личная информация",
+    "desktopAppearanceAndLanguage": "Внешний вид и язык",
+    "desktopGeneral": "Общие",
+    "desktopHelpAndSupport": "Помощь и поддержка",
+    "desktopAboutAndLegal": "О приложении и правовая информация",
+    "desktopSettingsDescription": "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
+    "desktopEditProfileDescription": "Измените аватар и отображаемое имя.",
+    "desktopSavedImmediatelyDescription": "Изменения применяются сразу и сохраняются локально.",
+    "chatExecutionStatus": "Статус выполнения чата",
+    "showExecutionStatusDescription": "Показывать сведения о выполнении в сообщениях беседы.",
+    "changeAvatar": "Изменить аватар",
+    "resetToDefault": "Восстановить значения по умолчанию",
+    "enterDisplayName": "Введите отображаемое имя"
 }

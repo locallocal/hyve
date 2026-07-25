@@ -90,7 +90,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("Nom du Bot"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Annuler"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("Modifier l’avatar"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
+      "État d’exécution du chat",
+    ),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "Historique de discussion effacé",
     ),
@@ -135,6 +139,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "deleteChat": MessageLookupByLibrary.simpleMessage(
       "Supprimer la Discussion",
     ),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "À propos et mentions légales",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "Apparence et langue",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "Modifiez votre avatar et votre nom d’affichage.",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("Général"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage(
+      "Aide et assistance",
+    ),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage(
+      "Informations personnelles",
+    ),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "Les modifications prennent effet immédiatement et sont enregistrées localement.",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "Gérez votre profil, l’apparence, la langue et l’assistance de l’application.",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("Modifier le Bot"),
     "editName": MessageLookupByLibrary.simpleMessage("Modifier le Nom"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -146,6 +172,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterApiKey": MessageLookupByLibrary.simpleMessage("Entrez la clé API..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage(
       "Entrez le nom du bot...",
+    ),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Saisissez un nom d’affichage",
     ),
     "enterNewName": MessageLookupByLibrary.simpleMessage(
       "Veuillez entrer un nouveau nom",
@@ -272,6 +301,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "Arrêté · Réponse partielle conservée",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage(
+      "Rétablir les paramètres par défaut",
+    ),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("Enregistrer"),
     "saveChanges": MessageLookupByLibrary.simpleMessage(
@@ -292,6 +324,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "send": MessageLookupByLibrary.simpleMessage("Envoyer"),
     "settings": MessageLookupByLibrary.simpleMessage("Paramètres"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "Afficher les détails d’exécution dans les messages de conversation.",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Envoyez un message dans le champ de texte ci-dessous pour commencer à discuter",
     ),

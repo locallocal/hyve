@@ -532,5 +532,18 @@
     "outputTokens": "Jetons de sortie",
     "uploadImage": "Importer une image",
     "uploadFile": "Importer un fichier",
-    "deepThinking": "Réflexion approfondie"
+    "deepThinking": "Réflexion approfondie",
+    "desktopPersonalInformation": "Informations personnelles",
+    "desktopAppearanceAndLanguage": "Apparence et langue",
+    "desktopGeneral": "Général",
+    "desktopHelpAndSupport": "Aide et assistance",
+    "desktopAboutAndLegal": "À propos et mentions légales",
+    "desktopSettingsDescription": "Gérez votre profil, l’apparence, la langue et l’assistance de l’application.",
+    "desktopEditProfileDescription": "Modifiez votre avatar et votre nom d’affichage.",
+    "desktopSavedImmediatelyDescription": "Les modifications prennent effet immédiatement et sont enregistrées localement.",
+    "chatExecutionStatus": "État d’exécution du chat",
+    "showExecutionStatusDescription": "Afficher les détails d’exécution dans les messages de conversation.",
+    "changeAvatar": "Modifier l’avatar",
+    "resetToDefault": "Rétablir les paramètres par défaut",
+    "enterDisplayName": "Saisissez un nom d’affichage"
 }

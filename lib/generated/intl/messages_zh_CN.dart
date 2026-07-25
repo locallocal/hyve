@@ -184,6 +184,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterApiAddress": MessageLookupByLibrary.simpleMessage("输入API地址..."),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("输入API密钥..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("请输入名称..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage("请输入展示名称"),
     "enterNewName": MessageLookupByLibrary.simpleMessage("请输入新名称"),
     "enterProviderName": MessageLookupByLibrary.simpleMessage("输入供应商名称..."),
     "enterSystemPrompt": MessageLookupByLibrary.simpleMessage("输入系统提示词..."),

@@ -228,6 +228,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("Enter API key..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("Enter bot name..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Enter a display name",
+    ),
     "enterNewName": MessageLookupByLibrary.simpleMessage(
       "Please enter new name",
     ),

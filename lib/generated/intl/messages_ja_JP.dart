@@ -86,7 +86,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("ボット名"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("キャンセル"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("アバターを変更"),
     "chatDeleted": m5,
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("チャットの実行状況"),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "チャット履歴が消去されました",
     ),
@@ -117,6 +119,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("削除"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("ボットを削除"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("チャットを削除"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
+      "このアプリについて・法的情報",
+    ),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "外観と言語",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "アバターと表示名を変更します。",
+    ),
+    "desktopGeneral": MessageLookupByLibrary.simpleMessage("一般"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage("ヘルプとサポート"),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage("個人情報"),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "変更はすぐに反映され、ローカルに保存されます。",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "プロフィール、外観、言語、アプリのサポートを管理します。",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
     "editName": MessageLookupByLibrary.simpleMessage("名前を編集"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -125,6 +145,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterApiAddress": MessageLookupByLibrary.simpleMessage("APIアドレスを入力..."),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("APIキーを入力..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("ボット名を入力..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage("表示名を入力してください"),
     "enterNewName": MessageLookupByLibrary.simpleMessage("新しい名前を入力してください"),
     "enterProviderName": MessageLookupByLibrary.simpleMessage("プロバイダー名を入力..."),
     "enterSystemPrompt": MessageLookupByLibrary.simpleMessage(
@@ -210,6 +231,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "停止済み · 部分回答を保持",
     ),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage("デフォルトに戻す"),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存"),
@@ -220,6 +242,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("テーマを選択"),
     "send": MessageLookupByLibrary.simpleMessage("送信"),
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
+    "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
+      "会話メッセージに実行の詳細を表示します。",
+    ),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "下の入力欄にメッセージを送信してチャットを開始してください",
     ),

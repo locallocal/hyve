@@ -532,5 +532,18 @@
     "outputTokens": "आउटपुट टोकन",
     "uploadImage": "छवि अपलोड करें",
     "uploadFile": "फ़ाइल अपलोड करें",
-    "deepThinking": "गहन चिंतन"
+    "deepThinking": "गहन चिंतन",
+    "desktopPersonalInformation": "व्यक्तिगत जानकारी",
+    "desktopAppearanceAndLanguage": "दिखावट और भाषा",
+    "desktopGeneral": "सामान्य",
+    "desktopHelpAndSupport": "सहायता और समर्थन",
+    "desktopAboutAndLegal": "ऐप के बारे में और कानूनी जानकारी",
+    "desktopSettingsDescription": "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
+    "desktopEditProfileDescription": "अपना अवतार और प्रदर्शन नाम बदलें।",
+    "desktopSavedImmediatelyDescription": "बदलाव तुरंत लागू होते हैं और स्थानीय रूप से सहेजे जाते हैं।",
+    "chatExecutionStatus": "चैट निष्पादन स्थिति",
+    "showExecutionStatusDescription": "बातचीत के संदेशों में निष्पादन विवरण दिखाएँ।",
+    "changeAvatar": "अवतार बदलें",
+    "resetToDefault": "डिफ़ॉल्ट पर रीसेट करें",
+    "enterDisplayName": "प्रदर्शन नाम दर्ज करें"
 }

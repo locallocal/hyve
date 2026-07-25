@@ -80,6 +80,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "botName": MessageLookupByLibrary.simpleMessage("機器人名稱"),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
+    "changeAvatar": MessageLookupByLibrary.simpleMessage("更換頭像"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("已儲存"),
     "chatDeleted": m5,
     "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("對話執行狀態"),
@@ -107,7 +108,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("刪除"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("刪除智能體"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("刪除聊天"),
+    "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage("關於與法律資訊"),
+    "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
+      "外觀與語言",
+    ),
+    "desktopEditProfileDescription": MessageLookupByLibrary.simpleMessage(
+      "修改頭像與顯示名稱。",
+    ),
     "desktopGeneral": MessageLookupByLibrary.simpleMessage("一般"),
+    "desktopHelpAndSupport": MessageLookupByLibrary.simpleMessage("幫助與支援"),
+    "desktopPersonalInformation": MessageLookupByLibrary.simpleMessage("個人資訊"),
+    "desktopSavedImmediatelyDescription": MessageLookupByLibrary.simpleMessage(
+      "修改會立即生效並儲存於本機。",
+    ),
+    "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
+      "管理個人資訊、外觀、語言與應用程式支援。",
+    ),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
     "editName": MessageLookupByLibrary.simpleMessage("修改名稱"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -116,6 +132,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterApiAddress": MessageLookupByLibrary.simpleMessage("輸入API地址..."),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("輸入API密鑰..."),
     "enterBotName": MessageLookupByLibrary.simpleMessage("請輸入名稱..."),
+    "enterDisplayName": MessageLookupByLibrary.simpleMessage("請輸入顯示名稱"),
     "enterNewName": MessageLookupByLibrary.simpleMessage("請輸入新名稱"),
     "enterProviderName": MessageLookupByLibrary.simpleMessage("輸入供應商名稱..."),
     "enterSystemPrompt": MessageLookupByLibrary.simpleMessage("輸入系統提示詞..."),
@@ -183,6 +200,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("思考中斷"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("回覆已取消"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回覆"),
+    "resetToDefault": MessageLookupByLibrary.simpleMessage("恢復預設值"),
     "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("儲存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("儲存修改"),

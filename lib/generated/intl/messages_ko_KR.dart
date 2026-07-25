@@ -48,7 +48,17 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "${count}개의 모델을 성공적으로 검색했습니다";
 
-  static String m12(error) => "응답을 가져오지 못했습니다: ${error}";
+  static String m12(count) => "명령 실행 ${count}회";
+
+  static String m13(duration) => "소요 시간 ${duration}";
+
+  static String m14(count) => "파일 변경 ${count}건";
+
+  static String m15(count) => "도구 호출 ${count}회";
+
+  static String m16(error) => "응답을 가져오지 못했습니다: ${error}";
+
+  static String m17(duration) => "생각 완료 · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -86,6 +96,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clickToStartChat": MessageLookupByLibrary.simpleMessage(
       "새 채팅을 클릭하여 대화를 만드세요",
     ),
+    "commandExecutions": MessageLookupByLibrary.simpleMessage("명령 실행"),
     "confirm": MessageLookupByLibrary.simpleMessage("확인"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("삭제 확인"),
@@ -95,6 +106,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 팀"),
     "customProvider": MessageLookupByLibrary.simpleMessage("사용자 정의 제공업체..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("다크 모드"),
+    "deepThinking": MessageLookupByLibrary.simpleMessage("심층 사고"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "당신은 도움이 되는 AI 어시스턴트입니다. 한국어로 대답해 주세요.",
     ),
@@ -115,6 +127,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "콘텐츠를 로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
     ),
+    "executionStatus": MessageLookupByLibrary.simpleMessage("실행 상태"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "피드백 내용을 입력해 주세요",
     ),
@@ -132,14 +145,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "먼저 모델 목록을 가져오세요",
     ),
+    "fileStatus": MessageLookupByLibrary.simpleMessage("파일 상태"),
+    "fileTypeMusic": MessageLookupByLibrary.simpleMessage("음악"),
+    "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("음성"),
+    "fileTypeVideo": MessageLookupByLibrary.simpleMessage("동영상"),
     "fillRequiredFields": MessageLookupByLibrary.simpleMessage(
       "봇 이름, API 주소 및 API 키를 입력하세요",
     ),
     "followSystem": MessageLookupByLibrary.simpleMessage("시스템 설정 따르기"),
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("글꼴 크기"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("글꼴 크기가 업데이트되었습니다"),
+    "generationFailed": MessageLookupByLibrary.simpleMessage("생성 실패"),
+    "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
+      "생성 실패 · 부분 응답 유지",
+    ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage("도움말 및 피드백"),
     "home": MessageLookupByLibrary.simpleMessage("홈"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("입력 토큰"),
     "justNow": MessageLookupByLibrary.simpleMessage("방금"),
     "languageChanged": m9,
     "languageSettings": MessageLookupByLibrary.simpleMessage("언어 설정"),
@@ -153,18 +175,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChat": MessageLookupByLibrary.simpleMessage("새 채팅"),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("사용 가능한 봇이 없습니다"),
     "noChats": MessageLookupByLibrary.simpleMessage("아직 채팅이 없습니다"),
+    "noContentReturned": MessageLookupByLibrary.simpleMessage("콘텐츠가 반환되지 않음"),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage("검색된 모델이 없습니다"),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("출력 토큰"),
+    "partialResponse": MessageLookupByLibrary.simpleMessage("부분 응답"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("생성 일시 중지"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "API 키를 먼저 입력하세요",
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("텍스트 효과 미리보기"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("개인정보 처리방침"),
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
+    "processInformation": MessageLookupByLibrary.simpleMessage("프로세스 정보"),
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("프로필"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("의견과 제안을 제공해 주세요"),
     "provider": MessageLookupByLibrary.simpleMessage("제공자"),
+    "reasoningCompleted": MessageLookupByLibrary.simpleMessage("추론 완료"),
+    "reasoningInProgress": MessageLookupByLibrary.simpleMessage("추론 진행 중"),
+    "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("추론 중단"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("응답이 취소되었습니다"),
-    "responseError": m12,
+    "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
+      "중지됨 · 부분 응답 유지",
+    ),
+    "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("저장"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("변경사항 저장"),
     "selectBot": MessageLookupByLibrary.simpleMessage("봇 선택"),
@@ -178,6 +214,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "채팅을 시작하려면 아래 입력 필드에 메시지를 보내세요",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("채팅 시작하기"),
+    "statusAttached": MessageLookupByLibrary.simpleMessage("첨부됨"),
+    "statusCancelled": MessageLookupByLibrary.simpleMessage("취소됨"),
+    "statusCompleted": MessageLookupByLibrary.simpleMessage("완료"),
+    "statusFailed": MessageLookupByLibrary.simpleMessage("실패"),
+    "statusGenerated": MessageLookupByLibrary.simpleMessage("생성됨"),
+    "statusInProgress": MessageLookupByLibrary.simpleMessage("진행 중"),
+    "statusRecorded": MessageLookupByLibrary.simpleMessage("기록됨"),
+    "statusRunning": MessageLookupByLibrary.simpleMessage("실행 중"),
+    "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
+      "구조화된 프로세스 정보",
+    ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("피드백 제출"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("시스템 프롬프트"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -190,7 +237,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "테마가 시스템 설정을 따르도록 설정되었습니다",
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("테마 설정"),
+    "thinkingCompleted": MessageLookupByLibrary.simpleMessage("생각 완료"),
+    "thinkingCompletedWithDuration": m17,
+    "thinkingInProgress": MessageLookupByLibrary.simpleMessage("생각 중…"),
+    "toolCalls": MessageLookupByLibrary.simpleMessage("도구 호출"),
     "typing": MessageLookupByLibrary.simpleMessage("입력 중..."),
+    "uploadFile": MessageLookupByLibrary.simpleMessage("파일 업로드"),
+    "uploadImage": MessageLookupByLibrary.simpleMessage("이미지 업로드"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("사용자 동의"),
     "version": MessageLookupByLibrary.simpleMessage("버전 1.0.0"),
   };

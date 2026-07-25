@@ -48,7 +48,17 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "Успешно получено ${count} моделей";
 
-  static String m12(error) => "Ошибка получения ответа: ${error}";
+  static String m12(count) => "${count} запусков команд";
+
+  static String m13(duration) => "Длительность ${duration}";
+
+  static String m14(count) => "${count} изменений файлов";
+
+  static String m15(count) => "${count} вызовов инструментов";
+
+  static String m16(error) => "Ошибка получения ответа: ${error}";
+
+  static String m17(duration) => "Размышление завершено · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -96,6 +106,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clickToStartChat": MessageLookupByLibrary.simpleMessage(
       "Нажмите «Новый чат», чтобы создать беседу",
     ),
+    "commandExecutions": MessageLookupByLibrary.simpleMessage(
+      "Выполнение команд",
+    ),
     "confirm": MessageLookupByLibrary.simpleMessage("Подтвердить"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -111,6 +124,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Пользовательский провайдер...",
     ),
     "darkMode": MessageLookupByLibrary.simpleMessage("Тёмная тема"),
+    "deepThinking": MessageLookupByLibrary.simpleMessage("Глубокое мышление"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "Вы полезный ИИ-ассистент. Пожалуйста, отвечайте на русском языке.",
     ),
@@ -139,6 +153,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "Ошибка при загрузке содержимого, пожалуйста, повторите попытку позже.",
     ),
+    "executionStatus": MessageLookupByLibrary.simpleMessage(
+      "Статус выполнения",
+    ),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите содержание отзыва",
     ),
@@ -160,6 +177,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "Сначала получите список моделей",
     ),
+    "fileStatus": MessageLookupByLibrary.simpleMessage("Статус файлов"),
+    "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Музыка"),
+    "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("Речь"),
+    "fileTypeVideo": MessageLookupByLibrary.simpleMessage("Видео"),
     "fillRequiredFields": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, заполните имя бота, адрес API и ключ API",
     ),
@@ -168,10 +189,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Размер шрифта обновлен",
     ),
+    "generationFailed": MessageLookupByLibrary.simpleMessage(
+      "Ошибка генерации",
+    ),
+    "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
+      "Ошибка генерации · Частичный ответ сохранён",
+    ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage(
       "Помощь и обратная связь",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Главная"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("Входные токены"),
     "justNow": MessageLookupByLibrary.simpleMessage("Только что"),
     "languageChanged": m9,
     "languageSettings": MessageLookupByLibrary.simpleMessage("Настройки языка"),
@@ -187,9 +215,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Нет доступных ботов",
     ),
     "noChats": MessageLookupByLibrary.simpleMessage("Пока нет чатов"),
+    "noContentReturned": MessageLookupByLibrary.simpleMessage(
+      "Содержимое не возвращено",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "Модели не получены",
     ),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("Выходные токены"),
+    "partialResponse": MessageLookupByLibrary.simpleMessage("Частичный ответ"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Приостановить генерацию",
     ),
@@ -202,13 +235,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Политика конфиденциальности",
     ),
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
+    "processInformation": MessageLookupByLibrary.simpleMessage(
+      "Информация о процессе",
+    ),
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("Профиль"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Поделитесь своими предложениями и отзывами",
     ),
     "provider": MessageLookupByLibrary.simpleMessage("Провайдер"),
+    "reasoningCompleted": MessageLookupByLibrary.simpleMessage(
+      "Рассуждение завершено",
+    ),
+    "reasoningInProgress": MessageLookupByLibrary.simpleMessage(
+      "Рассуждение выполняется",
+    ),
+    "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
+      "Рассуждение прервано",
+    ),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("Ответ отменен"),
-    "responseError": m12,
+    "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
+      "Остановлено · Частичный ответ сохранён",
+    ),
+    "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Выбрать бота"),
@@ -224,6 +276,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "Отправьте сообщение в поле ввода ниже, чтобы начать чат",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("Начать общение"),
+    "statusAttached": MessageLookupByLibrary.simpleMessage("Прикреплено"),
+    "statusCancelled": MessageLookupByLibrary.simpleMessage("Отменено"),
+    "statusCompleted": MessageLookupByLibrary.simpleMessage("Завершено"),
+    "statusFailed": MessageLookupByLibrary.simpleMessage("Ошибка"),
+    "statusGenerated": MessageLookupByLibrary.simpleMessage("Создано"),
+    "statusInProgress": MessageLookupByLibrary.simpleMessage("В процессе"),
+    "statusRecorded": MessageLookupByLibrary.simpleMessage("Записано"),
+    "statusRunning": MessageLookupByLibrary.simpleMessage("Выполняется"),
+    "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
+      "Структурированная информация о процессе",
+    ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Отправить отзыв"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Системный промпт"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -236,7 +299,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "Установлена системная тема",
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("Настройки темы"),
+    "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
+      "Размышление завершено",
+    ),
+    "thinkingCompletedWithDuration": m17,
+    "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Размышление…"),
+    "toolCalls": MessageLookupByLibrary.simpleMessage("Вызовы инструментов"),
     "typing": MessageLookupByLibrary.simpleMessage("Печатает..."),
+    "uploadFile": MessageLookupByLibrary.simpleMessage("Загрузить файл"),
+    "uploadImage": MessageLookupByLibrary.simpleMessage(
+      "Загрузить изображение",
+    ),
     "userAgreement": MessageLookupByLibrary.simpleMessage(
       "Пользовательское соглашение",
     ),

@@ -77,6 +77,7 @@ class ChatPageState extends State<ChatPage> {
   List<Message> _messages = [];
   String _streamingResponse = '';
   String _reasoningResponse = '';
+  ModelTokenUsage _streamingTokenUsage = ModelTokenUsage.empty;
   Stopwatch? _processStopwatch;
   final List<MessageToolCall> _toolCalls = [];
   final List<MessageCommandExecution> _commandExecutions = [];
@@ -168,6 +169,7 @@ class ChatPageState extends State<ChatPage> {
       _isStopping = snapshot.lifecycle == ChatRunLifecycle.stopping;
       _streamingResponse = snapshot.streamingResponse;
       _reasoningResponse = snapshot.reasoningResponse;
+      _streamingTokenUsage = snapshot.tokenUsage;
       _toolCalls
         ..clear()
         ..addAll(snapshot.toolCalls);
@@ -752,6 +754,7 @@ class ChatPageState extends State<ChatPage> {
                   isStreaming: _isStreaming,
                   streamingResponse: _streamingResponse,
                   streamingProcessInfo: _buildStreamingProcessInfo(),
+                  streamingTokenUsage: _streamingTokenUsage,
                   currentUserId: _currentUserId,
                   deepThinking: _provider.getDeepThinking(),
                   reasoningResponse: _reasoningResponse,

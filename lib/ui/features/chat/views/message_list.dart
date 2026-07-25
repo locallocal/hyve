@@ -23,6 +23,7 @@ class MessageList extends StatelessWidget {
   final bool isStreaming;
   final String streamingResponse;
   final MessageProcessInfo streamingProcessInfo;
+  final ModelTokenUsage streamingTokenUsage;
   final String currentUserId;
   final bool? deepThinking;
   final String? reasoningResponse;
@@ -36,6 +37,7 @@ class MessageList extends StatelessWidget {
     required this.isStreaming,
     required this.streamingResponse,
     this.streamingProcessInfo = const MessageProcessInfo(),
+    this.streamingTokenUsage = ModelTokenUsage.empty,
     required this.currentUserId,
     this.deepThinking = false,
     this.reasoningResponse = '',
@@ -68,6 +70,7 @@ class MessageList extends StatelessWidget {
                   reasoning:
                       deepThinking == true ? reasoningResponse ?? '' : '',
                   processInfo: streamingProcessInfo,
+                  tokenUsage: streamingTokenUsage,
                   showExecutionStatus: showExecutionStatus,
                   content: streamingResponse,
                 ),
@@ -82,6 +85,7 @@ class MessageList extends StatelessWidget {
             isDesktop: isDesktop,
             reasoning: message.reasoning,
             processInfo: message.processInfo,
+            tokenUsage: message.tokenUsage,
             showExecutionStatus: showExecutionStatus,
             content: message.content,
             images: message.images,
@@ -284,6 +288,7 @@ class _MessageBubble extends StatelessWidget {
   final bool isStreaming;
   final String reasoning;
   final MessageProcessInfo processInfo;
+  final ModelTokenUsage tokenUsage;
   final bool showExecutionStatus;
   final String content;
   final List<String> images;
@@ -300,6 +305,7 @@ class _MessageBubble extends StatelessWidget {
     this.isStreaming = false,
     required this.reasoning,
     this.processInfo = const MessageProcessInfo(),
+    this.tokenUsage = ModelTokenUsage.empty,
     this.showExecutionStatus = true,
     required this.content,
     this.images = const [],
@@ -327,7 +333,10 @@ class _MessageBubble extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(
               bottom:
-                  content.isNotEmpty || _showProcessInfo || _hasStructuredMedia
+                  content.isNotEmpty ||
+                          _showProcessInfo ||
+                          _hasStructuredMedia ||
+                          _showTerminalStatus
                       ? 14
                       : 0,
             ),
@@ -347,11 +356,12 @@ class _MessageBubble extends StatelessWidget {
                     unawaited(_openMarkdownLink(context, href)),
             styleSheet: _buildMarkdownStyleSheet(context, fontSize),
           ),
-        if (_showProcessInfo)
+        if (_showsProcessInfoBeforeMedia)
           Padding(
             padding: EdgeInsets.only(top: content.isNotEmpty ? 14 : 0),
             child: ProcessInfoSection(
               processInfo: processInfo,
+              tokenUsage: tokenUsage,
               isDesktop: isDesktop,
               hasReasoningContent: reasoning.isNotEmpty,
             ),
@@ -359,7 +369,7 @@ class _MessageBubble extends StatelessWidget {
         if (images.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(
-              top: content.isNotEmpty || _showProcessInfo ? 14 : 0,
+              top: content.isNotEmpty || _showsProcessInfoBeforeMedia ? 14 : 0,
             ),
             child: _StatusCardSection(
               isDesktop: isDesktop,
@@ -385,7 +395,9 @@ class _MessageBubble extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(
               top:
-                  content.isNotEmpty || _showProcessInfo || images.isNotEmpty
+                  content.isNotEmpty ||
+                          _showsProcessInfoBeforeMedia ||
+                          images.isNotEmpty
                       ? 12
                       : 0,
             ),
@@ -458,19 +470,36 @@ class _MessageBubble extends StatelessWidget {
               child: VideoPlayerWidget(videoFilePath: video),
             ),
           ),
-        if (terminalOutcome != null &&
-            (terminalOutcome != MessageTerminalOutcome.completed ||
-                hasPartialContent))
+        if (_showTerminalStatus)
           Padding(
             padding: EdgeInsets.only(
               top:
-                  content.isNotEmpty || _hasStructuredMedia || _showProcessInfo
+                  content.isNotEmpty ||
+                          _hasStructuredMedia ||
+                          _showsProcessInfoBeforeMedia
                       ? 10
                       : 0,
             ),
             child: _MessageTerminalStatus(
               outcome: terminalOutcome!,
               hasPartialContent: hasPartialContent,
+            ),
+          ),
+        if (_showsProcessInfoAfterMessage)
+          Padding(
+            padding: EdgeInsets.only(
+              top:
+                  content.isNotEmpty ||
+                          _hasStructuredMedia ||
+                          _showTerminalStatus
+                      ? 14
+                      : 0,
+            ),
+            child: ProcessInfoSection(
+              processInfo: processInfo,
+              tokenUsage: tokenUsage,
+              isDesktop: isDesktop,
+              hasReasoningContent: reasoning.isNotEmpty,
             ),
           ),
       ],
@@ -509,11 +538,24 @@ class _MessageBubble extends StatelessWidget {
 
   bool get _hasMediaAbove =>
       content.isNotEmpty ||
-      _showProcessInfo ||
+      _showsProcessInfoBeforeMedia ||
       images.isNotEmpty ||
       files.isNotEmpty;
 
-  bool get _showProcessInfo => showExecutionStatus && processInfo.hasData;
+  bool get _showProcessInfo =>
+      showExecutionStatus &&
+      (processInfo.hasData ||
+          tokenUsage.inputTokens > 0 ||
+          tokenUsage.outputTokens > 0);
+
+  bool get _showsProcessInfoBeforeMedia => _showProcessInfo && !isDesktop;
+
+  bool get _showsProcessInfoAfterMessage => _showProcessInfo && isDesktop;
+
+  bool get _showTerminalStatus =>
+      terminalOutcome != null &&
+      (terminalOutcome != MessageTerminalOutcome.completed ||
+          hasPartialContent);
 
   bool get _hasStructuredMedia =>
       images.isNotEmpty ||
@@ -716,14 +758,16 @@ class _StatusCardSection extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Widget child;
+  final Widget? subtitleContent;
+  final Widget? child;
 
   const _StatusCardSection({
     required this.isDesktop,
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.child,
+    this.subtitleContent,
+    this.child,
   });
 
   @override
@@ -765,23 +809,25 @@ class _StatusCardSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: StarsDesktopTheme.mutedText(context),
-                      fontSize:
-                          (Theme.of(context).textTheme.bodyMedium?.fontSize ??
-                              12) -
-                          1,
-                    ),
-                  ),
+                  subtitleContent ??
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: StarsDesktopTheme.mutedText(context),
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.fontSize ??
+                                  12) -
+                              1,
+                        ),
+                      ),
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        child,
+        if (child != null) ...[const SizedBox(height: 12), child!],
       ],
     );
 
@@ -994,12 +1040,14 @@ class ReasoningSection extends StatefulWidget {
 
 class ProcessInfoSection extends StatelessWidget {
   final MessageProcessInfo processInfo;
+  final ModelTokenUsage tokenUsage;
   final bool isDesktop;
   final bool hasReasoningContent;
 
   const ProcessInfoSection({
     super.key,
     required this.processInfo,
+    this.tokenUsage = ModelTokenUsage.empty,
     this.isDesktop = false,
     this.hasReasoningContent = false,
   });
@@ -1007,6 +1055,7 @@ class ProcessInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
+    final headerMetrics = <Widget>[];
     final summaryChips = <Widget>[];
 
     if (!hasReasoningContent && processInfo.reasoningStatus.isNotEmpty) {
@@ -1019,14 +1068,30 @@ class ProcessInfoSection extends StatelessWidget {
     }
 
     if (processInfo.durationMs != null) {
-      summaryChips.add(
-        _ProcessChip(
+      headerMetrics.add(
+        _ProcessHeaderMetric(
           icon: LucideIcons.clock3,
           label: strings.processDuration(
             _formatDuration(processInfo.durationMs!),
           ),
         ),
       );
+    }
+
+    if (tokenUsage.inputTokens > 0 || tokenUsage.outputTokens > 0) {
+      headerMetrics
+        ..add(
+          _ProcessHeaderMetric(
+            icon: Icons.login_rounded,
+            label: '${strings.inputTokens} ${tokenUsage.inputTokens}',
+          ),
+        )
+        ..add(
+          _ProcessHeaderMetric(
+            icon: Icons.logout_rounded,
+            label: '${strings.outputTokens} ${tokenUsage.outputTokens}',
+          ),
+        );
     }
 
     if (processInfo.toolCalls.isNotEmpty) {
@@ -1068,74 +1133,88 @@ class ProcessInfoSection extends StatelessWidget {
           isDesktop ? LucideIcons.sparkles : Icons.auto_awesome_motion_rounded,
       title: strings.executionStatus,
       subtitle: _buildSubtitle(strings),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (summaryChips.isNotEmpty)
-            Wrap(spacing: 8, runSpacing: 8, children: summaryChips),
-          if (processInfo.toolCalls.isNotEmpty) ...[
-            SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-            _ProcessListCard<MessageToolCall>(
-              title: strings.toolCalls,
-              icon: LucideIcons.wrench,
-              items: processInfo.toolCalls,
-              titleBuilder: (item) => item.name,
-              subtitleBuilder:
-                  (item) => _joinMeta([
-                    if (item.detail.isNotEmpty) item.detail,
-                    if (item.durationMs != null)
-                      strings.processDuration(
-                        _formatDuration(item.durationMs!),
-                      ),
-                  ]),
-              statusBuilder: (item) => item.status,
-            ),
-          ],
-          if (processInfo.commandExecutions.isNotEmpty) ...[
-            SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-            _ProcessListCard<MessageCommandExecution>(
-              title: strings.commandExecutions,
-              icon: LucideIcons.terminal,
-              items: processInfo.commandExecutions,
-              titleBuilder: (item) => item.command,
-              subtitleBuilder:
-                  (item) => _joinMeta([
-                    if (item.detail.isNotEmpty) item.detail,
-                    if (item.durationMs != null)
-                      strings.processDuration(
-                        _formatDuration(item.durationMs!),
-                      ),
-                  ]),
-              statusBuilder: (item) => item.status,
-            ),
-          ],
-          if (processInfo.fileEdits.isNotEmpty) ...[
-            SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-            _ProcessListCard<MessageFileEdit>(
-              title: strings.fileStatus,
-              icon: LucideIcons.fileText,
-              items: processInfo.fileEdits,
-              titleBuilder:
-                  (item) => item.path.split(Platform.pathSeparator).last,
-              subtitleBuilder:
-                  (item) => _joinMeta([
-                    if (item.detail.isNotEmpty) item.detail,
-                    if (item.type.isNotEmpty)
-                      _fileTypeLabel(strings, item.type),
-                  ]),
-              statusBuilder: (item) => item.status,
-            ),
-          ],
-        ],
-      ),
+      subtitleContent:
+          headerMetrics.isEmpty
+              ? null
+              : Wrap(
+                key: const ValueKey<String>('execution-header-metrics'),
+                spacing: 16,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: headerMetrics,
+              ),
+      child:
+          summaryChips.isEmpty &&
+                  processInfo.toolCalls.isEmpty &&
+                  processInfo.commandExecutions.isEmpty &&
+                  processInfo.fileEdits.isEmpty
+              ? null
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (summaryChips.isNotEmpty)
+                    Wrap(spacing: 8, runSpacing: 8, children: summaryChips),
+                  if (processInfo.toolCalls.isNotEmpty) ...[
+                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                    _ProcessListCard<MessageToolCall>(
+                      title: strings.toolCalls,
+                      icon: LucideIcons.wrench,
+                      items: processInfo.toolCalls,
+                      titleBuilder: (item) => item.name,
+                      subtitleBuilder:
+                          (item) => _joinMeta([
+                            if (item.detail.isNotEmpty) item.detail,
+                            if (item.durationMs != null)
+                              strings.processDuration(
+                                _formatDuration(item.durationMs!),
+                              ),
+                          ]),
+                      statusBuilder: (item) => item.status,
+                    ),
+                  ],
+                  if (processInfo.commandExecutions.isNotEmpty) ...[
+                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                    _ProcessListCard<MessageCommandExecution>(
+                      title: strings.commandExecutions,
+                      icon: LucideIcons.terminal,
+                      items: processInfo.commandExecutions,
+                      titleBuilder: (item) => item.command,
+                      subtitleBuilder:
+                          (item) => _joinMeta([
+                            if (item.detail.isNotEmpty) item.detail,
+                            if (item.durationMs != null)
+                              strings.processDuration(
+                                _formatDuration(item.durationMs!),
+                              ),
+                          ]),
+                      statusBuilder: (item) => item.status,
+                    ),
+                  ],
+                  if (processInfo.fileEdits.isNotEmpty) ...[
+                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                    _ProcessListCard<MessageFileEdit>(
+                      title: strings.fileStatus,
+                      icon: LucideIcons.fileText,
+                      items: processInfo.fileEdits,
+                      titleBuilder:
+                          (item) =>
+                              item.path.split(Platform.pathSeparator).last,
+                      subtitleBuilder:
+                          (item) => _joinMeta([
+                            if (item.detail.isNotEmpty) item.detail,
+                            if (item.type.isNotEmpty)
+                              _fileTypeLabel(strings, item.type),
+                          ]),
+                      statusBuilder: (item) => item.status,
+                    ),
+                  ],
+                ],
+              ),
     );
   }
 
   String _buildSubtitle(S strings) {
     final parts = <String>[];
-    if (processInfo.durationMs != null) {
-      parts.add(strings.includesDuration);
-    }
     if (processInfo.toolCalls.isNotEmpty) {
       parts.add(
         strings.processToolCount(processInfo.toolCalls.length.toString()),
@@ -1157,6 +1236,36 @@ class ProcessInfoSection extends StatelessWidget {
   }
 }
 
+const _processMetricTextStyle = TextStyle(
+  fontSize: 12,
+  height: 1.2,
+  fontWeight: FontWeight.w400,
+  leadingDistribution: TextLeadingDistribution.even,
+);
+
+class _ProcessHeaderMetric extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ProcessHeaderMetric({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = StarsDesktopTheme.mutedText(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox.square(
+          dimension: 14,
+          child: Center(child: Icon(icon, size: 14, color: color)),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: _processMetricTextStyle.copyWith(color: color)),
+      ],
+    );
+  }
+}
+
 class _ProcessChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1170,13 +1279,22 @@ class _ProcessChip extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 14, color: StarsDesktopTheme.mutedText(context)),
+          SizedBox.square(
+            dimension: 14,
+            child: Center(
+              child: Icon(
+                icon,
+                size: 14,
+                color: StarsDesktopTheme.mutedText(context),
+              ),
+            ),
+          ),
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: _processMetricTextStyle.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),

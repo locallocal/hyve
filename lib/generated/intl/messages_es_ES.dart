@@ -48,7 +48,17 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(count) => "Se han recuperado ${count} modelos con éxito";
 
-  static String m12(error) => "Error al obtener respuesta: ${error}";
+  static String m12(count) => "${count} ejecuciones de comandos";
+
+  static String m13(duration) => "Duración ${duration}";
+
+  static String m14(count) => "${count} cambios de archivos";
+
+  static String m15(count) => "${count} llamadas a herramientas";
+
+  static String m16(error) => "Error al obtener respuesta: ${error}";
+
+  static String m17(duration) => "Pensamiento completado · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -96,6 +106,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clickToStartChat": MessageLookupByLibrary.simpleMessage(
       "Haz clic en Nuevo chat para crear una conversación",
     ),
+    "commandExecutions": MessageLookupByLibrary.simpleMessage(
+      "Ejecuciones de comandos",
+    ),
     "confirm": MessageLookupByLibrary.simpleMessage("Confirmar"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -111,6 +124,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Proveedor personalizado...",
     ),
     "darkMode": MessageLookupByLibrary.simpleMessage("Modo oscuro"),
+    "deepThinking": MessageLookupByLibrary.simpleMessage(
+      "Razonamiento profundo",
+    ),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "Eres un asistente de IA útil. Por favor, responde en español.",
     ),
@@ -143,6 +159,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "Error al cargar el contenido, por favor intente más tarde.",
     ),
+    "executionStatus": MessageLookupByLibrary.simpleMessage(
+      "Estado de ejecución",
+    ),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "Por favor, ingrese el contenido de los comentarios",
     ),
@@ -164,6 +183,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "Por favor, obtenga primero la lista de modelos",
     ),
+    "fileStatus": MessageLookupByLibrary.simpleMessage("Estado de archivos"),
+    "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Música"),
+    "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("Voz"),
+    "fileTypeVideo": MessageLookupByLibrary.simpleMessage("Vídeo"),
     "fillRequiredFields": MessageLookupByLibrary.simpleMessage(
       "Por favor, complete el nombre del bot, dirección API y clave API",
     ),
@@ -174,10 +197,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Tamaño de fuente actualizado",
     ),
+    "generationFailed": MessageLookupByLibrary.simpleMessage(
+      "Error de generación",
+    ),
+    "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
+      "Error de generación · Se conserva la respuesta parcial",
+    ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage(
       "Ayuda y Comentarios",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Inicio"),
+    "inputTokens": MessageLookupByLibrary.simpleMessage("Tokens de entrada"),
     "justNow": MessageLookupByLibrary.simpleMessage("Ahora mismo"),
     "languageChanged": m9,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
@@ -197,8 +227,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "No hay bots disponibles",
     ),
     "noChats": MessageLookupByLibrary.simpleMessage("Aún no hay chats"),
+    "noContentReturned": MessageLookupByLibrary.simpleMessage(
+      "No se devolvió contenido",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "No se han recuperado modelos",
+    ),
+    "outputTokens": MessageLookupByLibrary.simpleMessage("Tokens de salida"),
+    "partialResponse": MessageLookupByLibrary.simpleMessage(
+      "Respuesta parcial",
     ),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Pausar generación",
@@ -212,15 +249,34 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidad",
     ),
+    "processCommandCount": m12,
+    "processDuration": m13,
+    "processFileCount": m14,
+    "processInformation": MessageLookupByLibrary.simpleMessage(
+      "Información del proceso",
+    ),
+    "processToolCount": m15,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Proporcione sus sugerencias y comentarios",
     ),
     "provider": MessageLookupByLibrary.simpleMessage("Proveedor"),
+    "reasoningCompleted": MessageLookupByLibrary.simpleMessage(
+      "Razonamiento completado",
+    ),
+    "reasoningInProgress": MessageLookupByLibrary.simpleMessage(
+      "Razonamiento en curso",
+    ),
+    "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
+      "Razonamiento interrumpido",
+    ),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "Respuesta cancelada",
     ),
-    "responseError": m12,
+    "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
+      "Detenido · Se conserva la respuesta parcial",
+    ),
+    "responseError": m16,
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Guardar cambios"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Seleccionar bot"),
@@ -238,6 +294,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "Envía un mensaje en el campo de texto de abajo para comenzar a chatear",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("Empieza a chatear"),
+    "statusAttached": MessageLookupByLibrary.simpleMessage("Adjuntado"),
+    "statusCancelled": MessageLookupByLibrary.simpleMessage("Cancelado"),
+    "statusCompleted": MessageLookupByLibrary.simpleMessage("Completado"),
+    "statusFailed": MessageLookupByLibrary.simpleMessage("Fallido"),
+    "statusGenerated": MessageLookupByLibrary.simpleMessage("Generado"),
+    "statusInProgress": MessageLookupByLibrary.simpleMessage("En curso"),
+    "statusRecorded": MessageLookupByLibrary.simpleMessage("Registrado"),
+    "statusRunning": MessageLookupByLibrary.simpleMessage("Ejecutándose"),
+    "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
+      "Información estructurada del proceso",
+    ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage(
       "Enviar Comentarios",
     ),
@@ -252,7 +319,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "Tema configurado para seguir el sistema",
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("Ajustes de tema"),
+    "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
+      "Pensamiento completado",
+    ),
+    "thinkingCompletedWithDuration": m17,
+    "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
+    "toolCalls": MessageLookupByLibrary.simpleMessage(
+      "Llamadas a herramientas",
+    ),
     "typing": MessageLookupByLibrary.simpleMessage("Escribiendo..."),
+    "uploadFile": MessageLookupByLibrary.simpleMessage("Subir archivo"),
+    "uploadImage": MessageLookupByLibrary.simpleMessage("Subir imagen"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("Acuerdo de usuario"),
     "version": MessageLookupByLibrary.simpleMessage("Versión 1.0.0"),
   };

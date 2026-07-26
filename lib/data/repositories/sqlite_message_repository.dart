@@ -43,24 +43,15 @@ class SqliteMessageRepository implements MessageRepository {
     String chatId,
   ) async {
     final records = await _localDatabase.loadTokenUsageRecordsForChat(chatId);
-    return List<ModelTokenUsageRecord>.unmodifiable(
-      records.map((record) {
-        return ModelTokenUsageRecord(
-          messageId: record['message_id']?.toString() ?? '',
-          chatId: record['chat_id']?.toString() ?? '',
-          botId: record['bot_id']?.toString() ?? '',
-          timestamp: DateTime.fromMillisecondsSinceEpoch(
-            _readCount(record['timestamp']),
-          ),
-          usage: ModelTokenUsage(
-            model: record['token_model']?.toString() ?? '',
-            inputTokens: _readCount(record['input_token_count']),
-            outputTokens: _readCount(record['output_token_count']),
-            totalTokens: _readCount(record['total_token_count']),
-          ),
-        );
-      }),
-    );
+    return _toTokenUsageRecords(records);
+  }
+
+  @override
+  Future<List<ModelTokenUsageRecord>> getTokenUsageRecordsForBot(
+    String botId,
+  ) async {
+    final records = await _localDatabase.loadTokenUsageRecordsForBot(botId);
+    return _toTokenUsageRecords(records);
   }
 
   @override
@@ -112,6 +103,29 @@ class SqliteMessageRepository implements MessageRepository {
   Future<void> deleteMessages(String chatId) async {
     await _localDatabase.deleteMessages(chatId);
     _changes.add(null);
+  }
+
+  List<ModelTokenUsageRecord> _toTokenUsageRecords(
+    Iterable<Map<String, Object?>> records,
+  ) {
+    return List<ModelTokenUsageRecord>.unmodifiable(
+      records.map((record) {
+        return ModelTokenUsageRecord(
+          messageId: record['message_id']?.toString() ?? '',
+          chatId: record['chat_id']?.toString() ?? '',
+          botId: record['bot_id']?.toString() ?? '',
+          timestamp: DateTime.fromMillisecondsSinceEpoch(
+            _readCount(record['timestamp']),
+          ),
+          usage: ModelTokenUsage(
+            model: record['token_model']?.toString() ?? '',
+            inputTokens: _readCount(record['input_token_count']),
+            outputTokens: _readCount(record['output_token_count']),
+            totalTokens: _readCount(record['total_token_count']),
+          ),
+        );
+      }),
+    );
   }
 }
 

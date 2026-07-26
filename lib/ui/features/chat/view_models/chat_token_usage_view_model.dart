@@ -4,16 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 
-enum TokenUsageGranularity { day, hour }
-
-@immutable
-class TokenUsageBucket {
-  const TokenUsageBucket({required this.start, required this.usage});
-
-  final DateTime start;
-  final ModelTokenUsage usage;
-}
+export 'package:stars/ui/core/view_models/token_usage_timeline.dart'
+    show TokenUsageBucket, TokenUsageGranularity;
 
 class ChatTokenUsageViewModel extends ChangeNotifier {
   ChatTokenUsageViewModel({
@@ -22,7 +16,7 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
     required ChatRepository chatRepository,
     DateTime Function()? now,
   }) : _messageRepository = messageRepository,
-       _now = now ?? DateTime.now {
+       _timeline = TokenUsageTimelineState(now: now) {
     _messageSubscription = messageRepository.changes.listen(
       (_) => _scheduleLoad(),
     );
@@ -31,35 +25,22 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
 
   final String chatId;
   final MessageRepository _messageRepository;
-  final DateTime Function() _now;
+  final TokenUsageTimelineState _timeline;
   late final StreamSubscription<void> _messageSubscription;
   late final StreamSubscription<List<Chat>> _chatSubscription;
 
-  List<ModelTokenUsageRecord> _records = const [];
-  List<TokenUsageBucket> _dailyBuckets = const [];
-  ModelTokenUsage _totalUsage = ModelTokenUsage.empty;
-  DateTime? _selectedDay;
   Object? _error;
   bool _isLoading = false;
   bool _loadScheduled = false;
   bool _disposed = false;
   int _loadGeneration = 0;
 
-  List<TokenUsageBucket> get dailyBuckets => _dailyBuckets;
-  List<TokenUsageBucket> get visibleBuckets =>
-      _selectedDay == null ? _dailyBuckets : _hourlyBuckets(_selectedDay!);
-  ModelTokenUsage get totalUsage => _totalUsage;
-  ModelTokenUsage get visibleTotalUsage =>
-      _selectedDay == null
-          ? _totalUsage
-          : ModelTokenUsage.sum(
-            _hourlyBuckets(_selectedDay!).map((bucket) => bucket.usage),
-          );
-  DateTime? get selectedDay => _selectedDay;
-  TokenUsageGranularity get granularity =>
-      _selectedDay == null
-          ? TokenUsageGranularity.day
-          : TokenUsageGranularity.hour;
+  List<TokenUsageBucket> get dailyBuckets => _timeline.dailyBuckets;
+  List<TokenUsageBucket> get visibleBuckets => _timeline.visibleBuckets;
+  ModelTokenUsage get totalUsage => _timeline.totalUsage;
+  ModelTokenUsage get visibleTotalUsage => _timeline.visibleTotalUsage;
+  DateTime? get selectedDay => _timeline.selectedDay;
+  TokenUsageGranularity get granularity => _timeline.granularity;
   Object? get error => _error;
   bool get isLoading => _isLoading;
 
@@ -73,11 +54,7 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
         chatId,
       );
       if (_disposed || generation != _loadGeneration) return;
-      _records = List<ModelTokenUsageRecord>.unmodifiable(records);
-      _dailyBuckets = List<TokenUsageBucket>.unmodifiable(
-        _buildDailyBuckets(_records),
-      );
-      _totalUsage = ModelTokenUsage.sum(_records.map((record) => record.usage));
+      _timeline.replaceRecords(records);
     } catch (error) {
       if (_disposed || generation != _loadGeneration) return;
       _error = error;
@@ -90,16 +67,11 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
   }
 
   void selectDay(DateTime day) {
-    final normalized = DateTime(day.year, day.month, day.day);
-    if (_selectedDay == normalized) return;
-    _selectedDay = normalized;
-    notifyListeners();
+    if (_timeline.selectDay(day)) notifyListeners();
   }
 
   void showDaily() {
-    if (_selectedDay == null) return;
-    _selectedDay = null;
-    notifyListeners();
+    if (_timeline.showDaily()) notifyListeners();
   }
 
   void _scheduleLoad() {
@@ -109,65 +81,6 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
       _loadScheduled = false;
       if (!_disposed) unawaited(load());
     });
-  }
-
-  List<TokenUsageBucket> _buildDailyBuckets(
-    List<ModelTokenUsageRecord> records,
-  ) {
-    final usageByDay = <DateTime, ModelTokenUsage>{};
-    for (final record in records) {
-      if (!record.usage.hasData) continue;
-      final timestamp = record.timestamp;
-      final day = DateTime(timestamp.year, timestamp.month, timestamp.day);
-      usageByDay[day] =
-          (usageByDay[day] ?? ModelTokenUsage.empty) + record.usage;
-    }
-    if (usageByDay.isEmpty) return const [];
-
-    final days = usageByDay.keys.toList()..sort();
-    final buckets = <TokenUsageBucket>[];
-    var cursor = days.first;
-    final last = days.last;
-    while (!cursor.isAfter(last)) {
-      buckets.add(
-        TokenUsageBucket(
-          start: cursor,
-          usage: usageByDay[cursor] ?? ModelTokenUsage.empty,
-        ),
-      );
-      cursor = DateTime(cursor.year, cursor.month, cursor.day + 1);
-    }
-    return buckets;
-  }
-
-  List<TokenUsageBucket> _hourlyBuckets(DateTime day) {
-    final now = _now();
-    final selectedDate = DateTime(day.year, day.month, day.day);
-    final today = DateTime(now.year, now.month, now.day);
-    final bucketCount =
-        selectedDate.isBefore(today)
-            ? 24
-            : selectedDate == today
-            ? now.hour + 1
-            : 0;
-    final usageByHour = <int, ModelTokenUsage>{};
-    for (final record in _records) {
-      final timestamp = record.timestamp;
-      if (timestamp.year != day.year ||
-          timestamp.month != day.month ||
-          timestamp.day != day.day ||
-          !record.usage.hasData) {
-        continue;
-      }
-      usageByHour[timestamp.hour] =
-          (usageByHour[timestamp.hour] ?? ModelTokenUsage.empty) + record.usage;
-    }
-    return List<TokenUsageBucket>.generate(bucketCount, (hour) {
-      return TokenUsageBucket(
-        start: DateTime(day.year, day.month, day.day, hour),
-        usage: usageByHour[hour] ?? ModelTokenUsage.empty,
-      );
-    }, growable: false);
   }
 
   @override

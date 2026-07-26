@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 
@@ -104,6 +105,117 @@ void main() {
     );
     expect(find.text('聊天 1'), findsOneWidget);
     expect(find.text('100.0%'), findsOneWidget);
+  });
+
+  testWidgets('panel appends the shared daily usage bars', (tester) async {
+    TokenUsageBucket? selectedBucket;
+    final buckets = [
+      TokenUsageBucket(
+        start: DateTime(2026, 7, 24),
+        usage: const ModelTokenUsage(totalTokens: 25),
+      ),
+      TokenUsageBucket(
+        start: DateTime(2026, 7, 25),
+        usage: const ModelTokenUsage(totalTokens: 75),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _Harness(
+        width: 800,
+        child: BotTokenUsagePanel(
+          usage: const ModelTokenUsage(totalTokens: 100),
+          conversationUsages: const [],
+          dailyBuckets: buckets,
+          visibleBuckets: buckets,
+          onBucketSelected: (bucket) => selectedBucket = bucket,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('每日用量'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('bot-token-usage-timeline-divider')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bar-day-2026-07-24')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bar-day-2026-07-25')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-chart-vertical')),
+      findsOneWidget,
+    );
+    final tallestDailyBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-day-2026-07-25'),
+    );
+    expect(
+      tester.getSize(tallestDailyBar).height,
+      greaterThan(tester.getSize(tallestDailyBar).width),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-24')),
+    );
+    expect(selectedBucket?.start, DateTime(2026, 7, 24));
+  });
+
+  testWidgets('panel renders hourly usage as scrollable vertical bars', (
+    tester,
+  ) async {
+    final hourlyBuckets = List<TokenUsageBucket>.generate(24, (hour) {
+      return TokenUsageBucket(
+        start: DateTime(2026, 7, 24, hour),
+        usage: ModelTokenUsage(totalTokens: 24 - hour),
+      );
+    });
+
+    await tester.pumpWidget(
+      _Harness(
+        width: 600,
+        child: BotTokenUsagePanel(
+          usage: const ModelTokenUsage(totalTokens: 300),
+          conversationUsages: const [],
+          dailyBuckets: [
+            TokenUsageBucket(
+              start: DateTime(2026, 7, 24),
+              usage: const ModelTokenUsage(totalTokens: 300),
+            ),
+          ],
+          visibleBuckets: hourlyBuckets,
+          granularity: TokenUsageGranularity.hour,
+          selectedDay: DateTime(2026, 7, 24),
+          onShowDaily: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('小时用量'), findsOneWidget);
+    final firstHourlyBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-hour-0'),
+    );
+    expect(firstHourlyBar, findsOneWidget);
+    expect(
+      tester.getSize(firstHourlyBar).height,
+      greaterThan(tester.getSize(firstHourlyBar).width),
+    );
+    final verticalChart = find.byKey(
+      const ValueKey<String>('token-usage-chart-vertical'),
+    );
+    final scrollable = find.descendant(
+      of: verticalChart,
+      matching: find.byType(Scrollable),
+    );
+    expect(scrollable, findsOneWidget);
+    expect(
+      tester.state<ScrollableState>(scrollable).position.maxScrollExtent,
+      greaterThan(0),
+    );
   });
 }
 

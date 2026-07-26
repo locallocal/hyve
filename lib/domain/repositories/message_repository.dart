@@ -11,6 +11,8 @@ abstract interface class MessageRepository {
     String chatId,
   );
 
+  Future<List<ModelTokenUsageRecord>> getTokenUsageRecordsForBot(String botId);
+
   Future<ModelTokenUsage> getTokenUsageForBot(String botId);
 
   Future<Map<String, ModelTokenUsage>> getTokenUsageByChatForBot(String botId);

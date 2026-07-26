@@ -177,6 +177,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Contact information (optional)",
     ),
+    "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
+      "Token share by conversation",
+    ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
     "createChatFailed": m19,

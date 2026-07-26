@@ -162,11 +162,22 @@ void main() {
         timestamp: timestamp,
       ),
     ]);
+    await database.update(
+      'token_usage_records',
+      {'total_token_count': 0},
+      where: 'message_id = ?',
+      whereArgs: ['assistant-1'],
+    );
 
     final usage = await repository.getTokenUsageForBot('bot-1');
     expect(usage.inputTokens, 180);
     expect(usage.outputTokens, 60);
     expect(usage.effectiveTotalTokens, 240);
+
+    final usageByChat = await repository.getTokenUsageByChatForBot('bot-1');
+    expect(usageByChat.keys, ['chat-1', 'chat-2']);
+    expect(usageByChat['chat-1']?.effectiveTotalTokens, 140);
+    expect(usageByChat['chat-2']?.effectiveTotalTokens, 100);
 
     final persisted = await repository.getMessages('chat-1');
     expect(persisted.single.tokenUsage.model, 'model-a');

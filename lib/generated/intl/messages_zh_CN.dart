@@ -143,6 +143,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("联系方式（可选）"),
+    "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
+      "会话 Token 占比",
+    ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("复制 API 密钥"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 团队"),
     "createChatFailed": m19,

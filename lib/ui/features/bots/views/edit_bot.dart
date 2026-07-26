@@ -10,6 +10,7 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -395,9 +396,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
         ),
       );
     }
-    return TokenUsageIndicator(
-      usage: viewModel?.usage ?? ModelTokenUsage.empty,
-      showBreakdown: true,
+    final usage = viewModel?.usage ?? ModelTokenUsage.empty;
+    if (!widget.embedded) {
+      return TokenUsageIndicator(usage: usage, showBreakdown: true);
+    }
+    return BotTokenUsagePanel(
+      usage: usage,
+      conversationUsages: viewModel?.conversationUsages ?? const [],
     );
   }
 

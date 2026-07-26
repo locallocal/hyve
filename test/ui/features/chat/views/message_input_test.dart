@@ -247,6 +247,37 @@ void main() {
       expect(cancelCalls, 1);
       expect(sendCalls, 0);
     });
+
+    testWidgets('request status actions expand without overflowing', (
+      tester,
+    ) async {
+      final controller = TextEditingController(text: 'Ready');
+      addTearDown(controller.dispose);
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        requestInProgress: true,
+      );
+
+      final generatingButton = find.widgetWithText(ShadButton, '正在生成…');
+      expect(generatingButton, findsOneWidget);
+      expect(tester.getSize(generatingButton).width, greaterThan(96));
+      expect(tester.takeException(), isNull);
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        requestInProgress: true,
+        canCancel: true,
+        isStopping: true,
+      );
+
+      final stoppingButton = find.widgetWithText(ShadButton, '正在停止…');
+      expect(stoppingButton, findsOneWidget);
+      expect(tester.getSize(stoppingButton).width, greaterThan(96));
+      expect(tester.takeException(), isNull);
+    });
   });
 }
 
@@ -255,6 +286,7 @@ Future<void> _pumpMessageInput(
   required TextEditingController controller,
   bool requestInProgress = false,
   bool canCancel = false,
+  bool isStopping = false,
   AiProvider? provider,
   VoidCallback? onSend,
   VoidCallback? onCancel,
@@ -313,6 +345,7 @@ Future<void> _pumpMessageInput(
                             controller: controller,
                             requestInProgress: requestInProgress,
                             canCancel: canCancel,
+                            isStopping: isStopping,
                             desktopMode: true,
                             onCameraPressed: _noop,
                             onGalleryPressed: _noop,

@@ -907,26 +907,30 @@ class _MessageInputState extends State<MessageInput> {
           : LucideIcons.send,
       size: 17,
     );
-    if (widget.requestInProgress) {
-      return ShadButton.secondary(
-        size: ShadButtonSize.sm,
-        width: 96,
-        height: 36,
-        enabled: enabled,
-        onPressed: onPressed,
-        leading: icon,
-        child: Text(label),
-      );
-    }
-    return ShadButton(
-      size: ShadButtonSize.sm,
-      width: 96,
-      height: 36,
-      backgroundColor: DesktopThemeTokens.primaryActionColor(context),
-      enabled: enabled,
-      onPressed: onPressed,
-      leading: icon,
-      child: Text(label),
+    final button =
+        widget.requestInProgress
+            ? ShadButton.secondary(
+              size: ShadButtonSize.sm,
+              width: 0,
+              height: 36,
+              enabled: enabled,
+              onPressed: onPressed,
+              leading: icon,
+              child: Text(label),
+            )
+            : ShadButton(
+              size: ShadButtonSize.sm,
+              width: 0,
+              height: 36,
+              backgroundColor: DesktopThemeTokens.primaryActionColor(context),
+              enabled: enabled,
+              onPressed: onPressed,
+              leading: icon,
+              child: Text(label),
+            );
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 96),
+      child: button,
     );
   }
 

@@ -72,11 +72,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("Sobre"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Sobre o Stars"),
     "addBot": MessageLookupByLibrary.simpleMessage("Adicionar bot"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("Adicionar habilidade"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "Ajustar tamanho da fonte do aplicativo",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "Ajustar tamanho da fonte",
+    ),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "Todas as habilidades instaladas foram adicionadas.",
     ),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("Sempre ativa"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
@@ -276,6 +280,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("Nome"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Nome atualizado"),
     "newChat": MessageLookupByLibrary.simpleMessage("Nova conversa"),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "Nenhuma habilidade adicionada",
+    ),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "Adicione as habilidades instaladas necessárias para este bot.",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage(
       "Nenhum bot disponível",
     ),
@@ -328,6 +338,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Raciocínio interrompido",
     ),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("Remover habilidade"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "Resposta cancelada",
     ),
@@ -361,6 +372,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Detalhes da habilidade",
     ),
     "skillDigest": MessageLookupByLibrary.simpleMessage("Hash do conteúdo"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("Desativada"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("Ativada"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Arquivos"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(

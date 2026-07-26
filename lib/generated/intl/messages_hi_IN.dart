@@ -71,11 +71,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("के बारे में"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Stars के बारे में"),
     "addBot": MessageLookupByLibrary.simpleMessage("बॉट जोड़ें"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("कौशल जोड़ें"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "एप्लिकेशन फॉन्ट साइज़ समायोजित करें",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "फॉन्ट साइज़ समायोजित करें",
+    ),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "सभी इंस्टॉल किए गए कौशल जोड़ दिए गए हैं।",
     ),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("हमेशा चालू"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
@@ -265,6 +269,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "कोई कौशल नहीं जोड़ा गया",
+    ),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "इस बॉट के लिए ज़रूरी इंस्टॉल किए गए कौशल जोड़ें।",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage(
       "कोई बॉट उपलब्ध नहीं है",
     ),
@@ -307,6 +317,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("तर्क पूर्ण"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("कौशल हटाएँ"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "उत्तर रद्द किया गया",
     ),
@@ -336,6 +347,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("संगतता"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("कौशल का विवरण"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("सामग्री डाइजेस्ट"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("चालू"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(

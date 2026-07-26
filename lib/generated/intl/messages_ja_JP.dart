@@ -70,10 +70,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("アプリについて"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Starsについて"),
     "addBot": MessageLookupByLibrary.simpleMessage("ボットを追加"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("スキルを追加"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "アプリのフォントサイズを調整する",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("フォントサイズを調整"),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "インストール済みのスキルはすべて追加されています。",
+    ),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("常に有効"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
       "各テキストリクエストにこのスキルを挿入します。",
@@ -224,6 +228,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("名前"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("名前が更新されました"),
     "newChat": MessageLookupByLibrary.simpleMessage("新しいチャット"),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("スキルが追加されていません"),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "このボットに必要なインストール済みスキルを追加します。",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("利用可能なボットがありません"),
     "noChats": MessageLookupByLibrary.simpleMessage("まだチャットがありません"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
@@ -256,6 +264,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("推論完了"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("推論中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("推論中断"),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("スキルを削除"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("応答がキャンセルされました"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "停止済み · 部分回答を保持",
@@ -279,6 +288,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("互換性"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("スキルの詳細"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("コンテンツダイジェスト"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("無効"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("有効"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("ファイル"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(

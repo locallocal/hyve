@@ -93,8 +93,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "activeRequestCannotStop": MessageLookupByLibrary.simpleMessage("当前请求无法停止"),
     "addAttachment": MessageLookupByLibrary.simpleMessage("上传附件"),
     "addBot": MessageLookupByLibrary.simpleMessage("添加智能体"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("添加技能"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("调整应用内文字大小"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("调整文字大小"),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage("所有已安装技能均已添加。"),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("始终启用"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
       "每次文本请求都会注入此技能。",
@@ -287,6 +289,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
       "新建聊天后会直接在工作区打开会话。",
     ),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("尚未添加技能"),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "按需添加这个智能体要使用的已安装技能。",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("没有可用的智能体"),
     "noChats": MessageLookupByLibrary.simpleMessage("还没有聊天记录"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("未返回内容"),
@@ -337,6 +343,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "referenceAudio": MessageLookupByLibrary.simpleMessage("参考音频"),
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("移除文件"),
     "removeImageAttachment": MessageLookupByLibrary.simpleMessage("移除图片"),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("移除技能"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("已取消回复"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回复"),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("恢复默认"),
@@ -373,6 +380,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("兼容性"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("技能详情"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("内容摘要"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("已关闭"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("已开启"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("文件"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("技能已导入"),

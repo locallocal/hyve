@@ -71,11 +71,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("О приложении"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("О приложении Stars"),
     "addBot": MessageLookupByLibrary.simpleMessage("Добавить бота"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("Добавить навык"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "Настроить размер шрифта приложения",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "Настроить размер шрифта",
+    ),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "Все установленные навыки добавлены.",
     ),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("Всегда включён"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
@@ -267,6 +271,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("Имя"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Имя обновлено"),
     "newChat": MessageLookupByLibrary.simpleMessage("Новый чат"),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "Навыки не добавлены",
+    ),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "Добавьте установленные навыки, необходимые этому боту.",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage(
       "Нет доступных ботов",
     ),
@@ -321,6 +331,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Рассуждение прервано",
     ),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("Удалить навык"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("Ответ отменен"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "Остановлено · Частичный ответ сохранён",
@@ -350,6 +361,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("Совместимость"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("Сведения о навыке"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("Хеш содержимого"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("Включён"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Файлы"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(

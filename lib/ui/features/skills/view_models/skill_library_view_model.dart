@@ -5,11 +5,15 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
 final class SkillLibraryViewModel extends ChangeNotifier {
+  static const int defaultPageSize = 10;
+
   SkillLibraryViewModel({
     required SkillRepository skillRepository,
     required SkillPickerRepository pickerRepository,
+    this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
-       _pickerRepository = pickerRepository {
+       _pickerRepository = pickerRepository,
+       assert(pageSize > 0) {
     _changesSubscription = _skillRepository.changes.listen((skills) {
       _applySkills(skills);
     });
@@ -17,11 +21,13 @@ final class SkillLibraryViewModel extends ChangeNotifier {
 
   final SkillRepository _skillRepository;
   final SkillPickerRepository _pickerRepository;
+  final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _changesSubscription;
 
   List<SkillDescriptor> _skills = const [];
   List<SkillDescriptor> _filteredSkills = const [];
   String _query = '';
+  int _pageIndex = 0;
   bool _isLoading = false;
   bool _isImporting = false;
   Object? _error;
@@ -29,7 +35,27 @@ final class SkillLibraryViewModel extends ChangeNotifier {
 
   List<SkillDescriptor> get skills => _skills;
   List<SkillDescriptor> get filteredSkills => _filteredSkills;
+  List<SkillDescriptor> get paginatedSkills {
+    if (_filteredSkills.isEmpty) return const [];
+    final start = _pageIndex * pageSize;
+    final proposedEnd = start + pageSize;
+    final end =
+        proposedEnd < _filteredSkills.length
+            ? proposedEnd
+            : _filteredSkills.length;
+    return List<SkillDescriptor>.unmodifiable(
+      _filteredSkills.getRange(start, end),
+    );
+  }
+
   String get query => _query;
+  int get currentPage => totalPages == 0 ? 0 : _pageIndex + 1;
+  int get totalPages =>
+      _filteredSkills.isEmpty
+          ? 0
+          : (_filteredSkills.length + pageSize - 1) ~/ pageSize;
+  bool get hasPreviousPage => _pageIndex > 0;
+  bool get hasNextPage => _pageIndex + 1 < totalPages;
   bool get isLoading => _isLoading;
   bool get isImporting => _isImporting;
   Object? get error => _error;
@@ -55,11 +81,24 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   void search(String query) {
     if (_query == query) return;
     _query = query;
+    _pageIndex = 0;
     _applyFilter();
     notifyListeners();
   }
 
   void clearSearch() => search('');
+
+  void previousPage() {
+    if (!hasPreviousPage) return;
+    _pageIndex -= 1;
+    notifyListeners();
+  }
+
+  void nextPage() {
+    if (!hasNextPage) return;
+    _pageIndex += 1;
+    notifyListeners();
+  }
 
   Future<SkillDescriptor?> importDirectory() async {
     final source = await _pickerRepository.pickDirectory();
@@ -122,6 +161,16 @@ final class SkillLibraryViewModel extends ChangeNotifier {
                     skill.description.toLowerCase().contains(normalized);
               }),
             );
+    _normalizePage();
+  }
+
+  void _normalizePage() {
+    final pageCount = totalPages;
+    if (pageCount == 0) {
+      _pageIndex = 0;
+    } else if (_pageIndex >= pageCount) {
+      _pageIndex = pageCount - 1;
+    }
   }
 
   @override

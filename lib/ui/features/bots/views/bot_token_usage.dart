@@ -11,6 +11,8 @@ import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.da
 import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
 import 'package:stars/utils/theme.dart';
 
+const double _tokenUsagePieSize = 148;
+
 class BotTokenUsagePanel extends StatelessWidget {
   const BotTokenUsagePanel({
     super.key,
@@ -39,10 +41,13 @@ class BotTokenUsagePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final summary = KeyedSubtree(
       key: const ValueKey<String>('bot-token-usage-summary'),
-      child: TokenUsageIndicator(
-        usage: usage,
-        showBreakdown: true,
-        breakdownLayout: TokenUsageBreakdownLayout.inspector,
+      child: SizedBox(
+        height: _tokenUsagePieSize,
+        child: TokenUsageIndicator(
+          usage: usage,
+          showBreakdown: true,
+          breakdownLayout: TokenUsageBreakdownLayout.inspector,
+        ),
       ),
     );
     final chart = _ConversationTokenShare(
@@ -95,8 +100,6 @@ class BotTokenUsagePanel extends StatelessWidget {
 class _ConversationTokenShare extends StatelessWidget {
   const _ConversationTokenShare({required this.conversationUsages});
 
-  static const double _chartSize = 148;
-
   final List<BotConversationTokenUsage> conversationUsages;
 
   @override
@@ -131,22 +134,17 @@ class _ConversationTokenShare extends StatelessWidget {
       key: const ValueKey<String>('bot-conversation-token-share'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          S.of(context).conversationTokenShare,
-          style: DesktopThemeTokens.sectionTitleStyle(context),
-        ),
-        const SizedBox(height: 14),
         Semantics(
           container: true,
           label: semanticsLabel,
           child: ExcludeSemantics(
             child:
                 entries.isEmpty
-                    ? _EmptyPieChart(size: _chartSize)
+                    ? const _EmptyPieChart(size: _tokenUsagePieSize)
                     : LayoutBuilder(
                       builder: (context, constraints) {
                         final pie = SizedBox.square(
-                          dimension: _chartSize,
+                          dimension: _tokenUsagePieSize,
                           child: CustomPaint(
                             key: const ValueKey<String>(
                               'bot-conversation-token-pie-chart',

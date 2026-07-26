@@ -52,12 +52,29 @@ void main() {
       find.byKey(const ValueKey<String>('bot-conversation-token-pie-chart')),
       findsOneWidget,
     );
+    final pie = find.byKey(
+      const ValueKey<String>('bot-conversation-token-pie-chart'),
+    );
+    final summaryRect = tester.getRect(summary);
+    final pieRect = tester.getRect(pie);
+    final firstMetricRect = tester.getRect(
+      find.byKey(const ValueKey<String>('token-usage-total')),
+    );
+    final lastMetricRect = tester.getRect(
+      find.byKey(const ValueKey<String>('token-usage-output')),
+    );
+    expect(summaryRect.top, closeTo(pieRect.top, 0.01));
+    expect(summaryRect.bottom, closeTo(pieRect.bottom, 0.01));
+    expect(summaryRect.center.dy, closeTo(pieRect.center.dy, 0.01));
+    expect(firstMetricRect.top, closeTo(pieRect.top, 0.01));
+    expect(lastMetricRect.bottom, closeTo(pieRect.bottom, 0.01));
     expect(
       tester.getTopLeft(summary).dx,
       lessThan(tester.getTopLeft(chart).dx),
     );
     expect(find.text('第一段会话'), findsOneWidget);
     expect(find.text('第二段会话'), findsOneWidget);
+    expect(find.text('会话 Token 占比'), findsNothing);
     expect(find.text('75.0%'), findsOneWidget);
     expect(find.text('25.0%'), findsOneWidget);
     expect(

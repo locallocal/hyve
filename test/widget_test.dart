@@ -1517,7 +1517,7 @@ void main() {
       tester.getTopLeft(tokenSummary).dx,
       lessThan(tester.getTopLeft(tokenShare).dx),
     );
-    expect(find.text('会话 Token 占比'), findsOneWidget);
+    expect(find.text('会话 Token 占比'), findsNothing);
     expect(
       find.byKey(const ValueKey<String>('bot-conversation-token-pie-empty')),
       findsOneWidget,

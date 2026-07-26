@@ -44,6 +44,7 @@ class TokenUsageIndicator extends StatelessWidget {
               breakdownLayout == TokenUsageBreakdownLayout.inspector
                   ? Column(
                     key: const ValueKey<String>('token-usage-breakdown'),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _TokenMetricRow(
                         key: const ValueKey<String>('token-usage-total'),

@@ -68,6 +68,59 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets('desktop Skill library moves between pages', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([
+        for (var index = 1; index <= 11; index += 1)
+          _skill(
+            'Skill ${index.toString().padLeft(2, '0')}',
+            'Description $index',
+          ),
+      ]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Skill 01'), findsOneWidget);
+      expect(find.text('Skill 10'), findsOneWidget);
+      expect(find.text('Skill 11'), findsNothing);
+      expect(find.text('1 / 2'), findsOneWidget);
+
+      final nextPage = find.byKey(const ValueKey<String>('skill-next-page'));
+      await tester.ensureVisible(nextPage);
+      await tester.tap(nextPage);
+      await tester.pump();
+
+      expect(find.text('Skill 01'), findsNothing);
+      expect(find.text('Skill 10'), findsNothing);
+      expect(find.text('Skill 11'), findsOneWidget);
+      expect(find.text('2 / 2'), findsOneWidget);
+
+      final previousPage = find.byKey(
+        const ValueKey<String>('skill-previous-page'),
+      );
+      await tester.tap(previousPage);
+      await tester.pump();
+
+      expect(find.text('Skill 01'), findsOneWidget);
+      expect(find.text('Skill 11'), findsNothing);
+      expect(find.text('1 / 2'), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
 }
 
 Widget _harness(SkillLibraryViewModel viewModel) {

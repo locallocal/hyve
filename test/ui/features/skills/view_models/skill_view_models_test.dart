@@ -67,6 +67,76 @@ void main() {
     expect(viewModel.filteredSkills, hasLength(2));
   });
 
+  test(
+    'library paginates, resets on search, and corrects removed pages',
+    () async {
+      final repository = _FakeSkillRepository([
+        for (var index = 1; index <= 12; index += 1)
+          _skill(
+            'Skill $index',
+            description: index <= 6 ? 'Alpha group' : 'Beta group',
+          ),
+      ]);
+      final viewModel = SkillLibraryViewModel(
+        skillRepository: repository,
+        pickerRepository: const _FakeSkillPickerRepository(null),
+        pageSize: 5,
+      );
+      addTearDown(viewModel.dispose);
+      await viewModel.load();
+
+      expect(viewModel.currentPage, 1);
+      expect(viewModel.totalPages, 3);
+      expect(viewModel.paginatedSkills.map((skill) => skill.name), [
+        'Skill 1',
+        'Skill 2',
+        'Skill 3',
+        'Skill 4',
+        'Skill 5',
+      ]);
+      expect(viewModel.hasPreviousPage, isFalse);
+      expect(viewModel.hasNextPage, isTrue);
+
+      viewModel.nextPage();
+      viewModel.nextPage();
+      expect(viewModel.currentPage, 3);
+      expect(viewModel.paginatedSkills.map((skill) => skill.name), [
+        'Skill 11',
+        'Skill 12',
+      ]);
+      expect(viewModel.hasNextPage, isFalse);
+
+      viewModel.search('beta');
+      expect(viewModel.currentPage, 1);
+      expect(viewModel.totalPages, 2);
+      expect(viewModel.paginatedSkills.map((skill) => skill.name), [
+        'Skill 7',
+        'Skill 8',
+        'Skill 9',
+        'Skill 10',
+        'Skill 11',
+      ]);
+
+      viewModel.clearSearch();
+      viewModel.nextPage();
+      viewModel.nextPage();
+      await viewModel.uninstall('user:Skill 12');
+      await Future<void>.delayed(Duration.zero);
+      await viewModel.uninstall('user:Skill 11');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(viewModel.currentPage, 2);
+      expect(viewModel.totalPages, 2);
+      expect(viewModel.paginatedSkills.map((skill) => skill.name), [
+        'Skill 6',
+        'Skill 7',
+        'Skill 8',
+        'Skill 9',
+        'Skill 10',
+      ]);
+    },
+  );
+
   test('bot binding enables manual or always modes but rejects auto', () async {
     final skillRepository = _FakeSkillRepository([_skill('one')]);
     final bindingRepository = _FakeBindingRepository();

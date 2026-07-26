@@ -66,6 +66,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     return ColoredBox(
       color: DesktopThemeTokens.workspaceSurface(context),
       child: SingleChildScrollView(
+        key: ValueKey<String>('skill-library-page-${viewModel.currentPage}'),
         padding: DesktopThemeTokens.formPagePadding,
         child: Center(
           child: ConstrainedBox(
@@ -198,22 +199,89 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
         const gap = 14.0;
         final itemWidth =
             (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final skill in viewModel.filteredSkills)
-              SizedBox(
-                width: itemWidth,
-                child: _DesktopSkillCard(
-                  skill: skill,
-                  onOpen: () => _showDetails(context, skill),
-                  onUninstall: () => _confirmUninstall(context, skill),
-                ),
-              ),
+            Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final skill in viewModel.paginatedSkills)
+                  SizedBox(
+                    width: itemWidth,
+                    child: _DesktopSkillCard(
+                      skill: skill,
+                      onOpen: () => _showDetails(context, skill),
+                      onUninstall: () => _confirmUninstall(context, skill),
+                    ),
+                  ),
+              ],
+            ),
+            if (viewModel.totalPages > 1) ...[
+              const SizedBox(height: 20),
+              _buildPagination(context, desktop: true),
+            ],
           ],
         );
       },
+    );
+  }
+
+  Widget _buildPagination(BuildContext context, {required bool desktop}) {
+    final localizations = MaterialLocalizations.of(context);
+    final pageIndicator = Semantics(
+      label: '${viewModel.currentPage} / ${viewModel.totalPages}',
+      child: Text(
+        '${viewModel.currentPage} / ${viewModel.totalPages}',
+        key: const ValueKey<String>('skill-page-indicator'),
+      ),
+    );
+    if (!desktop) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            key: const ValueKey<String>('skill-previous-page'),
+            tooltip: localizations.previousPageTooltip,
+            onPressed:
+                viewModel.hasPreviousPage ? viewModel.previousPage : null,
+            icon: const Icon(Icons.chevron_left_rounded),
+          ),
+          const SizedBox(width: 12),
+          pageIndicator,
+          const SizedBox(width: 12),
+          IconButton(
+            key: const ValueKey<String>('skill-next-page'),
+            tooltip: localizations.nextPageTooltip,
+            onPressed: viewModel.hasNextPage ? viewModel.nextPage : null,
+            icon: const Icon(Icons.chevron_right_rounded),
+          ),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ShadButton.outline(
+          key: const ValueKey<String>('skill-previous-page'),
+          size: ShadButtonSize.sm,
+          enabled: viewModel.hasPreviousPage,
+          onPressed: viewModel.previousPage,
+          leading: const Icon(LucideIcons.chevronLeft, size: 16),
+          child: Text(localizations.previousPageTooltip),
+        ),
+        const SizedBox(width: 16),
+        pageIndicator,
+        const SizedBox(width: 16),
+        ShadButton.outline(
+          key: const ValueKey<String>('skill-next-page'),
+          size: ShadButtonSize.sm,
+          enabled: viewModel.hasNextPage,
+          onPressed: viewModel.nextPage,
+          trailing: const Icon(LucideIcons.chevronRight, size: 16),
+          child: Text(localizations.nextPageTooltip),
+        ),
+      ],
     );
   }
 
@@ -304,29 +372,43 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
         ),
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: viewModel.filteredSkills.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final skill = viewModel.filteredSkills[index];
-        return Card(
-          child: ListTile(
-            title: Text(skill.name),
-            subtitle: Text(
-              skill.description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.separated(
+            key: ValueKey<String>(
+              'skill-library-mobile-page-${viewModel.currentPage}',
             ),
-            onTap: () => _showDetails(context, skill),
-            trailing: IconButton(
-              tooltip: strings.uninstallSkill,
-              onPressed: () => _confirmUninstall(context, skill),
-              icon: const Icon(Icons.delete_outline),
-            ),
+            padding: const EdgeInsets.all(16),
+            itemCount: viewModel.paginatedSkills.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final skill = viewModel.paginatedSkills[index];
+              return Card(
+                child: ListTile(
+                  title: Text(skill.name),
+                  subtitle: Text(
+                    skill.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => _showDetails(context, skill),
+                  trailing: IconButton(
+                    tooltip: strings.uninstallSkill,
+                    onPressed: () => _confirmUninstall(context, skill),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+        if (viewModel.totalPages > 1)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildPagination(context, desktop: false),
+          ),
+      ],
     );
   }
 

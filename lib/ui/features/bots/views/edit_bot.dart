@@ -22,6 +22,7 @@ class EditBotPage extends StatefulWidget {
   final Future<void> Function() onBotDeleted;
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
+  final BotSkillViewModel? skillViewModel;
 
   const EditBotPage({
     super.key,
@@ -30,6 +31,7 @@ class EditBotPage extends StatefulWidget {
     required this.onBotDeleted,
     this.avatarPicker,
     this.embedded = false,
+    this.skillViewModel,
   });
 
   @override
@@ -55,6 +57,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   File? avatarImage;
   BotTokenUsageViewModel? _tokenUsageViewModel;
   BotSkillViewModel? _skillViewModel;
+  bool _ownsSkillViewModel = false;
 
   @override
   void initState() {
@@ -73,21 +76,31 @@ class _EditAIBotPageState extends State<EditBotPage> {
     if (widget.bot.avatar.isNotEmpty) {
       avatarImage = File(widget.bot.avatar);
     }
+    final injectedSkillViewModel = widget.skillViewModel;
+    if (injectedSkillViewModel != null) {
+      _skillViewModel =
+          injectedSkillViewModel..addListener(_handleSkillChanged);
+      unawaited(injectedSkillViewModel.load());
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_tokenUsageViewModel != null && _skillViewModel != null) return;
     final dependencies = AppScope.maybeOf(context);
     if (dependencies == null) return;
-    _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
-      widget.bot.id,
-    )..addListener(_handleTokenUsageChanged);
-    unawaited(_tokenUsageViewModel!.load());
-    _skillViewModel = dependencies.createBotSkillViewModel(widget.bot.id)
-      ..addListener(_handleSkillChanged);
-    unawaited(_skillViewModel!.load());
+    if (_tokenUsageViewModel == null) {
+      _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
+        widget.bot.id,
+      )..addListener(_handleTokenUsageChanged);
+      unawaited(_tokenUsageViewModel!.load());
+    }
+    if (_skillViewModel == null) {
+      _ownsSkillViewModel = true;
+      _skillViewModel = dependencies.createBotSkillViewModel(widget.bot.id)
+        ..addListener(_handleSkillChanged);
+      unawaited(_skillViewModel!.load());
+    }
   }
 
   void _handleTokenUsageChanged() {
@@ -122,9 +135,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
     _tokenUsageViewModel
       ?..removeListener(_handleTokenUsageChanged)
       ..dispose();
-    _skillViewModel
-      ?..removeListener(_handleSkillChanged)
-      ..dispose();
+    _skillViewModel?.removeListener(_handleSkillChanged);
+    if (_ownsSkillViewModel) _skillViewModel?.dispose();
     super.dispose();
   }
 
@@ -462,24 +474,99 @@ class _EditAIBotPageState extends State<EditBotPage> {
       );
     }
 
+    final addButton =
+        widget.embedded
+            ? ShadButton.outline(
+              key: const ValueKey<String>('add-bot-skill'),
+              size: ShadButtonSize.sm,
+              width: 0,
+              enabled: viewModel.availableSkills.isNotEmpty,
+              onPressed: _showAddSkillDialog,
+              leading: const Icon(LucideIcons.plus, size: 15),
+              child: Text(strings.addSkill),
+            )
+            : OutlinedButton.icon(
+              key: const ValueKey<String>('add-bot-skill'),
+              onPressed:
+                  viewModel.availableSkills.isEmpty
+                      ? null
+                      : _showAddSkillDialog,
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: Text(strings.addSkill),
+            );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          strings.botSkillsDescription,
-          style:
-              widget.embedded
-                  ? DesktopThemeTokens.metaStyle(context)
-                  : Theme.of(context).textTheme.bodySmall,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                strings.botSkillsDescription,
+                style:
+                    widget.embedded
+                        ? DesktopThemeTokens.metaStyle(context)
+                        : Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (viewModel.availableSkills.isEmpty)
+              Tooltip(message: strings.allSkillsAdded, child: addButton)
+            else
+              addButton,
+          ],
         ),
         const SizedBox(height: 10),
-        for (var index = 0; index < viewModel.skills.length; index++) ...[
-          _buildBotSkillRow(viewModel.skills[index], viewModel),
-          if (index != viewModel.skills.length - 1)
-            if (widget.embedded)
-              const ShadSeparator.horizontal()
-            else
-              const Divider(height: 1),
+        if (viewModel.addedSkills.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  strings.noBotSkillsAdded,
+                  style:
+                      widget.embedded
+                          ? ShadTheme.of(context).textTheme.small
+                          : Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.noBotSkillsAddedDescription,
+                  style:
+                      widget.embedded
+                          ? DesktopThemeTokens.metaStyle(context)
+                          : Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          )
+        else ...[
+          for (
+            var index = 0;
+            index < viewModel.paginatedAddedSkills.length;
+            index++
+          ) ...[
+            _buildBotSkillRow(viewModel.paginatedAddedSkills[index], viewModel),
+            if (index != viewModel.paginatedAddedSkills.length - 1)
+              if (widget.embedded)
+                const ShadSeparator.horizontal()
+              else
+                const Divider(height: 1),
+          ],
+          if (viewModel.totalAddedPages > 1) ...[
+            const SizedBox(height: 12),
+            _buildSkillPagination(
+              keyPrefix: 'bot-skills',
+              currentPage: viewModel.currentAddedPage,
+              totalPages: viewModel.totalAddedPages,
+              hasPreviousPage: viewModel.hasPreviousAddedPage,
+              hasNextPage: viewModel.hasNextAddedPage,
+              onPreviousPage: viewModel.previousAddedPage,
+              onNextPage: viewModel.nextAddedPage,
+              embedded: widget.embedded,
+            ),
+          ],
         ],
       ],
     );
@@ -493,12 +580,43 @@ class _EditAIBotPageState extends State<EditBotPage> {
     final switchWidget =
         widget.embedded
             ? ShadSwitch(
+              key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
               value: enabled,
               onChanged: (value) => _setSkillEnabled(skill.id, value),
+              label: Text(
+                enabled ? strings.skillEnabled : strings.skillDisabled,
+              ),
             )
-            : Switch(
-              value: enabled,
-              onChanged: (value) => _setSkillEnabled(skill.id, value),
+            : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(enabled ? strings.skillEnabled : strings.skillDisabled),
+                Switch(
+                  key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
+                  value: enabled,
+                  onChanged: (value) => _setSkillEnabled(skill.id, value),
+                ),
+              ],
+            );
+    final removeButton =
+        widget.embedded
+            ? ShadTooltip(
+              builder: (context) => Text(strings.removeSkill),
+              child: ShadIconButton.ghost(
+                key: ValueKey<String>('remove-bot-skill-${skill.id}'),
+                width: 30,
+                height: 30,
+                padding: EdgeInsets.zero,
+                iconSize: 16,
+                onPressed: () => _removeBotSkill(skill.id),
+                icon: const Icon(LucideIcons.trash2),
+              ),
+            )
+            : IconButton(
+              key: ValueKey<String>('remove-bot-skill-${skill.id}'),
+              tooltip: strings.removeSkill,
+              onPressed: () => _removeBotSkill(skill.id),
+              icon: const Icon(Icons.delete_outline_rounded),
             );
 
     return Padding(
@@ -535,6 +653,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
               ),
               const SizedBox(width: 12),
               switchWidget,
+              const SizedBox(width: 8),
+              removeButton,
             ],
           ),
           if (enabled) ...[
@@ -565,6 +685,243 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
   }
 
+  Widget _buildSkillPagination({
+    required String keyPrefix,
+    required int currentPage,
+    required int totalPages,
+    required bool hasPreviousPage,
+    required bool hasNextPage,
+    required VoidCallback onPreviousPage,
+    required VoidCallback onNextPage,
+    required bool embedded,
+  }) {
+    final localizations = MaterialLocalizations.of(context);
+    final indicator = Text(
+      '$currentPage / $totalPages',
+      key: ValueKey<String>('$keyPrefix-page-indicator'),
+    );
+    if (!embedded) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            key: ValueKey<String>('$keyPrefix-previous-page'),
+            tooltip: localizations.previousPageTooltip,
+            onPressed: hasPreviousPage ? onPreviousPage : null,
+            icon: const Icon(Icons.chevron_left_rounded),
+          ),
+          const SizedBox(width: 10),
+          indicator,
+          const SizedBox(width: 10),
+          IconButton(
+            key: ValueKey<String>('$keyPrefix-next-page'),
+            tooltip: localizations.nextPageTooltip,
+            onPressed: hasNextPage ? onNextPage : null,
+            icon: const Icon(Icons.chevron_right_rounded),
+          ),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ShadTooltip(
+          builder: (context) => Text(localizations.previousPageTooltip),
+          child: ShadIconButton.outline(
+            key: ValueKey<String>('$keyPrefix-previous-page'),
+            width: 32,
+            height: 32,
+            padding: EdgeInsets.zero,
+            iconSize: 16,
+            enabled: hasPreviousPage,
+            onPressed: onPreviousPage,
+            icon: const Icon(LucideIcons.chevronLeft),
+          ),
+        ),
+        const SizedBox(width: 12),
+        indicator,
+        const SizedBox(width: 12),
+        ShadTooltip(
+          builder: (context) => Text(localizations.nextPageTooltip),
+          child: ShadIconButton.outline(
+            key: ValueKey<String>('$keyPrefix-next-page'),
+            width: 32,
+            height: 32,
+            padding: EdgeInsets.zero,
+            iconSize: 16,
+            enabled: hasNextPage,
+            onPressed: onNextPage,
+            icon: const Icon(LucideIcons.chevronRight),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showAddSkillDialog() async {
+    final viewModel = _skillViewModel;
+    if (viewModel == null || viewModel.availableSkills.isEmpty) return;
+    viewModel.resetAvailablePage();
+    if (widget.embedded) {
+      await showShadDialog<void>(
+        context: context,
+        builder:
+            (dialogContext) => StatefulBuilder(
+              builder:
+                  (dialogContext, setDialogState) => ShadDialog(
+                    title: Text(S.of(context).addSkill),
+                    description: Text(S.of(context).botSkillsDescription),
+                    constraints: const BoxConstraints(maxWidth: 620),
+                    actions: [
+                      ShadButton.outline(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: Text(S.of(context).cancel),
+                      ),
+                    ],
+                    child: _buildAvailableSkillPicker(
+                      dialogContext,
+                      viewModel,
+                      embedded: true,
+                      refresh: setDialogState,
+                    ),
+                  ),
+            ),
+      );
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: Text(S.of(context).addSkill),
+                  content: SizedBox(
+                    width: 520,
+                    child: _buildAvailableSkillPicker(
+                      dialogContext,
+                      viewModel,
+                      embedded: false,
+                      refresh: setDialogState,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(S.of(context).cancel),
+                    ),
+                  ],
+                ),
+          ),
+    );
+  }
+
+  Widget _buildAvailableSkillPicker(
+    BuildContext dialogContext,
+    BotSkillViewModel viewModel, {
+    required bool embedded,
+    required StateSetter refresh,
+  }) {
+    final strings = S.of(context);
+    final skills = viewModel.paginatedAvailableSkills;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var index = 0; index < skills.length; index++) ...[
+            Padding(
+              key: ValueKey<String>('available-bot-skill-${skills[index].id}'),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          skills[index].name,
+                          style:
+                              embedded
+                                  ? ShadTheme.of(context).textTheme.small
+                                  : Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          skills[index].description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              embedded
+                                  ? DesktopThemeTokens.metaStyle(context)
+                                  : Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (embedded)
+                    ShadButton(
+                      key: ValueKey<String>(
+                        'add-bot-skill-${skills[index].id}',
+                      ),
+                      size: ShadButtonSize.sm,
+                      width: 0,
+                      onPressed:
+                          () => _addBotSkillFromDialog(
+                            dialogContext,
+                            skills[index].id,
+                          ),
+                      leading: const Icon(LucideIcons.plus, size: 14),
+                      child: Text(strings.addSkill),
+                    )
+                  else
+                    FilledButton.tonalIcon(
+                      key: ValueKey<String>(
+                        'add-bot-skill-${skills[index].id}',
+                      ),
+                      onPressed:
+                          () => _addBotSkillFromDialog(
+                            dialogContext,
+                            skills[index].id,
+                          ),
+                      icon: const Icon(Icons.add_rounded, size: 17),
+                      label: Text(strings.addSkill),
+                    ),
+                ],
+              ),
+            ),
+            if (index != skills.length - 1)
+              if (embedded)
+                const ShadSeparator.horizontal()
+              else
+                const Divider(height: 1),
+          ],
+          if (viewModel.totalAvailablePages > 1) ...[
+            const SizedBox(height: 12),
+            _buildSkillPagination(
+              keyPrefix: 'available-skills',
+              currentPage: viewModel.currentAvailablePage,
+              totalPages: viewModel.totalAvailablePages,
+              hasPreviousPage: viewModel.hasPreviousAvailablePage,
+              hasNextPage: viewModel.hasNextAvailablePage,
+              onPreviousPage: () {
+                viewModel.previousAvailablePage();
+                refresh(() {});
+              },
+              onNextPage: () {
+                viewModel.nextAvailablePage();
+                refresh(() {});
+              },
+              embedded: embedded,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSkillModeChoice({
     required String label,
     required String description,
@@ -587,12 +944,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
           selected
               ? ShadButton.secondary(
                 size: ShadButtonSize.sm,
+                width: 0,
                 onPressed: onPressed,
                 leading: const Icon(LucideIcons.check, size: 14),
                 child: Text(label),
               )
               : ShadButton.outline(
                 size: ShadButtonSize.sm,
+                width: 0,
                 onPressed: onPressed,
                 child: Text(label),
               ),
@@ -602,6 +961,26 @@ class _EditAIBotPageState extends State<EditBotPage> {
   Future<void> _setSkillEnabled(String skillId, bool enabled) async {
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
+  }
+
+  Future<void> _addBotSkillFromDialog(
+    BuildContext dialogContext,
+    String skillId,
+  ) async {
+    try {
+      await _skillViewModel?.addSkill(skillId);
+      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
+  }
+
+  Future<void> _removeBotSkill(String skillId) async {
+    try {
+      await _skillViewModel?.removeSkill(skillId);
     } catch (error) {
       if (mounted) showSnackBar(context, error.toString());
     }

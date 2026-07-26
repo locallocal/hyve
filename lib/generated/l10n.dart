@@ -2681,6 +2681,61 @@ class S {
     );
   }
 
+  /// `Add Skill`
+  String get addSkill {
+    return Intl.message('Add Skill', name: 'addSkill', desc: '', args: []);
+  }
+
+  /// `Remove Skill`
+  String get removeSkill {
+    return Intl.message(
+      'Remove Skill',
+      name: 'removeSkill',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Skills added`
+  String get noBotSkillsAdded {
+    return Intl.message(
+      'No Skills added',
+      name: 'noBotSkillsAdded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add the installed Skills this bot needs.`
+  String get noBotSkillsAddedDescription {
+    return Intl.message(
+      'Add the installed Skills this bot needs.',
+      name: 'noBotSkillsAddedDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All installed Skills have been added.`
+  String get allSkillsAdded {
+    return Intl.message(
+      'All installed Skills have been added.',
+      name: 'allSkillsAdded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enabled`
+  String get skillEnabled {
+    return Intl.message('Enabled', name: 'skillEnabled', desc: '', args: []);
+  }
+
+  /// `Disabled`
+  String get skillDisabled {
+    return Intl.message('Disabled', name: 'skillDisabled', desc: '', args: []);
+  }
+
   /// `Per message`
   String get manualActivation {
     return Intl.message(

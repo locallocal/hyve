@@ -137,7 +137,7 @@ void main() {
     },
   );
 
-  test('bot binding enables manual or always modes but rejects auto', () async {
+  test('bot Skills can be added, disabled, enabled, and removed', () async {
     final skillRepository = _FakeSkillRepository([_skill('one')]);
     final bindingRepository = _FakeBindingRepository();
     final viewModel = BotSkillViewModel(
@@ -148,13 +148,24 @@ void main() {
     addTearDown(viewModel.dispose);
     await viewModel.load();
 
-    await viewModel.setEnabled('user:one', true);
+    expect(viewModel.addedSkills, isEmpty);
+    expect(viewModel.availableSkills.map((skill) => skill.id), ['user:one']);
+
+    await viewModel.addSkill('user:one');
     await Future<void>.delayed(Duration.zero);
+    expect(viewModel.addedSkills.map((skill) => skill.id), ['user:one']);
     expect(
       bindingRepository.bindings.single.activationMode,
       SkillActivationMode.manual,
     );
 
+    await viewModel.setEnabled('user:one', false);
+    await Future<void>.delayed(Duration.zero);
+    expect(bindingRepository.bindings, hasLength(1));
+    expect(bindingRepository.bindings.single.enabled, isFalse);
+    expect(viewModel.bindingFor('user:one')?.enabled, isFalse);
+
+    await viewModel.setEnabled('user:one', true);
     await viewModel.setActivationMode('user:one', SkillActivationMode.always);
     expect(
       bindingRepository.bindings.single.activationMode,
@@ -164,6 +175,77 @@ void main() {
       viewModel.setActivationMode('user:one', SkillActivationMode.auto),
       throwsA(isA<UnsupportedError>()),
     );
+
+    await viewModel.removeSkill('user:one');
+    await Future<void>.delayed(Duration.zero);
+    expect(bindingRepository.bindings, isEmpty);
+    expect(viewModel.addedSkills, isEmpty);
+    expect(viewModel.availableSkills.map((skill) => skill.id), ['user:one']);
+  });
+
+  test('bot Skill added and available lists paginate independently', () async {
+    final skillRepository = _FakeSkillRepository([
+      for (var index = 1; index <= 13; index += 1) _skill('Skill $index'),
+    ]);
+    final timestamp = DateTime(2026, 7, 26);
+    final bindingRepository = _FakeBindingRepository([
+      for (var index = 1; index <= 7; index += 1)
+        BotSkillBinding(
+          botId: 'bot-1',
+          skillId: 'user:Skill $index',
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ),
+    ]);
+    final viewModel = BotSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: skillRepository,
+      bindingRepository: bindingRepository,
+      pageSize: 5,
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    expect(viewModel.totalAddedPages, 2);
+    expect(viewModel.paginatedAddedSkills.map((skill) => skill.name), [
+      'Skill 1',
+      'Skill 2',
+      'Skill 3',
+      'Skill 4',
+      'Skill 5',
+    ]);
+    viewModel.nextAddedPage();
+    expect(viewModel.currentAddedPage, 2);
+    expect(viewModel.paginatedAddedSkills.map((skill) => skill.name), [
+      'Skill 6',
+      'Skill 7',
+    ]);
+
+    expect(viewModel.totalAvailablePages, 2);
+    expect(viewModel.paginatedAvailableSkills.map((skill) => skill.name), [
+      'Skill 8',
+      'Skill 9',
+      'Skill 10',
+      'Skill 11',
+      'Skill 12',
+    ]);
+    viewModel.nextAvailablePage();
+    expect(viewModel.paginatedAvailableSkills.single.name, 'Skill 13');
+
+    await viewModel.removeSkill('user:Skill 7');
+    await Future<void>.delayed(Duration.zero);
+    await viewModel.removeSkill('user:Skill 6');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(viewModel.currentAddedPage, 1);
+    expect(viewModel.totalAddedPages, 1);
+    expect(viewModel.paginatedAddedSkills, hasLength(5));
+    expect(viewModel.currentAvailablePage, 2);
+    expect(viewModel.paginatedAvailableSkills.map((skill) => skill.name), [
+      'Skill 11',
+      'Skill 12',
+      'Skill 13',
+    ]);
   });
 
   test(
@@ -172,6 +254,7 @@ void main() {
       final skillRepository = _FakeSkillRepository([
         _skill('manual'),
         _skill('always'),
+        _skill('disabled'),
         _skill('unbound'),
       ]);
       final timestamp = DateTime(2026, 7, 26);
@@ -186,6 +269,13 @@ void main() {
           botId: 'bot-1',
           skillId: 'user:always',
           activationMode: SkillActivationMode.always,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ),
+        BotSkillBinding(
+          botId: 'bot-1',
+          skillId: 'user:disabled',
+          enabled: false,
           createdAt: timestamp,
           updatedAt: timestamp,
         ),

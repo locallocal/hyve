@@ -70,8 +70,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("정보"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Stars 정보"),
     "addBot": MessageLookupByLibrary.simpleMessage("봇 추가"),
+    "addSkill": MessageLookupByLibrary.simpleMessage("스킬 추가"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("앱 글꼴 크기 조정"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("글꼴 크기 조정"),
+    "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
+      "설치된 모든 스킬이 추가되었습니다.",
+    ),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("항상 사용"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
       "모든 텍스트 요청에 이 스킬을 삽입합니다.",
@@ -216,6 +220,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("이름"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("이름이 업데이트되었습니다"),
     "newChat": MessageLookupByLibrary.simpleMessage("새 채팅"),
+    "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("추가된 스킬 없음"),
+    "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "이 봇에 필요한 설치된 스킬을 추가하세요.",
+    ),
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("사용 가능한 봇이 없습니다"),
     "noChats": MessageLookupByLibrary.simpleMessage("아직 채팅이 없습니다"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("콘텐츠가 반환되지 않음"),
@@ -246,6 +254,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("추론 완료"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("추론 진행 중"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("추론 중단"),
+    "removeSkill": MessageLookupByLibrary.simpleMessage("스킬 제거"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("응답이 취소되었습니다"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "중지됨 · 부분 응답 유지",
@@ -269,6 +278,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("호환성"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("스킬 세부 정보"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("콘텐츠 다이제스트"),
+    "skillDisabled": MessageLookupByLibrary.simpleMessage("꺼짐"),
+    "skillEnabled": MessageLookupByLibrary.simpleMessage("켜짐"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("파일"),
     "skillImportFailed": m18,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("스킬을 가져왔습니다"),

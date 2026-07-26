@@ -190,6 +190,18 @@ class LocalDatabaseService {
     );
   }
 
+  Future<List<Map<String, Object?>>> loadTokenUsageRecordsForBot(
+    String botId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'token_usage_records',
+      where: 'bot_id = ?',
+      whereArgs: [botId],
+      orderBy: 'timestamp ASC',
+    );
+  }
+
   Future<void> upsertMessage(Map<String, Object?> values) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {

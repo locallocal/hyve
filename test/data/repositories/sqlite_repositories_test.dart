@@ -178,6 +178,8 @@ void main() {
     expect(usageByChat.keys, ['chat-1', 'chat-2']);
     expect(usageByChat['chat-1']?.effectiveTotalTokens, 140);
     expect(usageByChat['chat-2']?.effectiveTotalTokens, 100);
+    final usageRecords = await repository.getTokenUsageRecordsForBot('bot-1');
+    expect(usageRecords.map((record) => record.chatId), ['chat-1', 'chat-2']);
 
     final persisted = await repository.getMessages('chat-1');
     expect(persisted.single.tokenUsage.model, 'model-a');

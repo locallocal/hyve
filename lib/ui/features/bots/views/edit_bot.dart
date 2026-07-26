@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
@@ -403,6 +404,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
     return BotTokenUsagePanel(
       usage: usage,
       conversationUsages: viewModel?.conversationUsages ?? const [],
+      dailyBuckets: viewModel?.dailyBuckets ?? const [],
+      visibleBuckets: viewModel?.visibleBuckets ?? const [],
+      granularity: viewModel?.granularity ?? TokenUsageGranularity.day,
+      selectedDay: viewModel?.selectedDay,
+      onShowDaily: viewModel?.showDaily,
+      onBucketSelected:
+          viewModel == null ||
+                  viewModel.granularity == TokenUsageGranularity.hour
+              ? null
+              : (bucket) => viewModel.selectDay(bucket.start),
     );
   }
 

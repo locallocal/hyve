@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
 import 'package:stars/utils/theme.dart';
 
 class BotTokenUsagePanel extends StatelessWidget {
@@ -14,12 +16,24 @@ class BotTokenUsagePanel extends StatelessWidget {
     super.key,
     required this.usage,
     required this.conversationUsages,
+    this.dailyBuckets = const [],
+    this.visibleBuckets = const [],
+    this.granularity = TokenUsageGranularity.day,
+    this.selectedDay,
+    this.onShowDaily,
+    this.onBucketSelected,
   });
 
   static const double _twoColumnMinWidth = 680;
 
   final ModelTokenUsage usage;
   final List<BotConversationTokenUsage> conversationUsages;
+  final List<TokenUsageBucket> dailyBuckets;
+  final List<TokenUsageBucket> visibleBuckets;
+  final TokenUsageGranularity granularity;
+  final DateTime? selectedDay;
+  final VoidCallback? onShowDaily;
+  final ValueChanged<TokenUsageBucket>? onBucketSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -35,27 +49,47 @@ class BotTokenUsagePanel extends StatelessWidget {
       conversationUsages: conversationUsages,
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= _twoColumnMinWidth) {
-          return Row(
-            key: const ValueKey<String>('bot-token-usage-two-columns'),
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: summary),
-              const SizedBox(width: 32),
-              Expanded(child: chart),
-            ],
-          );
-        }
-        return Column(
-          key: const ValueKey<String>('bot-token-usage-stacked'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [summary, const SizedBox(height: 24), chart],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= _twoColumnMinWidth) {
+              return Row(
+                key: const ValueKey<String>('bot-token-usage-two-columns'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: summary),
+                  const SizedBox(width: 32),
+                  Expanded(child: chart),
+                ],
+              );
+            }
+            return Column(
+              key: const ValueKey<String>('bot-token-usage-stacked'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [summary, const SizedBox(height: 24), chart],
+            );
+          },
+        ),
+        const Divider(
+          key: ValueKey<String>('bot-token-usage-timeline-divider'),
+          height: 33,
+        ),
+        TokenUsageTimelineSection(
+          dailyBuckets: dailyBuckets,
+          visibleBuckets: visibleBuckets,
+          granularity: granularity,
+          selectedDay: selectedDay,
+          onShowDaily: onShowDaily ?? _noop,
+          onBucketSelected: onBucketSelected,
+          chartOrientation: TokenUsageChartOrientation.vertical,
+        ),
+      ],
     );
   }
+
+  static void _noop() {}
 }
 
 class _ConversationTokenShare extends StatelessWidget {

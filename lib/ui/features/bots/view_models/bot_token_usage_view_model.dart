@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 
 @immutable
 class BotConversationTokenUsage {
@@ -23,8 +24,10 @@ class BotTokenUsageViewModel extends ChangeNotifier {
     required this.botId,
     required MessageRepository messageRepository,
     required ChatRepository chatRepository,
+    DateTime Function()? now,
   }) : _messageRepository = messageRepository,
-       _chatRepository = chatRepository {
+       _chatRepository = chatRepository,
+       _timeline = TokenUsageTimelineState(now: now) {
     _messageSubscription = messageRepository.changes.listen(
       (_) => _scheduleLoad(),
     );
@@ -34,6 +37,7 @@ class BotTokenUsageViewModel extends ChangeNotifier {
   final String botId;
   final MessageRepository _messageRepository;
   final ChatRepository _chatRepository;
+  final TokenUsageTimelineState _timeline;
   late final StreamSubscription<void> _messageSubscription;
   late final StreamSubscription<List<Chat>> _chatSubscription;
 
@@ -47,6 +51,10 @@ class BotTokenUsageViewModel extends ChangeNotifier {
 
   ModelTokenUsage get usage => _usage;
   List<BotConversationTokenUsage> get conversationUsages => _conversationUsages;
+  List<TokenUsageBucket> get dailyBuckets => _timeline.dailyBuckets;
+  List<TokenUsageBucket> get visibleBuckets => _timeline.visibleBuckets;
+  DateTime? get selectedDay => _timeline.selectedDay;
+  TokenUsageGranularity get granularity => _timeline.granularity;
   Object? get error => _error;
   bool get isLoading => _isLoading;
 
@@ -56,14 +64,21 @@ class BotTokenUsageViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final (usage, usageByChat, chats) =
+      final (records, chats) =
           await (
-            _messageRepository.getTokenUsageForBot(botId),
-            _messageRepository.getTokenUsageByChatForBot(botId),
+            _messageRepository.getTokenUsageRecordsForBot(botId),
             _chatRepository.getChats(),
           ).wait;
       if (_disposed || generation != _loadGeneration) return;
 
+      _timeline.replaceRecords(records);
+      final usageByChat = <String, ModelTokenUsage>{};
+      for (final record in records) {
+        if (!record.usage.hasData) continue;
+        usageByChat[record.chatId] =
+            (usageByChat[record.chatId] ?? ModelTokenUsage.empty) +
+            record.usage;
+      }
       final chatsById = {for (final chat in chats) chat.id: chat};
       final entries =
           usageByChat.entries.where((entry) => entry.value.hasData).toList()
@@ -75,7 +90,7 @@ class BotTokenUsageViewModel extends ChangeNotifier {
                   ? usageOrder
                   : left.key.compareTo(right.key);
             });
-      _usage = usage;
+      _usage = _timeline.totalUsage;
       _conversationUsages = List<BotConversationTokenUsage>.unmodifiable(
         entries.map((entry) {
           return BotConversationTokenUsage(
@@ -94,6 +109,14 @@ class BotTokenUsageViewModel extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  void selectDay(DateTime day) {
+    if (_timeline.selectDay(day)) notifyListeners();
+  }
+
+  void showDaily() {
+    if (_timeline.showDaily()) notifyListeners();
   }
 
   void _scheduleLoad() {

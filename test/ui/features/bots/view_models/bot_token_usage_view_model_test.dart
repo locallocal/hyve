@@ -8,10 +8,22 @@ import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.da
 
 void main() {
   test('loads and sorts per-conversation usage with chat previews', () async {
-    final messages = _FakeMessageRepository({
-      'chat-small': const ModelTokenUsage(inputTokens: 20, outputTokens: 5),
-      'chat-large': const ModelTokenUsage(inputTokens: 60, outputTokens: 15),
-    });
+    final messages = _FakeMessageRepository([
+      _record(
+        'small',
+        'chat-small',
+        DateTime(2026, 7, 24, 9),
+        input: 20,
+        output: 5,
+      ),
+      _record(
+        'large',
+        'chat-large',
+        DateTime(2026, 7, 26, 10),
+        input: 60,
+        output: 15,
+      ),
+    ]);
     final chats = _FakeChatRepository([
       _chat('chat-small', 'Short conversation'),
       _chat('chat-large', 'Large conversation'),
@@ -20,6 +32,7 @@ void main() {
       botId: 'bot-1',
       messageRepository: messages,
       chatRepository: chats,
+      now: () => DateTime(2026, 7, 27, 12),
     );
     addTearDown(viewModel.dispose);
 
@@ -32,7 +45,39 @@ void main() {
     ]);
     expect(viewModel.conversationUsages.first.preview, 'Large conversation');
     expect(viewModel.conversationUsages.first.usage.effectiveTotalTokens, 75);
+    expect(viewModel.dailyBuckets, hasLength(3));
+    expect(viewModel.dailyBuckets[0].usage.effectiveTotalTokens, 25);
+    expect(viewModel.dailyBuckets[1].usage.effectiveTotalTokens, 0);
+    expect(viewModel.dailyBuckets[2].usage.effectiveTotalTokens, 75);
+
+    viewModel.selectDay(DateTime(2026, 7, 26));
+
+    expect(viewModel.visibleBuckets, hasLength(24));
+    expect(viewModel.visibleBuckets[10].usage.effectiveTotalTokens, 75);
+
+    viewModel.showDaily();
+    expect(viewModel.visibleBuckets, same(viewModel.dailyBuckets));
   });
+}
+
+ModelTokenUsageRecord _record(
+  String id,
+  String chatId,
+  DateTime timestamp, {
+  required int input,
+  required int output,
+}) {
+  return ModelTokenUsageRecord(
+    messageId: id,
+    chatId: chatId,
+    botId: 'bot-1',
+    timestamp: timestamp,
+    usage: ModelTokenUsage(
+      inputTokens: input,
+      outputTokens: output,
+      totalTokens: input + output,
+    ),
+  );
 }
 
 Chat _chat(String id, String lastMessage) => Chat(
@@ -45,22 +90,17 @@ Chat _chat(String id, String lastMessage) => Chat(
 );
 
 class _FakeMessageRepository implements MessageRepository {
-  _FakeMessageRepository(this.usageByChat);
+  _FakeMessageRepository(this.records);
 
-  final Map<String, ModelTokenUsage> usageByChat;
+  final List<ModelTokenUsageRecord> records;
 
   @override
   Stream<void> get changes => const Stream<void>.empty();
 
   @override
-  Future<Map<String, ModelTokenUsage>> getTokenUsageByChatForBot(
+  Future<List<ModelTokenUsageRecord>> getTokenUsageRecordsForBot(
     String botId,
-  ) async => usageByChat;
-
-  @override
-  Future<ModelTokenUsage> getTokenUsageForBot(String botId) async {
-    return ModelTokenUsage.sum(usageByChat.values);
-  }
+  ) async => records;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

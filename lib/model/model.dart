@@ -310,12 +310,43 @@ class MessageFileEdit {
   }
 }
 
+class MessageSkillActivation {
+  final String name;
+  final String contentDigest;
+  final String trigger;
+  final String status;
+
+  const MessageSkillActivation({
+    required this.name,
+    required this.contentDigest,
+    required this.trigger,
+    this.status = 'recorded',
+  });
+
+  factory MessageSkillActivation.fromMap(Map<String, dynamic> map) {
+    return MessageSkillActivation(
+      name: (map['name'] ?? '') as String,
+      contentDigest: (map['content_digest'] ?? '') as String,
+      trigger: (map['trigger'] ?? '') as String,
+      status: (map['status'] ?? 'recorded') as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'content_digest': contentDigest,
+    'trigger': trigger,
+    'status': status,
+  };
+}
+
 class MessageProcessInfo {
   final String reasoningStatus;
   final int? durationMs;
   final List<MessageToolCall> toolCalls;
   final List<MessageCommandExecution> commandExecutions;
   final List<MessageFileEdit> fileEdits;
+  final List<MessageSkillActivation> skillActivations;
 
   const MessageProcessInfo({
     this.reasoningStatus = '',
@@ -323,6 +354,7 @@ class MessageProcessInfo {
     this.toolCalls = const [],
     this.commandExecutions = const [],
     this.fileEdits = const [],
+    this.skillActivations = const [],
   });
 
   bool get hasData =>
@@ -330,7 +362,8 @@ class MessageProcessInfo {
       durationMs != null ||
       toolCalls.isNotEmpty ||
       commandExecutions.isNotEmpty ||
-      fileEdits.isNotEmpty;
+      fileEdits.isNotEmpty ||
+      skillActivations.isNotEmpty;
 
   factory MessageProcessInfo.fromRaw(dynamic raw) {
     if (raw == null) {
@@ -400,12 +433,26 @@ class MessageProcessInfo {
               .toList();
     }
 
+    List<MessageSkillActivation> skillActivations = [];
+    final rawSkillActivations = map['skill_activations'];
+    if (rawSkillActivations is List) {
+      skillActivations =
+          rawSkillActivations
+              .whereType<Map>()
+              .map(
+                (e) =>
+                    MessageSkillActivation.fromMap(e.cast<String, dynamic>()),
+              )
+              .toList();
+    }
+
     return MessageProcessInfo(
       reasoningStatus: (map['reasoning_status'] ?? '') as String,
       durationMs: map['duration_ms'] as int?,
       toolCalls: toolCalls,
       commandExecutions: commandExecutions,
       fileEdits: fileEdits,
+      skillActivations: skillActivations,
     );
   }
 
@@ -416,6 +463,7 @@ class MessageProcessInfo {
       'tool_calls': toolCalls.map((e) => e.toMap()).toList(),
       'command_executions': commandExecutions.map((e) => e.toMap()).toList(),
       'file_edits': fileEdits.map((e) => e.toMap()).toList(),
+      'skill_activations': skillActivations.map((e) => e.toMap()).toList(),
     };
   }
 }

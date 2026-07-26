@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "Mostra i dettagli di esecuzione nei messaggi della conversazione.",
     "changeAvatar": "Cambia avatar",
     "resetToDefault": "Ripristina impostazioni predefinite",
-    "enterDisplayName": "Inserisci un nome visualizzato"
+    "enterDisplayName": "Inserisci un nome visualizzato",
+    "skillLibrary": "Competenze",
+    "skillLibraryDescription": "Installa istruzioni riutilizzabili e associale ai bot.",
+    "searchSkills": "Cerca competenze",
+    "noMatchingSkills": "Nessuna competenza corrispondente trovata",
+    "importSkillFolder": "Importa cartella delle competenze",
+    "importSkillZip": "Importa ZIP delle competenze",
+    "importingSkill": "Importazione della competenza…",
+    "noSkillsInstalled": "Nessuna competenza installata",
+    "noSkillsInstalledDescription": "Importa una cartella Agent Skills o un file ZIP contenente SKILL.md.",
+    "skillImportSucceeded": "Competenza importata",
+    "skillImportFailed": "Impossibile importare la competenza: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "Dettagli della competenza",
+    "uninstallSkill": "Disinstalla competenza",
+    "confirmUninstallSkill": "Disinstallare {name}? Verranno rimossi anche i collegamenti ai bot.",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "Versione",
+    "skillSource": "Origine",
+    "skillDigest": "Digest del contenuto",
+    "skillCompatibility": "Compatibilità",
+    "skillFiles": "File",
+    "skillValidationWarnings": "Note di convalida",
+    "skillScriptsDisabled": "Gli script sono installati, ma la loro esecuzione è disabilitata.",
+    "skillReferencesAvailable": "File di riferimento disponibili",
+    "skillAssetsAvailable": "Risorse disponibili",
+    "botSkills": "Competenze",
+    "botSkillsDescription": "Scegli le istruzioni riutilizzabili disponibili per questo bot.",
+    "manualActivation": "Per messaggio",
+    "alwaysActivation": "Sempre attiva",
+    "manualActivationDescription": "Se necessario, seleziona la competenza nel campo del messaggio.",
+    "alwaysActivationDescription": "Inserisce questa competenza in ogni richiesta di testo.",
+    "messageSkills": "Competenze",
+    "alwaysOn": "Sempre attiva",
+    "skillNotExecutable": "Questa versione non esegue script o comandi delle competenze.",
+    "skillSafetyDescription": "SKILL.md viene caricato solo come istruzione controllata per il prompt; script, comandi e strumenti esterni restano disabilitati.",
+    "skillUserScope": "Utente"
 }

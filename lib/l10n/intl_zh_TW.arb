@@ -553,5 +553,49 @@
     "desktopSavedImmediatelyDescription": "修改會立即生效並儲存於本機。",
     "changeAvatar": "更換頭像",
     "resetToDefault": "恢復預設值",
-    "enterDisplayName": "請輸入顯示名稱"
+    "enterDisplayName": "請輸入顯示名稱",
+    "skillLibrary": "技能",
+    "skillLibraryDescription": "安裝可重複使用的指令，並將其綁定至智慧體。",
+    "searchSkills": "搜尋技能",
+    "noMatchingSkills": "找不到符合的技能",
+    "importSkillFolder": "匯入技能資料夾",
+    "importSkillZip": "匯入技能 ZIP",
+    "importingSkill": "正在匯入技能…",
+    "noSkillsInstalled": "尚未安裝技能",
+    "noSkillsInstalledDescription": "匯入包含 SKILL.md 的智慧體技能資料夾或 ZIP。",
+    "skillImportSucceeded": "技能已匯入",
+    "skillImportFailed": "技能匯入失敗：{error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "技能詳情",
+    "uninstallSkill": "解除安裝技能",
+    "confirmUninstallSkill": "確定解除安裝技能「{name}」？相關智慧體綁定也會被移除。",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "版本",
+    "skillSource": "來源",
+    "skillDigest": "內容摘要",
+    "skillCompatibility": "相容性",
+    "skillFiles": "檔案",
+    "skillValidationWarnings": "驗證說明",
+    "skillScriptsDisabled": "技能腳本已安裝，但目前版本禁止執行。",
+    "skillReferencesAvailable": "包含參考資料",
+    "skillAssetsAvailable": "包含靜態資源",
+    "botSkills": "技能",
+    "botSkillsDescription": "選擇這個智慧體可以使用的可重複指令。",
+    "manualActivation": "按訊息啟用",
+    "alwaysActivation": "始終啟用",
+    "manualActivationDescription": "需要時從訊息輸入框選擇技能。",
+    "alwaysActivationDescription": "每次文字請求都會注入此技能。",
+    "messageSkills": "技能",
+    "alwaysOn": "始終啟用",
+    "skillNotExecutable": "目前版本不會執行技能中的腳本或命令。",
+    "skillSafetyDescription": "SKILL.md 僅作為受控提示詞載入；腳本、命令與外部工具維持停用。",
+    "skillUserScope": "使用者"
 }

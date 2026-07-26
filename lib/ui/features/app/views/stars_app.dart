@@ -20,6 +20,8 @@ import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/views/chats.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/views/profile.dart';
+import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
+import 'package:stars/ui/features/skills/views/skill_library.dart';
 import 'package:stars/utils/theme.dart';
 
 class StarsBootstrapApp extends StatefulWidget {
@@ -403,6 +405,7 @@ class _MainPageState extends State<MainPage> {
   late final ChatListViewModel _chatListViewModel;
   late final BotListViewModel _botListViewModel;
   late final ProfileViewModel _profileViewModel;
+  late final SkillLibraryViewModel _skillLibraryViewModel;
   bool _initialized = false;
   Future<bool>? _activeRunGuardFuture;
   int _navigationIntent = 0;
@@ -417,6 +420,8 @@ class _MainPageState extends State<MainPage> {
     _chatListViewModel = _dependencies.createChatListViewModel()..load();
     _botListViewModel = _dependencies.createBotListViewModel()..load();
     _profileViewModel = _dependencies.createProfileViewModel()..load();
+    _skillLibraryViewModel =
+        _dependencies.createSkillLibraryViewModel()..load();
   }
 
   @override
@@ -427,6 +432,7 @@ class _MainPageState extends State<MainPage> {
       _chatListViewModel.dispose();
       _botListViewModel.dispose();
       _profileViewModel.dispose();
+      _skillLibraryViewModel.dispose();
     }
     super.dispose();
   }
@@ -459,6 +465,7 @@ class _MainPageState extends State<MainPage> {
         onChatCreated: _onChatSelected,
         onSelectionCleared: _viewModel.clearSelectedBot,
       ),
+      SkillLibraryPage(viewModel: _skillLibraryViewModel),
       ProfilePage(
         viewModel: _profileViewModel,
         avatarPicker: _profileViewModel.pickAvatar,
@@ -529,9 +536,16 @@ class _MainPageState extends State<MainPage> {
                             : Theme.of(context).colorScheme.onSurface,
                   ),
                   Icon(
-                    Icons.person_rounded,
+                    Icons.build_rounded,
                     color:
                         _viewModel.currentIndex == 2
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurface,
+                  ),
+                  Icon(
+                    Icons.person_rounded,
+                    color:
+                        _viewModel.currentIndex == 3
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).colorScheme.onSurface,
                   ),

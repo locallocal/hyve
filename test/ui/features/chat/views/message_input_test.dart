@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/model/model.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
 import 'package:stars/domain/models/ai_models.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/utils/theme.dart';
 
@@ -78,6 +78,31 @@ void main() {
       await tester.pump();
 
       expect(sendCalls, 1);
+    });
+
+    testWidgets('Skill picker exposes bound Skills and reports selection', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final toggledSkillIds = <String>[];
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        availableSkills: [_skill()],
+        onSkillToggled: toggledSkillIds.add,
+      );
+
+      expect(find.byIcon(LucideIcons.wrench), findsOneWidget);
+      await tester.tap(find.text('技能'));
+      await tester.pumpAndSettle();
+      expect(find.text('release-notes'), findsOneWidget);
+
+      await tester.tap(find.text('release-notes'));
+      await tester.pump();
+
+      expect(toggledSkillIds, ['user:release-notes']);
     });
 
     testWidgets('web search mirrors empty and ready send button styles', (
@@ -233,6 +258,10 @@ Future<void> _pumpMessageInput(
   AiProvider? provider,
   VoidCallback? onSend,
   VoidCallback? onCancel,
+  List<SkillDescriptor> availableSkills = const [],
+  Set<String> selectedSkillIds = const {},
+  bool Function(String skillId)? isSkillAlways,
+  ValueChanged<String>? onSkillToggled,
 }) async {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -293,6 +322,10 @@ Future<void> _pumpMessageInput(
                             onVideoRatioSelected: _ignoreString,
                             onSend: onSend ?? _noop,
                             onCancelRequest: onCancel ?? _noop,
+                            availableSkills: availableSkills,
+                            selectedSkillIds: selectedSkillIds,
+                            isSkillAlways: isSkillAlways,
+                            onSkillToggled: onSkillToggled,
                           ),
                         ),
                       ),
@@ -316,6 +349,25 @@ Future<void> _focusAndEnterText(WidgetTester tester, String text) async {
 void _noop() {}
 
 void _ignoreString(String _) {}
+
+SkillDescriptor _skill() {
+  final timestamp = DateTime(2026, 7, 26);
+  return SkillDescriptor(
+    id: 'user:release-notes',
+    name: 'release-notes',
+    description: 'Prepare concise release notes.',
+    version: '1.0.0',
+    scope: SkillScope.user,
+    sourceUri: 'file:///release-notes',
+    rootPath: '/skills/release-notes',
+    contentDigest: 'abc123',
+    trustState: SkillTrustState.userReviewed,
+    validationStatus: SkillValidationStatus.valid,
+    compatibility: '',
+    installedAt: timestamp,
+    updatedAt: timestamp,
+  );
+}
 
 class _FakeProvider extends AiProvider {
   _FakeProvider(super.bot, {this.supportsWebSearch = false});

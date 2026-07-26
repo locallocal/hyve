@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "Mostrar detalles de ejecución en los mensajes de la conversación.",
     "changeAvatar": "Cambiar avatar",
     "resetToDefault": "Restablecer valores predeterminados",
-    "enterDisplayName": "Introduce un nombre para mostrar"
+    "enterDisplayName": "Introduce un nombre para mostrar",
+    "skillLibrary": "Habilidades",
+    "skillLibraryDescription": "Instala instrucciones reutilizables y vincúlalas a tus bots.",
+    "searchSkills": "Buscar habilidades",
+    "noMatchingSkills": "No se encontraron habilidades coincidentes",
+    "importSkillFolder": "Importar carpeta de habilidades",
+    "importSkillZip": "Importar ZIP de habilidades",
+    "importingSkill": "Importando habilidad…",
+    "noSkillsInstalled": "No hay habilidades instaladas",
+    "noSkillsInstalledDescription": "Importa una carpeta de Agent Skills o un ZIP que contenga SKILL.md.",
+    "skillImportSucceeded": "Habilidad importada",
+    "skillImportFailed": "No se pudo importar la habilidad: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "Detalles de la habilidad",
+    "uninstallSkill": "Desinstalar habilidad",
+    "confirmUninstallSkill": "¿Desinstalar {name}? También se eliminarán las vinculaciones con bots.",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "Versión",
+    "skillSource": "Origen",
+    "skillDigest": "Huella del contenido",
+    "skillCompatibility": "Compatibilidad",
+    "skillFiles": "Archivos",
+    "skillValidationWarnings": "Notas de validación",
+    "skillScriptsDisabled": "Los scripts están instalados, pero su ejecución está desactivada.",
+    "skillReferencesAvailable": "Archivos de referencia disponibles",
+    "skillAssetsAvailable": "Recursos disponibles",
+    "botSkills": "Habilidades",
+    "botSkillsDescription": "Elige las instrucciones reutilizables disponibles para este bot.",
+    "manualActivation": "Por mensaje",
+    "alwaysActivation": "Siempre activa",
+    "manualActivationDescription": "Selecciona la habilidad en el campo de mensaje cuando la necesites.",
+    "alwaysActivationDescription": "Inserta esta habilidad en cada solicitud de texto.",
+    "messageSkills": "Habilidades",
+    "alwaysOn": "Siempre activa",
+    "skillNotExecutable": "Esta versión no ejecuta scripts ni comandos de las habilidades.",
+    "skillSafetyDescription": "SKILL.md se carga únicamente como una instrucción controlada; los scripts, comandos y herramientas externas permanecen desactivados.",
+    "skillUserScope": "Usuario"
 }

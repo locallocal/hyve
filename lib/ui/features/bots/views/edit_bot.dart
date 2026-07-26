@@ -11,6 +11,7 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -53,6 +54,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   int _editRevision = 0;
   File? avatarImage;
   BotTokenUsageViewModel? _tokenUsageViewModel;
+  BotSkillViewModel? _skillViewModel;
 
   @override
   void initState() {
@@ -76,16 +78,23 @@ class _EditAIBotPageState extends State<EditBotPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_tokenUsageViewModel != null) return;
+    if (_tokenUsageViewModel != null && _skillViewModel != null) return;
     final dependencies = AppScope.maybeOf(context);
     if (dependencies == null) return;
     _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
       widget.bot.id,
     )..addListener(_handleTokenUsageChanged);
     unawaited(_tokenUsageViewModel!.load());
+    _skillViewModel = dependencies.createBotSkillViewModel(widget.bot.id)
+      ..addListener(_handleSkillChanged);
+    unawaited(_skillViewModel!.load());
   }
 
   void _handleTokenUsageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _handleSkillChanged() {
     if (mounted) setState(() {});
   }
 
@@ -112,6 +121,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
     systemPromptController.dispose();
     _tokenUsageViewModel
       ?..removeListener(_handleTokenUsageChanged)
+      ..dispose();
+    _skillViewModel
+      ?..removeListener(_handleSkillChanged)
       ..dispose();
     super.dispose();
   }
@@ -299,6 +311,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 SizedBox(height: widget.embedded ? 20 : 16),
                 _buildFormSection(
                   context,
+                  S.of(context).botSkills,
+                  [_buildBotSkills()],
+                  sectionKey: const ValueKey<String>(
+                    'desktop-bot-skills-section',
+                  ),
+                ),
+                SizedBox(height: widget.embedded ? 20 : 16),
+                _buildFormSection(
+                  context,
                   S.of(context).tokenUsage,
                   [_buildTokenUsage()],
                   sectionKey: const ValueKey<String>(
@@ -415,6 +436,183 @@ class _EditAIBotPageState extends State<EditBotPage> {
               ? null
               : (bucket) => viewModel.selectDay(bucket.start),
     );
+  }
+
+  Widget _buildBotSkills() {
+    final viewModel = _skillViewModel;
+    final strings = S.of(context);
+    if (viewModel?.isLoading ?? false) {
+      return const Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox.square(
+          dimension: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    if (viewModel == null || viewModel.skills.isEmpty) {
+      return Text(
+        strings.noSkillsInstalledDescription,
+        style:
+            widget.embedded
+                ? DesktopThemeTokens.bodyStyle(
+                  context,
+                )?.copyWith(color: DesktopThemeTokens.mutedText(context))
+                : Theme.of(context).textTheme.bodyMedium,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          strings.botSkillsDescription,
+          style:
+              widget.embedded
+                  ? DesktopThemeTokens.metaStyle(context)
+                  : Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        for (var index = 0; index < viewModel.skills.length; index++) ...[
+          _buildBotSkillRow(viewModel.skills[index], viewModel),
+          if (index != viewModel.skills.length - 1)
+            if (widget.embedded)
+              const ShadSeparator.horizontal()
+            else
+              const Divider(height: 1),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildBotSkillRow(SkillDescriptor skill, BotSkillViewModel viewModel) {
+    final strings = S.of(context);
+    final binding = viewModel.bindingFor(skill.id);
+    final enabled = binding?.enabled ?? false;
+    final mode = binding?.activationMode ?? SkillActivationMode.manual;
+    final switchWidget =
+        widget.embedded
+            ? ShadSwitch(
+              value: enabled,
+              onChanged: (value) => _setSkillEnabled(skill.id, value),
+            )
+            : Switch(
+              value: enabled,
+              onChanged: (value) => _setSkillEnabled(skill.id, value),
+            );
+
+    return Padding(
+      key: ValueKey<String>('bot-skill-${skill.id}'),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      skill.name,
+                      style:
+                          widget.embedded
+                              ? ShadTheme.of(context).textTheme.small
+                              : Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      skill.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          widget.embedded
+                              ? DesktopThemeTokens.metaStyle(context)
+                              : Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              switchWidget,
+            ],
+          ),
+          if (enabled) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildSkillModeChoice(
+                  label: strings.manualActivation,
+                  description: strings.manualActivationDescription,
+                  selected: mode == SkillActivationMode.manual,
+                  onPressed:
+                      () => _setSkillMode(skill.id, SkillActivationMode.manual),
+                ),
+                _buildSkillModeChoice(
+                  label: strings.alwaysActivation,
+                  description: strings.alwaysActivationDescription,
+                  selected: mode == SkillActivationMode.always,
+                  onPressed:
+                      () => _setSkillMode(skill.id, SkillActivationMode.always),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkillModeChoice({
+    required String label,
+    required String description,
+    required bool selected,
+    required VoidCallback onPressed,
+  }) {
+    if (!widget.embedded) {
+      return Tooltip(
+        message: description,
+        child: ChoiceChip(
+          label: Text(label),
+          selected: selected,
+          onSelected: (_) => onPressed(),
+        ),
+      );
+    }
+    return ShadTooltip(
+      builder: (context) => Text(description),
+      child:
+          selected
+              ? ShadButton.secondary(
+                size: ShadButtonSize.sm,
+                onPressed: onPressed,
+                leading: const Icon(LucideIcons.check, size: 14),
+                child: Text(label),
+              )
+              : ShadButton.outline(
+                size: ShadButtonSize.sm,
+                onPressed: onPressed,
+                child: Text(label),
+              ),
+    );
+  }
+
+  Future<void> _setSkillEnabled(String skillId, bool enabled) async {
+    try {
+      await _skillViewModel?.setEnabled(skillId, enabled);
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
+  }
+
+  Future<void> _setSkillMode(String skillId, SkillActivationMode mode) async {
+    try {
+      await _skillViewModel?.setActivationMode(skillId, mode);
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
   }
 
   Widget _buildFormSection(

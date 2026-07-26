@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "Ausführungsdetails in Unterhaltungsnachrichten anzeigen.",
     "changeAvatar": "Avatar ändern",
     "resetToDefault": "Auf Standard zurücksetzen",
-    "enterDisplayName": "Anzeigenamen eingeben"
+    "enterDisplayName": "Anzeigenamen eingeben",
+    "skillLibrary": "Fähigkeiten",
+    "skillLibraryDescription": "Wiederverwendbare Anweisungen installieren und Bots zuordnen.",
+    "searchSkills": "Fähigkeiten durchsuchen",
+    "noMatchingSkills": "Keine passenden Fähigkeiten gefunden",
+    "importSkillFolder": "Fähigkeitsordner importieren",
+    "importSkillZip": "Fähigkeits-ZIP importieren",
+    "importingSkill": "Fähigkeit wird importiert…",
+    "noSkillsInstalled": "Keine Fähigkeiten installiert",
+    "noSkillsInstalledDescription": "Importieren Sie einen Agent-Skills-Ordner oder eine ZIP-Datei mit SKILL.md.",
+    "skillImportSucceeded": "Fähigkeit importiert",
+    "skillImportFailed": "Fähigkeit konnte nicht importiert werden: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "Fähigkeitsdetails",
+    "uninstallSkill": "Fähigkeit deinstallieren",
+    "confirmUninstallSkill": "{name} deinstallieren? Die Bot-Zuordnungen werden ebenfalls entfernt.",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "Version",
+    "skillSource": "Quelle",
+    "skillDigest": "Inhalts-Hash",
+    "skillCompatibility": "Kompatibilität",
+    "skillFiles": "Dateien",
+    "skillValidationWarnings": "Validierungshinweise",
+    "skillScriptsDisabled": "Skripte sind installiert, ihre Ausführung ist jedoch deaktiviert.",
+    "skillReferencesAvailable": "Referenzdateien verfügbar",
+    "skillAssetsAvailable": "Assets verfügbar",
+    "botSkills": "Fähigkeiten",
+    "botSkillsDescription": "Wählen Sie wiederverwendbare Anweisungen für diesen Bot aus.",
+    "manualActivation": "Pro Nachricht",
+    "alwaysActivation": "Immer aktiv",
+    "manualActivationDescription": "Wählen Sie die Fähigkeit bei Bedarf im Nachrichtenfeld aus.",
+    "alwaysActivationDescription": "Diese Fähigkeit wird in jede Textanfrage eingefügt.",
+    "messageSkills": "Fähigkeiten",
+    "alwaysOn": "Immer aktiv",
+    "skillNotExecutable": "Diese Version führt keine Skripte oder Befehle aus Fähigkeiten aus.",
+    "skillSafetyDescription": "SKILL.md wird nur als kontrollierte Prompt-Anweisung geladen; Skripte, Befehle und externe Tools bleiben deaktiviert.",
+    "skillUserScope": "Benutzer"
 }

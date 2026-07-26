@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "会話メッセージに実行の詳細を表示します。",
     "changeAvatar": "アバターを変更",
     "resetToDefault": "デフォルトに戻す",
-    "enterDisplayName": "表示名を入力してください"
+    "enterDisplayName": "表示名を入力してください",
+    "skillLibrary": "スキル",
+    "skillLibraryDescription": "再利用可能な指示をインストールしてボットに関連付けます。",
+    "searchSkills": "スキルを検索",
+    "noMatchingSkills": "一致するスキルが見つかりません",
+    "importSkillFolder": "スキルフォルダーをインポート",
+    "importSkillZip": "スキル ZIP をインポート",
+    "importingSkill": "スキルをインポート中…",
+    "noSkillsInstalled": "スキルがインストールされていません",
+    "noSkillsInstalledDescription": "SKILL.md を含む Agent Skills フォルダーまたは ZIP をインポートしてください。",
+    "skillImportSucceeded": "スキルをインポートしました",
+    "skillImportFailed": "スキルをインポートできませんでした：{error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "スキルの詳細",
+    "uninstallSkill": "スキルをアンインストール",
+    "confirmUninstallSkill": "{name} をアンインストールしますか？ボットとの関連付けも削除されます。",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "バージョン",
+    "skillSource": "ソース",
+    "skillDigest": "コンテンツダイジェスト",
+    "skillCompatibility": "互換性",
+    "skillFiles": "ファイル",
+    "skillValidationWarnings": "検証メモ",
+    "skillScriptsDisabled": "スクリプトはインストールされていますが、実行は無効です。",
+    "skillReferencesAvailable": "参照ファイルあり",
+    "skillAssetsAvailable": "アセットあり",
+    "botSkills": "スキル",
+    "botSkillsDescription": "このボットで使用できる再利用可能な指示を選択します。",
+    "manualActivation": "メッセージごと",
+    "alwaysActivation": "常に有効",
+    "manualActivationDescription": "必要なときにメッセージ入力欄からスキルを選択します。",
+    "alwaysActivationDescription": "各テキストリクエストにこのスキルを挿入します。",
+    "messageSkills": "スキル",
+    "alwaysOn": "常に有効",
+    "skillNotExecutable": "このバージョンでは、スキル内のスクリプトやコマンドは実行されません。",
+    "skillSafetyDescription": "SKILL.md は管理されたプロンプト指示としてのみ読み込まれます。スクリプト、コマンド、外部ツールは無効のままです。",
+    "skillUserScope": "ユーザー"
 }

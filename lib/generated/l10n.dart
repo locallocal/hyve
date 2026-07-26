@@ -2455,6 +2455,306 @@ class S {
       args: [],
     );
   }
+
+  /// `Skills`
+  String get skillLibrary {
+    return Intl.message('Skills', name: 'skillLibrary', desc: '', args: []);
+  }
+
+  /// `Install reusable instructions and bind them to your bots.`
+  String get skillLibraryDescription {
+    return Intl.message(
+      'Install reusable instructions and bind them to your bots.',
+      name: 'skillLibraryDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search skills`
+  String get searchSkills {
+    return Intl.message(
+      'Search skills',
+      name: 'searchSkills',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No matching skills found`
+  String get noMatchingSkills {
+    return Intl.message(
+      'No matching skills found',
+      name: 'noMatchingSkills',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import folder`
+  String get importSkillFolder {
+    return Intl.message(
+      'Import folder',
+      name: 'importSkillFolder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import ZIP`
+  String get importSkillZip {
+    return Intl.message(
+      'Import ZIP',
+      name: 'importSkillZip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Importing…`
+  String get importingSkill {
+    return Intl.message(
+      'Importing…',
+      name: 'importingSkill',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Skills installed`
+  String get noSkillsInstalled {
+    return Intl.message(
+      'No Skills installed',
+      name: 'noSkillsInstalled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import an Agent Skills folder or ZIP containing SKILL.md.`
+  String get noSkillsInstalledDescription {
+    return Intl.message(
+      'Import an Agent Skills folder or ZIP containing SKILL.md.',
+      name: 'noSkillsInstalledDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skill imported`
+  String get skillImportSucceeded {
+    return Intl.message(
+      'Skill imported',
+      name: 'skillImportSucceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not import Skill: {error}`
+  String skillImportFailed(String error) {
+    return Intl.message(
+      'Could not import Skill: $error',
+      name: 'skillImportFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Skill details`
+  String get skillDetails {
+    return Intl.message(
+      'Skill details',
+      name: 'skillDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Uninstall Skill`
+  String get uninstallSkill {
+    return Intl.message(
+      'Uninstall Skill',
+      name: 'uninstallSkill',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Uninstall {name}? Bot bindings will also be removed.`
+  String confirmUninstallSkill(String name) {
+    return Intl.message(
+      'Uninstall $name? Bot bindings will also be removed.',
+      name: 'confirmUninstallSkill',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Version`
+  String get skillVersion {
+    return Intl.message('Version', name: 'skillVersion', desc: '', args: []);
+  }
+
+  /// `Source`
+  String get skillSource {
+    return Intl.message('Source', name: 'skillSource', desc: '', args: []);
+  }
+
+  /// `Content digest`
+  String get skillDigest {
+    return Intl.message(
+      'Content digest',
+      name: 'skillDigest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Compatibility`
+  String get skillCompatibility {
+    return Intl.message(
+      'Compatibility',
+      name: 'skillCompatibility',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Files`
+  String get skillFiles {
+    return Intl.message('Files', name: 'skillFiles', desc: '', args: []);
+  }
+
+  /// `Validation notes`
+  String get skillValidationWarnings {
+    return Intl.message(
+      'Validation notes',
+      name: 'skillValidationWarnings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scripts are installed but execution is disabled.`
+  String get skillScriptsDisabled {
+    return Intl.message(
+      'Scripts are installed but execution is disabled.',
+      name: 'skillScriptsDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reference files available`
+  String get skillReferencesAvailable {
+    return Intl.message(
+      'Reference files available',
+      name: 'skillReferencesAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Assets available`
+  String get skillAssetsAvailable {
+    return Intl.message(
+      'Assets available',
+      name: 'skillAssetsAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skills`
+  String get botSkills {
+    return Intl.message('Skills', name: 'botSkills', desc: '', args: []);
+  }
+
+  /// `Choose reusable instructions available to this bot.`
+  String get botSkillsDescription {
+    return Intl.message(
+      'Choose reusable instructions available to this bot.',
+      name: 'botSkillsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Per message`
+  String get manualActivation {
+    return Intl.message(
+      'Per message',
+      name: 'manualActivation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Always on`
+  String get alwaysActivation {
+    return Intl.message(
+      'Always on',
+      name: 'alwaysActivation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select the Skill from the message composer when needed.`
+  String get manualActivationDescription {
+    return Intl.message(
+      'Select the Skill from the message composer when needed.',
+      name: 'manualActivationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Inject this Skill into every text request.`
+  String get alwaysActivationDescription {
+    return Intl.message(
+      'Inject this Skill into every text request.',
+      name: 'alwaysActivationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skills`
+  String get messageSkills {
+    return Intl.message('Skills', name: 'messageSkills', desc: '', args: []);
+  }
+
+  /// `Always on`
+  String get alwaysOn {
+    return Intl.message('Always on', name: 'alwaysOn', desc: '', args: []);
+  }
+
+  /// `This release does not execute Skill scripts or commands.`
+  String get skillNotExecutable {
+    return Intl.message(
+      'This release does not execute Skill scripts or commands.',
+      name: 'skillNotExecutable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.`
+  String get skillSafetyDescription {
+    return Intl.message(
+      'SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.',
+      name: 'skillSafetyDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `User`
+  String get skillUserScope {
+    return Intl.message('User', name: 'skillUserScope', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

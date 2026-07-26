@@ -42,23 +42,28 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "Удаление чата приведет к стиранию всей истории переписки. Вы уверены, что хотите удалить чат с ${botName}?";
 
-  static String m9(language) => "Язык изменен на ${language}";
+  static String m9(name) =>
+      "Удалить ${name}? Привязки к ботам также будут удалены.";
 
-  static String m10(minutes) => "${minutes} минут назад";
+  static String m10(language) => "Язык изменен на ${language}";
 
-  static String m11(count) => "Успешно получено ${count} моделей";
+  static String m11(minutes) => "${minutes} минут назад";
 
-  static String m12(count) => "${count} запусков команд";
+  static String m12(count) => "Успешно получено ${count} моделей";
 
-  static String m13(duration) => "Длительность ${duration}";
+  static String m13(count) => "${count} запусков команд";
 
-  static String m14(count) => "${count} изменений файлов";
+  static String m14(duration) => "Длительность ${duration}";
 
-  static String m15(count) => "${count} вызовов инструментов";
+  static String m15(count) => "${count} изменений файлов";
 
-  static String m16(error) => "Ошибка получения ответа: ${error}";
+  static String m16(count) => "${count} вызовов инструментов";
 
-  static String m17(duration) => "Размышление завершено · ${duration}";
+  static String m17(error) => "Ошибка получения ответа: ${error}";
+
+  static String m18(error) => "Не удалось импортировать навык: ${error}";
+
+  static String m19(duration) => "Размышление завершено · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -72,6 +77,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "Настроить размер шрифта",
     ),
+    "alwaysActivation": MessageLookupByLibrary.simpleMessage("Всегда включён"),
+    "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Добавляет этот навык в каждый текстовый запрос.",
+    ),
+    "alwaysOn": MessageLookupByLibrary.simpleMessage("Всегда включён"),
     "apiAddress": MessageLookupByLibrary.simpleMessage("Адрес API:"),
     "apiKey": MessageLookupByLibrary.simpleMessage("API ключ"),
     "apiType": MessageLookupByLibrary.simpleMessage("Тип API:"),
@@ -88,6 +98,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "botGreeting": m2,
     "botIsTyping": m3,
     "botName": MessageLookupByLibrary.simpleMessage("Имя бота"),
+    "botSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
+    "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
+      "Выберите повторно используемые инструкции, доступные этому боту.",
+    ),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Отмена"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("Изменить аватар"),
@@ -120,6 +134,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
+    "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Контактная информация (необязательно)",
     ),
@@ -228,15 +243,27 @@ class MessageLookup extends MessageLookupByLibrary {
       "Помощь и обратная связь",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Главная"),
+    "importSkillFolder": MessageLookupByLibrary.simpleMessage(
+      "Импортировать папку навыка",
+    ),
+    "importSkillZip": MessageLookupByLibrary.simpleMessage(
+      "Импортировать ZIP навыка",
+    ),
+    "importingSkill": MessageLookupByLibrary.simpleMessage("Импорт навыка…"),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Входные токены"),
     "justNow": MessageLookupByLibrary.simpleMessage("Только что"),
-    "languageChanged": m9,
+    "languageChanged": m10,
     "languageSettings": MessageLookupByLibrary.simpleMessage("Настройки языка"),
     "lightMode": MessageLookupByLibrary.simpleMessage("Светлая тема"),
+    "manualActivation": MessageLookupByLibrary.simpleMessage("Для сообщения"),
+    "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "При необходимости выберите навык в поле сообщения.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
-    "minutesAgo": m10,
+    "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
+    "minutesAgo": m11,
     "model": MessageLookupByLibrary.simpleMessage("Модель"),
-    "modelsRetrievedSuccess": m11,
+    "modelsRetrievedSuccess": m12,
     "name": MessageLookupByLibrary.simpleMessage("Имя"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Имя обновлено"),
     "newChat": MessageLookupByLibrary.simpleMessage("Новый чат"),
@@ -247,8 +274,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "Содержимое не возвращено",
     ),
+    "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
+      "Подходящие навыки не найдены",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "Модели не получены",
+    ),
+    "noSkillsInstalled": MessageLookupByLibrary.simpleMessage(
+      "Навыки не установлены",
+    ),
+    "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
+      "Импортируйте папку Agent Skills или ZIP-архив с файлом SKILL.md.",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Выходные токены"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Частичный ответ"),
@@ -264,13 +300,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Политика конфиденциальности",
     ),
-    "processCommandCount": m12,
-    "processDuration": m13,
-    "processFileCount": m14,
+    "processCommandCount": m13,
+    "processDuration": m14,
+    "processFileCount": m15,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Информация о процессе",
     ),
-    "processToolCount": m15,
+    "processToolCount": m16,
     "profile": MessageLookupByLibrary.simpleMessage("Профиль"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Поделитесь своими предложениями и отзывами",
@@ -292,9 +328,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "Восстановить значения по умолчанию",
     ),
-    "responseError": m16,
+    "responseError": m17,
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения"),
+    "searchSkills": MessageLookupByLibrary.simpleMessage("Поиск навыков"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Выбрать бота"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Выбрать язык"),
     "selectModel": MessageLookupByLibrary.simpleMessage("Выберите модель:"),
@@ -307,6 +344,39 @@ class MessageLookup extends MessageLookupByLibrary {
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "Показывать сведения о выполнении в сообщениях беседы.",
     ),
+    "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Доступны ресурсы",
+    ),
+    "skillCompatibility": MessageLookupByLibrary.simpleMessage("Совместимость"),
+    "skillDetails": MessageLookupByLibrary.simpleMessage("Сведения о навыке"),
+    "skillDigest": MessageLookupByLibrary.simpleMessage("Хеш содержимого"),
+    "skillFiles": MessageLookupByLibrary.simpleMessage("Файлы"),
+    "skillImportFailed": m18,
+    "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
+      "Навык импортирован",
+    ),
+    "skillLibrary": MessageLookupByLibrary.simpleMessage("Навыки"),
+    "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
+      "Устанавливайте повторно используемые инструкции и привязывайте их к ботам.",
+    ),
+    "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
+      "В этой версии скрипты и команды из навыков не выполняются.",
+    ),
+    "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
+      "Доступны справочные файлы",
+    ),
+    "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
+      "SKILL.md загружается только как управляемая инструкция для модели; скрипты, команды и внешние инструменты остаются отключёнными.",
+    ),
+    "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
+      "Скрипты установлены, но их выполнение отключено.",
+    ),
+    "skillSource": MessageLookupByLibrary.simpleMessage("Источник"),
+    "skillUserScope": MessageLookupByLibrary.simpleMessage("Пользователь"),
+    "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
+      "Примечания проверки",
+    ),
+    "skillVersion": MessageLookupByLibrary.simpleMessage("Версия"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Отправьте сообщение в поле ввода ниже, чтобы начать чат",
     ),
@@ -337,10 +407,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Размышление завершено",
     ),
-    "thinkingCompletedWithDuration": m17,
+    "thinkingCompletedWithDuration": m19,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Размышление…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Вызовы инструментов"),
     "typing": MessageLookupByLibrary.simpleMessage("Печатает..."),
+    "uninstallSkill": MessageLookupByLibrary.simpleMessage("Удалить навык"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("Загрузить файл"),
     "uploadImage": MessageLookupByLibrary.simpleMessage(
       "Загрузить изображение",

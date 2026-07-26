@@ -42,23 +42,28 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "चैट हटाने से सभी चैट इतिहास मिट जाएगा। क्या आप वाकई ${botName} के साथ चैट हटाना चाहते हैं?";
 
-  static String m9(language) => "भाषा ${language} में बदली गई";
+  static String m9(name) =>
+      "${name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।";
 
-  static String m10(minutes) => "${minutes} मिनट पहले";
+  static String m10(language) => "भाषा ${language} में बदली गई";
 
-  static String m11(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+  static String m11(minutes) => "${minutes} मिनट पहले";
 
-  static String m12(count) => "${count} कमांड निष्पादन";
+  static String m12(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
 
-  static String m13(duration) => "अवधि ${duration}";
+  static String m13(count) => "${count} कमांड निष्पादन";
 
-  static String m14(count) => "${count} फ़ाइल बदलाव";
+  static String m14(duration) => "अवधि ${duration}";
 
-  static String m15(count) => "${count} टूल कॉल";
+  static String m15(count) => "${count} फ़ाइल बदलाव";
 
-  static String m16(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m16(count) => "${count} टूल कॉल";
 
-  static String m17(duration) => "सोचना पूर्ण · ${duration}";
+  static String m17(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+
+  static String m18(error) => "कौशल आयात नहीं हो सका: ${error}";
+
+  static String m19(duration) => "सोचना पूर्ण · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -72,6 +77,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "फॉन्ट साइज़ समायोजित करें",
     ),
+    "alwaysActivation": MessageLookupByLibrary.simpleMessage("हमेशा चालू"),
+    "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "हर टेक्स्ट अनुरोध में यह कौशल जोड़ें।",
+    ),
+    "alwaysOn": MessageLookupByLibrary.simpleMessage("हमेशा चालू"),
     "apiAddress": MessageLookupByLibrary.simpleMessage("API पता:"),
     "apiKey": MessageLookupByLibrary.simpleMessage("API कुंजी"),
     "apiType": MessageLookupByLibrary.simpleMessage("API प्रकार:"),
@@ -86,6 +96,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "botGreeting": m2,
     "botIsTyping": m3,
     "botName": MessageLookupByLibrary.simpleMessage("बॉट का नाम"),
+    "botSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
+    "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
+      "इस बॉट के लिए उपलब्ध दोबारा इस्तेमाल किए जा सकने वाले निर्देश चुनें।",
+    ),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("रद्द करें"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("अवतार बदलें"),
@@ -116,6 +130,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
+    "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "संपर्क जानकारी (वैकल्पिक)",
     ),
@@ -224,15 +239,29 @@ class MessageLookup extends MessageLookupByLibrary {
       "सहायता और प्रतिक्रिया",
     ),
     "home": MessageLookupByLibrary.simpleMessage("होम"),
+    "importSkillFolder": MessageLookupByLibrary.simpleMessage(
+      "कौशल फ़ोल्डर आयात करें",
+    ),
+    "importSkillZip": MessageLookupByLibrary.simpleMessage(
+      "कौशल ZIP आयात करें",
+    ),
+    "importingSkill": MessageLookupByLibrary.simpleMessage(
+      "कौशल आयात हो रहा है…",
+    ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("इनपुट टोकन"),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
-    "languageChanged": m9,
+    "languageChanged": m10,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
+    "manualActivation": MessageLookupByLibrary.simpleMessage("प्रति संदेश"),
+    "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
-    "minutesAgo": m10,
+    "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
+    "minutesAgo": m11,
     "model": MessageLookupByLibrary.simpleMessage("मॉडल"),
-    "modelsRetrievedSuccess": m11,
+    "modelsRetrievedSuccess": m12,
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
@@ -243,8 +272,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "कोई सामग्री नहीं मिली",
     ),
+    "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
+      "कोई मिलता-जुलता कौशल नहीं मिला",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "कोई मॉडल प्राप्त नहीं हुआ",
+    ),
+    "noSkillsInstalled": MessageLookupByLibrary.simpleMessage(
+      "कोई कौशल इंस्टॉल नहीं है",
+    ),
+    "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
+      "SKILL.md वाला Agent Skills फ़ोल्डर या ZIP आयात करें।",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
@@ -254,13 +292,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
-    "processCommandCount": m12,
-    "processDuration": m13,
-    "processFileCount": m14,
+    "processCommandCount": m13,
+    "processDuration": m14,
+    "processFileCount": m15,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "प्रक्रिया जानकारी",
     ),
-    "processToolCount": m15,
+    "processToolCount": m16,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
@@ -278,9 +316,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
-    "responseError": m16,
+    "responseError": m17,
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
+    "searchSkills": MessageLookupByLibrary.simpleMessage("कौशल खोजें"),
     "selectBot": MessageLookupByLibrary.simpleMessage("बॉट चुनें"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("भाषा चुनें"),
     "selectModel": MessageLookupByLibrary.simpleMessage("मॉडल चुनें:"),
@@ -291,6 +330,39 @@ class MessageLookup extends MessageLookupByLibrary {
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "बातचीत के संदेशों में निष्पादन विवरण दिखाएँ।",
     ),
+    "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
+      "एसेट उपलब्ध हैं",
+    ),
+    "skillCompatibility": MessageLookupByLibrary.simpleMessage("संगतता"),
+    "skillDetails": MessageLookupByLibrary.simpleMessage("कौशल का विवरण"),
+    "skillDigest": MessageLookupByLibrary.simpleMessage("सामग्री डाइजेस्ट"),
+    "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
+    "skillImportFailed": m18,
+    "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
+      "कौशल आयात किया गया",
+    ),
+    "skillLibrary": MessageLookupByLibrary.simpleMessage("कौशल"),
+    "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
+      "दोबारा इस्तेमाल किए जा सकने वाले निर्देश इंस्टॉल करें और उन्हें बॉट से जोड़ें।",
+    ),
+    "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
+      "यह संस्करण कौशल की स्क्रिप्ट या कमांड नहीं चलाता।",
+    ),
+    "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
+      "संदर्भ फ़ाइलें उपलब्ध हैं",
+    ),
+    "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
+      "SKILL.md को केवल नियंत्रित प्रॉम्प्ट निर्देश के रूप में लोड किया जाता है; स्क्रिप्ट, कमांड और बाहरी टूल अक्षम रहते हैं।",
+    ),
+    "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
+      "स्क्रिप्ट इंस्टॉल हैं, लेकिन उनका निष्पादन अक्षम है।",
+    ),
+    "skillSource": MessageLookupByLibrary.simpleMessage("स्रोत"),
+    "skillUserScope": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता"),
+    "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
+      "सत्यापन टिप्पणियाँ",
+    ),
+    "skillVersion": MessageLookupByLibrary.simpleMessage("संस्करण"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "चैट शुरू करने के लिए नीचे इनपुट फील्ड में संदेश भेजें",
     ),
@@ -319,10 +391,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
-    "thinkingCompletedWithDuration": m17,
+    "thinkingCompletedWithDuration": m19,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("टूल कॉल"),
     "typing": MessageLookupByLibrary.simpleMessage("टाइप कर रहा है..."),
+    "uninstallSkill": MessageLookupByLibrary.simpleMessage(
+      "कौशल अनइंस्टॉल करें",
+    ),
     "uploadFile": MessageLookupByLibrary.simpleMessage("फ़ाइल अपलोड करें"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("छवि अपलोड करें"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता समझौता"),

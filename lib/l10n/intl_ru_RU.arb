@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "Показывать сведения о выполнении в сообщениях беседы.",
     "changeAvatar": "Изменить аватар",
     "resetToDefault": "Восстановить значения по умолчанию",
-    "enterDisplayName": "Введите отображаемое имя"
+    "enterDisplayName": "Введите отображаемое имя",
+    "skillLibrary": "Навыки",
+    "skillLibraryDescription": "Устанавливайте повторно используемые инструкции и привязывайте их к ботам.",
+    "searchSkills": "Поиск навыков",
+    "noMatchingSkills": "Подходящие навыки не найдены",
+    "importSkillFolder": "Импортировать папку навыка",
+    "importSkillZip": "Импортировать ZIP навыка",
+    "importingSkill": "Импорт навыка…",
+    "noSkillsInstalled": "Навыки не установлены",
+    "noSkillsInstalledDescription": "Импортируйте папку Agent Skills или ZIP-архив с файлом SKILL.md.",
+    "skillImportSucceeded": "Навык импортирован",
+    "skillImportFailed": "Не удалось импортировать навык: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "Сведения о навыке",
+    "uninstallSkill": "Удалить навык",
+    "confirmUninstallSkill": "Удалить {name}? Привязки к ботам также будут удалены.",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "Версия",
+    "skillSource": "Источник",
+    "skillDigest": "Хеш содержимого",
+    "skillCompatibility": "Совместимость",
+    "skillFiles": "Файлы",
+    "skillValidationWarnings": "Примечания проверки",
+    "skillScriptsDisabled": "Скрипты установлены, но их выполнение отключено.",
+    "skillReferencesAvailable": "Доступны справочные файлы",
+    "skillAssetsAvailable": "Доступны ресурсы",
+    "botSkills": "Навыки",
+    "botSkillsDescription": "Выберите повторно используемые инструкции, доступные этому боту.",
+    "manualActivation": "Для сообщения",
+    "alwaysActivation": "Всегда включён",
+    "manualActivationDescription": "При необходимости выберите навык в поле сообщения.",
+    "alwaysActivationDescription": "Добавляет этот навык в каждый текстовый запрос.",
+    "messageSkills": "Навыки",
+    "alwaysOn": "Всегда включён",
+    "skillNotExecutable": "В этой версии скрипты и команды из навыков не выполняются.",
+    "skillSafetyDescription": "SKILL.md загружается только как управляемая инструкция для модели; скрипты, команды и внешние инструменты остаются отключёнными.",
+    "skillUserScope": "Пользователь"
 }

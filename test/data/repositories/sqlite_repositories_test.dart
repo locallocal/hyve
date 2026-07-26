@@ -2,9 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
+import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
+import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/domain/models/models.dart';
@@ -16,6 +18,8 @@ void main() {
   late LocalDatabaseService localDatabase;
   late SqliteChatRepository chatRepository;
   late SqliteBotRepository botRepository;
+  late SqliteBotSkillBindingRepository bindingRepository;
+  late SqliteSkillRunRepository skillRunRepository;
 
   setUp(() async {
     database = await databaseFactoryFfi.openDatabase(
@@ -33,9 +37,14 @@ void main() {
       localDatabase: localDatabase,
       chatRepository: chatRepository,
     );
+    bindingRepository = SqliteBotSkillBindingRepository(
+      localDatabase: localDatabase,
+    );
+    skillRunRepository = SqliteSkillRunRepository(localDatabase: localDatabase);
   });
 
   tearDown(() async {
+    await bindingRepository.dispose();
     await botRepository.dispose();
     await chatRepository.dispose();
     await database.close();
@@ -224,6 +233,63 @@ void main() {
       (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
       0,
     );
+  });
+
+  test('Skill bindings round-trip and are removed with their bot', () async {
+    final bot = _bot();
+    await botRepository.addBot(bot);
+    final timestamp = DateTime(2026, 7, 26, 10);
+    final binding = BotSkillBinding(
+      botId: bot.id,
+      skillId: 'user:release-notes',
+      activationMode: SkillActivationMode.always,
+      priority: 12,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+
+    await bindingRepository.save(binding);
+
+    final restored = await bindingRepository.getForBot(bot.id);
+    expect(restored, hasLength(1));
+    expect(restored.single.skillId, binding.skillId);
+    expect(restored.single.activationMode, SkillActivationMode.always);
+    expect(restored.single.priority, 12);
+
+    await botRepository.deleteBot(bot.id);
+
+    expect(await bindingRepository.getForBot(bot.id), isEmpty);
+  });
+
+  test('Skill activation audit records round-trip by run', () async {
+    final startedAt = DateTime(2026, 7, 26, 10);
+    final completedAt = startedAt.add(const Duration(milliseconds: 8));
+    await skillRunRepository.saveActivations([
+      SkillActivationRecord(
+        id: 'run-1:user:release-notes',
+        runId: 'run-1',
+        chatId: 'chat-1',
+        messageId: 'message-1',
+        skillId: 'user:release-notes',
+        skillName: 'release-notes',
+        contentDigest: 'abc123',
+        trigger: SkillActivationTrigger.manual,
+        status: SkillActivationStatus.activated,
+        startedAt: startedAt,
+        completedAt: completedAt,
+        durationMs: 8,
+      ),
+    ]);
+
+    final restored = await skillRunRepository.getForRun('run-1');
+
+    expect(restored, hasLength(1));
+    expect(restored.single.skillName, 'release-notes');
+    expect(restored.single.contentDigest, 'abc123');
+    expect(restored.single.trigger, SkillActivationTrigger.manual);
+    expect(restored.single.status, SkillActivationStatus.activated);
+    expect(restored.single.durationMs, 8);
+    expect(restored.single.completedAt, completedAt);
   });
 }
 

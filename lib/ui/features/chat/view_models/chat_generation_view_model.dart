@@ -114,6 +114,8 @@ typedef LastMessageUpdater =
     Future<void> Function(String chatId, String content);
 typedef ProviderFactory = AiProvider Function(Bot bot);
 typedef MessageIdFactory = String Function(String prefix);
+typedef SkillActivationPersister =
+    Future<void> Function(Iterable<SkillActivationRecord> records);
 
 int _identitySequence = 0;
 
@@ -136,11 +138,13 @@ class ChatGenerationViewModel extends ChangeNotifier {
     required LastMessageUpdater lastMessageUpdater,
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
+    SkillActivationPersister? skillActivationPersister,
   }) : _bot = bot,
        _providerFactory = providerFactory,
        _messagePersister = messagePersister,
        _lastMessageUpdater = lastMessageUpdater,
        _messageIdFactory = messageIdFactory,
+       _skillActivationPersister = skillActivationPersister,
        _capabilityProvider = providerFactory(bot),
        _snapshot = ChatGenerationSnapshot(chatId: chatId);
 
@@ -149,6 +153,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
   final MessagePersister _messagePersister;
   final LastMessageUpdater _lastMessageUpdater;
   final MessageIdFactory _messageIdFactory;
+  final SkillActivationPersister? _skillActivationPersister;
 
   Bot _bot;
   Bot? _pendingBot;
@@ -176,6 +181,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
   Future<bool> startText({
     required Message userMessage,
     required List<ChatMessage> messages,
+    List<ActivatedSkill> activatedSkills = const [],
   }) async {
     if (hasBlockingRun) return false;
 
@@ -228,6 +234,11 @@ class ChatGenerationViewModel extends ChangeNotifier {
     if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) return false;
     _snapshot = _snapshot.copyWith(userPersisted: true, clearError: true);
     notifyListeners();
+    await _persistSkillActivationsSafely(
+      runId: runId,
+      messageId: identifiedUser.messageId,
+      activatedSkills: activatedSkills,
+    );
 
     unawaited(_updateLastMessageSafely(identifiedUser.content));
 
@@ -549,6 +560,36 @@ class ChatGenerationViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> _persistSkillActivationsSafely({
+    required String runId,
+    required String messageId,
+    required List<ActivatedSkill> activatedSkills,
+  }) async {
+    final persister = _skillActivationPersister;
+    if (persister == null || activatedSkills.isEmpty) return;
+    final startedAt = _startedAt ?? DateTime.now();
+    try {
+      await persister([
+        for (var index = 0; index < activatedSkills.length; index++)
+          SkillActivationRecord(
+            id: '$runId:skill:$index',
+            runId: runId,
+            chatId: chatId,
+            messageId: messageId,
+            skillId: activatedSkills[index].id,
+            skillName: activatedSkills[index].name,
+            contentDigest: activatedSkills[index].contentDigest,
+            trigger: activatedSkills[index].trigger,
+            status: SkillActivationStatus.activated,
+            startedAt: startedAt,
+            completedAt: DateTime.now(),
+          ),
+      ]);
+    } catch (error) {
+      debugPrint('Failed to persist Skill activations for $runId: $error');
+    }
+  }
+
   void _completeTerminal(ChatRunLifecycle lifecycle) {
     final completer = _terminalCompleter;
     if (completer != null && !completer.isCompleted) {
@@ -575,10 +616,12 @@ class ChatGenerationRegistry {
     required LastMessageUpdater lastMessageUpdater,
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
+    SkillActivationPersister? skillActivationPersister,
   }) : _messagePersister = messagePersister,
        _lastMessageUpdater = lastMessageUpdater,
        _providerFactory = providerFactory,
-       _messageIdFactory = messageIdFactory;
+       _messageIdFactory = messageIdFactory,
+       _skillActivationPersister = skillActivationPersister;
 
   final Map<String, ChatGenerationViewModel> _viewModels = {};
   final Set<String> _nonCancellableRuns = {};
@@ -586,6 +629,7 @@ class ChatGenerationRegistry {
   final LastMessageUpdater _lastMessageUpdater;
   final ProviderFactory _providerFactory;
   final MessageIdFactory _messageIdFactory;
+  final SkillActivationPersister? _skillActivationPersister;
 
   ChatGenerationViewModel viewModelFor(String chatId, Bot bot) {
     final viewModel = _viewModels.putIfAbsent(
@@ -597,6 +641,7 @@ class ChatGenerationRegistry {
         lastMessageUpdater: _lastMessageUpdater,
         providerFactory: _providerFactory,
         messageIdFactory: _messageIdFactory,
+        skillActivationPersister: _skillActivationPersister,
       ),
     );
     viewModel.updateBot(bot);

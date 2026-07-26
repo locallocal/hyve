@@ -545,5 +545,49 @@
     "showExecutionStatusDescription": "बातचीत के संदेशों में निष्पादन विवरण दिखाएँ।",
     "changeAvatar": "अवतार बदलें",
     "resetToDefault": "डिफ़ॉल्ट पर रीसेट करें",
-    "enterDisplayName": "प्रदर्शन नाम दर्ज करें"
+    "enterDisplayName": "प्रदर्शन नाम दर्ज करें",
+    "skillLibrary": "कौशल",
+    "skillLibraryDescription": "दोबारा इस्तेमाल किए जा सकने वाले निर्देश इंस्टॉल करें और उन्हें बॉट से जोड़ें।",
+    "searchSkills": "कौशल खोजें",
+    "noMatchingSkills": "कोई मिलता-जुलता कौशल नहीं मिला",
+    "importSkillFolder": "कौशल फ़ोल्डर आयात करें",
+    "importSkillZip": "कौशल ZIP आयात करें",
+    "importingSkill": "कौशल आयात हो रहा है…",
+    "noSkillsInstalled": "कोई कौशल इंस्टॉल नहीं है",
+    "noSkillsInstalledDescription": "SKILL.md वाला Agent Skills फ़ोल्डर या ZIP आयात करें।",
+    "skillImportSucceeded": "कौशल आयात किया गया",
+    "skillImportFailed": "कौशल आयात नहीं हो सका: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "कौशल का विवरण",
+    "uninstallSkill": "कौशल अनइंस्टॉल करें",
+    "confirmUninstallSkill": "{name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "संस्करण",
+    "skillSource": "स्रोत",
+    "skillDigest": "सामग्री डाइजेस्ट",
+    "skillCompatibility": "संगतता",
+    "skillFiles": "फ़ाइलें",
+    "skillValidationWarnings": "सत्यापन टिप्पणियाँ",
+    "skillScriptsDisabled": "स्क्रिप्ट इंस्टॉल हैं, लेकिन उनका निष्पादन अक्षम है।",
+    "skillReferencesAvailable": "संदर्भ फ़ाइलें उपलब्ध हैं",
+    "skillAssetsAvailable": "एसेट उपलब्ध हैं",
+    "botSkills": "कौशल",
+    "botSkillsDescription": "इस बॉट के लिए उपलब्ध दोबारा इस्तेमाल किए जा सकने वाले निर्देश चुनें।",
+    "manualActivation": "प्रति संदेश",
+    "alwaysActivation": "हमेशा चालू",
+    "manualActivationDescription": "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
+    "alwaysActivationDescription": "हर टेक्स्ट अनुरोध में यह कौशल जोड़ें।",
+    "messageSkills": "कौशल",
+    "alwaysOn": "हमेशा चालू",
+    "skillNotExecutable": "यह संस्करण कौशल की स्क्रिप्ट या कमांड नहीं चलाता।",
+    "skillSafetyDescription": "SKILL.md को केवल नियंत्रित प्रॉम्प्ट निर्देश के रूप में लोड किया जाता है; स्क्रिप्ट, कमांड और बाहरी टूल अक्षम रहते हैं।",
+    "skillUserScope": "उपयोगकर्ता"
 }

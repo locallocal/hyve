@@ -26,6 +26,10 @@ class MessageInput extends StatefulWidget {
   final ValueChanged<String> onImageSizeSelected;
   final ValueChanged<String> onImageStyleSelected;
   final ValueChanged<String> onVideoRatioSelected;
+  final List<SkillDescriptor> availableSkills;
+  final Set<String> selectedSkillIds;
+  final bool Function(String skillId)? isSkillAlways;
+  final ValueChanged<String>? onSkillToggled;
 
   const MessageInput({
     super.key,
@@ -46,6 +50,10 @@ class MessageInput extends StatefulWidget {
     required this.onVideoRatioSelected,
     required this.onSend,
     required this.onCancelRequest,
+    this.availableSkills = const [],
+    this.selectedSkillIds = const {},
+    this.isSkillAlways,
+    this.onSkillToggled,
   });
 
   @override
@@ -66,6 +74,7 @@ class _MessageInputState extends State<MessageInput> {
       ShadPopoverController();
   final ShadPopoverController _videoOptionsPopoverController =
       ShadPopoverController();
+  final ShadPopoverController _skillPopoverController = ShadPopoverController();
   bool _hasFocus = false;
 
   @override
@@ -98,6 +107,7 @@ class _MessageInputState extends State<MessageInput> {
     _attachmentPopoverController.addListener(_handlePopoverChanged);
     _imageOptionsPopoverController.addListener(_handlePopoverChanged);
     _videoOptionsPopoverController.addListener(_handlePopoverChanged);
+    _skillPopoverController.addListener(_handlePopoverChanged);
   }
 
   @override
@@ -113,6 +123,9 @@ class _MessageInputState extends State<MessageInput> {
       ..removeListener(_handlePopoverChanged)
       ..dispose();
     _videoOptionsPopoverController
+      ..removeListener(_handlePopoverChanged)
+      ..dispose();
+    _skillPopoverController
       ..removeListener(_handlePopoverChanged)
       ..dispose();
     super.dispose();
@@ -147,6 +160,7 @@ class _MessageInputState extends State<MessageInput> {
       _attachmentPopoverController,
       _imageOptionsPopoverController,
       _videoOptionsPopoverController,
+      _skillPopoverController,
     ]) {
       if (!identical(controller, target)) {
         controller.hide();
@@ -306,6 +320,8 @@ class _MessageInputState extends State<MessageInput> {
             spacing: 8,
             runSpacing: 8,
             children: [
+              if (widget.availableSkills.isNotEmpty)
+                _buildSkillMenu(context, isDesktop),
               if (widget.provider.supportWebSearch())
                 _buildToggleChip(
                   context,
@@ -360,6 +376,95 @@ class _MessageInputState extends State<MessageInput> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildSkillMenu(BuildContext context, bool isDesktop) {
+    final strings = S.of(context);
+    final selectedCount =
+        widget.availableSkills
+            .where((skill) => widget.selectedSkillIds.contains(skill.id))
+            .length;
+    final label =
+        selectedCount == 0
+            ? strings.messageSkills
+            : '${strings.messageSkills} $selectedCount';
+    if (!isDesktop) {
+      return MenuAnchor(
+        menuChildren: [
+          for (final skill in widget.availableSkills)
+            CheckboxMenuButton(
+              value: widget.selectedSkillIds.contains(skill.id),
+              onChanged:
+                  widget.isSkillAlways?.call(skill.id) ?? false
+                      ? null
+                      : (_) => widget.onSkillToggled?.call(skill.id),
+              child: Text(
+                (widget.isSkillAlways?.call(skill.id) ?? false)
+                    ? '${skill.name} · ${strings.alwaysOn}'
+                    : skill.name,
+              ),
+            ),
+        ],
+        builder: (context, controller, child) {
+          return _buildToggleChip(
+            context,
+            icon: Icons.build_outlined,
+            label: label,
+            active: selectedCount > 0 || controller.isOpen,
+            onTap: () {
+              if (controller.isOpen) {
+                controller.close();
+              } else {
+                controller.open();
+              }
+            },
+          );
+        },
+      );
+    }
+
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    return ShadPopover(
+      controller: _skillPopoverController,
+      effects: disableAnimations ? const [] : null,
+      reverseDuration: disableAnimations ? Duration.zero : null,
+      popover:
+          (context) => SizedBox(
+            width: 300,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildPopoverSectionLabel(context, strings.messageSkills),
+                const SizedBox(height: 4),
+                for (final skill in widget.availableSkills)
+                  _buildDesktopPopoverItem(
+                    icon:
+                        widget.isSkillAlways?.call(skill.id) ?? false
+                            ? LucideIcons.pin
+                            : LucideIcons.wrench,
+                    label:
+                        (widget.isSkillAlways?.call(skill.id) ?? false)
+                            ? '${skill.name} · ${strings.alwaysOn}'
+                            : skill.name,
+                    selected: widget.selectedSkillIds.contains(skill.id),
+                    onPressed: () {
+                      if (!(widget.isSkillAlways?.call(skill.id) ?? false)) {
+                        widget.onSkillToggled?.call(skill.id);
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+      child: _buildToggleChip(
+        context,
+        icon: LucideIcons.wrench,
+        label: label,
+        active: selectedCount > 0 || _skillPopoverController.isOpen,
+        onTap: () => _togglePopover(_skillPopoverController),
+      ),
     );
   }
 

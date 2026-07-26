@@ -42,23 +42,28 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "Eliminar el chat borrará todo el historial de conversación. ¿Estás seguro de que quieres eliminar el chat con ${botName}?";
 
-  static String m9(language) => "Idioma cambiado a ${language}";
+  static String m9(name) =>
+      "¿Desinstalar ${name}? También se eliminarán las vinculaciones con bots.";
 
-  static String m10(minutes) => "hace ${minutes} minutos";
+  static String m10(language) => "Idioma cambiado a ${language}";
 
-  static String m11(count) => "Se han recuperado ${count} modelos con éxito";
+  static String m11(minutes) => "hace ${minutes} minutos";
 
-  static String m12(count) => "${count} ejecuciones de comandos";
+  static String m12(count) => "Se han recuperado ${count} modelos con éxito";
 
-  static String m13(duration) => "Duración ${duration}";
+  static String m13(count) => "${count} ejecuciones de comandos";
 
-  static String m14(count) => "${count} cambios de archivos";
+  static String m14(duration) => "Duración ${duration}";
 
-  static String m15(count) => "${count} llamadas a herramientas";
+  static String m15(count) => "${count} cambios de archivos";
 
-  static String m16(error) => "Error al obtener respuesta: ${error}";
+  static String m16(count) => "${count} llamadas a herramientas";
 
-  static String m17(duration) => "Pensamiento completado · ${duration}";
+  static String m17(error) => "Error al obtener respuesta: ${error}";
+
+  static String m18(error) => "No se pudo importar la habilidad: ${error}";
+
+  static String m19(duration) => "Pensamiento completado · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -72,6 +77,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "Ajustar tamaño de fuente",
     ),
+    "alwaysActivation": MessageLookupByLibrary.simpleMessage("Siempre activa"),
+    "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Inserta esta habilidad en cada solicitud de texto.",
+    ),
+    "alwaysOn": MessageLookupByLibrary.simpleMessage("Siempre activa"),
     "apiAddress": MessageLookupByLibrary.simpleMessage("Dirección API:"),
     "apiKey": MessageLookupByLibrary.simpleMessage("Clave API"),
     "apiType": MessageLookupByLibrary.simpleMessage("Tipo de API:"),
@@ -88,6 +98,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "botGreeting": m2,
     "botIsTyping": m3,
     "botName": MessageLookupByLibrary.simpleMessage("Nombre del bot"),
+    "botSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
+    "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
+      "Elige las instrucciones reutilizables disponibles para este bot.",
+    ),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Cancelar"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("Cambiar avatar"),
@@ -120,6 +134,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
+    "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Información de contacto (opcional)",
     ),
@@ -236,19 +251,33 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ayuda y Comentarios",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Inicio"),
+    "importSkillFolder": MessageLookupByLibrary.simpleMessage(
+      "Importar carpeta de habilidades",
+    ),
+    "importSkillZip": MessageLookupByLibrary.simpleMessage(
+      "Importar ZIP de habilidades",
+    ),
+    "importingSkill": MessageLookupByLibrary.simpleMessage(
+      "Importando habilidad…",
+    ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Tokens de entrada"),
     "justNow": MessageLookupByLibrary.simpleMessage("Ahora mismo"),
-    "languageChanged": m9,
+    "languageChanged": m10,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Ajustes de idioma",
     ),
     "lightMode": MessageLookupByLibrary.simpleMessage("Modo claro"),
+    "manualActivation": MessageLookupByLibrary.simpleMessage("Por mensaje"),
+    "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Selecciona la habilidad en el campo de mensaje cuando la necesites.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
       "Escribe un mensaje...",
     ),
-    "minutesAgo": m10,
+    "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
+    "minutesAgo": m11,
     "model": MessageLookupByLibrary.simpleMessage("Modelo"),
-    "modelsRetrievedSuccess": m11,
+    "modelsRetrievedSuccess": m12,
     "name": MessageLookupByLibrary.simpleMessage("Nombre"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Nombre actualizado"),
     "newChat": MessageLookupByLibrary.simpleMessage("Nuevo chat"),
@@ -259,8 +288,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "No se devolvió contenido",
     ),
+    "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
+      "No se encontraron habilidades coincidentes",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "No se han recuperado modelos",
+    ),
+    "noSkillsInstalled": MessageLookupByLibrary.simpleMessage(
+      "No hay habilidades instaladas",
+    ),
+    "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
+      "Importa una carpeta de Agent Skills o un ZIP que contenga SKILL.md.",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Tokens de salida"),
     "partialResponse": MessageLookupByLibrary.simpleMessage(
@@ -278,13 +316,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidad",
     ),
-    "processCommandCount": m12,
-    "processDuration": m13,
-    "processFileCount": m14,
+    "processCommandCount": m13,
+    "processDuration": m14,
+    "processFileCount": m15,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Información del proceso",
     ),
-    "processToolCount": m15,
+    "processToolCount": m16,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Proporcione sus sugerencias y comentarios",
@@ -308,9 +346,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "Restablecer valores predeterminados",
     ),
-    "responseError": m16,
+    "responseError": m17,
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Guardar cambios"),
+    "searchSkills": MessageLookupByLibrary.simpleMessage("Buscar habilidades"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Seleccionar bot"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage(
       "Seleccionar idioma",
@@ -325,6 +364,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "Mostrar detalles de ejecución en los mensajes de la conversación.",
     ),
+    "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Recursos disponibles",
+    ),
+    "skillCompatibility": MessageLookupByLibrary.simpleMessage(
+      "Compatibilidad",
+    ),
+    "skillDetails": MessageLookupByLibrary.simpleMessage(
+      "Detalles de la habilidad",
+    ),
+    "skillDigest": MessageLookupByLibrary.simpleMessage("Huella del contenido"),
+    "skillFiles": MessageLookupByLibrary.simpleMessage("Archivos"),
+    "skillImportFailed": m18,
+    "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
+      "Habilidad importada",
+    ),
+    "skillLibrary": MessageLookupByLibrary.simpleMessage("Habilidades"),
+    "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
+      "Instala instrucciones reutilizables y vincúlalas a tus bots.",
+    ),
+    "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
+      "Esta versión no ejecuta scripts ni comandos de las habilidades.",
+    ),
+    "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
+      "Archivos de referencia disponibles",
+    ),
+    "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
+      "SKILL.md se carga únicamente como una instrucción controlada; los scripts, comandos y herramientas externas permanecen desactivados.",
+    ),
+    "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
+      "Los scripts están instalados, pero su ejecución está desactivada.",
+    ),
+    "skillSource": MessageLookupByLibrary.simpleMessage("Origen"),
+    "skillUserScope": MessageLookupByLibrary.simpleMessage("Usuario"),
+    "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
+      "Notas de validación",
+    ),
+    "skillVersion": MessageLookupByLibrary.simpleMessage("Versión"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Envía un mensaje en el campo de texto de abajo para comenzar a chatear",
     ),
@@ -357,12 +433,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Pensamiento completado",
     ),
-    "thinkingCompletedWithDuration": m17,
+    "thinkingCompletedWithDuration": m19,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage(
       "Llamadas a herramientas",
     ),
     "typing": MessageLookupByLibrary.simpleMessage("Escribiendo..."),
+    "uninstallSkill": MessageLookupByLibrary.simpleMessage(
+      "Desinstalar habilidad",
+    ),
     "uploadFile": MessageLookupByLibrary.simpleMessage("Subir archivo"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("Subir imagen"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("Acuerdo de usuario"),

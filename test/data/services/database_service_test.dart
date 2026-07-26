@@ -74,6 +74,43 @@ void main() {
     expect(records.single['total_token_count'], 150);
   });
 
+  test('version 7 migration creates Skill storage and audit tables', () async {
+    final database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+    );
+    addTearDown(database.close);
+
+    await DatabaseService.migrateSchema(database, 6, 7);
+
+    final tables = await database.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    );
+    expect(
+      tables.map((table) => table['name']),
+      containsAll(<String>[
+        'skills',
+        'bot_skill_bindings',
+        'skill_activations',
+      ]),
+    );
+    final activationColumns = await database.rawQuery(
+      'PRAGMA table_info(skill_activations)',
+    );
+    expect(
+      activationColumns.map((column) => column['name']),
+      containsAll(<String>[
+        'run_id',
+        'chat_id',
+        'message_id',
+        'skill_id',
+        'skill_name',
+        'content_digest',
+        'trigger_type',
+        'status',
+      ]),
+    );
+  });
+
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
     addTearDown(database.close);

@@ -789,5 +789,49 @@
     "hourlyTokenUsage": "小时用量",
     "backToDailyUsage": "返回每日用量",
     "clickDayForHourlyUsage": "选择一天查看小时用量",
-    "enterDisplayName": "请输入展示名称"
+    "enterDisplayName": "请输入展示名称",
+    "skillLibrary": "技能",
+    "skillLibraryDescription": "安装可复用指令，并将其绑定到智能体。",
+    "searchSkills": "搜索技能",
+    "noMatchingSkills": "未找到匹配的技能",
+    "importSkillFolder": "导入技能文件夹",
+    "importSkillZip": "导入技能 ZIP",
+    "importingSkill": "正在导入技能…",
+    "noSkillsInstalled": "尚未安装技能",
+    "noSkillsInstalledDescription": "导入包含 SKILL.md 的智能体技能文件夹或 ZIP。",
+    "skillImportSucceeded": "技能已导入",
+    "skillImportFailed": "技能导入失败：{error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "技能详情",
+    "uninstallSkill": "卸载技能",
+    "confirmUninstallSkill": "确定卸载技能“{name}”？相关智能体绑定也会被移除。",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "版本",
+    "skillSource": "来源",
+    "skillDigest": "内容摘要",
+    "skillCompatibility": "兼容性",
+    "skillFiles": "文件",
+    "skillValidationWarnings": "校验说明",
+    "skillScriptsDisabled": "技能脚本已安装，但当前版本禁止执行。",
+    "skillReferencesAvailable": "包含参考资料",
+    "skillAssetsAvailable": "包含静态资源",
+    "botSkills": "技能",
+    "botSkillsDescription": "选择这个智能体可以使用的可复用指令。",
+    "manualActivation": "按消息启用",
+    "alwaysActivation": "始终启用",
+    "manualActivationDescription": "需要时从消息输入框选择技能。",
+    "alwaysActivationDescription": "每次文本请求都会注入此技能。",
+    "messageSkills": "技能",
+    "alwaysOn": "始终启用",
+    "skillNotExecutable": "当前版本不会执行技能中的脚本或命令。",
+    "skillSafetyDescription": "SKILL.md 仅作为受控提示词加载；脚本、命令和外部工具保持禁用。",
+    "skillUserScope": "用户"
 }

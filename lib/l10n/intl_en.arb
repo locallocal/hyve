@@ -780,6 +780,7 @@
         }
     },
     "tokenUsage": "Token usage",
+    "conversationTokenShare": "Token share by conversation",
     "inputTokens": "Input tokens",
     "outputTokens": "Output tokens",
     "totalTokens": "Total tokens",

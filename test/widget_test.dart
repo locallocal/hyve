@@ -1501,6 +1501,27 @@ void main() {
       ),
       findsOneWidget,
     );
+    final tokenSummary = find.byKey(
+      const ValueKey<String>('bot-token-usage-summary'),
+    );
+    final tokenShare = find.byKey(
+      const ValueKey<String>('bot-conversation-token-share'),
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-token-usage-two-columns')),
+      findsOneWidget,
+    );
+    expect(tokenSummary, findsOneWidget);
+    expect(tokenShare, findsOneWidget);
+    expect(
+      tester.getTopLeft(tokenSummary).dx,
+      lessThan(tester.getTopLeft(tokenShare).dx),
+    );
+    expect(find.text('会话 Token 占比'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('bot-conversation-token-pie-empty')),
+      findsOneWidget,
+    );
     expect(
       tester.getRect(basicSection).bottom,
       lessThan(tester.getRect(providerSection).top),

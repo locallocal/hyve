@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/utils/theme.dart';
+
+enum TokenUsageBreakdownLayout { cards, inspector }
 
 /// Icon-led token usage display shared by conversation and bot detail views.
 class TokenUsageIndicator extends StatelessWidget {
@@ -9,10 +12,12 @@ class TokenUsageIndicator extends StatelessWidget {
     super.key,
     required this.usage,
     this.showBreakdown = false,
+    this.breakdownLayout = TokenUsageBreakdownLayout.cards,
   });
 
   final ModelTokenUsage usage;
   final bool showBreakdown;
+  final TokenUsageBreakdownLayout breakdownLayout;
 
   @override
   Widget build(BuildContext context) {
@@ -35,31 +40,56 @@ class TokenUsageIndicator extends StatelessWidget {
         container: true,
         label: semanticsLabel,
         child: ExcludeSemantics(
-          child: Wrap(
-            key: const ValueKey<String>('token-usage-breakdown'),
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _TokenMetric(
-                key: const ValueKey<String>('token-usage-total'),
-                icon: Icons.data_usage_rounded,
-                label: localizations.totalTokens,
-                value: numberFormat.format(usage.effectiveTotalTokens),
-              ),
-              _TokenMetric(
-                key: const ValueKey<String>('token-usage-input'),
-                icon: Icons.login_rounded,
-                label: localizations.inputTokens,
-                value: numberFormat.format(usage.inputTokens),
-              ),
-              _TokenMetric(
-                key: const ValueKey<String>('token-usage-output'),
-                icon: Icons.logout_rounded,
-                label: localizations.outputTokens,
-                value: numberFormat.format(usage.outputTokens),
-              ),
-            ],
-          ),
+          child:
+              breakdownLayout == TokenUsageBreakdownLayout.inspector
+                  ? Column(
+                    key: const ValueKey<String>('token-usage-breakdown'),
+                    children: [
+                      _TokenMetricRow(
+                        key: const ValueKey<String>('token-usage-total'),
+                        icon: Icons.data_usage_rounded,
+                        label: localizations.totalTokens,
+                        value: numberFormat.format(usage.effectiveTotalTokens),
+                      ),
+                      _TokenMetricRow(
+                        key: const ValueKey<String>('token-usage-input'),
+                        icon: Icons.login_rounded,
+                        label: localizations.inputTokens,
+                        value: numberFormat.format(usage.inputTokens),
+                      ),
+                      _TokenMetricRow(
+                        key: const ValueKey<String>('token-usage-output'),
+                        icon: Icons.logout_rounded,
+                        label: localizations.outputTokens,
+                        value: numberFormat.format(usage.outputTokens),
+                      ),
+                    ],
+                  )
+                  : Wrap(
+                    key: const ValueKey<String>('token-usage-breakdown'),
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _TokenMetric(
+                        key: const ValueKey<String>('token-usage-total'),
+                        icon: Icons.data_usage_rounded,
+                        label: localizations.totalTokens,
+                        value: numberFormat.format(usage.effectiveTotalTokens),
+                      ),
+                      _TokenMetric(
+                        key: const ValueKey<String>('token-usage-input'),
+                        icon: Icons.login_rounded,
+                        label: localizations.inputTokens,
+                        value: numberFormat.format(usage.inputTokens),
+                      ),
+                      _TokenMetric(
+                        key: const ValueKey<String>('token-usage-output'),
+                        icon: Icons.logout_rounded,
+                        label: localizations.outputTokens,
+                        value: numberFormat.format(usage.outputTokens),
+                      ),
+                    ],
+                  ),
         ),
       );
     }
@@ -98,6 +128,43 @@ class TokenUsageIndicator extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TokenMetricRow extends StatelessWidget {
+  const _TokenMetricRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: SelectableText(
+              value,
+              textAlign: TextAlign.right,
+              style: DesktopThemeTokens.metaStyle(context),
+            ),
+          ),
+        ],
       ),
     );
   }

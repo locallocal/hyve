@@ -131,13 +131,51 @@ class LocalDatabaseService {
       SELECT
         COALESCE(SUM(input_token_count), 0) AS input_token_count,
         COALESCE(SUM(output_token_count), 0) AS output_token_count,
-        COALESCE(SUM(total_token_count), 0) AS total_token_count
+        COALESCE(SUM(
+          CASE
+            WHEN total_token_count > 0 THEN total_token_count
+            ELSE input_token_count + output_token_count
+          END
+        ), 0) AS total_token_count
       FROM token_usage_records
       WHERE bot_id = ?
       ''',
       [botId],
     );
     return rows.single;
+  }
+
+  Future<List<Map<String, Object?>>> loadTokenUsageByChatForBot(
+    String botId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.rawQuery(
+      '''
+      SELECT
+        chat_id,
+        input_token_count,
+        output_token_count,
+        total_token_count
+      FROM (
+        SELECT
+          chat_id,
+          COALESCE(SUM(input_token_count), 0) AS input_token_count,
+          COALESCE(SUM(output_token_count), 0) AS output_token_count,
+          COALESCE(SUM(
+            CASE
+              WHEN total_token_count > 0 THEN total_token_count
+              ELSE input_token_count + output_token_count
+            END
+          ), 0) AS total_token_count
+        FROM token_usage_records
+        WHERE bot_id = ?
+        GROUP BY chat_id
+      ) AS usage_by_chat
+      WHERE total_token_count > 0
+      ORDER BY total_token_count DESC, chat_id ASC
+      ''',
+      [botId],
+    );
   }
 
   Future<List<Map<String, Object?>>> loadTokenUsageRecordsForChat(

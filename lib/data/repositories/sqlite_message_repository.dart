@@ -74,6 +74,21 @@ class SqliteMessageRepository implements MessageRepository {
   }
 
   @override
+  Future<Map<String, ModelTokenUsage>> getTokenUsageByChatForBot(
+    String botId,
+  ) async {
+    final records = await _localDatabase.loadTokenUsageByChatForBot(botId);
+    return Map<String, ModelTokenUsage>.unmodifiable({
+      for (final record in records)
+        record['chat_id']?.toString() ?? '': ModelTokenUsage(
+          inputTokens: _readCount(record['input_token_count']),
+          outputTokens: _readCount(record['output_token_count']),
+          totalTokens: _readCount(record['total_token_count']),
+        ),
+    });
+  }
+
+  @override
   Future<Message> upsertMessage(Message message) async {
     final identified = _ensureIdentity(message);
     await _localDatabase.upsertMessage(

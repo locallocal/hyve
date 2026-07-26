@@ -135,6 +135,7 @@ class AppDependencies {
       BotTokenUsageViewModel(
         botId: botId,
         messageRepository: messageRepository,
+        chatRepository: chatRepository,
       );
 
   ProfileViewModel createProfileViewModel() => ProfileViewModel(

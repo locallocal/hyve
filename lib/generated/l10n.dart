@@ -2356,6 +2356,16 @@ class S {
     return Intl.message('Token usage', name: 'tokenUsage', desc: '', args: []);
   }
 
+  /// `Token share by conversation`
+  String get conversationTokenShare {
+    return Intl.message(
+      'Token share by conversation',
+      name: 'conversationTokenShare',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Input tokens`
   String get inputTokens {
     return Intl.message(

@@ -2,25 +2,36 @@ import 'package:stars/data/repositories/ai_provider_repository_impl.dart';
 import 'package:stars/data/repositories/attachment_repository_impl.dart';
 import 'package:stars/data/repositories/feedback_repository_impl.dart';
 import 'package:stars/data/repositories/legal_document_repository_impl.dart';
+import 'package:stars/data/repositories/file_skill_repository.dart';
+import 'package:stars/data/repositories/skill_picker_repository_impl.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
+import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
+import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:stars/data/services/feedback_service.dart';
 import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/data/services/local_database_service.dart';
+import 'package:stars/data/services/skills/skill_package_storage_service.dart';
+import 'package:stars/data/services/skills/skill_parser.dart';
+import 'package:stars/data/services/skills/skill_picker_service.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
+import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
+import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/repositories/skill_run_repository.dart';
+import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/app/view_models/app_view_model.dart';
@@ -28,6 +39,8 @@ import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
@@ -35,6 +48,7 @@ import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
 import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
+import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
 
 /// Application composition root. Production implementations are assembled in
 /// one place; views only receive repositories through their ViewModels.
@@ -48,6 +62,11 @@ class AppDependencies {
     required this.aiProviderRepository,
     required this.attachmentRepository,
     required this.legalDocumentRepository,
+    required this.skillRepository,
+    required this.skillPickerRepository,
+    required this.botSkillBindingRepository,
+    required this.skillRunRepository,
+    required this.composeChatTurn,
     required this.createChat,
     required this.generationRegistry,
   });
@@ -78,6 +97,24 @@ class AppDependencies {
     const legalDocumentRepository = LegalDocumentRepositoryImpl(
       service: AssetTextService(),
     );
+    final skillRepository = FileSkillRepository(
+      localDatabase: localDatabase,
+      storageService: SkillPackageStorageService(),
+      parser: const SkillParser(),
+    );
+    const skillPickerRepository = SkillPickerRepositoryImpl(
+      service: SkillPickerService(),
+    );
+    final botSkillBindingRepository = SqliteBotSkillBindingRepository(
+      localDatabase: localDatabase,
+    );
+    final skillRunRepository = SqliteSkillRunRepository(
+      localDatabase: localDatabase,
+    );
+    final composeChatTurn = ComposeChatTurn(
+      skillRepository: skillRepository,
+      bindingRepository: botSkillBindingRepository,
+    );
     return AppDependencies(
       botRepository: botRepository,
       chatRepository: chatRepository,
@@ -87,12 +124,18 @@ class AppDependencies {
       aiProviderRepository: aiProviderRepository,
       attachmentRepository: attachmentRepository,
       legalDocumentRepository: legalDocumentRepository,
+      skillRepository: skillRepository,
+      skillPickerRepository: skillPickerRepository,
+      botSkillBindingRepository: botSkillBindingRepository,
+      skillRunRepository: skillRunRepository,
+      composeChatTurn: composeChatTurn,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
         messagePersister: messageRepository.upsertMessage,
         lastMessageUpdater: chatRepository.updateLastMessage,
         providerFactory: aiProviderRepository.create,
         messageIdFactory: messageRepository.createId,
+        skillActivationPersister: skillRunRepository.saveActivations,
       ),
     );
   }
@@ -105,6 +148,11 @@ class AppDependencies {
   final AiProviderRepository aiProviderRepository;
   final AttachmentRepository attachmentRepository;
   final LegalDocumentRepository legalDocumentRepository;
+  final SkillRepository skillRepository;
+  final SkillPickerRepository skillPickerRepository;
+  final BotSkillBindingRepository botSkillBindingRepository;
+  final SkillRunRepository skillRunRepository;
+  final ComposeChatTurn composeChatTurn;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
 
@@ -138,6 +186,24 @@ class AppDependencies {
         chatRepository: chatRepository,
       );
 
+  BotSkillViewModel createBotSkillViewModel(String botId) => BotSkillViewModel(
+    botId: botId,
+    skillRepository: skillRepository,
+    bindingRepository: botSkillBindingRepository,
+  );
+
+  SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
+    skillRepository: skillRepository,
+    pickerRepository: skillPickerRepository,
+  );
+
+  ChatSkillViewModel createChatSkillViewModel(String botId) =>
+      ChatSkillViewModel(
+        botId: botId,
+        skillRepository: skillRepository,
+        bindingRepository: botSkillBindingRepository,
+      );
+
   ProfileViewModel createProfileViewModel() => ProfileViewModel(
     profileRepository: profileRepository,
     attachmentRepository: attachmentRepository,
@@ -160,6 +226,7 @@ class AppDependencies {
     aiProviderRepository: aiProviderRepository,
     attachmentRepository: attachmentRepository,
     generationRegistry: generationRegistry,
+    composeChatTurn: composeChatTurn,
   );
 
   ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>

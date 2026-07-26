@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/generated/l10n.dart';
@@ -11,6 +11,7 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:stars/ui/features/chat/views/attachments.dart';
 import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
@@ -54,6 +55,7 @@ class ChatPageState extends State<ChatPage> {
 
   late final ChatGenerationViewModel _generationViewModel;
   late final ChatViewModel _chatViewModel;
+  late final ChatSkillViewModel _skillViewModel;
   bool _dependenciesInitialized = false;
   AiProvider get _provider => _generationViewModel.capabilityProvider;
   final String _currentUserId = 'me';
@@ -116,6 +118,10 @@ class ChatPageState extends State<ChatPage> {
     _generationViewModel =
         _chatViewModel.generationViewModel
           ..addListener(_handleGenerationChanged);
+    _skillViewModel = AppScope.of(
+      context,
+    ).createChatSkillViewModel(widget.bot.id)..addListener(_handleSkillChanged);
+    unawaited(_skillViewModel.load());
     _handleGenerationChanged();
     _loadMessages();
   }
@@ -126,6 +132,10 @@ class ChatPageState extends State<ChatPage> {
     if (_dependenciesInitialized && oldWidget.bot != widget.bot) {
       _generationViewModel.updateBot(widget.bot);
     }
+  }
+
+  void _handleSkillChanged() {
+    if (mounted) setState(() {});
   }
 
   void _handleGenerationChanged() {
@@ -242,6 +252,8 @@ class ChatPageState extends State<ChatPage> {
     _persistAttachmentDrafts();
     if (_dependenciesInitialized) {
       _generationViewModel.removeListener(_handleGenerationChanged);
+      _skillViewModel.removeListener(_handleSkillChanged);
+      _skillViewModel.dispose();
       _chatViewModel.dispose();
     }
     _scrollController.removeListener(_handleScrollPositionChanged);
@@ -437,62 +449,48 @@ class ChatPageState extends State<ChatPage> {
 
       _scheduleScrollToLatest(force: true, animate: true);
 
-      final chatMessages = <ChatMessage>[];
-      if (widget.bot.systemPrompt.isNotEmpty) {
-        chatMessages.add(
-          ChatMessage(role: 'system', content: widget.bot.systemPrompt),
-        );
-      }
-      var pendingUserMessage = '';
-      if (_messages.length > 1) {
-        var startIndex = _messages.length > 100 ? _messages.length - 100 : 0;
-        for (var i = startIndex; i < _messages.length - 1; i++) {
-          if (_messages[i].senderId == _currentUserId) {
-            startIndex = i;
-            break;
-          }
-        }
-        for (var i = startIndex; i < _messages.length - 1; i++) {
-          final message = _messages[i];
-          if (message.senderId == _currentUserId) {
-            pendingUserMessage =
-                pendingUserMessage.isEmpty
-                    ? message.content
-                    : '$pendingUserMessage\n${message.content}';
-            continue;
-          }
-          if (pendingUserMessage.isNotEmpty) {
-            chatMessages.add(
-              ChatMessage(role: 'user', content: pendingUserMessage),
-            );
-            pendingUserMessage = '';
-          }
-          chatMessages.add(
-            ChatMessage(role: 'assistant', content: message.content),
-          );
-        }
-      }
-      final latestContent =
-          pendingUserMessage.isEmpty
-              ? messageText
-              : '$pendingUserMessage\n$messageText';
-      chatMessages.add(
-        ChatMessage(
-          role: 'user',
-          content: latestContent,
-          images: userMessage.images,
-          files: userMessage.files,
+      final preparedTurn = await _chatViewModel.prepareTextTurn(
+        history: _messages.sublist(0, _messages.length - 1),
+        userMessage: userMessage,
+        currentUserId: _currentUserId,
+        manuallySelectedSkillIds: _skillViewModel.manuallySelectedSkillIds,
+      );
+      final preparedUserMessage = userMessage.copyWith(
+        processInfo: MessageProcessInfo(
+          reasoningStatus: userMessage.processInfo.reasoningStatus,
+          durationMs: userMessage.processInfo.durationMs,
+          toolCalls: userMessage.processInfo.toolCalls,
+          commandExecutions: userMessage.processInfo.commandExecutions,
+          fileEdits: userMessage.processInfo.fileEdits,
+          skillActivations: [
+            for (final skill in preparedTurn.activatedSkills)
+              MessageSkillActivation(
+                name: skill.name,
+                contentDigest: skill.contentDigest,
+                trigger: skill.trigger.name,
+              ),
+          ],
         ),
       );
+      if (mounted) {
+        setState(() {
+          final index = _messages.indexWhere(
+            (message) => message.messageId == preparedUserMessage.messageId,
+          );
+          if (index >= 0) _messages[index] = preparedUserMessage;
+        });
+      }
 
       _chatViewModel.generationRegistry.setNonCancellableRunActive(
         widget.id,
         false,
       );
-      await _generationViewModel.startText(
-        userMessage: userMessage,
-        messages: chatMessages,
+      final started = await _generationViewModel.startText(
+        userMessage: preparedUserMessage,
+        messages: preparedTurn.messages,
+        activatedSkills: preparedTurn.activatedSkills,
       );
+      if (started) _skillViewModel.clearManualSelection();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -585,6 +583,13 @@ class ChatPageState extends State<ChatPage> {
                 },
                 onSend: _sendMessage,
                 onCancelRequest: _cancelRequest,
+                availableSkills: _skillViewModel.availableSkills,
+                selectedSkillIds: {
+                  for (final skill in _skillViewModel.availableSkills)
+                    if (_skillViewModel.isSelected(skill.id)) skill.id,
+                },
+                isSkillAlways: _skillViewModel.isAlways,
+                onSkillToggled: _skillViewModel.toggleManual,
               ),
               const SizedBox(height: 16),
             ],
@@ -691,6 +696,13 @@ class ChatPageState extends State<ChatPage> {
                 },
                 onSend: _sendMessage,
                 onCancelRequest: _cancelRequest,
+                availableSkills: _skillViewModel.availableSkills,
+                selectedSkillIds: {
+                  for (final skill in _skillViewModel.availableSkills)
+                    if (_skillViewModel.isSelected(skill.id)) skill.id,
+                },
+                isSkillAlways: _skillViewModel.isAlways,
+                onSkillToggled: _skillViewModel.toggleManual,
               ),
             ],
           ),

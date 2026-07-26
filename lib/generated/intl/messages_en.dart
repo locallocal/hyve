@@ -33,7 +33,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "Chat with ${botName} deleted";
 
-  static String m18(error) => "Could not clear chat history: ${error}";
+  static String m20(error) => "Could not clear chat history: ${error}";
 
   static String m6(botName) =>
       "Are you sure you want to clear all chat history with \"${botName}\"? This action cannot be undone.";
@@ -44,43 +44,48 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "Deleting this chat will clear all chat history. Are you sure you want to delete the chat with ${botName}?";
 
-  static String m19(error) => "Could not create the chat: ${error}";
+  static String m9(name) =>
+      "Uninstall ${name}? Bot bindings will also be removed.";
 
-  static String m20(error) => "Could not delete the chat: ${error}";
+  static String m21(error) => "Could not create the chat: ${error}";
 
-  static String m21(count) => "${count} files";
+  static String m22(error) => "Could not delete the chat: ${error}";
 
-  static String m22(error) => "Generate image failed: ${error}";
+  static String m23(count) => "${count} files";
 
-  static String m23(error) => "Could not generate music: ${error}";
+  static String m24(error) => "Generate image failed: ${error}";
 
-  static String m24(error) => "Could not generate speech: ${error}";
+  static String m25(error) => "Could not generate music: ${error}";
 
-  static String m25(error) => "Could not generate video: ${error}";
+  static String m26(error) => "Could not generate speech: ${error}";
 
-  static String m26(count) => "${count} items";
+  static String m27(error) => "Could not generate video: ${error}";
 
-  static String m9(language) => "Language set to ${language}";
+  static String m28(count) => "${count} items";
 
-  static String m10(minutes) => "${minutes} minutes ago";
+  static String m10(language) => "Language set to ${language}";
 
-  static String m11(count) => "Successfully retrieved ${count} models";
+  static String m11(minutes) => "${minutes} minutes ago";
 
-  static String m12(count) => "${count} command runs";
+  static String m12(count) => "Successfully retrieved ${count} models";
 
-  static String m13(duration) => "Duration ${duration}";
+  static String m13(count) => "${count} command runs";
 
-  static String m14(count) => "${count} file updates";
+  static String m14(duration) => "Duration ${duration}";
 
-  static String m15(count) => "${count} tool calls";
+  static String m15(count) => "${count} file updates";
 
-  static String m16(error) => "Failed to get response: ${error}";
+  static String m16(count) => "${count} tool calls";
 
-  static String m27(error) => "Could not save image: ${error}";
+  static String m17(error) => "Failed to get response: ${error}";
 
-  static String m28(error) => "Could not share image: ${error}";
+  static String m29(error) => "Could not save image: ${error}";
 
-  static String m17(duration) => "Thinking complete · ${duration}";
+  static String m30(error) => "Could not share image: ${error}";
+
+  static String m18(error) => "Could not import Skill: ${error}";
+
+  static String m19(duration) => "Thinking complete · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -99,6 +104,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Adjust app font size",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("Adjust Font Size"),
+    "alwaysActivation": MessageLookupByLibrary.simpleMessage("Always on"),
+    "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Inject this Skill into every text request.",
+    ),
+    "alwaysOn": MessageLookupByLibrary.simpleMessage("Always on"),
     "apiAddress": MessageLookupByLibrary.simpleMessage("API Address"),
     "apiKey": MessageLookupByLibrary.simpleMessage("API Key"),
     "apiType": MessageLookupByLibrary.simpleMessage("API Type"),
@@ -128,6 +138,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "botSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search filters the list by bot name.",
     ),
+    "botSkills": MessageLookupByLibrary.simpleMessage("Skills"),
+    "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
+      "Choose reusable instructions available to this bot.",
+    ),
     "botUnavailableTitle": MessageLookupByLibrary.simpleMessage(
       "This bot is unavailable",
     ),
@@ -152,7 +166,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Clear attachments",
     ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Clear Chat"),
-    "clearChatFailed": m18,
+    "clearChatFailed": m20,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Clear chat history",
     ),
@@ -174,6 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDelete": MessageLookupByLibrary.simpleMessage("Confirm Delete"),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
+    "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Contact information (optional)",
     ),
@@ -182,7 +197,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
-    "createChatFailed": m19,
+    "createChatFailed": m21,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Custom Provider...",
@@ -196,7 +211,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Delete Bot"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Delete Chat"),
-    "deleteChatFailed": m20,
+    "deleteChatFailed": m22,
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
       "About & Legal",
     ),
@@ -267,7 +282,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Please fetch model list first",
     ),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m21,
+    "fileCount": m23,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("File status"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Music"),
@@ -281,10 +296,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Font size updated",
     ),
-    "generateImageFailed": m22,
-    "generateMusicFailed": m23,
-    "generateSpeechFailed": m24,
-    "generateVideoFailed": m25,
+    "generateImageFailed": m24,
+    "generateMusicFailed": m25,
+    "generateSpeechFailed": m26,
+    "generateVideoFailed": m27,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -309,14 +324,17 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "imageSize": MessageLookupByLibrary.simpleMessage("Image Size"),
     "imageStyle": MessageLookupByLibrary.simpleMessage("Image Style"),
+    "importSkillFolder": MessageLookupByLibrary.simpleMessage("Import folder"),
+    "importSkillZip": MessageLookupByLibrary.simpleMessage("Import ZIP"),
+    "importingSkill": MessageLookupByLibrary.simpleMessage("Importing…"),
     "includesDuration": MessageLookupByLibrary.simpleMessage(
       "Includes duration",
     ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Input tokens"),
-    "itemCount": m26,
+    "itemCount": m28,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Just now"),
-    "languageChanged": m9,
+    "languageChanged": m10,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Language Settings",
     ),
@@ -324,16 +342,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
       "Unable to open this link.",
     ),
+    "manualActivation": MessageLookupByLibrary.simpleMessage("Per message"),
+    "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Select the Skill from the message composer when needed.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Type a message..."),
-    "minutesAgo": m10,
+    "messageSkills": MessageLookupByLibrary.simpleMessage("Skills"),
+    "minutesAgo": m11,
     "model": MessageLookupByLibrary.simpleMessage("Model"),
     "modelConfiguration": MessageLookupByLibrary.simpleMessage(
       "Model Configuration",
     ),
-    "modelsRetrievedSuccess": m11,
+    "modelsRetrievedSuccess": m12,
     "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
     "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
     "name": MessageLookupByLibrary.simpleMessage("Name"),
@@ -358,8 +381,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingChats": MessageLookupByLibrary.simpleMessage(
       "No matching chats found",
     ),
+    "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
+      "No matching skills found",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "No models retrieved",
+    ),
+    "noSkillsInstalled": MessageLookupByLibrary.simpleMessage(
+      "No Skills installed",
+    ),
+    "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
+      "Import an Agent Skills folder or ZIP containing SKILL.md.",
     ),
     "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
       "No token usage recorded",
@@ -387,13 +419,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("Preview text effect"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
-    "processCommandCount": m12,
-    "processDuration": m13,
-    "processFileCount": m14,
+    "processCommandCount": m13,
+    "processDuration": m14,
+    "processFileCount": m15,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Process information",
     ),
-    "processToolCount": m15,
+    "processToolCount": m16,
     "profile": MessageLookupByLibrary.simpleMessage("Profile"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Provide your suggestions and feedback",
@@ -421,18 +453,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stopped · Partial response kept",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
-    "responseError": m16,
+    "responseError": m17,
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m27,
+    "saveImageFailed": m29,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
     "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("Search bots"),
     "searchChats": MessageLookupByLibrary.simpleMessage("Search conversations"),
+    "searchSkills": MessageLookupByLibrary.simpleMessage("Search skills"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Select Language"),
     "selectModel": MessageLookupByLibrary.simpleMessage("Select Model:"),
@@ -441,7 +474,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("Send"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m28,
+    "shareImageFailed": m30,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),
@@ -451,6 +484,39 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),
+    "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Assets available",
+    ),
+    "skillCompatibility": MessageLookupByLibrary.simpleMessage("Compatibility"),
+    "skillDetails": MessageLookupByLibrary.simpleMessage("Skill details"),
+    "skillDigest": MessageLookupByLibrary.simpleMessage("Content digest"),
+    "skillFiles": MessageLookupByLibrary.simpleMessage("Files"),
+    "skillImportFailed": m18,
+    "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
+      "Skill imported",
+    ),
+    "skillLibrary": MessageLookupByLibrary.simpleMessage("Skills"),
+    "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
+      "Install reusable instructions and bind them to your bots.",
+    ),
+    "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
+      "This release does not execute Skill scripts or commands.",
+    ),
+    "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
+      "Reference files available",
+    ),
+    "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
+      "SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.",
+    ),
+    "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
+      "Scripts are installed but execution is disabled.",
+    ),
+    "skillSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "skillUserScope": MessageLookupByLibrary.simpleMessage("User"),
+    "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
+      "Validation notes",
+    ),
+    "skillVersion": MessageLookupByLibrary.simpleMessage("Version"),
     "speechGenerated": MessageLookupByLibrary.simpleMessage("Speech generated"),
     "speechResult": MessageLookupByLibrary.simpleMessage("Speech result"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
@@ -496,7 +562,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Thinking complete",
     ),
-    "thinkingCompletedWithDuration": m17,
+    "thinkingCompletedWithDuration": m19,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Thinking…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Tool calls"),
@@ -515,6 +581,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Unable to load messages",
     ),
     "unavailableBot": MessageLookupByLibrary.simpleMessage("Unavailable bot"),
+    "uninstallSkill": MessageLookupByLibrary.simpleMessage("Uninstall Skill"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("File"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("Image"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("User Agreement"),

@@ -4,6 +4,7 @@ import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 
 class ChatViewModel extends ChangeNotifier {
@@ -15,10 +16,12 @@ class ChatViewModel extends ChangeNotifier {
     required AiProviderRepository aiProviderRepository,
     required AttachmentRepository attachmentRepository,
     required ChatGenerationRegistry generationRegistry,
+    required ComposeChatTurn composeChatTurn,
   }) : _messageRepository = messageRepository,
        _chatRepository = chatRepository,
        _aiProviderRepository = aiProviderRepository,
        _attachmentRepository = attachmentRepository,
+       _composeChatTurn = composeChatTurn,
        generationRegistry = generationRegistry,
        generationViewModel = generationRegistry.viewModelFor(chatId, bot);
 
@@ -28,6 +31,7 @@ class ChatViewModel extends ChangeNotifier {
   final ChatRepository _chatRepository;
   final AiProviderRepository _aiProviderRepository;
   final AttachmentRepository _attachmentRepository;
+  final ComposeChatTurn _composeChatTurn;
   final ChatGenerationRegistry generationRegistry;
   final ChatGenerationViewModel generationViewModel;
 
@@ -62,6 +66,19 @@ class ChatViewModel extends ChangeNotifier {
       _chatRepository.updateLastMessage(chatId, content);
 
   Future<void> clearHistory() => _chatRepository.clearHistory(chatId);
+
+  Future<PreparedChatTurn> prepareTextTurn({
+    required List<Message> history,
+    required Message userMessage,
+    required String currentUserId,
+    Set<String> manuallySelectedSkillIds = const {},
+  }) => _composeChatTurn(
+    bot: bot,
+    history: history,
+    userMessage: userMessage,
+    currentUserId: currentUserId,
+    manuallySelectedSkillIds: manuallySelectedSkillIds,
+  );
 
   Future<String?> captureImage() => _attachmentRepository.captureImage();
 

@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 6;
+  static const int databaseVersion = 7;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -100,6 +100,7 @@ class DatabaseService {
     );
     await db.execute('CREATE INDEX messages_bot_id_index ON messages(bot_id)');
     await _createTokenUsageSchema(db);
+    await _createSkillSchema(db);
 
     // 创建智能体表
     await db.execute('''
@@ -249,6 +250,9 @@ class DatabaseService {
           )
       ''');
     }
+    if (oldVersion < 7) {
+      await _createSkillSchema(db);
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -271,6 +275,73 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS token_usage_records_bot_id_index '
       'ON token_usage_records(bot_id)',
+    );
+  }
+
+  static Future<void> _createSkillSchema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skills (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        version TEXT NOT NULL DEFAULT '',
+        scope TEXT NOT NULL,
+        source_uri TEXT NOT NULL DEFAULT '',
+        root_path TEXT NOT NULL,
+        content_digest TEXT NOT NULL,
+        trust_state TEXT NOT NULL,
+        validation_status TEXT NOT NULL,
+        compatibility TEXT NOT NULL DEFAULT '',
+        requested_tools_json TEXT NOT NULL DEFAULT '[]',
+        diagnostics_json TEXT NOT NULL DEFAULT '[]',
+        has_scripts INTEGER NOT NULL DEFAULT 0,
+        has_references INTEGER NOT NULL DEFAULT 0,
+        has_assets INTEGER NOT NULL DEFAULT 0,
+        installed_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        UNIQUE(scope, name)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS bot_skill_bindings (
+        bot_id TEXT NOT NULL,
+        skill_id TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        activation_mode TEXT NOT NULL DEFAULT 'manual',
+        priority INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (bot_id, skill_id)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS bot_skill_bindings_skill_id_index '
+      'ON bot_skill_bindings(skill_id)',
+    );
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_activations (
+        id TEXT PRIMARY KEY,
+        run_id TEXT NOT NULL,
+        chat_id TEXT NOT NULL,
+        message_id TEXT NOT NULL DEFAULT '',
+        skill_id TEXT NOT NULL,
+        skill_name TEXT NOT NULL,
+        content_digest TEXT NOT NULL,
+        trigger_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        duration_ms INTEGER,
+        error_code TEXT NOT NULL DEFAULT '',
+        started_at INTEGER NOT NULL,
+        completed_at INTEGER
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS skill_activations_run_id_index '
+      'ON skill_activations(run_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS skill_activations_chat_id_index '
+      'ON skill_activations(chat_id)',
     );
   }
 

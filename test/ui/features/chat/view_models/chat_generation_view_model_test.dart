@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/domain/models/ai_models.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/model/model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 
 void main() {
@@ -76,6 +76,49 @@ void main() {
         expect(assistantMessages.single.tokenUsage.effectiveTotalTokens, 150);
       },
     );
+
+    test('persists the exact activated Skill identity for the run', () async {
+      final factory = _FakeProviderFactory(cancellable: true);
+      final activations = <SkillActivationRecord>[];
+      final controller = ChatGenerationViewModel(
+        chatId: 'chat-1',
+        bot: _bot,
+        providerFactory: factory.create,
+        messageIdFactory: (prefix) => '$prefix-fixed',
+        messagePersister: (message) async => message,
+        lastMessageUpdater: (_, _) async {},
+        skillActivationPersister: (records) async {
+          activations.addAll(records);
+        },
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.startText(
+          userMessage: _userMessage(),
+          messages: <ChatMessage>[ChatMessage(role: 'user', content: 'Hello')],
+          activatedSkills: const [
+            ActivatedSkill(
+              id: 'user:release-notes',
+              name: 'release-notes',
+              contentDigest: 'abc123',
+              trigger: SkillActivationTrigger.manual,
+            ),
+          ],
+        ),
+        isTrue,
+      );
+
+      expect(activations, hasLength(1));
+      expect(activations.single.runId, 'run-fixed');
+      expect(activations.single.messageId, 'run-fixed:user');
+      expect(activations.single.chatId, 'chat-1');
+      expect(activations.single.skillId, 'user:release-notes');
+      expect(activations.single.skillName, 'release-notes');
+      expect(activations.single.contentDigest, 'abc123');
+      expect(activations.single.trigger, SkillActivationTrigger.manual);
+      expect(activations.single.status, SkillActivationStatus.activated);
+    });
 
     test('cancellation persists partial content as cancelled', () async {
       final harness = _ControllerHarness(cancellable: true);

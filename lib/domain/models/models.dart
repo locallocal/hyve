@@ -4,3 +4,4 @@
 // layered package paths. Domain consumers should import this file instead of
 // depending on persistence-oriented locations.
 export '../../model/model.dart';
+export 'skill.dart';

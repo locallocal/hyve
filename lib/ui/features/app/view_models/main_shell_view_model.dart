@@ -52,7 +52,7 @@ class MainShellViewModel extends ChangeNotifier {
 
   void selectProfileSection(int section) {
     _selectedProfileSection = section;
-    _currentIndex = 2;
+    _currentIndex = 3;
     notifyListeners();
   }
 

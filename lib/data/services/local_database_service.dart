@@ -36,7 +36,113 @@ class LocalDatabaseService {
 
   Future<void> deleteBot(String id) async {
     final database = await _databaseProvider();
-    await database.delete('bots', where: 'id = ?', whereArgs: [id]);
+    await database.transaction((transaction) async {
+      await transaction.delete(
+        'bot_skill_bindings',
+        where: 'bot_id = ?',
+        whereArgs: [id],
+      );
+      await transaction.delete('bots', where: 'id = ?', whereArgs: [id]);
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadSkills() async {
+    final database = await _databaseProvider();
+    return database.query('skills', orderBy: 'name ASC');
+  }
+
+  Future<List<Map<String, Object?>>> loadSkill(String id) async {
+    final database = await _databaseProvider();
+    return database.query('skills', where: 'id = ?', whereArgs: [id], limit: 1);
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillByScopeAndName(
+    String scope,
+    String name,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skills',
+      where: 'scope = ? AND name = ?',
+      whereArgs: [scope, name],
+      limit: 1,
+    );
+  }
+
+  Future<void> upsertSkill(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'skills',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteSkill(String id) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      await transaction.delete(
+        'bot_skill_bindings',
+        where: 'skill_id = ?',
+        whereArgs: [id],
+      );
+      await transaction.delete('skills', where: 'id = ?', whereArgs: [id]);
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadBotSkillBindings(String botId) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'bot_skill_bindings',
+      where: 'bot_id = ?',
+      whereArgs: [botId],
+      orderBy: 'priority DESC, skill_id ASC',
+    );
+  }
+
+  Future<void> upsertBotSkillBinding(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'bot_skill_bindings',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteBotSkillBinding(String botId, String skillId) async {
+    final database = await _databaseProvider();
+    await database.delete(
+      'bot_skill_bindings',
+      where: 'bot_id = ? AND skill_id = ?',
+      whereArgs: [botId, skillId],
+    );
+  }
+
+  Future<void> upsertSkillActivations(
+    Iterable<Map<String, Object?>> records,
+  ) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      for (final values in records) {
+        await transaction.insert(
+          'skill_activations',
+          values,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillActivationsForRun(
+    String runId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skill_activations',
+      where: 'run_id = ?',
+      whereArgs: [runId],
+      orderBy: 'started_at ASC, id ASC',
+    );
   }
 
   Future<List<Map<String, Object?>>> loadChats() async {

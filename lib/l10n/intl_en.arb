@@ -789,5 +789,49 @@
     "hourlyTokenUsage": "Hourly usage",
     "backToDailyUsage": "Back to daily usage",
     "clickDayForHourlyUsage": "Select a day to view hourly usage",
-    "enterDisplayName": "Enter a display name"
+    "enterDisplayName": "Enter a display name",
+    "skillLibrary": "Skills",
+    "skillLibraryDescription": "Install reusable instructions and bind them to your bots.",
+    "searchSkills": "Search skills",
+    "noMatchingSkills": "No matching skills found",
+    "importSkillFolder": "Import folder",
+    "importSkillZip": "Import ZIP",
+    "importingSkill": "Importing…",
+    "noSkillsInstalled": "No Skills installed",
+    "noSkillsInstalledDescription": "Import an Agent Skills folder or ZIP containing SKILL.md.",
+    "skillImportSucceeded": "Skill imported",
+    "skillImportFailed": "Could not import Skill: {error}",
+    "@skillImportFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "skillDetails": "Skill details",
+    "uninstallSkill": "Uninstall Skill",
+    "confirmUninstallSkill": "Uninstall {name}? Bot bindings will also be removed.",
+    "@confirmUninstallSkill": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillVersion": "Version",
+    "skillSource": "Source",
+    "skillDigest": "Content digest",
+    "skillCompatibility": "Compatibility",
+    "skillFiles": "Files",
+    "skillValidationWarnings": "Validation notes",
+    "skillScriptsDisabled": "Scripts are installed but execution is disabled.",
+    "skillReferencesAvailable": "Reference files available",
+    "skillAssetsAvailable": "Assets available",
+    "botSkills": "Skills",
+    "botSkillsDescription": "Choose reusable instructions available to this bot.",
+    "manualActivation": "Per message",
+    "alwaysActivation": "Always on",
+    "manualActivationDescription": "Select the Skill from the message composer when needed.",
+    "alwaysActivationDescription": "Inject this Skill into every text request.",
+    "messageSkills": "Skills",
+    "alwaysOn": "Always on",
+    "skillNotExecutable": "This release does not execute Skill scripts or commands.",
+    "skillSafetyDescription": "SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.",
+    "skillUserScope": "User"
 }

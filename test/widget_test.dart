@@ -1309,11 +1309,15 @@ void main() {
     tester.view.physicalSize = const Size(1440, 900);
     addTearDown(tester.view.reset);
 
-    for (final selectedPage in [1, 2]) {
+    for (final selectedPage in [1, 2, 3]) {
       await tester.pumpWidget(_desktopHarness(currentIndex: selectedPage));
       await tester.pumpAndSettle();
 
-      final label = selectedPage == 1 ? '智能体' : '我的';
+      final label = switch (selectedPage) {
+        1 => '智能体',
+        2 => '技能',
+        _ => '我的',
+      };
       final selectedButtonFinder =
           find
               .ancestor(of: find.text(label), matching: find.byType(ShadButton))
@@ -1373,6 +1377,8 @@ void main() {
         expect(selectedButton.padding, newChatButton.padding);
         expect(selectedButton.gap, newChatButton.gap);
         expect(agentIcon.size, newChatIcon.size);
+      } else if (selectedPage == 2) {
+        expect((selectedButton.leading! as Icon).icon, LucideIcons.wrench);
       }
     }
   });
@@ -1463,14 +1469,18 @@ void main() {
     final modelSection = find.byKey(
       const ValueKey<String>('desktop-bot-model-section'),
     );
+    final skillSection = find.byKey(
+      const ValueKey<String>('desktop-bot-skills-section'),
+    );
     final tokenUsageSection = find.byKey(
       const ValueKey<String>('desktop-bot-token-usage-section'),
     );
-    expect(find.byType(ShadCard), findsNWidgets(4));
+    expect(find.byType(ShadCard), findsNWidgets(5));
     for (final section in [
       basicSection,
       providerSection,
       modelSection,
+      skillSection,
       tokenUsageSection,
     ]) {
       expect(section, findsOneWidget);
@@ -1484,6 +1494,7 @@ void main() {
       (basicSection, '基本信息'),
       (providerSection, '提供商信息'),
       (modelSection, '模型配置'),
+      (skillSection, '技能'),
       (tokenUsageSection, 'Token 用量'),
     ]) {
       final titleText = tester.widget<Text>(
@@ -1529,6 +1540,14 @@ void main() {
     expect(
       tester.getRect(providerSection).bottom,
       lessThan(tester.getRect(modelSection).top),
+    );
+    expect(
+      tester.getRect(modelSection).bottom,
+      lessThan(tester.getRect(skillSection).top),
+    );
+    expect(
+      tester.getRect(skillSection).bottom,
+      lessThan(tester.getRect(tokenUsageSection).top),
     );
     expect(
       tester
@@ -2215,6 +2234,7 @@ Widget _desktopHarness({
             pages: const [
               Center(child: Text('chat list')),
               Center(child: Text('bot list')),
+              Center(child: Text('skills')),
               Center(child: Text('profile')),
             ],
             selectedChatId: selectedChatId,

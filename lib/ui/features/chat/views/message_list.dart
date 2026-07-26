@@ -1122,6 +1122,17 @@ class ProcessInfoSection extends StatelessWidget {
       );
     }
 
+    if (processInfo.skillActivations.isNotEmpty) {
+      summaryChips.add(
+        _ProcessChip(
+          icon: LucideIcons.wrench,
+          label:
+              '${strings.messageSkills} '
+              '${processInfo.skillActivations.length}',
+        ),
+      );
+    }
+
     return _StatusCardSection(
       isDesktop: isDesktop,
       icon:
@@ -1142,7 +1153,8 @@ class ProcessInfoSection extends StatelessWidget {
           summaryChips.isEmpty &&
                   processInfo.toolCalls.isEmpty &&
                   processInfo.commandExecutions.isEmpty &&
-                  processInfo.fileEdits.isEmpty
+                  processInfo.fileEdits.isEmpty &&
+                  processInfo.skillActivations.isEmpty
               ? null
               : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1203,6 +1215,27 @@ class ProcessInfoSection extends StatelessWidget {
                       statusBuilder: (item) => item.status,
                     ),
                   ],
+                  if (processInfo.skillActivations.isNotEmpty) ...[
+                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                    _ProcessListCard<MessageSkillActivation>(
+                      title: strings.messageSkills,
+                      icon: LucideIcons.wrench,
+                      items: processInfo.skillActivations,
+                      titleBuilder: (item) => item.name,
+                      subtitleBuilder:
+                          (item) => _joinMeta([
+                            item.trigger == 'always'
+                                ? strings.alwaysOn
+                                : strings.manualActivation,
+                            if (item.contentDigest.isNotEmpty)
+                              item.contentDigest.substring(
+                                0,
+                                item.contentDigest.length.clamp(0, 12),
+                              ),
+                          ]),
+                      statusBuilder: (item) => item.status,
+                    ),
+                  ],
                 ],
               ),
     );
@@ -1225,6 +1258,11 @@ class ProcessInfoSection extends StatelessWidget {
     if (processInfo.fileEdits.isNotEmpty) {
       parts.add(
         strings.processFileCount(processInfo.fileEdits.length.toString()),
+      );
+    }
+    if (processInfo.skillActivations.isNotEmpty) {
+      parts.add(
+        '${strings.messageSkills} ${processInfo.skillActivations.length}',
       );
     }
     return parts.isEmpty ? strings.structuredProcessInfo : parts.join(' · ');

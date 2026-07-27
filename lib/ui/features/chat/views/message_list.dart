@@ -47,6 +47,46 @@ class MessageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayedProcessInfo = <MessageProcessInfo>[
+      for (final message in messages) message.processInfo,
+    ];
+    var streamingSkillActivations = const <MessageSkillActivation>[];
+
+    if (isDesktop) {
+      Message? pendingUserMessage;
+      var pendingSkillActivations = const <MessageSkillActivation>[];
+
+      for (var index = 0; index < messages.length; index++) {
+        final message = messages[index];
+        final isCurrentUser = message.senderId == currentUserId;
+
+        if (isCurrentUser) {
+          pendingUserMessage = message;
+          pendingSkillActivations = message.processInfo.skillActivations;
+          displayedProcessInfo[index] = _replaceSkillActivations(
+            message.processInfo,
+            const [],
+          );
+          continue;
+        }
+
+        if (pendingUserMessage != null &&
+            _messagesBelongToSameTurn(pendingUserMessage, message)) {
+          displayedProcessInfo[index] = _replaceSkillActivations(
+            message.processInfo,
+            _mergeSkillActivations(
+              message.processInfo.skillActivations,
+              pendingSkillActivations,
+            ),
+          );
+          pendingUserMessage = null;
+          pendingSkillActivations = const [];
+        }
+      }
+
+      streamingSkillActivations = pendingSkillActivations;
+    }
+
     return Expanded(
       child: ListView.builder(
         controller: scrollController,
@@ -69,7 +109,16 @@ class MessageList extends StatelessWidget {
                   isStreaming: true,
                   reasoning:
                       deepThinking == true ? reasoningResponse ?? '' : '',
-                  processInfo: streamingProcessInfo,
+                  processInfo:
+                      isDesktop
+                          ? _replaceSkillActivations(
+                            streamingProcessInfo,
+                            _mergeSkillActivations(
+                              streamingProcessInfo.skillActivations,
+                              streamingSkillActivations,
+                            ),
+                          )
+                          : streamingProcessInfo,
                   tokenUsage: streamingTokenUsage,
                   showExecutionStatus: showExecutionStatus,
                   content: streamingResponse,
@@ -84,7 +133,7 @@ class MessageList extends StatelessWidget {
             isCurrentUser: isMe,
             isDesktop: isDesktop,
             reasoning: message.reasoning,
-            processInfo: message.processInfo,
+            processInfo: displayedProcessInfo[index],
             tokenUsage: message.tokenUsage,
             showExecutionStatus: showExecutionStatus,
             content: message.content,
@@ -166,6 +215,53 @@ class MessageList extends StatelessWidget {
       ),
     );
   }
+}
+
+MessageProcessInfo _replaceSkillActivations(
+  MessageProcessInfo processInfo,
+  List<MessageSkillActivation> skillActivations,
+) {
+  if (identical(processInfo.skillActivations, skillActivations)) {
+    return processInfo;
+  }
+  return MessageProcessInfo(
+    reasoningStatus: processInfo.reasoningStatus,
+    durationMs: processInfo.durationMs,
+    toolCalls: processInfo.toolCalls,
+    commandExecutions: processInfo.commandExecutions,
+    fileEdits: processInfo.fileEdits,
+    skillActivations: skillActivations,
+  );
+}
+
+List<MessageSkillActivation> _mergeSkillActivations(
+  List<MessageSkillActivation> responseActivations,
+  List<MessageSkillActivation> userActivations,
+) {
+  if (userActivations.isEmpty) return responseActivations;
+  if (responseActivations.isEmpty) return userActivations;
+
+  final merged = <MessageSkillActivation>[...responseActivations];
+  for (final activation in userActivations) {
+    final alreadyIncluded = merged.any(
+      (item) =>
+          item.name == activation.name &&
+          item.contentDigest == activation.contentDigest &&
+          item.trigger == activation.trigger,
+    );
+    if (!alreadyIncluded) merged.add(activation);
+  }
+  return List<MessageSkillActivation>.unmodifiable(merged);
+}
+
+bool _messagesBelongToSameTurn(Message userMessage, Message responseMessage) {
+  if (userMessage.turnId.isNotEmpty && responseMessage.turnId.isNotEmpty) {
+    return userMessage.turnId == responseMessage.turnId;
+  }
+  if (userMessage.runId.isNotEmpty && responseMessage.runId.isNotEmpty) {
+    return userMessage.runId == responseMessage.runId;
+  }
+  return true;
 }
 
 class _DesktopMessageActions extends StatefulWidget {
@@ -358,6 +454,7 @@ class _MessageBubble extends StatelessWidget {
               processInfo: processInfo,
               tokenUsage: tokenUsage,
               isDesktop: isDesktop,
+              isStreaming: isStreaming,
               hasReasoningContent: reasoning.isNotEmpty,
             ),
           ),
@@ -494,6 +591,7 @@ class _MessageBubble extends StatelessWidget {
               processInfo: processInfo,
               tokenUsage: tokenUsage,
               isDesktop: isDesktop,
+              isStreaming: isStreaming,
               hasReasoningContent: reasoning.isNotEmpty,
             ),
           ),
@@ -771,56 +869,12 @@ class _StatusCardSection extends StatelessWidget {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(isDesktop ? 6 : 10),
-              ),
-              child: Icon(
-                icon,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize:
-                          (Theme.of(context).textTheme.bodyLarge?.fontSize ??
-                              14) -
-                          1,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  subtitleContent ??
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: StarsDesktopTheme.mutedText(context),
-                          fontSize:
-                              (Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.fontSize ??
-                                  12) -
-                              1,
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          ],
+        _StatusCardHeader(
+          isDesktop: isDesktop,
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          subtitleContent: subtitleContent,
         ),
         if (child != null) ...[const SizedBox(height: 12), child!],
       ],
@@ -846,6 +900,74 @@ class _StatusCardSection extends StatelessWidget {
         border: Border.all(color: StarsDesktopTheme.borderColor(context)),
       ),
       child: content,
+    );
+  }
+}
+
+class _StatusCardHeader extends StatelessWidget {
+  final bool isDesktop;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget? subtitleContent;
+
+  const _StatusCardHeader({
+    required this.isDesktop,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.subtitleContent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(isDesktop ? 6 : 10),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize:
+                      (Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14) -
+                      1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              subtitleContent ??
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: StarsDesktopTheme.mutedText(context),
+                      fontSize:
+                          (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                              12) -
+                          1,
+                    ),
+                  ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1033,10 +1155,11 @@ class ReasoningSection extends StatefulWidget {
   State<ReasoningSection> createState() => _ReasoningSectionState();
 }
 
-class ProcessInfoSection extends StatelessWidget {
+class ProcessInfoSection extends StatefulWidget {
   final MessageProcessInfo processInfo;
   final ModelTokenUsage tokenUsage;
   final bool isDesktop;
+  final bool isStreaming;
   final bool hasReasoningContent;
 
   const ProcessInfoSection({
@@ -1044,8 +1167,49 @@ class ProcessInfoSection extends StatelessWidget {
     required this.processInfo,
     this.tokenUsage = ModelTokenUsage.empty,
     this.isDesktop = false,
+    this.isStreaming = false,
     this.hasReasoningContent = false,
   });
+
+  static const desktopDetailsMaxHeight = 320.0;
+
+  @override
+  State<ProcessInfoSection> createState() => _ProcessInfoSectionState();
+}
+
+class _ProcessInfoSectionState extends State<ProcessInfoSection> {
+  static const _itemValue = 'execution-status';
+
+  late final ShadAccordionController<String> _desktopController;
+  late final ScrollController _detailsScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _desktopController = ShadAccordionController<String>(
+      widget.isDesktop && widget.isStreaming ? _itemValue : null,
+    );
+    _detailsScrollController = ScrollController();
+  }
+
+  @override
+  void didUpdateWidget(covariant ProcessInfoSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.isDesktop || oldWidget.isStreaming == widget.isStreaming) {
+      return;
+    }
+    final isOpen = _desktopController.value.contains(_itemValue);
+    if (widget.isStreaming != isOpen) {
+      _desktopController.toggle(_itemValue);
+    }
+  }
+
+  @override
+  void dispose() {
+    _desktopController.dispose();
+    _detailsScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1053,216 +1217,294 @@ class ProcessInfoSection extends StatelessWidget {
     final headerMetrics = <Widget>[];
     final summaryChips = <Widget>[];
 
-    if (!hasReasoningContent && processInfo.reasoningStatus.isNotEmpty) {
+    if (!widget.hasReasoningContent &&
+        widget.processInfo.reasoningStatus.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
           icon: LucideIcons.brain,
-          label: _reasoningStatusLabel(strings, processInfo.reasoningStatus),
-        ),
-      );
-    }
-
-    if (processInfo.durationMs != null) {
-      headerMetrics.add(
-        _ProcessHeaderMetric(
-          icon: LucideIcons.clock3,
-          label: strings.processDuration(
-            _formatDuration(processInfo.durationMs!),
+          label: _reasoningStatusLabel(
+            strings,
+            widget.processInfo.reasoningStatus,
           ),
         ),
       );
     }
 
-    if (tokenUsage.inputTokens > 0 || tokenUsage.outputTokens > 0) {
+    if (widget.processInfo.durationMs != null) {
+      headerMetrics.add(
+        _ProcessHeaderMetric(
+          icon: LucideIcons.clock3,
+          label: strings.processDuration(
+            _formatDuration(widget.processInfo.durationMs!),
+          ),
+        ),
+      );
+    }
+
+    if (widget.tokenUsage.inputTokens > 0 ||
+        widget.tokenUsage.outputTokens > 0) {
       headerMetrics
         ..add(
           _ProcessHeaderMetric(
             icon: Icons.login_rounded,
-            label: '${strings.inputTokens} ${tokenUsage.inputTokens}',
+            label: '${strings.inputTokens} ${widget.tokenUsage.inputTokens}',
           ),
         )
         ..add(
           _ProcessHeaderMetric(
             icon: Icons.logout_rounded,
-            label: '${strings.outputTokens} ${tokenUsage.outputTokens}',
+            label: '${strings.outputTokens} ${widget.tokenUsage.outputTokens}',
           ),
         );
     }
 
-    if (processInfo.toolCalls.isNotEmpty) {
+    if (widget.processInfo.toolCalls.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
           icon: LucideIcons.wrench,
           label: strings.processToolCount(
-            processInfo.toolCalls.length.toString(),
+            widget.processInfo.toolCalls.length.toString(),
           ),
         ),
       );
     }
 
-    if (processInfo.commandExecutions.isNotEmpty) {
+    if (widget.processInfo.commandExecutions.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
           icon: LucideIcons.terminal,
           label: strings.processCommandCount(
-            processInfo.commandExecutions.length.toString(),
+            widget.processInfo.commandExecutions.length.toString(),
           ),
         ),
       );
     }
 
-    if (processInfo.fileEdits.isNotEmpty) {
+    if (widget.processInfo.fileEdits.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
           icon: LucideIcons.filePenLine,
           label: strings.processFileCount(
-            processInfo.fileEdits.length.toString(),
+            widget.processInfo.fileEdits.length.toString(),
           ),
         ),
       );
     }
 
-    if (processInfo.skillActivations.isNotEmpty) {
+    if (widget.processInfo.skillActivations.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
           icon: LucideIcons.wrench,
           label:
               '${strings.messageSkills} '
-              '${processInfo.skillActivations.length}',
+              '${widget.processInfo.skillActivations.length}',
         ),
       );
     }
 
-    return _StatusCardSection(
-      isDesktop: isDesktop,
-      icon:
-          isDesktop ? LucideIcons.sparkles : Icons.auto_awesome_motion_rounded,
-      title: strings.executionStatus,
-      subtitle: _buildSubtitle(strings),
-      subtitleContent:
-          headerMetrics.isEmpty
-              ? null
-              : Wrap(
-                key: const ValueKey<String>('execution-header-metrics'),
-                spacing: 16,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: headerMetrics,
-              ),
-      child:
-          summaryChips.isEmpty &&
-                  processInfo.toolCalls.isEmpty &&
-                  processInfo.commandExecutions.isEmpty &&
-                  processInfo.fileEdits.isEmpty &&
-                  processInfo.skillActivations.isEmpty
-              ? null
-              : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (summaryChips.isNotEmpty)
-                    Wrap(spacing: 8, runSpacing: 8, children: summaryChips),
-                  if (processInfo.toolCalls.isNotEmpty) ...[
-                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-                    _ProcessListCard<MessageToolCall>(
-                      title: strings.toolCalls,
-                      icon: LucideIcons.wrench,
-                      items: processInfo.toolCalls,
-                      titleBuilder: (item) => item.name,
-                      subtitleBuilder:
-                          (item) => _joinMeta([
-                            if (item.detail.isNotEmpty) item.detail,
-                            if (item.durationMs != null)
-                              strings.processDuration(
-                                _formatDuration(item.durationMs!),
-                              ),
-                          ]),
-                      statusBuilder: (item) => item.status,
-                    ),
-                  ],
-                  if (processInfo.commandExecutions.isNotEmpty) ...[
-                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-                    _ProcessListCard<MessageCommandExecution>(
-                      title: strings.commandExecutions,
-                      icon: LucideIcons.terminal,
-                      items: processInfo.commandExecutions,
-                      titleBuilder: (item) => item.command,
-                      subtitleBuilder:
-                          (item) => _joinMeta([
-                            if (item.detail.isNotEmpty) item.detail,
-                            if (item.durationMs != null)
-                              strings.processDuration(
-                                _formatDuration(item.durationMs!),
-                              ),
-                          ]),
-                      statusBuilder: (item) => item.status,
-                    ),
-                  ],
-                  if (processInfo.fileEdits.isNotEmpty) ...[
-                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-                    _ProcessListCard<MessageFileEdit>(
-                      title: strings.fileStatus,
-                      icon: LucideIcons.fileText,
-                      items: processInfo.fileEdits,
-                      titleBuilder:
-                          (item) =>
-                              item.path.split(Platform.pathSeparator).last,
-                      subtitleBuilder:
-                          (item) => _joinMeta([
-                            if (item.detail.isNotEmpty) item.detail,
-                            if (item.type.isNotEmpty)
-                              _fileTypeLabel(strings, item.type),
-                          ]),
-                      statusBuilder: (item) => item.status,
-                    ),
-                  ],
-                  if (processInfo.skillActivations.isNotEmpty) ...[
-                    SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
-                    _ProcessListCard<MessageSkillActivation>(
-                      title: strings.messageSkills,
-                      icon: LucideIcons.wrench,
-                      items: processInfo.skillActivations,
-                      titleBuilder: (item) => item.name,
-                      subtitleBuilder:
-                          (item) => _joinMeta([
-                            item.trigger == 'always'
-                                ? strings.alwaysOn
-                                : strings.manualActivation,
-                            if (item.contentDigest.isNotEmpty)
-                              item.contentDigest.substring(
-                                0,
-                                item.contentDigest.length.clamp(0, 12),
-                              ),
-                          ]),
-                      statusBuilder: (item) => item.status,
-                    ),
-                  ],
+    final details =
+        summaryChips.isEmpty &&
+                widget.processInfo.toolCalls.isEmpty &&
+                widget.processInfo.commandExecutions.isEmpty &&
+                widget.processInfo.fileEdits.isEmpty &&
+                widget.processInfo.skillActivations.isEmpty
+            ? null
+            : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (summaryChips.isNotEmpty)
+                  Wrap(spacing: 8, runSpacing: 8, children: summaryChips),
+                if (widget.processInfo.toolCalls.isNotEmpty) ...[
+                  SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                  _ProcessListCard<MessageToolCall>(
+                    title: strings.toolCalls,
+                    icon: LucideIcons.wrench,
+                    items: widget.processInfo.toolCalls,
+                    titleBuilder: (item) => item.name,
+                    subtitleBuilder:
+                        (item) => _joinMeta([
+                          if (item.detail.isNotEmpty) item.detail,
+                          if (item.durationMs != null)
+                            strings.processDuration(
+                              _formatDuration(item.durationMs!),
+                            ),
+                        ]),
+                    statusBuilder: (item) => item.status,
+                  ),
                 ],
+                if (widget.processInfo.commandExecutions.isNotEmpty) ...[
+                  SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                  _ProcessListCard<MessageCommandExecution>(
+                    title: strings.commandExecutions,
+                    icon: LucideIcons.terminal,
+                    items: widget.processInfo.commandExecutions,
+                    titleBuilder: (item) => item.command,
+                    subtitleBuilder:
+                        (item) => _joinMeta([
+                          if (item.detail.isNotEmpty) item.detail,
+                          if (item.durationMs != null)
+                            strings.processDuration(
+                              _formatDuration(item.durationMs!),
+                            ),
+                        ]),
+                    statusBuilder: (item) => item.status,
+                  ),
+                ],
+                if (widget.processInfo.fileEdits.isNotEmpty) ...[
+                  SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                  _ProcessListCard<MessageFileEdit>(
+                    title: strings.fileStatus,
+                    icon: LucideIcons.fileText,
+                    items: widget.processInfo.fileEdits,
+                    titleBuilder:
+                        (item) => item.path.split(Platform.pathSeparator).last,
+                    subtitleBuilder:
+                        (item) => _joinMeta([
+                          if (item.detail.isNotEmpty) item.detail,
+                          if (item.type.isNotEmpty)
+                            _fileTypeLabel(strings, item.type),
+                        ]),
+                    statusBuilder: (item) => item.status,
+                  ),
+                ],
+                if (widget.processInfo.skillActivations.isNotEmpty) ...[
+                  SizedBox(height: summaryChips.isNotEmpty ? 12 : 0),
+                  _ProcessListCard<MessageSkillActivation>(
+                    title: strings.messageSkills,
+                    icon: LucideIcons.wrench,
+                    items: widget.processInfo.skillActivations,
+                    titleBuilder: (item) => item.name,
+                    subtitleBuilder:
+                        (item) => _joinMeta([
+                          item.trigger == 'always'
+                              ? strings.alwaysOn
+                              : strings.manualActivation,
+                          if (item.contentDigest.isNotEmpty)
+                            item.contentDigest.substring(
+                              0,
+                              item.contentDigest.length.clamp(0, 12),
+                            ),
+                        ]),
+                    statusBuilder: (item) => item.status,
+                  ),
+                ],
+              ],
+            );
+
+    final subtitleContent =
+        headerMetrics.isEmpty
+            ? null
+            : Wrap(
+              key: const ValueKey<String>('execution-header-metrics'),
+              spacing: 16,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: headerMetrics,
+            );
+
+    if (!widget.isDesktop || details == null) {
+      return _StatusCardSection(
+        isDesktop: widget.isDesktop,
+        icon:
+            widget.isDesktop
+                ? LucideIcons.sparkles
+                : Icons.auto_awesome_motion_rounded,
+        title: strings.executionStatus,
+        subtitle: _buildSubtitle(strings),
+        subtitleContent: subtitleContent,
+        child: details,
+      );
+    }
+
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    return ShadCard(
+      key: const ValueKey<String>('desktop-execution-status'),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      backgroundColor: StarsDesktopTheme.statusCardBackground(context),
+      radius: BorderRadius.circular(StarsDesktopTheme.cardRadius),
+      border: ShadBorder.all(color: StarsDesktopTheme.borderColor(context)),
+      child: ShadAccordion<String>(
+        controller: _desktopController,
+        maintainState: true,
+        children: [
+          ShadAccordionItem<String>(
+            value: _itemValue,
+            separator: const SizedBox.shrink(),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            duration:
+                disableAnimations
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
+            underlineTitleOnHover: false,
+            iconData: LucideIcons.chevronDown,
+            title: ListenableBuilder(
+              listenable: _desktopController,
+              builder:
+                  (context, child) => Semantics(
+                    expanded: _desktopController.value.contains(_itemValue),
+                    child: child,
+                  ),
+              child: _StatusCardHeader(
+                isDesktop: true,
+                icon: LucideIcons.sparkles,
+                title: strings.executionStatus,
+                subtitle: _buildSubtitle(strings),
+                subtitleContent: subtitleContent,
               ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxHeight: ProcessInfoSection.desktopDetailsMaxHeight,
+                ),
+                child: Scrollbar(
+                  controller: _detailsScrollController,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    key: const ValueKey<String>('execution-details-scroll'),
+                    controller: _detailsScrollController,
+                    primary: false,
+                    padding: const EdgeInsets.only(right: 8),
+                    child: details,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   String _buildSubtitle(S strings) {
     final parts = <String>[];
-    if (processInfo.toolCalls.isNotEmpty) {
+    if (widget.processInfo.toolCalls.isNotEmpty) {
       parts.add(
-        strings.processToolCount(processInfo.toolCalls.length.toString()),
-      );
-    }
-    if (processInfo.commandExecutions.isNotEmpty) {
-      parts.add(
-        strings.processCommandCount(
-          processInfo.commandExecutions.length.toString(),
+        strings.processToolCount(
+          widget.processInfo.toolCalls.length.toString(),
         ),
       );
     }
-    if (processInfo.fileEdits.isNotEmpty) {
+    if (widget.processInfo.commandExecutions.isNotEmpty) {
       parts.add(
-        strings.processFileCount(processInfo.fileEdits.length.toString()),
+        strings.processCommandCount(
+          widget.processInfo.commandExecutions.length.toString(),
+        ),
       );
     }
-    if (processInfo.skillActivations.isNotEmpty) {
+    if (widget.processInfo.fileEdits.isNotEmpty) {
       parts.add(
-        '${strings.messageSkills} ${processInfo.skillActivations.length}',
+        strings.processFileCount(
+          widget.processInfo.fileEdits.length.toString(),
+        ),
+      );
+    }
+    if (widget.processInfo.skillActivations.isNotEmpty) {
+      parts.add(
+        '${strings.messageSkills} '
+        '${widget.processInfo.skillActivations.length}',
       );
     }
     return parts.isEmpty ? strings.structuredProcessInfo : parts.join(' · ');

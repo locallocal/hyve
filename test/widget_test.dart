@@ -862,6 +862,156 @@ void main() {
     expect(find.textContaining('输出 Token'), findsNothing);
   });
 
+  testWidgets(
+    'desktop merges user Skill activations into the response execution status',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1000, 800);
+      addTearDown(tester.view.reset);
+
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: Column(
+                  children: [
+                    MessageList(
+                      messages: [
+                        Message(
+                          messageId: 'message-user',
+                          turnId: 'turn-1',
+                          runId: 'run-1',
+                          chatId: 'chat-1',
+                          botId: 'bot-1',
+                          senderId: 'user',
+                          content: '使用技能处理',
+                          processInfo: const MessageProcessInfo(
+                            skillActivations: [
+                              MessageSkillActivation(
+                                name: 'release-notes',
+                                contentDigest: 'abc123',
+                                trigger: 'manual',
+                              ),
+                            ],
+                          ),
+                          timestamp: DateTime(2026),
+                        ),
+                        Message(
+                          messageId: 'message-assistant',
+                          turnId: 'turn-1',
+                          runId: 'run-1',
+                          chatId: 'chat-1',
+                          botId: 'bot-1',
+                          senderId: 'bot-1',
+                          content: '处理完成',
+                          processInfo: const MessageProcessInfo(
+                            durationMs: 1000,
+                            toolCalls: [
+                              MessageToolCall(
+                                name: 'read_file',
+                                status: 'completed',
+                              ),
+                            ],
+                          ),
+                          timestamp: DateTime(2026),
+                        ),
+                      ],
+                      scrollController: scrollController,
+                      isStreaming: false,
+                      streamingResponse: '',
+                      currentUserId: 'user',
+                      isDesktop: true,
+                    ),
+                  ],
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final executionStatus = find.text('执行状态');
+      expect(executionStatus, findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('desktop-execution-status')),
+        findsOneWidget,
+      );
+      expect(find.text('技能 1'), findsOneWidget);
+      expect(find.text('release-notes').hitTestable(), findsNothing);
+      expect(find.text('read_file').hitTestable(), findsNothing);
+
+      await tester.tap(executionStatus);
+      await tester.pumpAndSettle();
+
+      expect(find.text('release-notes').hitTestable(), findsOneWidget);
+      expect(find.text('read_file').hitTestable(), findsOneWidget);
+
+      await tester.tap(executionStatus);
+      await tester.pumpAndSettle();
+
+      expect(find.text('release-notes').hitTestable(), findsNothing);
+      expect(find.text('read_file').hitTestable(), findsNothing);
+    },
+  );
+
+  testWidgets('desktop execution details scroll after reaching max height', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 800);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      _shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: 720,
+                  child: ProcessInfoSection(
+                    isDesktop: true,
+                    isStreaming: true,
+                    processInfo: MessageProcessInfo(
+                      commandExecutions: [
+                        for (var index = 0; index < 30; index++)
+                          MessageCommandExecution(
+                            command: 'command-$index',
+                            status: 'completed',
+                            detail: 'detail-$index',
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byKey(
+      const ValueKey<String>('execution-details-scroll'),
+    );
+    expect(scrollable, findsOneWidget);
+    expect(
+      tester.getSize(scrollable).height,
+      lessThanOrEqualTo(ProcessInfoSection.desktopDetailsMaxHeight),
+    );
+
+    final scrollView = tester.widget<SingleChildScrollView>(scrollable);
+    expect(scrollView.controller, isNotNull);
+    expect(scrollView.controller!.position.maxScrollExtent, greaterThan(0));
+
+    await tester.drag(scrollable, const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(scrollView.controller!.offset, greaterThan(0));
+  });
+
   testWidgets('message execution status can be hidden by preference', (
     tester,
   ) async {

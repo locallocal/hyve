@@ -18,6 +18,7 @@ void main() {
           'user:selected',
           'selected',
           'Selected instructions.',
+          requestedToolNames: const {'calculate'},
         ),
         'user:ignored': _skill('user:ignored', 'ignored', 'Ignored secret.'),
       };
@@ -64,6 +65,7 @@ void main() {
         SkillActivationTrigger.always,
         SkillActivationTrigger.manual,
       ]);
+      expect(result.requestedToolNames, {'calculate'});
     },
   );
 
@@ -423,6 +425,7 @@ SkillContent _skill(
   String name,
   String instructions, {
   List<String> files = const [],
+  Set<String> requestedToolNames = const {},
 }) {
   final now = DateTime(2026, 7, 26);
   return SkillContent(
@@ -438,6 +441,7 @@ SkillContent _skill(
       trustState: SkillTrustState.userReviewed,
       validationStatus: SkillValidationStatus.valid,
       compatibility: '',
+      requestedToolNames: requestedToolNames,
       installedAt: now,
       updatedAt: now,
     ),

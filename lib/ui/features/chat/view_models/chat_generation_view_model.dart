@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:stars/domain/use_cases/agent_run_coordinator.dart';
 
 enum ChatRunLifecycle {
   idle,
@@ -40,6 +42,7 @@ class ChatGenerationSnapshot {
     this.reasoningResponse = '',
     this.toolCalls = const [],
     this.commandExecutions = const [],
+    this.pendingToolApproval,
     this.tokenUsage = ModelTokenUsage.empty,
     this.supportsCancellation = false,
     this.userPersisted = false,
@@ -55,6 +58,7 @@ class ChatGenerationSnapshot {
   final String reasoningResponse;
   final List<MessageToolCall> toolCalls;
   final List<MessageCommandExecution> commandExecutions;
+  final ToolApprovalRequest? pendingToolApproval;
   final ModelTokenUsage tokenUsage;
   final bool supportsCancellation;
   final bool userPersisted;
@@ -82,6 +86,8 @@ class ChatGenerationSnapshot {
     String? reasoningResponse,
     List<MessageToolCall>? toolCalls,
     List<MessageCommandExecution>? commandExecutions,
+    ToolApprovalRequest? pendingToolApproval,
+    bool clearPendingToolApproval = false,
     ModelTokenUsage? tokenUsage,
     bool? supportsCancellation,
     bool? userPersisted,
@@ -99,6 +105,10 @@ class ChatGenerationSnapshot {
       reasoningResponse: reasoningResponse ?? this.reasoningResponse,
       toolCalls: toolCalls ?? this.toolCalls,
       commandExecutions: commandExecutions ?? this.commandExecutions,
+      pendingToolApproval:
+          clearPendingToolApproval
+              ? null
+              : pendingToolApproval ?? this.pendingToolApproval,
       tokenUsage: tokenUsage ?? this.tokenUsage,
       supportsCancellation: supportsCancellation ?? this.supportsCancellation,
       userPersisted: userPersisted ?? this.userPersisted,
@@ -130,7 +140,8 @@ String _defaultMessageIdFactory(String prefix) {
 /// A fresh AI provider session is created for every run. Its callbacks capture
 /// the run id, so a late token from an older request cannot be reduced into a
 /// newer run even if the user stops and sends again quickly.
-class ChatGenerationViewModel extends ChangeNotifier {
+class ChatGenerationViewModel extends ChangeNotifier
+    implements ToolApprovalHandler {
   ChatGenerationViewModel({
     required this.chatId,
     required Bot bot,
@@ -139,12 +150,18 @@ class ChatGenerationViewModel extends ChangeNotifier {
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
+    ToolRegistry? toolRegistry,
+    ToolPolicy toolPolicy = const DefaultToolPolicy(),
+    AgentRunLimits agentRunLimits = const AgentRunLimits(),
   }) : _bot = bot,
        _providerFactory = providerFactory,
        _messagePersister = messagePersister,
        _lastMessageUpdater = lastMessageUpdater,
        _messageIdFactory = messageIdFactory,
        _skillActivationPersister = skillActivationPersister,
+       _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
+       _toolPolicy = toolPolicy,
+       _agentRunLimits = agentRunLimits,
        _capabilityProvider = providerFactory(bot),
        _snapshot = ChatGenerationSnapshot(chatId: chatId);
 
@@ -154,6 +171,9 @@ class ChatGenerationViewModel extends ChangeNotifier {
   final LastMessageUpdater _lastMessageUpdater;
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
+  final ToolRegistry _toolRegistry;
+  final ToolPolicy _toolPolicy;
+  final AgentRunLimits _agentRunLimits;
 
   Bot _bot;
   Bot? _pendingBot;
@@ -165,6 +185,9 @@ class ChatGenerationViewModel extends ChangeNotifier {
   ModelTokenUsage _preflightTokenUsage = ModelTokenUsage.empty;
   final Set<String> _finalizingRuns = <String>{};
   final Set<String> _preflightCancellationRuns = <String>{};
+  AgentCancellationToken? _agentCancellationToken;
+  Completer<ToolApprovalDecision>? _toolApprovalCompleter;
+  ModelTokenUsage _agentTokenUsage = ModelTokenUsage.empty;
 
   ChatGenerationSnapshot get snapshot => _snapshot;
   AiProvider get capabilityProvider => _capabilityProvider;
@@ -185,6 +208,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
     List<ActivatedSkill> activatedSkills = const [],
     List<SkillActivationAttempt> activationAttempts = const [],
     ModelTokenUsage preflightTokenUsage = ModelTokenUsage.empty,
+    Set<String> requestedToolNames = const {},
   }) async {
     if (hasBlockingRun) return false;
 
@@ -209,6 +233,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
     _runProvider = provider;
     _startedAt = DateTime.now();
     _preflightTokenUsage = preflightTokenUsage;
+    _agentTokenUsage = ModelTokenUsage.empty;
     _terminalCompleter = Completer<ChatRunLifecycle>();
     _snapshot = ChatGenerationSnapshot(
       chatId: chatId,
@@ -262,6 +287,16 @@ class ChatGenerationViewModel extends ChangeNotifier {
     if (_preflightCancellationRuns.remove(runId)) {
       await _finalizeRun(runId, ProviderTerminalType.cancelled);
       return false;
+    }
+
+    final agentTools = _toolRegistry.list(allowedNames: requestedToolNames);
+    if (provider.capabilities.supportsAgentLoop && agentTools.isNotEmpty) {
+      return _startAgentRun(
+        runId: runId,
+        provider: provider,
+        messages: messages,
+        requestedToolNames: requestedToolNames,
+      );
     }
 
     provider.setCallbacks(
@@ -343,16 +378,21 @@ class ChatGenerationViewModel extends ChangeNotifier {
     notifyListeners();
 
     if (!isPreflight) {
-      final result = await provider.cancelRequest();
-      if (!result.accepted) {
-        if (_isActiveRun(runId)) {
-          _snapshot = _snapshot.copyWith(
-            lifecycle: ChatRunLifecycle.active,
-            error: 'Cancellation is not supported by this provider.',
-          );
-          notifyListeners();
+      final agentCancellationToken = _agentCancellationToken;
+      if (agentCancellationToken != null) {
+        agentCancellationToken.cancel();
+      } else {
+        final result = await provider.cancelRequest();
+        if (!result.accepted) {
+          if (_isActiveRun(runId)) {
+            _snapshot = _snapshot.copyWith(
+              lifecycle: ChatRunLifecycle.active,
+              error: 'Cancellation is not supported by this provider.',
+            );
+            notifyListeners();
+          }
+          return _snapshot.lifecycle;
         }
-        return _snapshot.lifecycle;
       }
     }
 
@@ -389,6 +429,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
       reasoningResponse: '',
       toolCalls: const [],
       commandExecutions: const [],
+      clearPendingToolApproval: true,
       tokenUsage: ModelTokenUsage.empty,
       supportsCancellation: false,
       userPersisted: false,
@@ -447,6 +488,204 @@ class ChatGenerationViewModel extends ChangeNotifier {
       ),
     );
     notifyListeners();
+  }
+
+  Future<bool> _startAgentRun({
+    required String runId,
+    required AiProvider provider,
+    required List<ChatMessage> messages,
+    required Set<String> requestedToolNames,
+  }) async {
+    final cancellationToken = AgentCancellationToken();
+    _agentCancellationToken = cancellationToken;
+    _snapshot = _snapshot.copyWith(supportsCancellation: true);
+    notifyListeners();
+    final coordinator = AgentRunCoordinator(
+      toolRegistry: _toolRegistry,
+      toolPolicy: _toolPolicy,
+      approvalHandler: this,
+      limits: _agentRunLimits,
+    );
+    final generation = coordinator.run(
+      provider: provider,
+      request: AgentRunRequest(
+        runId: runId,
+        chatId: chatId,
+        botId: _bot.id,
+        messages: messages,
+        requestedToolNames: requestedToolNames,
+        cancellationToken: cancellationToken,
+      ),
+      onModelEvent: (event) => _onAgentModelEvent(runId, event),
+      onToolInvocation: (invocation) => _onToolInvocation(runId, invocation),
+    );
+    unawaited(
+      generation
+          .then((result) {
+            if (!_isActiveRun(runId) || _finalizingRuns.contains(runId)) {
+              return;
+            }
+            final terminal = switch (result.status) {
+              AgentRunStatus.completed => ProviderTerminalType.completed,
+              AgentRunStatus.cancelled => ProviderTerminalType.cancelled,
+              AgentRunStatus.failed ||
+              AgentRunStatus.timedOut ||
+              AgentRunStatus.limitExceeded => ProviderTerminalType.failed,
+            };
+            unawaited(
+              _finalizeRun(
+                runId,
+                terminal,
+                error: result.error.isEmpty ? null : result.error,
+              ),
+            );
+          })
+          .catchError((Object error, StackTrace stackTrace) {
+            if (_isActiveRun(runId) && !_finalizingRuns.contains(runId)) {
+              unawaited(
+                _finalizeRun(
+                  runId,
+                  cancellationToken.isCancelled
+                      ? ProviderTerminalType.cancelled
+                      : ProviderTerminalType.failed,
+                  error: error.toString(),
+                ),
+              );
+            }
+          }),
+    );
+    if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) {
+      return false;
+    }
+    _snapshot = _snapshot.copyWith(lifecycle: ChatRunLifecycle.active);
+    notifyListeners();
+    return true;
+  }
+
+  void _onAgentModelEvent(String runId, ModelEvent event) {
+    if (!_canReduceProviderEvent(runId)) return;
+    switch (event) {
+      case TextDelta():
+        _onResponse(runId, event.text);
+      case ReasoningDelta():
+        _onReasoning(runId, event.text);
+      case UsageReported():
+        _agentTokenUsage = _agentTokenUsage + event.usage;
+        _onTokenUsage(runId, _agentTokenUsage);
+      case ToolCallStarted():
+      case ToolCallArgumentsDelta():
+      case ToolCallRequested():
+      case ModelTurnCompleted():
+      case ModelTurnFailed():
+        break;
+    }
+  }
+
+  void _onToolInvocation(String runId, ToolInvocationRecord invocation) {
+    if (!_canReduceProviderEvent(runId)) return;
+    final arguments = jsonEncode(_redactAuditValue(invocation.arguments));
+    final item = MessageToolCall(
+      callId: invocation.callId,
+      name: invocation.name,
+      status: invocation.status.name,
+      detail:
+          invocation.errorCode.isNotEmpty
+              ? invocation.errorCode
+              : invocation.resultSummary,
+      source: invocation.source.name,
+      riskLevel: invocation.riskLevel.name,
+      argumentsSummary: _truncateAuditText(arguments),
+      resultSummary: _truncateAuditText(invocation.resultSummary),
+      approvalStatus: invocation.approvalDecision,
+      errorCode: invocation.errorCode,
+      durationMs: invocation.durationMs,
+    );
+    final calls = List<MessageToolCall>.of(_snapshot.toolCalls);
+    final index = calls.indexWhere(
+      (existing) => existing.callId == invocation.callId,
+    );
+    if (index < 0) {
+      calls.add(item);
+    } else {
+      calls[index] = item;
+    }
+    _snapshot = _snapshot.copyWith(toolCalls: calls);
+    notifyListeners();
+  }
+
+  String _truncateAuditText(String value) {
+    const maxCharacters = 512;
+    if (value.runes.length <= maxCharacters) return value;
+    return '${String.fromCharCodes(value.runes.take(maxCharacters - 1))}…';
+  }
+
+  Object? _redactAuditValue(Object? value, {String key = ''}) {
+    final normalizedKey = key.toLowerCase();
+    const sensitiveFragments = <String>[
+      'authorization',
+      'cookie',
+      'password',
+      'secret',
+      'token',
+      'api_key',
+      'apikey',
+    ];
+    if (sensitiveFragments.any(normalizedKey.contains)) {
+      return '[redacted]';
+    }
+    if (value is Map) {
+      return value.map(
+        (itemKey, itemValue) => MapEntry(
+          itemKey.toString(),
+          _redactAuditValue(itemValue, key: itemKey.toString()),
+        ),
+      );
+    }
+    if (value is List) {
+      return value.map(_redactAuditValue).toList(growable: false);
+    }
+    if (value is String && value.runes.length > 128) {
+      return '[text:${value.runes.length} chars]';
+    }
+    return value;
+  }
+
+  @override
+  Future<ToolApprovalDecision> requestApproval(
+    ToolApprovalRequest request,
+    AgentCancellationToken cancellationToken,
+  ) async {
+    if (!_isActiveRun(request.runId) || cancellationToken.isCancelled) {
+      return ToolApprovalDecision.deny;
+    }
+    final previous = _toolApprovalCompleter;
+    if (previous != null && !previous.isCompleted) {
+      previous.complete(ToolApprovalDecision.deny);
+    }
+    final completer = Completer<ToolApprovalDecision>();
+    _toolApprovalCompleter = completer;
+    _snapshot = _snapshot.copyWith(pendingToolApproval: request);
+    notifyListeners();
+    try {
+      return await Future.any<ToolApprovalDecision>([
+        completer.future,
+        cancellationToken.whenCancelled.then((_) => ToolApprovalDecision.deny),
+      ]);
+    } finally {
+      if (identical(_toolApprovalCompleter, completer)) {
+        _toolApprovalCompleter = null;
+        if (_isActiveRun(request.runId)) {
+          _snapshot = _snapshot.copyWith(clearPendingToolApproval: true);
+          notifyListeners();
+        }
+      }
+    }
+  }
+
+  void resolveToolApproval(ToolApprovalDecision decision) {
+    final completer = _toolApprovalCompleter;
+    if (completer == null || completer.isCompleted) return;
+    completer.complete(decision);
   }
 
   void _onProviderTerminal(String runId, ProviderTerminalEvent event) {
@@ -552,6 +791,13 @@ class ChatGenerationViewModel extends ChangeNotifier {
       terminalMessage: terminalMessage,
     );
     _runProvider = null;
+    _agentCancellationToken = null;
+    final approvalCompleter = _toolApprovalCompleter;
+    if (approvalCompleter != null && !approvalCompleter.isCompleted) {
+      approvalCompleter.complete(ToolApprovalDecision.deny);
+    }
+    _toolApprovalCompleter = null;
+    _snapshot = _snapshot.copyWith(clearPendingToolApproval: true);
     _completeTerminal(lifecycle);
     _applyPendingBot();
     _finalizingRuns.remove(runId);
@@ -651,11 +897,17 @@ class ChatGenerationRegistry {
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
+    ToolRegistry? toolRegistry,
+    ToolPolicy toolPolicy = const DefaultToolPolicy(),
+    AgentRunLimits agentRunLimits = const AgentRunLimits(),
   }) : _messagePersister = messagePersister,
        _lastMessageUpdater = lastMessageUpdater,
        _providerFactory = providerFactory,
        _messageIdFactory = messageIdFactory,
-       _skillActivationPersister = skillActivationPersister;
+       _skillActivationPersister = skillActivationPersister,
+       _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
+       _toolPolicy = toolPolicy,
+       _agentRunLimits = agentRunLimits;
 
   final Map<String, ChatGenerationViewModel> _viewModels = {};
   final Set<String> _nonCancellableRuns = {};
@@ -664,6 +916,9 @@ class ChatGenerationRegistry {
   final ProviderFactory _providerFactory;
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
+  final ToolRegistry _toolRegistry;
+  final ToolPolicy _toolPolicy;
+  final AgentRunLimits _agentRunLimits;
 
   ChatGenerationViewModel viewModelFor(String chatId, Bot bot) {
     final viewModel = _viewModels.putIfAbsent(
@@ -676,6 +931,9 @@ class ChatGenerationRegistry {
         providerFactory: _providerFactory,
         messageIdFactory: _messageIdFactory,
         skillActivationPersister: _skillActivationPersister,
+        toolRegistry: _toolRegistry,
+        toolPolicy: _toolPolicy,
+        agentRunLimits: _agentRunLimits,
       ),
     );
     viewModel.updateBot(bot);

@@ -105,6 +105,44 @@ void main() {
       expect(toggledSkillIds, ['user:release-notes']);
     });
 
+    testWidgets('Skill picker aligns selection at right and spaces items', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final firstSkill = _skill();
+      final secondSkill = _skill(
+        id: 'user:weekly-summary',
+        name: 'weekly-summary',
+      );
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        availableSkills: [firstSkill, secondSkill],
+        selectedSkillIds: {firstSkill.id},
+      );
+
+      await tester.tap(find.text('技能 1'));
+      await tester.pumpAndSettle();
+
+      final firstItem = find.ancestor(
+        of: find.text(firstSkill.name),
+        matching: find.byType(ShadButton),
+      );
+      final secondItem = find.ancestor(
+        of: find.text(secondSkill.name),
+        matching: find.byType(ShadButton),
+      );
+      final firstRect = tester.getRect(firstItem);
+      final secondRect = tester.getRect(secondItem);
+      final checkRect = tester.getRect(find.byIcon(LucideIcons.check));
+
+      expect(firstRect.width, 300);
+      expect(firstRect.right - checkRect.right, 8);
+      expect(secondRect.top - firstRect.bottom, 4);
+    });
+
     testWidgets('web search mirrors empty and ready send button styles', (
       tester,
     ) async {
@@ -383,11 +421,14 @@ void _noop() {}
 
 void _ignoreString(String _) {}
 
-SkillDescriptor _skill() {
+SkillDescriptor _skill({
+  String id = 'user:release-notes',
+  String name = 'release-notes',
+}) {
   final timestamp = DateTime(2026, 7, 26);
   return SkillDescriptor(
-    id: 'user:release-notes',
-    name: 'release-notes',
+    id: id,
+    name: name,
     description: 'Prepare concise release notes.',
     version: '1.0.0',
     scope: SkillScope.user,

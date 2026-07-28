@@ -438,23 +438,40 @@ class _MessageInputState extends State<MessageInput> {
               children: [
                 _buildPopoverSectionLabel(context, strings.messageSkills),
                 const SizedBox(height: 4),
-                for (final skill in widget.availableSkills)
+                for (
+                  var index = 0;
+                  index < widget.availableSkills.length;
+                  index++
+                ) ...[
                   _buildDesktopPopoverItem(
+                    width: 300,
                     icon:
-                        widget.isSkillAlways?.call(skill.id) ?? false
+                        widget.isSkillAlways?.call(
+                                  widget.availableSkills[index].id,
+                                ) ??
+                                false
                             ? LucideIcons.pin
                             : LucideIcons.wrench,
                     label:
-                        (widget.isSkillAlways?.call(skill.id) ?? false)
-                            ? '${skill.name} · ${strings.alwaysOn}'
-                            : skill.name,
-                    selected: widget.selectedSkillIds.contains(skill.id),
+                        (widget.isSkillAlways?.call(
+                                  widget.availableSkills[index].id,
+                                ) ??
+                                false)
+                            ? '${widget.availableSkills[index].name} · ${strings.alwaysOn}'
+                            : widget.availableSkills[index].name,
+                    selected: widget.selectedSkillIds.contains(
+                      widget.availableSkills[index].id,
+                    ),
                     onPressed: () {
+                      final skill = widget.availableSkills[index];
                       if (!(widget.isSkillAlways?.call(skill.id) ?? false)) {
                         widget.onSkillToggled?.call(skill.id);
                       }
                     },
                   ),
+                  if (index < widget.availableSkills.length - 1)
+                    const SizedBox(height: 4),
+                ],
               ],
             ),
           ),
@@ -800,6 +817,7 @@ class _MessageInputState extends State<MessageInput> {
   }
 
   Widget _buildDesktopPopoverItem({
+    double width = 220,
     required IconData icon,
     required String label,
     bool selected = false,
@@ -810,18 +828,21 @@ class _MessageInputState extends State<MessageInput> {
         selected
             ? const ExcludeSemantics(child: Icon(LucideIcons.check, size: 16))
             : null;
-    final child = SizedBox(
-      width: 148,
-      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    final child = Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.start,
     );
     final button =
         selected
             ? ShadButton.secondary(
               size: ShadButtonSize.sm,
-              width: 220,
+              width: width,
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               mainAxisAlignment: MainAxisAlignment.start,
+              expands: true,
               leading: leading,
               trailing: trailing,
               onPressed: onPressed,
@@ -829,10 +850,11 @@ class _MessageInputState extends State<MessageInput> {
             )
             : ShadButton.ghost(
               size: ShadButtonSize.sm,
-              width: 220,
+              width: width,
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               mainAxisAlignment: MainAxisAlignment.start,
+              expands: true,
               leading: leading,
               onPressed: onPressed,
               child: child,

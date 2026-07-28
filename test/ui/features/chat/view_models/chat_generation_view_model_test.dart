@@ -391,6 +391,70 @@ void main() {
       expect(registry.hasBlockingRun('media-chat'), isFalse);
       expect(await registry.stopForNavigation('media-chat'), isTrue);
     });
+
+    test(
+      'agent loop exposes approval and persists structured tool state',
+      () async {
+        final tool = _ViewModelTool();
+        final factory = _AgentProviderFactory();
+        final persisted = <Message>[];
+        final controller = ChatGenerationViewModel(
+          chatId: 'chat-1',
+          bot: _bot,
+          providerFactory: factory.create,
+          messagePersister: (message) async {
+            persisted.add(message);
+            return message;
+          },
+          lastMessageUpdater: (_, _) async {},
+          toolRegistry: StaticToolRegistry([tool]),
+        );
+        addTearDown(controller.dispose);
+
+        expect(
+          await controller.startText(
+            userMessage: _userMessage(),
+            messages: [ChatMessage(role: 'user', content: 'Save it')],
+            requestedToolNames: const {'save_note'},
+          ),
+          isTrue,
+        );
+        await _waitFor(() => controller.snapshot.pendingToolApproval != null);
+        expect(
+          controller.snapshot.toolCalls.single.status,
+          ToolInvocationStatus.awaitingApproval.name,
+        );
+
+        controller.resolveToolApproval(ToolApprovalDecision.allowOnce);
+        await _waitFor(
+          () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+        );
+
+        expect(tool.executions, 1);
+        expect(controller.snapshot.pendingToolApproval, isNull);
+        expect(controller.snapshot.streamingResponse, 'Saved.');
+        expect(controller.snapshot.toolCalls.single.callId, 'save-1');
+        expect(
+          controller.snapshot.toolCalls.single.status,
+          ToolInvocationStatus.succeeded.name,
+        );
+        expect(
+          controller.snapshot.toolCalls.single.argumentsSummary,
+          contains('"api_token":"[redacted]"'),
+        );
+        expect(
+          controller.snapshot.toolCalls.single.argumentsSummary,
+          contains('[text:140 chars]'),
+        );
+        final assistant = persisted.last;
+        expect(assistant.content, 'Saved.');
+        expect(assistant.processInfo.toolCalls.single.name, 'save_note');
+        expect(
+          assistant.processInfo.toolCalls.single.approvalStatus,
+          ToolApprovalDecision.allowOnce.name,
+        );
+      },
+    );
   });
 }
 
@@ -500,6 +564,93 @@ class _FakeProvider extends AiProvider {
       ProviderCancellationStatus.requested,
     );
   }
+}
+
+final class _ViewModelTool implements ExecutableTool {
+  @override
+  final ToolDefinition definition = ToolDefinition(
+    name: 'save_note',
+    description: 'Save a note on the device.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {
+        'value': {'type': 'string'},
+        'api_token': {'type': 'string'},
+        'body': {'type': 'string'},
+      },
+      'required': ['value'],
+      'additionalProperties': false,
+    },
+    source: ToolSource.builtIn,
+    riskLevel: ToolRiskLevel.write,
+    capabilities: const {ToolCapability.localWrite},
+  );
+
+  int executions = 0;
+
+  @override
+  Future<ToolResult> execute(
+    ToolCallRequest call,
+    AgentCancellationToken cancellationToken,
+  ) async {
+    executions += 1;
+    return ToolResult(callId: call.callId, name: call.name, content: 'saved');
+  }
+}
+
+final class _AgentProviderFactory {
+  AiProvider create(Bot bot) => _AgentProvider(bot);
+}
+
+final class _AgentProvider extends AiProvider {
+  _AgentProvider(super.bot);
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  AgentModelSession openModelSession(ModelRequest request) {
+    return _ViewModelAgentSession();
+  }
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) {
+    throw StateError('Legacy generation must not be used.');
+  }
+}
+
+final class _ViewModelAgentSession implements AgentModelSession {
+  @override
+  Stream<ModelEvent> start() => Stream.fromIterable([
+    ToolCallRequested(
+      callId: 'save-1',
+      name: 'save_note',
+      arguments: {
+        'value': 'hello',
+        'api_token': 'do-not-persist',
+        'body': List.filled(140, 'x').join(),
+      },
+    ),
+    const ModelTurnCompleted(stopReason: 'tool_calls'),
+  ]);
+
+  @override
+  Stream<ModelEvent> continueWith(List<ToolResult> results) {
+    expect(results.single.isError, isFalse);
+    return Stream.fromIterable([
+      const TextDelta('Saved.'),
+      const ModelTurnCompleted(stopReason: 'stop'),
+    ]);
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  void close() {}
 }
 
 Future<void> _waitFor(bool Function() predicate) async {

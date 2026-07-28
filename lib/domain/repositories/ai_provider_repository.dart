@@ -94,6 +94,12 @@ abstract class AiProvider {
 
   Future<void> generateText(List<ChatMessage> messages);
 
+  AgentModelSession openModelSession(ModelRequest request) {
+    throw UnsupportedError(
+      '${bot.apiType} does not support structured model sessions',
+    );
+  }
+
   SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
     throw UnsupportedError(
       '${bot.apiType} does not support structured Skill tools',

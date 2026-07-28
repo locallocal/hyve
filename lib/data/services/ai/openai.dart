@@ -21,7 +21,30 @@ class OpenAI extends Provider {
   AiProviderCapabilities get capabilities => const AiProviderCapabilities(
     supportsStructuredToolCalls: true,
     supportsToolResults: true,
+    supportsParallelToolCalls: true,
   );
+
+  @override
+  AgentModelSession openModelSession(ModelRequest request) {
+    final client = _skillToolClient ?? http.Client();
+    final url =
+        bot.baseURL.isNotEmpty
+            ? '${bot.baseURL}chat/completions'
+            : defaultApiChatUrl;
+    return OpenAiAgentModelSession(
+      bot: bot,
+      request: request,
+      formattedMessages: processMessagesWithImages(request.messages),
+      uri: Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${bot.apiKey}',
+      },
+      client: client,
+      closeClient: _skillToolClient == null,
+      decodeResponse: decodeProviderResponse,
+    );
+  }
 
   @override
   SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {

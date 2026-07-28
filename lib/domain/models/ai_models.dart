@@ -15,6 +15,100 @@ class ChatMessage {
   final List<String> files;
 }
 
+final class ModelGenerationOptions {
+  const ModelGenerationOptions({
+    this.stream = true,
+    this.allowParallelToolCalls = false,
+    this.webSearch = false,
+    this.deepThinking = false,
+  });
+
+  final bool stream;
+  final bool allowParallelToolCalls;
+  final bool webSearch;
+  final bool deepThinking;
+}
+
+final class ModelRequest {
+  ModelRequest({
+    required List<ChatMessage> messages,
+    List<ToolDefinition> tools = const [],
+    this.options = const ModelGenerationOptions(),
+  }) : messages = List<ChatMessage>.unmodifiable(messages),
+       tools = List<ToolDefinition>.unmodifiable(tools);
+
+  final List<ChatMessage> messages;
+  final List<ToolDefinition> tools;
+  final ModelGenerationOptions options;
+}
+
+sealed class ModelEvent {
+  const ModelEvent();
+}
+
+final class TextDelta extends ModelEvent {
+  const TextDelta(this.text);
+
+  final String text;
+}
+
+final class ReasoningDelta extends ModelEvent {
+  const ReasoningDelta(this.text);
+
+  final String text;
+}
+
+final class ToolCallStarted extends ModelEvent {
+  const ToolCallStarted({required this.callId, required this.name});
+
+  final String callId;
+  final String name;
+}
+
+final class ToolCallArgumentsDelta extends ModelEvent {
+  const ToolCallArgumentsDelta({
+    required this.callId,
+    required this.argumentsDelta,
+  });
+
+  final String callId;
+  final String argumentsDelta;
+}
+
+final class ToolCallRequested extends ModelEvent {
+  ToolCallRequested({
+    required this.callId,
+    required this.name,
+    Map<String, Object?> arguments = const {},
+  }) : arguments = Map<String, Object?>.unmodifiable(arguments);
+
+  final String callId;
+  final String name;
+  final Map<String, Object?> arguments;
+
+  ToolCallRequest toToolCallRequest() =>
+      ToolCallRequest(callId: callId, name: name, arguments: arguments);
+}
+
+final class UsageReported extends ModelEvent {
+  const UsageReported(this.usage);
+
+  final ModelTokenUsage usage;
+}
+
+final class ModelTurnCompleted extends ModelEvent {
+  const ModelTurnCompleted({this.stopReason = ''});
+
+  final String stopReason;
+}
+
+final class ModelTurnFailed extends ModelEvent {
+  const ModelTurnFailed({required this.error, this.code = ''});
+
+  final String error;
+  final String code;
+}
+
 typedef StreamResponseCallback = void Function(String text);
 typedef ToolCallCallback = void Function(MessageToolCall toolCall);
 typedef CommandExecutionCallback =
@@ -48,6 +142,9 @@ final class AiProviderCapabilities {
   final bool supportsParallelToolCalls;
 
   bool get supportsAutomaticSkillActivation =>
+      supportsStructuredToolCalls && supportsToolResults;
+
+  bool get supportsAgentLoop =>
       supportsStructuredToolCalls && supportsToolResults;
 }
 
@@ -104,6 +201,16 @@ abstract interface class SkillToolSession {
   Future<SkillToolTurn> start();
 
   Future<SkillToolTurn> continueWith(List<SkillToolResult> results);
+
+  void close();
+}
+
+abstract interface class AgentModelSession {
+  Stream<ModelEvent> start();
+
+  Stream<ModelEvent> continueWith(List<ToolResult> results);
+
+  Future<void> cancel();
 
   void close();
 }

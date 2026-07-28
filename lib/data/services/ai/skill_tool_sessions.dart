@@ -231,6 +231,291 @@ final class AnthropicSkillToolSession implements SkillToolSession {
   }
 }
 
+final class OpenAiAgentModelSession implements AgentModelSession {
+  OpenAiAgentModelSession({
+    required Bot bot,
+    required ModelRequest request,
+    required List<Map<String, dynamic>> formattedMessages,
+    required Uri uri,
+    required Map<String, String> headers,
+    required http.Client client,
+    required bool closeClient,
+    required ProviderResponseDecoder decodeResponse,
+  }) : _bot = bot,
+       _request = request,
+       _messages =
+           formattedMessages
+               .map((message) => Map<String, Object?>.from(message))
+               .toList(),
+       _uri = uri,
+       _headers = headers,
+       _client = client,
+       _closeClient = closeClient,
+       _decodeResponse = decodeResponse;
+
+  final Bot _bot;
+  final ModelRequest _request;
+  final List<Map<String, Object?>> _messages;
+  final Uri _uri;
+  final Map<String, String> _headers;
+  final http.Client _client;
+  final bool _closeClient;
+  final ProviderResponseDecoder _decodeResponse;
+  bool _started = false;
+  bool _closed = false;
+
+  @override
+  Stream<ModelEvent> start() {
+    if (_started) {
+      throw StateError('Agent model session already started.');
+    }
+    _started = true;
+    return _send();
+  }
+
+  @override
+  Stream<ModelEvent> continueWith(List<ToolResult> results) {
+    if (!_started) {
+      throw StateError('Agent model session has not started.');
+    }
+    for (final result in results) {
+      _messages.add({
+        'role': 'tool',
+        'tool_call_id': result.callId,
+        'content': result.content,
+      });
+    }
+    return _send();
+  }
+
+  Stream<ModelEvent> _send() async* {
+    final response = await _client
+        .post(
+          _uri,
+          headers: _headers,
+          body: jsonEncode({
+            'model': _bot.model,
+            'messages': _messages,
+            if (_request.tools.isNotEmpty) ...{
+              'tools': _openAiTools(_request.tools),
+              'tool_choice': 'auto',
+              'parallel_tool_calls': _request.options.allowParallelToolCalls,
+            },
+            'stream': false,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      yield ModelTurnFailed(
+        error: 'Model request failed: ${response.statusCode} ${response.body}',
+        code: 'provider_http_error',
+      );
+      return;
+    }
+    final root = _objectMap(_decodeResponse(utf8.decode(response.bodyBytes)));
+    final choices = _objectList(root['choices']);
+    if (choices.isEmpty) {
+      yield const ModelTurnFailed(
+        error: 'Model response has no choices.',
+        code: 'invalid_provider_response',
+      );
+      return;
+    }
+    final choice = _objectMap(choices.first);
+    final message = _objectMap(choice['message']);
+    final rawCalls = _objectList(message['tool_calls']);
+    _messages.add({
+      'role': 'assistant',
+      'content': message['content']?.toString() ?? '',
+      if (rawCalls.isNotEmpty) 'tool_calls': rawCalls,
+    });
+
+    final reasoning =
+        message['reasoning_content']?.toString() ??
+        message['reasoning']?.toString() ??
+        '';
+    if (reasoning.isNotEmpty) yield ReasoningDelta(reasoning);
+    final content = message['content']?.toString() ?? '';
+    if (content.isNotEmpty) yield TextDelta(content);
+    for (final rawCall in rawCalls) {
+      final call = _objectMap(rawCall);
+      final function = _objectMap(call['function']);
+      final callId = call['id']?.toString() ?? '';
+      final name = function['name']?.toString() ?? '';
+      final rawArguments = function['arguments'];
+      yield ToolCallStarted(callId: callId, name: name);
+      if (rawArguments is String && rawArguments.isNotEmpty) {
+        yield ToolCallArgumentsDelta(
+          callId: callId,
+          argumentsDelta: rawArguments,
+        );
+      }
+      yield ToolCallRequested(
+        callId: callId,
+        name: name,
+        arguments: _decodeArguments(rawArguments),
+      );
+    }
+    final usage = _openAiUsage(root, _bot.model);
+    if (usage.hasData) yield UsageReported(usage);
+    yield ModelTurnCompleted(
+      stopReason: choice['finish_reason']?.toString() ?? '',
+    );
+  }
+
+  @override
+  Future<void> cancel() async {
+    if (_closed) return;
+    _closed = true;
+    _client.close();
+  }
+
+  @override
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    if (_closeClient) _client.close();
+  }
+}
+
+final class AnthropicAgentModelSession implements AgentModelSession {
+  AnthropicAgentModelSession({
+    required Bot bot,
+    required ModelRequest request,
+    required String system,
+    required List<Map<String, dynamic>> formattedMessages,
+    required Uri uri,
+    required Map<String, String> headers,
+    required int maxTokens,
+    required http.Client client,
+    required bool closeClient,
+    required ProviderResponseDecoder decodeResponse,
+  }) : _bot = bot,
+       _request = request,
+       _system = system,
+       _messages =
+           formattedMessages
+               .map((message) => Map<String, Object?>.from(message))
+               .toList(),
+       _uri = uri,
+       _headers = headers,
+       _maxTokens = maxTokens,
+       _client = client,
+       _closeClient = closeClient,
+       _decodeResponse = decodeResponse;
+
+  final Bot _bot;
+  final ModelRequest _request;
+  final String _system;
+  final List<Map<String, Object?>> _messages;
+  final Uri _uri;
+  final Map<String, String> _headers;
+  final int _maxTokens;
+  final http.Client _client;
+  final bool _closeClient;
+  final ProviderResponseDecoder _decodeResponse;
+  bool _started = false;
+  bool _closed = false;
+
+  @override
+  Stream<ModelEvent> start() {
+    if (_started) {
+      throw StateError('Agent model session already started.');
+    }
+    _started = true;
+    return _send();
+  }
+
+  @override
+  Stream<ModelEvent> continueWith(List<ToolResult> results) {
+    if (!_started) {
+      throw StateError('Agent model session has not started.');
+    }
+    _messages.add({
+      'role': 'user',
+      'content': [
+        for (final result in results)
+          {
+            'type': 'tool_result',
+            'tool_use_id': result.callId,
+            'content': result.content,
+            'is_error': result.isError,
+          },
+      ],
+    });
+    return _send();
+  }
+
+  Stream<ModelEvent> _send() async* {
+    final response = await _client
+        .post(
+          _uri,
+          headers: _headers,
+          body: jsonEncode({
+            'model': _bot.model,
+            'messages': _messages,
+            'system': _system,
+            if (_request.tools.isNotEmpty) ...{
+              'tools': _anthropicTools(_request.tools),
+              'tool_choice': {'type': 'auto'},
+            },
+            'max_tokens': _maxTokens,
+            if (_request.options.deepThinking)
+              'thinking': {'type': 'enabled', 'budget_tokens': 16000},
+            'stream': false,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      yield ModelTurnFailed(
+        error: 'Model request failed: ${response.statusCode} ${response.body}',
+        code: 'provider_http_error',
+      );
+      return;
+    }
+    final root = _objectMap(_decodeResponse(utf8.decode(response.bodyBytes)));
+    final content = _objectList(root['content']);
+    _messages.add({'role': 'assistant', 'content': content});
+    for (final rawBlock in content) {
+      final block = _objectMap(rawBlock);
+      switch (block['type']) {
+        case 'text':
+          final text = block['text']?.toString() ?? '';
+          if (text.isNotEmpty) yield TextDelta(text);
+        case 'thinking':
+          final thinking = block['thinking']?.toString() ?? '';
+          if (thinking.isNotEmpty) yield ReasoningDelta(thinking);
+        case 'tool_use':
+          final callId = block['id']?.toString() ?? '';
+          final name = block['name']?.toString() ?? '';
+          yield ToolCallStarted(callId: callId, name: name);
+          yield ToolCallRequested(
+            callId: callId,
+            name: name,
+            arguments: _objectMap(block['input']),
+          );
+      }
+    }
+    final usage = _anthropicUsage(root, _bot.model);
+    if (usage.hasData) yield UsageReported(usage);
+    yield ModelTurnCompleted(stopReason: root['stop_reason']?.toString() ?? '');
+  }
+
+  @override
+  Future<void> cancel() async {
+    if (_closed) return;
+    _closed = true;
+    _client.close();
+  }
+
+  @override
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    if (_closeClient) _client.close();
+  }
+}
+
 List<Map<String, Object?>> _openAiSkillTools(List<SkillCatalogEntry> catalog) {
   final names = catalog.map((entry) => entry.name).toList(growable: false);
   return [
@@ -272,6 +557,31 @@ List<Map<String, Object?>> _openAiSkillTools(List<SkillCatalogEntry> catalog) {
         },
       },
     },
+  ];
+}
+
+List<Map<String, Object?>> _openAiTools(List<ToolDefinition> definitions) {
+  return [
+    for (final definition in definitions)
+      {
+        'type': 'function',
+        'function': {
+          'name': definition.name,
+          'description': definition.description,
+          'parameters': definition.inputSchema,
+        },
+      },
+  ];
+}
+
+List<Map<String, Object?>> _anthropicTools(List<ToolDefinition> definitions) {
+  return [
+    for (final definition in definitions)
+      {
+        'name': definition.name,
+        'description': definition.description,
+        'input_schema': definition.inputSchema,
+      },
   ];
 }
 

@@ -42,4 +42,34 @@ void main() {
     expect(restored.durationMs, 42);
     expect(restored.skillActivations, isEmpty);
   });
+
+  test('structured tool invocation survives process info serialization', () {
+    const info = MessageProcessInfo(
+      toolCalls: [
+        MessageToolCall(
+          callId: 'call-1',
+          name: 'save_note',
+          status: 'succeeded',
+          source: 'builtIn',
+          riskLevel: 'write',
+          argumentsSummary: '{"title":"Release"}',
+          resultSummary: 'saved',
+          approvalStatus: 'allowOnce',
+          durationMs: 12,
+        ),
+      ],
+    );
+
+    final restored = MessageProcessInfo.fromRaw(jsonEncode(info.toMap()));
+    final call = restored.toolCalls.single;
+
+    expect(call.callId, 'call-1');
+    expect(call.name, 'save_note');
+    expect(call.source, 'builtIn');
+    expect(call.riskLevel, 'write');
+    expect(call.argumentsSummary, '{"title":"Release"}');
+    expect(call.resultSummary, 'saved');
+    expect(call.approvalStatus, 'allowOnce');
+    expect(call.durationMs, 12);
+  });
 }

@@ -19,7 +19,38 @@ class Anthropic extends Provider {
   AiProviderCapabilities get capabilities => const AiProviderCapabilities(
     supportsStructuredToolCalls: true,
     supportsToolResults: true,
+    supportsParallelToolCalls: true,
   );
+
+  @override
+  AgentModelSession openModelSession(ModelRequest request) {
+    final formatted = formatMessages(request.messages);
+    final rawMessages = formatted['messages'];
+    final messages =
+        rawMessages is List
+            ? rawMessages
+                .whereType<Map>()
+                .map((message) => Map<String, dynamic>.from(message))
+                .toList(growable: false)
+            : <Map<String, dynamic>>[];
+    final client = _skillToolClient ?? http.Client();
+    return AnthropicAgentModelSession(
+      bot: bot,
+      request: request,
+      system: formatted['system']?.toString() ?? '',
+      formattedMessages: messages,
+      uri: Uri.parse(_getMessageUrl()),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': bot.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      maxTokens: _getMaxTokens(),
+      client: client,
+      closeClient: _skillToolClient == null,
+      decodeResponse: decodeProviderResponse,
+    );
+  }
 
   @override
   SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {

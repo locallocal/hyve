@@ -19,6 +19,7 @@ import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/skills/skill_package_storage_service.dart';
 import 'package:stars/data/services/skills/skill_parser.dart';
 import 'package:stars/data/services/skills/skill_picker_service.dart';
+import 'package:stars/data/services/tools/built_in_tools.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -69,6 +70,8 @@ class AppDependencies {
     required this.botSkillBindingRepository,
     required this.conversationSkillPinRepository,
     required this.skillRunRepository,
+    required this.toolRegistry,
+    required this.toolPolicy,
     required this.composeChatTurn,
     required this.createChat,
     required this.generationRegistry,
@@ -121,6 +124,8 @@ class AppDependencies {
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
     );
+    final toolRegistry = StaticToolRegistry(createBuiltInTools());
+    const toolPolicy = DefaultToolPolicy();
     return AppDependencies(
       botRepository: botRepository,
       chatRepository: chatRepository,
@@ -135,6 +140,8 @@ class AppDependencies {
       botSkillBindingRepository: botSkillBindingRepository,
       conversationSkillPinRepository: conversationSkillPinRepository,
       skillRunRepository: skillRunRepository,
+      toolRegistry: toolRegistry,
+      toolPolicy: toolPolicy,
       composeChatTurn: composeChatTurn,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
@@ -143,6 +150,8 @@ class AppDependencies {
         providerFactory: aiProviderRepository.create,
         messageIdFactory: messageRepository.createId,
         skillActivationPersister: skillRunRepository.saveActivations,
+        toolRegistry: toolRegistry,
+        toolPolicy: toolPolicy,
       ),
     );
   }
@@ -160,6 +169,8 @@ class AppDependencies {
   final BotSkillBindingRepository botSkillBindingRepository;
   final ConversationSkillPinRepository conversationSkillPinRepository;
   final SkillRunRepository skillRunRepository;
+  final ToolRegistry toolRegistry;
+  final ToolPolicy toolPolicy;
   final ComposeChatTurn composeChatTurn;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;

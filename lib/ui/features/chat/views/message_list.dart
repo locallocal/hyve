@@ -1323,7 +1323,17 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
                     titleBuilder: (item) => item.name,
                     subtitleBuilder:
                         (item) => _joinMeta([
+                          if (item.source.isNotEmpty ||
+                              item.riskLevel.isNotEmpty)
+                            _joinMeta([item.source, item.riskLevel]),
+                          if (item.argumentsSummary.isNotEmpty)
+                            item.argumentsSummary,
                           if (item.detail.isNotEmpty) item.detail,
+                          if (item.resultSummary.isNotEmpty &&
+                              item.resultSummary != item.detail)
+                            item.resultSummary,
+                          if (item.approvalStatus.isNotEmpty)
+                            item.approvalStatus,
                           if (item.durationMs != null)
                             strings.processDuration(
                               _formatDuration(item.durationMs!),

@@ -5,3 +5,4 @@
 // depending on persistence-oriented locations.
 export '../../model/model.dart';
 export 'skill.dart';
+export 'tool.dart';

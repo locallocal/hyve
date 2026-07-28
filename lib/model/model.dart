@@ -220,34 +220,85 @@ class Bot {
 
 // 消息
 class MessageToolCall {
+  final String callId;
   final String name;
   final String status;
   final String detail;
+  final String source;
+  final String riskLevel;
+  final String argumentsSummary;
+  final String resultSummary;
+  final String approvalStatus;
+  final String errorCode;
   final int? durationMs;
 
   const MessageToolCall({
+    this.callId = '',
     required this.name,
     this.status = '',
     this.detail = '',
+    this.source = '',
+    this.riskLevel = '',
+    this.argumentsSummary = '',
+    this.resultSummary = '',
+    this.approvalStatus = '',
+    this.errorCode = '',
     this.durationMs,
   });
 
   factory MessageToolCall.fromMap(Map<String, dynamic> map) {
     return MessageToolCall(
+      callId: (map['call_id'] ?? '') as String,
       name: (map['name'] ?? '') as String,
       status: (map['status'] ?? '') as String,
       detail: (map['detail'] ?? '') as String,
+      source: (map['source'] ?? '') as String,
+      riskLevel: (map['risk_level'] ?? '') as String,
+      argumentsSummary: (map['arguments_summary'] ?? '') as String,
+      resultSummary: (map['result_summary'] ?? '') as String,
+      approvalStatus: (map['approval_status'] ?? '') as String,
+      errorCode: (map['error_code'] ?? '') as String,
       durationMs: map['duration_ms'] as int?,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'call_id': callId,
       'name': name,
       'status': status,
       'detail': detail,
+      'source': source,
+      'risk_level': riskLevel,
+      'arguments_summary': argumentsSummary,
+      'result_summary': resultSummary,
+      'approval_status': approvalStatus,
+      'error_code': errorCode,
       'duration_ms': durationMs,
     };
+  }
+
+  MessageToolCall copyWith({
+    String? status,
+    String? detail,
+    String? resultSummary,
+    String? approvalStatus,
+    String? errorCode,
+    int? durationMs,
+  }) {
+    return MessageToolCall(
+      callId: callId,
+      name: name,
+      status: status ?? this.status,
+      detail: detail ?? this.detail,
+      source: source,
+      riskLevel: riskLevel,
+      argumentsSummary: argumentsSummary,
+      resultSummary: resultSummary ?? this.resultSummary,
+      approvalStatus: approvalStatus ?? this.approvalStatus,
+      errorCode: errorCode ?? this.errorCode,
+      durationMs: durationMs ?? this.durationMs,
+    );
   }
 }
 

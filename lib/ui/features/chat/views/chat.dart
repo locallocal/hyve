@@ -17,6 +17,7 @@ import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
 import 'package:stars/ui/features/chat/views/message_list.dart';
 import 'package:stars/ui/features/chat/views/typing_indicator.dart';
+import 'package:stars/ui/features/chat/views/tool_approval_card.dart';
 import 'package:stars/ui/features/chat/views/welcome_view.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -496,6 +497,7 @@ class ChatPageState extends State<ChatPage> {
         activatedSkills: preparedTurn.activatedSkills,
         activationAttempts: preparedTurn.activationAttempts,
         preflightTokenUsage: preparedTurn.preflightTokenUsage,
+        requestedToolNames: preparedTurn.requestedToolNames,
       );
       if (started) _skillViewModel.clearManualSelection();
     } catch (error) {
@@ -559,6 +561,7 @@ class ChatPageState extends State<ChatPage> {
             children: [
               Expanded(child: _buildConversationBody(context, fontSize)),
               _buildAttachmentsBar(),
+              _buildToolApprovalCard(isDesktop: false),
               _buildGenerationAlert(isDesktop: false),
               MessageInput(
                 provider: _provider,
@@ -680,6 +683,7 @@ class ChatPageState extends State<ChatPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildAttachmentsBar(desktopMode: true),
+              _buildToolApprovalCard(isDesktop: true),
               _buildGenerationAlert(isDesktop: true),
               MessageInput(
                 provider: _provider,
@@ -886,6 +890,16 @@ class ChatPageState extends State<ChatPage> {
                   onPressed: _dismissGenerationError,
                 ),
       ),
+    );
+  }
+
+  Widget _buildToolApprovalCard({required bool isDesktop}) {
+    final approval = _generationViewModel.snapshot.pendingToolApproval;
+    if (approval == null) return const SizedBox.shrink();
+    return ToolApprovalCard(
+      request: approval,
+      desktopMode: isDesktop,
+      onDecision: _generationViewModel.resolveToolApproval,
     );
   }
 

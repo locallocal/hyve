@@ -11,6 +11,7 @@ final class PreparedChatTurn {
     required List<ActivatedSkill> activatedSkills,
     List<SkillActivationAttempt> activationAttempts = const [],
     List<MessageToolCall> skillToolCalls = const [],
+    Set<String> requestedToolNames = const {},
     this.estimatedSkillContextTokens = 0,
     this.preflightTokenUsage = ModelTokenUsage.empty,
   }) : messages = List<ChatMessage>.unmodifiable(messages),
@@ -18,12 +19,14 @@ final class PreparedChatTurn {
        activationAttempts = List<SkillActivationAttempt>.unmodifiable(
          activationAttempts,
        ),
-       skillToolCalls = List<MessageToolCall>.unmodifiable(skillToolCalls);
+       skillToolCalls = List<MessageToolCall>.unmodifiable(skillToolCalls),
+       requestedToolNames = Set<String>.unmodifiable(requestedToolNames);
 
   final List<ChatMessage> messages;
   final List<ActivatedSkill> activatedSkills;
   final List<SkillActivationAttempt> activationAttempts;
   final List<MessageToolCall> skillToolCalls;
+  final Set<String> requestedToolNames;
   final int estimatedSkillContextTokens;
   final ModelTokenUsage preflightTokenUsage;
 }
@@ -53,9 +56,9 @@ final class SkillContextBudget {
 
 /// Builds provider-neutral chat context and resolves Phase 2 Skill tools.
 ///
-/// Structured Skill tools are intentionally limited to catalog activation and
-/// root-constrained reference reads. General executable tools remain disabled
-/// until the provider-neutral Agent Loop is introduced.
+/// Catalog activation and root-constrained reference reads happen during this
+/// preflight. The returned requested Tool names are resolved and executed
+/// separately by the AgentRunCoordinator during the generation run.
 final class ComposeChatTurn {
   const ComposeChatTurn({
     required SkillRepository skillRepository,
@@ -183,6 +186,10 @@ final class ComposeChatTurn {
       ],
       activationAttempts: state.attempts,
       skillToolCalls: state.toolCalls,
+      requestedToolNames: {
+        for (final entry in state.contents.values)
+          ...entry.content.descriptor.requestedToolNames,
+      },
       estimatedSkillContextTokens: state.skillTokens + state.resourceTokens,
       preflightTokenUsage: state.preflightTokenUsage,
     );

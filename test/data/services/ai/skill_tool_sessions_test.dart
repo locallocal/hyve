@@ -114,6 +114,107 @@ void main() {
     expect(turn.tokenUsage.outputTokens, 3);
     expect(turn.tokenUsage.effectiveTotalTokens, 17);
   });
+
+  test('OpenAI generic model session maps tools and result turns', () async {
+    final requests = <Map<String, Object?>>[];
+    var requestIndex = 0;
+    final client = MockClient((request) async {
+      requests.add(
+        (jsonDecode(request.body) as Map<Object?, Object?>).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+      requestIndex += 1;
+      return http.Response(
+        requestIndex == 1
+            ? jsonEncode({
+              'choices': [
+                {
+                  'message': {
+                    'content': 'checking',
+                    'tool_calls': [
+                      {
+                        'id': 'generic-1',
+                        'type': 'function',
+                        'function': {
+                          'name': 'calculate',
+                          'arguments': '{"value":2}',
+                        },
+                      },
+                    ],
+                  },
+                  'finish_reason': 'tool_calls',
+                },
+              ],
+            })
+            : jsonEncode({
+              'choices': [
+                {
+                  'message': {'content': 'four'},
+                  'finish_reason': 'stop',
+                },
+              ],
+            }),
+        200,
+      );
+    });
+    final provider = OpenAI(_bot, skillToolClient: client);
+    final session = provider.openModelSession(_modelRequest);
+    addTearDown(session.close);
+
+    final first = await session.start().toList();
+    expect(first.whereType<TextDelta>().single.text, 'checking');
+    expect(first.whereType<ToolCallRequested>().single.arguments, {'value': 2});
+
+    final second =
+        await session.continueWith([
+          ToolResult(callId: 'generic-1', name: 'calculate', content: '4'),
+        ]).toList();
+    expect(second.whereType<TextDelta>().single.text, 'four');
+    final sentTools = requests.first['tools']! as List<Object?>;
+    expect(sentTools, hasLength(1));
+    expect(requests.first['parallel_tool_calls'], isTrue);
+    final continuedMessages = requests.last['messages']! as List<Object?>;
+    expect(
+      (continuedMessages.last as Map<Object?, Object?>)['tool_call_id'],
+      'generic-1',
+    );
+  });
+
+  test(
+    'Anthropic generic model session emits reasoning and tool call',
+    () async {
+      final client = MockClient(
+        (request) async => http.Response(
+          jsonEncode({
+            'content': [
+              {'type': 'thinking', 'thinking': 'reasoning'},
+              {
+                'type': 'tool_use',
+                'id': 'generic-2',
+                'name': 'calculate',
+                'input': {'value': 3},
+              },
+            ],
+            'stop_reason': 'tool_use',
+          }),
+          200,
+        ),
+      );
+      final provider = Anthropic(_bot, skillToolClient: client);
+      final session = provider.openModelSession(_modelRequest);
+      addTearDown(session.close);
+
+      final events = await session.start().toList();
+
+      expect(events.whereType<ReasoningDelta>().single.text, 'reasoning');
+      expect(events.whereType<ToolCallRequested>().single.callId, 'generic-2');
+      expect(
+        events.whereType<ModelTurnCompleted>().single.stopReason,
+        'tool_use',
+      );
+    },
+  );
 }
 
 final _bot = Bot(
@@ -139,6 +240,28 @@ final _request = SkillToolSessionRequest(
       description: 'Prepare release notes.',
       contentDigest: 'digest',
       priority: 0,
+    ),
+  ],
+);
+
+final _modelRequest = ModelRequest(
+  messages: [ChatMessage(role: 'user', content: 'Calculate')],
+  options: const ModelGenerationOptions(allowParallelToolCalls: true),
+  tools: [
+    ToolDefinition(
+      name: 'calculate',
+      description: 'Double a number.',
+      inputSchema: const {
+        'type': 'object',
+        'properties': {
+          'value': {'type': 'integer'},
+        },
+        'required': ['value'],
+        'additionalProperties': false,
+      },
+      source: ToolSource.builtIn,
+      riskLevel: ToolRiskLevel.readOnly,
+      capabilities: const {ToolCapability.compute},
     ),
   ],
 );

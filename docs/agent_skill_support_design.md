@@ -894,6 +894,26 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 - 优先支持主流 Provider；
 - 扩展 MessageProcessInfo 或增加规范化运行记录。
 
+实现状态（2026-07-29）：
+
+- 已实现 Provider 无关的 `ModelRequest`、`ModelEvent`、
+  `ToolCallRequested`、`ToolResult` 和 `AgentModelSession` 协议；
+- 已为 OpenAI 与 Anthropic 接入通用结构化模型会话，支持 Tool Schema、结果回传、
+  多 Tool 请求和安全纯计算 Tool 的并行执行；其他 Provider 在没有可执行 Tool 时继续
+  使用原有 `generateText` 路径；
+- 已实现 `ToolRegistry`、受支持 JSON Schema 子集的严格校验和未知约束失败关闭、
+  `DefaultToolPolicy`、审批处理器及应用组合入口；
+- 已内置无外部副作用的 `calculate` 和 `get_current_time`，只有被本轮已激活 Skill 的
+  `allowed-tools` 请求后才向模型暴露；MCP、脚本、网络和文件写入未因此开放；
+- 已实现 `AgentRunCoordinator` 的模型循环、参数与输出校验、审批、单 Tool/总运行超时、
+  最大回合/调用/重试限制、重复 `callId` 幂等和取消传播；
+- 已在聊天 ViewModel 和桌面/移动会话页接入待审批状态，审批卡展示 Tool、风险和参数，
+  允许或拒绝后继续同一模型会话；
+- 已扩展 `MessageToolCall` 快照，保存调用 ID、来源、风险、参数/结果摘要、审批结论、
+  错误码、状态和耗时，并继续随 `MessageProcessInfo` 持久化；
+- 已覆盖单 Tool、多 Tool、并行 Tool、Schema 错误、审批允许/拒绝、审批中取消、
+  重复调用、回合/调用限制、Provider 映射及 ViewModel 终态幂等测试。
+
 ### Phase 4：MCP
 
 目标：

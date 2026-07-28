@@ -173,6 +173,30 @@ final class SkillActivationDbRecord {
   }
 }
 
+final class ConversationSkillPinRecord {
+  const ConversationSkillPinRecord(this.values);
+
+  factory ConversationSkillPinRecord.fromDomain(ConversationSkillPin pin) {
+    return ConversationSkillPinRecord({
+      'chat_id': pin.chatId,
+      'skill_id': pin.skillId,
+      'created_at': pin.createdAt.millisecondsSinceEpoch,
+    });
+  }
+
+  final Map<String, Object?> values;
+
+  ConversationSkillPin toDomain() {
+    return ConversationSkillPin(
+      chatId: values['chat_id']?.toString() ?? '',
+      skillId: values['skill_id']?.toString() ?? '',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        _integer(values['created_at']),
+      ),
+    );
+  }
+}
+
 T _enumValue<T extends Enum>(List<T> values, String name, T fallback) {
   for (final value in values) {
     if (value.name == name) return value;

@@ -4,6 +4,7 @@ import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
+import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
@@ -20,6 +21,7 @@ void main() {
   late SqliteBotRepository botRepository;
   late SqliteBotSkillBindingRepository bindingRepository;
   late SqliteSkillRunRepository skillRunRepository;
+  late SqliteConversationSkillPinRepository pinRepository;
 
   setUp(() async {
     database = await databaseFactoryFfi.openDatabase(
@@ -41,10 +43,14 @@ void main() {
       localDatabase: localDatabase,
     );
     skillRunRepository = SqliteSkillRunRepository(localDatabase: localDatabase);
+    pinRepository = SqliteConversationSkillPinRepository(
+      localDatabase: localDatabase,
+    );
   });
 
   tearDown(() async {
     await bindingRepository.dispose();
+    await pinRepository.dispose();
     await botRepository.dispose();
     await chatRepository.dispose();
     await database.close();
@@ -290,6 +296,21 @@ void main() {
     expect(restored.single.status, SkillActivationStatus.activated);
     expect(restored.single.durationMs, 8);
     expect(restored.single.completedAt, completedAt);
+  });
+
+  test('conversation Skill pins round-trip and clear with chat', () async {
+    final pin = ConversationSkillPin(
+      chatId: 'chat-pinned',
+      skillId: 'user:release-notes',
+      createdAt: DateTime(2026, 7, 27, 9),
+    );
+
+    await pinRepository.save(pin);
+    expect(await pinRepository.getForChat(pin.chatId), hasLength(1));
+
+    await localDatabase.deleteChat(pin.chatId);
+
+    expect(await pinRepository.getForChat(pin.chatId), isEmpty);
   });
 }
 

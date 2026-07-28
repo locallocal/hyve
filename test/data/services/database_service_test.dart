@@ -111,6 +111,24 @@ void main() {
     );
   });
 
+  test('version 8 migration creates conversation Skill pins', () async {
+    final database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+    );
+    addTearDown(database.close);
+
+    await DatabaseService.migrateSchema(database, 7, 8);
+
+    final columns = await database.rawQuery(
+      'PRAGMA table_info(conversation_skill_pins)',
+    );
+    expect(columns.map((column) => column['name']), [
+      'chat_id',
+      'skill_id',
+      'created_at',
+    ]);
+  });
+
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
     addTearDown(database.close);

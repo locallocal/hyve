@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:stars/data/services/ai/skill_tool_sessions.dart';
 import 'package:stars/domain/models/models.dart';
 
 class Anthropic extends Provider {
@@ -9,7 +10,46 @@ class Anthropic extends Provider {
       'https://api.anthropic.com/v1/models';
   static const String defaultApiChatUrl =
       'https://api.anthropic.com/v1/messages';
-  Anthropic(super.bot);
+  Anthropic(super.bot, {http.Client? skillToolClient})
+    : _skillToolClient = skillToolClient;
+
+  final http.Client? _skillToolClient;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    final formatted = formatMessages(request.messages);
+    final rawMessages = formatted['messages'];
+    final messages =
+        rawMessages is List
+            ? rawMessages
+                .whereType<Map>()
+                .map((message) => Map<String, dynamic>.from(message))
+                .toList(growable: false)
+            : <Map<String, dynamic>>[];
+    final client = _skillToolClient ?? http.Client();
+    return AnthropicSkillToolSession(
+      bot: bot,
+      request: request,
+      system: formatted['system']?.toString() ?? '',
+      formattedMessages: messages,
+      uri: Uri.parse(_getMessageUrl()),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': bot.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      maxTokens: _getMaxTokens(),
+      client: client,
+      closeClient: _skillToolClient == null,
+      decodeResponse: decodeProviderResponse,
+    );
+  }
 
   @override
   bool supportWebSearch() {

@@ -73,6 +73,30 @@ void main() {
         ),
       );
     });
+
+    test('filters automatic Skill activation by provider capability', () {
+      expect(
+        repository
+            .create(_bot(Bot.apiTypeOpenAI))
+            .capabilities
+            .supportsAutomaticSkillActivation,
+        isTrue,
+      );
+      expect(
+        repository
+            .create(_bot(Bot.apiTypeAnthropic))
+            .capabilities
+            .supportsAutomaticSkillActivation,
+        isTrue,
+      );
+      expect(
+        repository
+            .create(_bot(Bot.apiTypeGemini))
+            .capabilities
+            .supportsAutomaticSkillActivation,
+        isFalse,
+      );
+    });
   });
 }
 

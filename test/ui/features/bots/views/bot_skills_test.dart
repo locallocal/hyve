@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/generated/l10n.dart';
@@ -139,6 +141,50 @@ void main() {
       }
     },
   );
+
+  testWidgets('capable provider exposes automatic Skill mode', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    final timestamp = DateTime(2026, 7, 26);
+    final bindingRepository = _FakeBindingRepository([
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: 'user:release-notes',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    ]);
+    final viewModel = BotSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: _FakeSkillRepository([_skill('release-notes')]),
+      bindingRepository: bindingRepository,
+      skillToolProvider: _AutoProvider(),
+    );
+    addTearDown(bindingRepository.dispose);
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(find.text('自动激活'), findsOneWidget);
+      expect(find.text('测试技能描述'), findsOneWidget);
+      final automaticMode = find.text('自动激活');
+      await tester.ensureVisible(automaticMode);
+      await tester.tap(automaticMode);
+      await tester.pumpAndSettle();
+
+      expect(
+        bindingRepository.bindingFor('user:release-notes')?.activationMode,
+        SkillActivationMode.auto,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
 }
 
 Widget _harness(BotSkillViewModel viewModel) {
@@ -235,6 +281,13 @@ final class _FakeSkillRepository implements SkillRepository {
       throw UnsupportedError('Loading is not used in this test.');
 
   @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) => throw UnsupportedError('Resource reading is not used in this test.');
+
+  @override
   Future<void> uninstall(String skillId) =>
       throw UnsupportedError('Uninstall is not used in this test.');
 }
@@ -282,4 +335,32 @@ final class _FakeBindingRepository implements BotSkillBindingRepository {
   }
 
   Future<void> dispose() => _changes.close();
+}
+
+final class _AutoProvider extends AiProvider {
+  _AutoProvider()
+    : super(
+        Bot(
+          id: 'bot-1',
+          name: 'Bot',
+          avatar: '',
+          provider: 'test',
+          baseURL: '',
+          apiKey: '',
+          apiType: Bot.apiTypeOpenAI,
+          model: 'test',
+          systemPrompt: '',
+          createTimestamp: DateTime(2026),
+          modifyTimestamp: DateTime(2026),
+        ),
+      );
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
 }

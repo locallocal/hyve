@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:stars/data/services/ai/skill_tool_sessions.dart';
 
 class OpenAI extends Provider {
   static const String defaultApiModelsUrl = 'https://api.openai.com/v1/models';
@@ -11,7 +12,38 @@ class OpenAI extends Provider {
       'https://api.openai.com/v1/chat/completions';
   static const String defaultApiImageUrl =
       'https://api.openai.com/v1/images/generations';
-  OpenAI(super.bot);
+  OpenAI(super.bot, {http.Client? skillToolClient})
+    : _skillToolClient = skillToolClient;
+
+  final http.Client? _skillToolClient;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    final client = _skillToolClient ?? http.Client();
+    final url =
+        bot.baseURL.isNotEmpty
+            ? '${bot.baseURL}chat/completions'
+            : defaultApiChatUrl;
+    return OpenAiSkillToolSession(
+      bot: bot,
+      request: request,
+      formattedMessages: processMessagesWithImages(request.messages),
+      uri: Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${bot.apiKey}',
+      },
+      client: client,
+      closeClient: _skillToolClient == null,
+      decodeResponse: decodeProviderResponse,
+    );
+  }
 
   @override
   bool supportWebSearch() {

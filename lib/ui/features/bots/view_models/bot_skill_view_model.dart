@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/use_cases/test_skill_description.dart';
 
 final class BotSkillViewModel extends ChangeNotifier {
   static const int defaultPageSize = 5;
@@ -12,9 +14,13 @@ final class BotSkillViewModel extends ChangeNotifier {
     required this.botId,
     required SkillRepository skillRepository,
     required BotSkillBindingRepository bindingRepository,
+    AiProvider? skillToolProvider,
+    TestSkillDescription testSkillDescription = const TestSkillDescription(),
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
+       _skillToolProvider = skillToolProvider,
+       _testSkillDescription = testSkillDescription,
        assert(pageSize > 0) {
     _skillChanges = _skillRepository.changes.listen((_) => _reload());
     _bindingChanges = _bindingRepository.changes.listen((_) => _reload());
@@ -23,6 +29,8 @@ final class BotSkillViewModel extends ChangeNotifier {
   final String botId;
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
+  final AiProvider? _skillToolProvider;
+  final TestSkillDescription _testSkillDescription;
   final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _skillChanges;
   late final StreamSubscription<void> _bindingChanges;
@@ -60,6 +68,9 @@ final class BotSkillViewModel extends ChangeNotifier {
       _availablePageIndex + 1 < totalAvailablePages;
   bool get isLoading => _isLoading;
   Object? get error => _error;
+  bool get supportsAutoActivation =>
+      _skillToolProvider?.capabilities.supportsAutomaticSkillActivation ??
+      false;
 
   BotSkillBinding? bindingFor(String skillId) => _bindings[skillId];
 
@@ -116,13 +127,31 @@ final class BotSkillViewModel extends ChangeNotifier {
     String skillId,
     SkillActivationMode mode,
   ) async {
-    if (mode == SkillActivationMode.auto) {
-      throw UnsupportedError('自动激活将在结构化 Tool Calling 阶段开放。');
+    if (mode == SkillActivationMode.auto && !supportsAutoActivation) {
+      throw UnsupportedError('当前 Provider 不支持结构化 Skill 自动激活。');
     }
     final existing = _bindings[skillId];
     if (existing == null) return;
     await _saveBinding(
       existing.copyWith(activationMode: mode, updatedAt: DateTime.now()),
+    );
+  }
+
+  Future<SkillDescriptionTestReport> testDescription({
+    required String skillId,
+    required List<SkillDescriptionTestCase> cases,
+    int runsPerCase = 3,
+  }) async {
+    final provider = _skillToolProvider;
+    final skill = _skills.where((item) => item.id == skillId).firstOrNull;
+    if (provider == null || skill == null) {
+      throw StateError('Skill 或 Provider 不可用。');
+    }
+    return _testSkillDescription(
+      provider: provider,
+      skill: skill,
+      cases: cases,
+      runsPerCase: runsPerCase,
     );
   }
 

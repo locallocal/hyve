@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 7;
+  static const int databaseVersion = 8;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -101,6 +101,7 @@ class DatabaseService {
     await db.execute('CREATE INDEX messages_bot_id_index ON messages(bot_id)');
     await _createTokenUsageSchema(db);
     await _createSkillSchema(db);
+    await _createConversationSkillPinSchema(db);
 
     // 创建智能体表
     await db.execute('''
@@ -253,6 +254,9 @@ class DatabaseService {
     if (oldVersion < 7) {
       await _createSkillSchema(db);
     }
+    if (oldVersion < 8 && newVersion >= 8) {
+      await _createConversationSkillPinSchema(db);
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -342,6 +346,23 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS skill_activations_chat_id_index '
       'ON skill_activations(chat_id)',
+    );
+  }
+
+  static Future<void> _createConversationSkillPinSchema(
+    DatabaseExecutor db,
+  ) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_skill_pins (
+        chat_id TEXT NOT NULL,
+        skill_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (chat_id, skill_id)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS conversation_skill_pins_skill_id_index '
+      'ON conversation_skill_pins(skill_id)',
     );
   }
 

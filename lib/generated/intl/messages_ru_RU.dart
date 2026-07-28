@@ -96,6 +96,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "appTitle": MessageLookupByLibrary.simpleMessage(
       "Stars - ИИ чат-ассистент",
     ),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("Автоматически"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Поддерживаемые модели могут активировать этот навык по его описанию.",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Этот провайдер поддерживает только ручные навыки.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Аватар бота"),
     "botDeleted": m1,
@@ -121,6 +128,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("Очистить чат"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Очистить историю чата",
+    ),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
+      "Снять закрепление навыков",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "Нажмите + в правом верхнем углу, чтобы добавить бота",
@@ -301,6 +311,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Приостановить генерацию",
     ),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "Закрепить выбранное для этого разговора",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("Закреплён"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Сначала введите ключ API",
     ),
@@ -340,6 +354,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Восстановить значения по умолчанию",
     ),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
+      "Запустить проверку",
+    ),
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Поиск навыков"),
@@ -359,6 +376,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Доступны ресурсы",
     ),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("Совместимость"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "Этот пример должен активировать навык",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "Пример запроса пользователя",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "Результат активации",
+    ),
     "skillDetails": MessageLookupByLibrary.simpleMessage("Сведения о навыке"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("Хеш содержимого"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
@@ -407,6 +433,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Отправить отзыв"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Системный промпт"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage(
+      "Проверить описание",
+    ),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "Установлена тёмная тема",
     ),

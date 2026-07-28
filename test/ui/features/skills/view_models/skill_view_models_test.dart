@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
@@ -248,6 +251,28 @@ void main() {
     ]);
   });
 
+  test('bot enables automatic mode only for capable providers', () async {
+    final skillRepository = _FakeSkillRepository([_skill('auto')]);
+    final bindingRepository = _FakeBindingRepository();
+    final viewModel = BotSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: skillRepository,
+      bindingRepository: bindingRepository,
+      skillToolProvider: _AutoProvider(),
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+    await viewModel.addSkill('user:auto');
+
+    await viewModel.setActivationMode('user:auto', SkillActivationMode.auto);
+
+    expect(viewModel.supportsAutoActivation, isTrue);
+    expect(
+      viewModel.bindingFor('user:auto')?.activationMode,
+      SkillActivationMode.auto,
+    );
+  });
+
   test(
     'chat selector exposes enabled bindings and keeps always-on selected',
     () async {
@@ -280,10 +305,13 @@ void main() {
           updatedAt: timestamp,
         ),
       ]);
+      final pinRepository = _FakePinRepository();
       final viewModel = ChatSkillViewModel(
+        chatId: 'chat-1',
         botId: 'bot-1',
         skillRepository: skillRepository,
         bindingRepository: bindingRepository,
+        pinRepository: pinRepository,
       );
       addTearDown(viewModel.dispose);
       await viewModel.load();
@@ -299,11 +327,47 @@ void main() {
 
       viewModel.toggleManual('user:manual');
       expect(viewModel.isSelected('user:manual'), isTrue);
+      await viewModel.pinManualSelection();
+      expect(viewModel.isPinned('user:manual'), isTrue);
+      expect(viewModel.pinnedSkillIds, {'user:manual'});
+      expect(viewModel.manuallySelectedSkillIds, isEmpty);
+      await viewModel.clearPins();
+      expect(viewModel.isPinned('user:manual'), isFalse);
+
+      viewModel.toggleManual('user:manual');
       viewModel.clearManualSelection();
       expect(viewModel.isSelected('user:manual'), isFalse);
       expect(viewModel.isSelected('user:always'), isTrue);
     },
   );
+}
+
+final class _AutoProvider extends AiProvider {
+  _AutoProvider()
+    : super(
+        Bot(
+          id: 'bot-1',
+          name: 'Bot',
+          avatar: '',
+          provider: 'test',
+          baseURL: '',
+          apiKey: '',
+          apiType: Bot.apiTypeOpenAI,
+          model: 'test',
+          systemPrompt: '',
+          createTimestamp: DateTime(2026),
+          modifyTimestamp: DateTime(2026),
+        ),
+      );
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
 }
 
 SkillDescriptor _skill(String name, {String? description}) {
@@ -365,6 +429,13 @@ final class _FakeSkillRepository implements SkillRepository {
   }
 
   @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) => throw UnsupportedError('Resource reading is not used in this test.');
+
+  @override
   Future<void> uninstall(String skillId) async {
     _skills = _skills.where((skill) => skill.id != skillId).toList();
     _changes.add(List<SkillDescriptor>.unmodifiable(_skills));
@@ -419,6 +490,39 @@ final class _FakeBindingRepository implements BotSkillBindingRepository {
       ),
       binding,
     ];
+    _changes.add(null);
+  }
+}
+
+final class _FakePinRepository implements ConversationSkillPinRepository {
+  final StreamController<void> _changes = StreamController<void>.broadcast();
+  final List<ConversationSkillPin> pins = [];
+
+  @override
+  Stream<void> get changes => _changes.stream;
+
+  @override
+  Future<void> clear(String chatId) async {
+    pins.removeWhere((pin) => pin.chatId == chatId);
+    _changes.add(null);
+  }
+
+  @override
+  Future<List<ConversationSkillPin>> getForChat(String chatId) async =>
+      pins.where((pin) => pin.chatId == chatId).toList(growable: false);
+
+  @override
+  Future<void> remove(String chatId, String skillId) async {
+    pins.removeWhere((pin) => pin.chatId == chatId && pin.skillId == skillId);
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> save(ConversationSkillPin pin) async {
+    pins.removeWhere(
+      (item) => item.chatId == pin.chatId && item.skillId == pin.skillId,
+    );
+    pins.add(pin);
     _changes.add(null);
   }
 }

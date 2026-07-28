@@ -62,6 +62,10 @@ void main() {
       await source.create(recursive: true);
       final skillFile = File('${source.path}/SKILL.md');
       await skillFile.writeAsString(_skillSource('First instructions.'));
+      await File('${source.path}/references/style.md').create(recursive: true);
+      await File(
+        '${source.path}/references/style.md',
+      ).writeAsString('Use concise headings.');
 
       final first = await repository.install(
         SkillImportSource(kind: SkillImportKind.directory, path: source.path),
@@ -73,6 +77,14 @@ void main() {
       expect(
         (await repository.load(first.id)).instructions,
         'First instructions.',
+      );
+      expect(
+        (await repository.readResource(
+          first.id,
+          'references/style.md',
+          contentDigest: first.contentDigest,
+        )).content,
+        'Use concise headings.',
       );
 
       await skillFile.writeAsString(_skillSource('Updated instructions.'));

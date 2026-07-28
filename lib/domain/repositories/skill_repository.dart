@@ -9,6 +9,12 @@ abstract interface class SkillRepository {
 
   Future<SkillContent> load(String skillId, {String? contentDigest});
 
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  });
+
   Future<SkillDescriptor> install(SkillImportSource source);
 
   Future<void> uninstall(String skillId);

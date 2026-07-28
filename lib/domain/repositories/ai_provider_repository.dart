@@ -23,6 +23,8 @@ abstract class AiProvider {
 
   bool supportStreamResponse() => true;
 
+  AiProviderCapabilities get capabilities => AiProviderCapabilities.legacy;
+
   bool get supportsCancellation => true;
 
   bool supportWebSearch() => false;
@@ -91,6 +93,12 @@ abstract class AiProvider {
   Future<List<String>> listModels() async => const [];
 
   Future<void> generateText(List<ChatMessage> messages);
+
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    throw UnsupportedError(
+      '${bot.apiType} does not support structured Skill tools',
+    );
+  }
 
   List<String> getSupportImageStyles() => const [];
 

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 
@@ -65,6 +67,237 @@ void main() {
     },
   );
 
+  test(
+    'auto activation uses structured tools and injects requested references',
+    () async {
+      final auto = _skill(
+        'user:release-notes',
+        'release-notes',
+        'Prepare concise release notes.',
+        files: const ['SKILL.md', 'references/style.md'],
+      );
+      final repository = _FakeSkillRepository(
+        {'user:release-notes': auto},
+        resources: {
+          'user:release-notes:references/style.md': 'Use short headings.',
+        },
+      );
+      final provider = _FakeSkillProvider([
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'activate-1',
+              name: 'activate_skill',
+              arguments: const {'name': 'release-notes'},
+            ),
+          ],
+          tokenUsage: const ModelTokenUsage(
+            model: 'test-model',
+            inputTokens: 20,
+            outputTokens: 2,
+            totalTokens: 22,
+          ),
+        ),
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'read-1',
+              name: 'read_skill_resource',
+              arguments: const {
+                'name': 'release-notes',
+                'path': 'references/style.md',
+              },
+            ),
+          ],
+          tokenUsage: const ModelTokenUsage(
+            model: 'test-model',
+            inputTokens: 25,
+            outputTokens: 3,
+            totalTokens: 28,
+          ),
+        ),
+        SkillToolTurn(isComplete: true),
+      ]);
+      final compose = ComposeChatTurn(
+        skillRepository: repository,
+        bindingRepository: _FakeBindingRepository([
+          _binding('user:release-notes', SkillActivationMode.auto),
+        ]),
+      );
+
+      final result = await compose(
+        bot: _bot(),
+        history: const [],
+        userMessage: _message(
+          senderId: 'user-1',
+          content: 'Draft release notes for this version.',
+        ),
+        currentUserId: 'user-1',
+        skillToolProvider: provider,
+      );
+
+      expect(result.activatedSkills, hasLength(1));
+      expect(
+        result.activatedSkills.single.trigger,
+        SkillActivationTrigger.model,
+      );
+      expect(result.messages.first.content, contains(auto.instructions));
+      expect(result.messages.first.content, contains('Use short headings.'));
+      expect(
+        result.messages.first.content,
+        isNot(contains('<available_skills>')),
+      );
+      expect(repository.readResourcePaths, ['references/style.md']);
+      expect(result.skillToolCalls.map((call) => call.name), [
+        'activate_skill',
+        'read_skill_resource',
+      ]);
+      expect(
+        result.activationAttempts.single.status,
+        SkillActivationStatus.activated,
+      );
+      expect(result.preflightTokenUsage.inputTokens, 45);
+      expect(result.preflightTokenUsage.outputTokens, 5);
+      expect(provider.session.results, hasLength(2));
+      expect(provider.session.closed, isTrue);
+    },
+  );
+
+  test('legacy provider does not receive or activate auto Skills', () async {
+    final auto = _skill(
+      'user:auto',
+      'auto',
+      'Auto instructions must remain undisclosed.',
+    );
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository({'user:auto': auto}),
+      bindingRepository: _FakeBindingRepository([
+        _binding('user:auto', SkillActivationMode.auto),
+      ]),
+    );
+
+    final result = await compose(
+      bot: _bot(),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Use auto'),
+      currentUserId: 'user-1',
+      skillToolProvider: _LegacySkillProvider(),
+    );
+
+    expect(result.activatedSkills, isEmpty);
+    expect(result.messages.single.role, 'user');
+    expect(result.messages.single.content, 'Use auto');
+  });
+
+  test(
+    'reuses an activated reference without spending its budget twice',
+    () async {
+      final auto = _skill(
+        'user:reference-reader',
+        'reference-reader',
+        'Read relevant reference material.',
+        files: const ['SKILL.md', 'references/guide.md'],
+      );
+      final repository = _FakeSkillRepository(
+        {'user:reference-reader': auto},
+        resources: {
+          'user:reference-reader:references/guide.md': '1234567890123456',
+        },
+      );
+      final provider = _FakeSkillProvider([
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'activate-1',
+              name: 'activate_skill',
+              arguments: const {'name': 'reference-reader'},
+            ),
+          ],
+        ),
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'read-1',
+              name: 'read_skill_resource',
+              arguments: const {
+                'name': 'reference-reader',
+                'path': 'references/guide.md',
+              },
+            ),
+          ],
+        ),
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'read-2',
+              name: 'read_skill_resource',
+              arguments: const {
+                'name': 'reference-reader',
+                'path': 'references/guide.md',
+              },
+            ),
+          ],
+        ),
+        SkillToolTurn(isComplete: true),
+      ]);
+      final compose = ComposeChatTurn(
+        skillRepository: repository,
+        bindingRepository: _FakeBindingRepository([
+          _binding('user:reference-reader', SkillActivationMode.auto),
+        ]),
+        budget: const SkillContextBudget(maxResourceTokens: 3),
+      );
+
+      final result = await compose(
+        bot: _bot(),
+        history: const [],
+        userMessage: _message(
+          senderId: 'user-1',
+          content: 'Use the reference guide.',
+        ),
+        currentUserId: 'user-1',
+        skillToolProvider: provider,
+      );
+
+      expect(repository.readResourcePaths, ['references/guide.md']);
+      expect(result.estimatedSkillContextTokens, lessThanOrEqualTo(13));
+      expect(
+        provider.session.results
+            .expand((results) => results)
+            .where((result) => result.name == 'read_skill_resource')
+            .map((result) => result.content),
+        everyElement(contains('[truncated]')),
+      );
+    },
+  );
+
+  test('pinned Skills activate with a distinct audit trigger', () async {
+    final pinned = _skill('user:pinned', 'pinned', 'Pinned instructions.');
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository({'user:pinned': pinned}),
+      bindingRepository: _FakeBindingRepository([
+        _binding('user:pinned', SkillActivationMode.manual),
+      ]),
+    );
+
+    final result = await compose(
+      bot: _bot(),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Question'),
+      currentUserId: 'user-1',
+      pinnedSkillIds: const {'user:pinned'},
+    );
+
+    expect(
+      result.activatedSkills.single.trigger,
+      SkillActivationTrigger.pinned,
+    );
+    expect(
+      result.activationAttempts.single.status,
+      SkillActivationStatus.activated,
+    );
+  });
+
   test('limits activation to three usable Skills', () async {
     final skills = <String, SkillContent>{
       for (var index = 0; index < 5; index++)
@@ -99,6 +332,35 @@ void main() {
       'user:skill-3',
       'user:skill-2',
     ]);
+  });
+
+  test('records Skills skipped by the context Token budget', () async {
+    final oversized = _skill(
+      'user:oversized',
+      'oversized',
+      'This instruction is intentionally longer than a four-token budget.',
+    );
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository({'user:oversized': oversized}),
+      bindingRepository: _FakeBindingRepository([
+        _binding('user:oversized', SkillActivationMode.always),
+      ]),
+      budget: const SkillContextBudget(maxTokensPerSkill: 4),
+    );
+
+    final result = await compose(
+      bot: _bot(),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Question'),
+      currentUserId: 'user-1',
+    );
+
+    expect(result.activatedSkills, isEmpty);
+    expect(
+      result.activationAttempts.single.status,
+      SkillActivationStatus.skipped,
+    );
+    expect(result.activationAttempts.single.errorCode, 'per_skill_token_limit');
   });
 
   test(
@@ -156,7 +418,12 @@ void main() {
   );
 }
 
-SkillContent _skill(String id, String name, String instructions) {
+SkillContent _skill(
+  String id,
+  String name,
+  String instructions, {
+  List<String> files = const [],
+}) {
   final now = DateTime(2026, 7, 26);
   return SkillContent(
     descriptor: SkillDescriptor(
@@ -175,6 +442,7 @@ SkillContent _skill(String id, String name, String instructions) {
       updatedAt: now,
     ),
     instructions: instructions,
+    files: files,
   );
 }
 
@@ -219,10 +487,12 @@ Message _message({required String senderId, required String content}) =>
     );
 
 final class _FakeSkillRepository implements SkillRepository {
-  _FakeSkillRepository(this.contents);
+  _FakeSkillRepository(this.contents, {this.resources = const {}});
 
   final Map<String, SkillContent> contents;
+  final Map<String, String> resources;
   final List<String> loadedIds = [];
+  final List<String> readResourcePaths = [];
 
   @override
   Stream<List<SkillDescriptor>> get changes => const Stream.empty();
@@ -246,7 +516,73 @@ final class _FakeSkillRepository implements SkillRepository {
   }
 
   @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) async {
+    readResourcePaths.add(relativePath);
+    return SkillResourceContent(
+      skillId: skillId,
+      path: relativePath,
+      content: resources['$skillId:$relativePath']!,
+    );
+  }
+
+  @override
   Future<void> uninstall(String skillId) => throw UnimplementedError();
+}
+
+final class _FakeSkillProvider extends AiProvider {
+  _FakeSkillProvider(List<SkillToolTurn> turns)
+    : session = _FakeSkillSession(turns),
+      super(_bot());
+
+  final _FakeSkillSession session;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    session.request = request;
+    return session;
+  }
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
+final class _LegacySkillProvider extends AiProvider {
+  _LegacySkillProvider() : super(_bot());
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
+final class _FakeSkillSession implements SkillToolSession {
+  _FakeSkillSession(this.turns);
+
+  final List<SkillToolTurn> turns;
+  final List<List<SkillToolResult>> results = [];
+  SkillToolSessionRequest? request;
+  var _index = 0;
+  var closed = false;
+
+  @override
+  Future<SkillToolTurn> start() async => turns[_index++];
+
+  @override
+  Future<SkillToolTurn> continueWith(List<SkillToolResult> toolResults) async {
+    results.add(toolResults);
+    return turns[_index++];
+  }
+
+  @override
+  void close() => closed = true;
 }
 
 final class _FakeBindingRepository implements BotSkillBindingRepository {

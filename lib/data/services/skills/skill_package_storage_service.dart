@@ -45,6 +45,7 @@ final class SkillPackageStorageService {
   static const int maxPackageBytes = 20 * 1024 * 1024;
   static const int maxArchiveBytes = 20 * 1024 * 1024;
   static const int maxPathDepth = 12;
+  static const int maxReferenceBytes = 256 * 1024;
 
   final ApplicationSupportDirectoryProvider
   _applicationSupportDirectoryProvider;
@@ -134,6 +135,45 @@ final class SkillPackageStorageService {
     }
     files.sort();
     return List<String>.unmodifiable(files);
+  }
+
+  Future<String> readReference(String rootPath, String relativePath) async {
+    final normalized = path.posix.normalize(
+      relativePath.trim().replaceAll('\\', '/'),
+    );
+    final segments = normalized.split('/');
+    if (relativePath.contains('\u0000') ||
+        path.posix.isAbsolute(normalized) ||
+        normalized == 'references' ||
+        !normalized.startsWith('references/') ||
+        segments.any((segment) => segment.isEmpty || segment == '..')) {
+      throw const SkillInstallException('只能读取 Skill references 目录中的相对路径。');
+    }
+
+    final root = await _verifiedBundleRoot(rootPath);
+    final references = Directory(path.join(root.path, 'references'));
+    final file = File(path.joinAll([root.path, ...segments]));
+    final type = await FileSystemEntity.type(file.path, followLinks: false);
+    if (type != FileSystemEntityType.file) {
+      throw const SkillInstallException('请求的 Skill 参考资料不存在或不是普通文件。');
+    }
+
+    final canonicalRoot = await root.resolveSymbolicLinks();
+    final canonicalReferences = await references.resolveSymbolicLinks();
+    final canonicalFile = await file.resolveSymbolicLinks();
+    if (!_isWithin(canonicalRoot, canonicalFile) ||
+        !_isWithin(canonicalReferences, canonicalFile)) {
+      throw const SkillInstallException('拒绝读取 Skill 根目录以外的参考资料。');
+    }
+    final length = await file.length();
+    if (length > maxReferenceBytes) {
+      throw const SkillInstallException('Skill 参考资料超过 256 KB 读取限制。');
+    }
+    try {
+      return utf8.decode(await file.readAsBytes());
+    } on FormatException {
+      throw const SkillInstallException('当前版本只能读取 UTF-8 文本参考资料。');
+    }
   }
 
   Future<void> removeInstallation(SkillDescriptor descriptor) async {
@@ -297,6 +337,11 @@ final class SkillPackageStorageService {
     final root = Directory(path.normalize(rootPath));
     if (!_isWithin(bundles.path, root.path) || !await root.exists()) {
       throw const SkillInstallException('Skill 安装目录不存在或已越界。');
+    }
+    final canonicalBundles = await bundles.resolveSymbolicLinks();
+    final canonicalRoot = await root.resolveSymbolicLinks();
+    if (!_isWithin(canonicalBundles, canonicalRoot)) {
+      throw const SkillInstallException('Skill 安装目录的真实路径已越界。');
     }
     return root;
   }

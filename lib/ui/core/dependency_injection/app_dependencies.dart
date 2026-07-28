@@ -7,6 +7,7 @@ import 'package:stars/data/repositories/skill_picker_repository_impl.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
+import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
@@ -25,6 +26,7 @@ import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
@@ -65,6 +67,7 @@ class AppDependencies {
     required this.skillRepository,
     required this.skillPickerRepository,
     required this.botSkillBindingRepository,
+    required this.conversationSkillPinRepository,
     required this.skillRunRepository,
     required this.composeChatTurn,
     required this.createChat,
@@ -111,6 +114,9 @@ class AppDependencies {
     final skillRunRepository = SqliteSkillRunRepository(
       localDatabase: localDatabase,
     );
+    final conversationSkillPinRepository = SqliteConversationSkillPinRepository(
+      localDatabase: localDatabase,
+    );
     final composeChatTurn = ComposeChatTurn(
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
@@ -127,6 +133,7 @@ class AppDependencies {
       skillRepository: skillRepository,
       skillPickerRepository: skillPickerRepository,
       botSkillBindingRepository: botSkillBindingRepository,
+      conversationSkillPinRepository: conversationSkillPinRepository,
       skillRunRepository: skillRunRepository,
       composeChatTurn: composeChatTurn,
       createChat: CreateChat(chatRepository: chatRepository),
@@ -151,6 +158,7 @@ class AppDependencies {
   final SkillRepository skillRepository;
   final SkillPickerRepository skillPickerRepository;
   final BotSkillBindingRepository botSkillBindingRepository;
+  final ConversationSkillPinRepository conversationSkillPinRepository;
   final SkillRunRepository skillRunRepository;
   final ComposeChatTurn composeChatTurn;
   final CreateChat createChat;
@@ -186,10 +194,11 @@ class AppDependencies {
         chatRepository: chatRepository,
       );
 
-  BotSkillViewModel createBotSkillViewModel(String botId) => BotSkillViewModel(
-    botId: botId,
+  BotSkillViewModel createBotSkillViewModel(Bot bot) => BotSkillViewModel(
+    botId: bot.id,
     skillRepository: skillRepository,
     bindingRepository: botSkillBindingRepository,
+    skillToolProvider: aiProviderRepository.create(bot),
   );
 
   SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
@@ -197,11 +206,18 @@ class AppDependencies {
     pickerRepository: skillPickerRepository,
   );
 
-  ChatSkillViewModel createChatSkillViewModel(String botId) =>
+  ChatSkillViewModel createChatSkillViewModel(String chatId, Bot bot) =>
       ChatSkillViewModel(
-        botId: botId,
+        chatId: chatId,
+        botId: bot.id,
         skillRepository: skillRepository,
         bindingRepository: botSkillBindingRepository,
+        pinRepository: conversationSkillPinRepository,
+        supportsAutoActivation:
+            aiProviderRepository
+                .create(bot)
+                .capabilities
+                .supportsAutomaticSkillActivation,
       );
 
   ProfileViewModel createProfileViewModel() => ProfileViewModel(

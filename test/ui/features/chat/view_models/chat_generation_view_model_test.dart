@@ -120,6 +120,76 @@ void main() {
       expect(activations.single.status, SkillActivationStatus.activated);
     });
 
+    test(
+      'persists activation attempts and includes preflight token usage',
+      () async {
+        final factory = _FakeProviderFactory(cancellable: true);
+        final activations = <SkillActivationRecord>[];
+        final persisted = <Message>[];
+        final controller = ChatGenerationViewModel(
+          chatId: 'chat-1',
+          bot: _bot,
+          providerFactory: factory.create,
+          messageIdFactory: (prefix) => '$prefix-fixed',
+          messagePersister: (message) async {
+            persisted.add(message);
+            return message;
+          },
+          lastMessageUpdater: (_, _) async {},
+          skillActivationPersister: (records) async {
+            activations.addAll(records);
+          },
+        );
+        addTearDown(controller.dispose);
+        final now = DateTime(2026, 7, 28);
+
+        await controller.startText(
+          userMessage: _userMessage(),
+          messages: <ChatMessage>[ChatMessage(role: 'user', content: 'Hello')],
+          activationAttempts: [
+            SkillActivationAttempt(
+              skillId: 'user:auto',
+              skillName: 'auto',
+              contentDigest: 'digest',
+              trigger: SkillActivationTrigger.model,
+              status: SkillActivationStatus.failed,
+              startedAt: now,
+              completedAt: now,
+              errorCode: 'load_failed',
+            ),
+          ],
+          preflightTokenUsage: const ModelTokenUsage(
+            model: 'test-model',
+            inputTokens: 40,
+            outputTokens: 5,
+            totalTokens: 45,
+          ),
+        );
+
+        expect(activations.single.status, SkillActivationStatus.failed);
+        expect(activations.single.errorCode, 'load_failed');
+        final provider = factory.instances.last;
+        provider.emitUsage(
+          const ModelTokenUsage(
+            model: 'test-model',
+            inputTokens: 100,
+            outputTokens: 20,
+            totalTokens: 120,
+          ),
+        );
+        provider.emitToken('answer');
+        provider.emitTerminal(ProviderTerminalType.completed);
+        await _waitFor(
+          () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+        );
+
+        final assistant = persisted.last;
+        expect(assistant.tokenUsage.inputTokens, 140);
+        expect(assistant.tokenUsage.outputTokens, 25);
+        expect(assistant.tokenUsage.effectiveTotalTokens, 165);
+      },
+    );
+
     test('cancellation persists partial content as cancelled', () async {
       final harness = _ControllerHarness(cancellable: true);
       final controller = harness.controller;

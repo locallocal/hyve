@@ -86,6 +86,11 @@ class LocalDatabaseService {
         where: 'skill_id = ?',
         whereArgs: [id],
       );
+      await transaction.delete(
+        'conversation_skill_pins',
+        where: 'skill_id = ?',
+        whereArgs: [id],
+      );
       await transaction.delete('skills', where: 'id = ?', whereArgs: [id]);
     });
   }
@@ -115,6 +120,45 @@ class LocalDatabaseService {
       'bot_skill_bindings',
       where: 'bot_id = ? AND skill_id = ?',
       whereArgs: [botId, skillId],
+    );
+  }
+
+  Future<List<Map<String, Object?>>> loadConversationSkillPins(
+    String chatId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'conversation_skill_pins',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+      orderBy: 'created_at ASC, skill_id ASC',
+    );
+  }
+
+  Future<void> upsertConversationSkillPin(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'conversation_skill_pins',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteConversationSkillPin(String chatId, String skillId) async {
+    final database = await _databaseProvider();
+    await database.delete(
+      'conversation_skill_pins',
+      where: 'chat_id = ? AND skill_id = ?',
+      whereArgs: [chatId, skillId],
+    );
+  }
+
+  Future<void> clearConversationSkillPins(String chatId) async {
+    final database = await _databaseProvider();
+    await database.delete(
+      'conversation_skill_pins',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
     );
   }
 
@@ -174,6 +218,11 @@ class LocalDatabaseService {
       );
       await transaction.delete(
         'token_usage_records',
+        where: 'chat_id = ?',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'conversation_skill_pins',
         where: 'chat_id = ?',
         whereArgs: [id],
       );

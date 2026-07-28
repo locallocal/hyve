@@ -89,6 +89,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "appName": MessageLookupByLibrary.simpleMessage("Stars"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AI 채팅 어시스턴트"),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("자동"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "지원되는 모델이 설명을 바탕으로 이 스킬을 활성화합니다.",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "이 제공자는 수동 스킬만 지원합니다.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("봇 아바타"),
     "botDeleted": m1,
@@ -109,6 +116,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clear": MessageLookupByLibrary.simpleMessage("지우기"),
     "clearChat": MessageLookupByLibrary.simpleMessage("채팅 지우기"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("채팅 기록 지우기"),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("대화 고정 해제"),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "오른쪽 상단의 +를 클릭하여 봇 추가",
     ),
@@ -238,6 +246,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "outputTokens": MessageLookupByLibrary.simpleMessage("출력 토큰"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("부분 응답"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("생성 일시 중지"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "선택한 스킬을 이 대화에 고정",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("고정됨"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "API 키를 먼저 입력하세요",
     ),
@@ -261,6 +273,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("기본값으로 재설정"),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("테스트 실행"),
     "save": MessageLookupByLibrary.simpleMessage("저장"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("변경사항 저장"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("스킬 검색"),
@@ -276,6 +289,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage("에셋 사용 가능"),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("호환성"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "이 예시는 스킬을 활성화해야 함",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "사용자 요청 예시",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "활성화 결과",
+    ),
     "skillDetails": MessageLookupByLibrary.simpleMessage("스킬 세부 정보"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("콘텐츠 다이제스트"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("꺼짐"),
@@ -322,6 +344,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("피드백 제출"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("시스템 프롬프트"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage("설명 테스트"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "테마가 다크 모드로 설정되었습니다",
     ),

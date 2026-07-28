@@ -113,6 +113,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "attachedFiles": MessageLookupByLibrary.simpleMessage("附加文件"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("附加图片"),
     "attachments": MessageLookupByLibrary.simpleMessage("附件"),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("自动激活"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "让支持的模型根据技能描述按需激活。",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "当前模型服务仅支持手动使用技能。",
+    ),
     "backToDailyUsage": MessageLookupByLibrary.simpleMessage("返回每日用量"),
     "basicInformation": MessageLookupByLibrary.simpleMessage("基本信息"),
     "botAddedSuccess": m0,
@@ -145,6 +152,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("清空聊天"),
     "clearChatFailed": m20,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("清空聊天记录"),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除会话固定技能"),
     "clearSearch": MessageLookupByLibrary.simpleMessage("清除搜索"),
     "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
       "选择一天查看小时用量",
@@ -313,6 +321,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "outputTokens": MessageLookupByLibrary.simpleMessage("输出 Token"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回复"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("暂停生成"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在当前会话中固定已选技能"),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("已固定"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage("请先输入API密钥"),
     "pleaseEnterImageDescription": MessageLookupByLibrary.simpleMessage(
       "请输入生成图片的描述",
@@ -349,6 +359,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage("恢复默认"),
     "responseError": m17,
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("运行测试"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("保存修改"),
     "saveImage": MessageLookupByLibrary.simpleMessage("保存图片"),
@@ -378,6 +389,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "showSidebar": MessageLookupByLibrary.simpleMessage("显示侧栏"),
     "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage("包含静态资源"),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("兼容性"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "这个示例应当激活技能",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage("示例用户请求"),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage("激活结果"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("技能详情"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("内容摘要"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("已关闭"),
@@ -427,6 +443,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("提交反馈"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("系统提示词:"),
     "takePhoto": MessageLookupByLibrary.simpleMessage("拍照"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage("测试技能描述"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage("已设置为深色模式"),
     "themeSetToLight": MessageLookupByLibrary.simpleMessage("已设置为浅色模式"),
     "themeSetToSystem": MessageLookupByLibrary.simpleMessage("已设置为跟随系统主题"),

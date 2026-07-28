@@ -126,6 +126,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("Automatic"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Let supported models activate this Skill from its description.",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "This provider supports manual Skills only.",
+    ),
     "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
       "Back to daily usage",
     ),
@@ -173,6 +180,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChatFailed": m20,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Clear chat history",
+    ),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
+      "Clear conversation pins",
     ),
     "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
     "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
@@ -410,6 +420,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "outputTokens": MessageLookupByLibrary.simpleMessage("Output tokens"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Partial response"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("Pause generation"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "Pin selected for this conversation",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("Pinned"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Please enter API key first",
     ),
@@ -464,6 +478,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
     "responseError": m17,
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("Run test"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
@@ -497,6 +512,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Assets available",
     ),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("Compatibility"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "This example should activate the Skill",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "Example user request",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "Activation result",
+    ),
     "skillDetails": MessageLookupByLibrary.simpleMessage("Skill details"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("Content digest"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
@@ -560,6 +584,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Submit Feedback"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("System Prompt"),
     "takePhoto": MessageLookupByLibrary.simpleMessage("Camera"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage(
+      "Test description",
+    ),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "Theme set to dark mode",
     ),

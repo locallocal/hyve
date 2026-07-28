@@ -28,8 +28,13 @@ class MessageInput extends StatefulWidget {
   final ValueChanged<String> onVideoRatioSelected;
   final List<SkillDescriptor> availableSkills;
   final Set<String> selectedSkillIds;
+  final Set<String> pinnedSkillIds;
   final bool Function(String skillId)? isSkillAlways;
   final ValueChanged<String>? onSkillToggled;
+  final VoidCallback? onPinSelectedSkills;
+  final VoidCallback? onClearPinnedSkills;
+  final bool canPinSelectedSkills;
+  final bool autoActivationUnavailable;
 
   const MessageInput({
     super.key,
@@ -52,8 +57,13 @@ class MessageInput extends StatefulWidget {
     required this.onCancelRequest,
     this.availableSkills = const [],
     this.selectedSkillIds = const {},
+    this.pinnedSkillIds = const {},
     this.isSkillAlways,
     this.onSkillToggled,
+    this.onPinSelectedSkills,
+    this.onClearPinnedSkills,
+    this.canPinSelectedSkills = false,
+    this.autoActivationUnavailable = false,
   });
 
   @override
@@ -399,11 +409,17 @@ class _MessageInputState extends State<MessageInput> {
                   widget.isSkillAlways?.call(skill.id) ?? false
                       ? null
                       : (_) => widget.onSkillToggled?.call(skill.id),
-              child: Text(
-                (widget.isSkillAlways?.call(skill.id) ?? false)
-                    ? '${skill.name} · ${strings.alwaysOn}'
-                    : skill.name,
-              ),
+              child: Text(_skillLabel(strings, skill)),
+            ),
+          if (widget.canPinSelectedSkills)
+            MenuItemButton(
+              onPressed: widget.onPinSelectedSkills,
+              child: Text(strings.pinSelectedSkills),
+            ),
+          if (widget.pinnedSkillIds.isNotEmpty)
+            MenuItemButton(
+              onPressed: widget.onClearPinnedSkills,
+              child: Text(strings.clearPinnedSkills),
             ),
         ],
         builder: (context, controller, child) {
@@ -437,6 +453,16 @@ class _MessageInputState extends State<MessageInput> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildPopoverSectionLabel(context, strings.messageSkills),
+                if (widget.autoActivationUnavailable) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      strings.autoActivationUnavailable,
+                      style: ShadTheme.of(context).textTheme.muted,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 for (
                   var index = 0;
@@ -452,13 +478,7 @@ class _MessageInputState extends State<MessageInput> {
                                 false
                             ? LucideIcons.pin
                             : LucideIcons.wrench,
-                    label:
-                        (widget.isSkillAlways?.call(
-                                  widget.availableSkills[index].id,
-                                ) ??
-                                false)
-                            ? '${widget.availableSkills[index].name} · ${strings.alwaysOn}'
-                            : widget.availableSkills[index].name,
+                    label: _skillLabel(strings, widget.availableSkills[index]),
                     selected: widget.selectedSkillIds.contains(
                       widget.availableSkills[index].id,
                     ),
@@ -472,6 +492,35 @@ class _MessageInputState extends State<MessageInput> {
                   if (index < widget.availableSkills.length - 1)
                     const SizedBox(height: 4),
                 ],
+                if (widget.canPinSelectedSkills ||
+                    widget.pinnedSkillIds.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  const ShadSeparator.horizontal(),
+                  const SizedBox(height: 8),
+                  if (widget.canPinSelectedSkills)
+                    _buildDesktopPopoverItem(
+                      width: 300,
+                      icon: LucideIcons.pin,
+                      label: strings.pinSelectedSkills,
+                      onPressed: () {
+                        _skillPopoverController.hide();
+                        widget.onPinSelectedSkills?.call();
+                      },
+                    ),
+                  if (widget.canPinSelectedSkills &&
+                      widget.pinnedSkillIds.isNotEmpty)
+                    const SizedBox(height: 4),
+                  if (widget.pinnedSkillIds.isNotEmpty)
+                    _buildDesktopPopoverItem(
+                      width: 300,
+                      icon: LucideIcons.pinOff,
+                      label: strings.clearPinnedSkills,
+                      onPressed: () {
+                        _skillPopoverController.hide();
+                        widget.onClearPinnedSkills?.call();
+                      },
+                    ),
+                ],
               ],
             ),
           ),
@@ -483,6 +532,16 @@ class _MessageInputState extends State<MessageInput> {
         onTap: () => _togglePopover(_skillPopoverController),
       ),
     );
+  }
+
+  String _skillLabel(S strings, SkillDescriptor skill) {
+    if (widget.pinnedSkillIds.contains(skill.id)) {
+      return '${skill.name} · ${strings.pinnedSkill}';
+    }
+    if (widget.isSkillAlways?.call(skill.id) ?? false) {
+      return '${skill.name} · ${strings.alwaysOn}';
+    }
+    return skill.name;
   }
 
   Widget _buildAttachmentMenu(BuildContext context, bool isDesktop) {

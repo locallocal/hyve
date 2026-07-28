@@ -97,7 +97,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     if (_skillViewModel == null) {
       _ownsSkillViewModel = true;
-      _skillViewModel = dependencies.createBotSkillViewModel(widget.bot.id)
+      _skillViewModel = dependencies.createBotSkillViewModel(widget.bot)
         ..addListener(_handleSkillChanged);
       unawaited(_skillViewModel!.load());
     }
@@ -677,8 +677,33 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   onPressed:
                       () => _setSkillMode(skill.id, SkillActivationMode.always),
                 ),
+                if (viewModel.supportsAutoActivation)
+                  _buildSkillModeChoice(
+                    label: strings.autoActivation,
+                    description: strings.autoActivationDescription,
+                    selected: mode == SkillActivationMode.auto,
+                    onPressed:
+                        () => _setSkillMode(skill.id, SkillActivationMode.auto),
+                  ),
+                if (viewModel.supportsAutoActivation)
+                  ShadButton.ghost(
+                    key: ValueKey<String>('test-skill-description-${skill.id}'),
+                    size: ShadButtonSize.sm,
+                    width: 0,
+                    onPressed: () => _showSkillDescriptionTest(skill),
+                    leading: const Icon(LucideIcons.flaskConical, size: 14),
+                    child: Text(strings.testSkillDescription),
+                  ),
               ],
             ),
+            if (mode == SkillActivationMode.auto &&
+                !viewModel.supportsAutoActivation) ...[
+              const SizedBox(height: 8),
+              Text(
+                strings.autoActivationUnavailable,
+                style: DesktopThemeTokens.metaStyle(context),
+              ),
+            ],
           ],
         ],
       ),
@@ -989,6 +1014,91 @@ class _EditAIBotPageState extends State<EditBotPage> {
   Future<void> _setSkillMode(String skillId, SkillActivationMode mode) async {
     try {
       await _skillViewModel?.setActivationMode(skillId, mode);
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
+  }
+
+  Future<void> _showSkillDescriptionTest(SkillDescriptor skill) async {
+    final inputController = TextEditingController();
+    var shouldActivate = true;
+    final testCase = await showDialog<SkillDescriptionTestCase>(
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (context, setDialogState) => AlertDialog(
+                  title: Text(S.of(context).testSkillDescription),
+                  content: SizedBox(
+                    width: 480,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          key: const ValueKey<String>(
+                            'skill-description-test-input',
+                          ),
+                          controller: inputController,
+                          autofocus: true,
+                          minLines: 2,
+                          maxLines: 5,
+                          onChanged: (_) => setDialogState(() {}),
+                          decoration: InputDecoration(
+                            labelText: S.of(context).skillDescriptionTestInput,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: shouldActivate,
+                          onChanged:
+                              (value) => setDialogState(
+                                () => shouldActivate = value ?? true,
+                              ),
+                          title: Text(
+                            S.of(context).skillDescriptionShouldActivate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(
+                        MaterialLocalizations.of(context).cancelButtonLabel,
+                      ),
+                    ),
+                    FilledButton(
+                      onPressed:
+                          inputController.text.trim().isEmpty
+                              ? null
+                              : () => Navigator.of(dialogContext).pop(
+                                SkillDescriptionTestCase(
+                                  input: inputController.text.trim(),
+                                  shouldActivate: shouldActivate,
+                                ),
+                              ),
+                      child: Text(S.of(context).runSkillDescriptionTest),
+                    ),
+                  ],
+                ),
+          ),
+    );
+    inputController.dispose();
+    if (testCase == null || !mounted) return;
+    try {
+      final report = await _skillViewModel!.testDescription(
+        skillId: skill.id,
+        cases: [testCase],
+      );
+      if (!mounted) return;
+      final result = report.results.single;
+      showSnackBar(
+        context,
+        '${S.of(context).skillDescriptionTestResult}: '
+        '${result.activations}/${result.runs}',
+      );
     } catch (error) {
       if (mounted) showSnackBar(context, error.toString());
     }

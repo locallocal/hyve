@@ -94,6 +94,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "appName": MessageLookupByLibrary.simpleMessage("Stars"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AI चैट सहायक"),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("स्वचालित"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "समर्थित मॉडल इस कौशल को उसके विवरण के आधार पर सक्रिय कर सकते हैं।",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "यह प्रदाता केवल मैन्युअल कौशल का समर्थन करता है।",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("बॉट अवतार"),
     "botDeleted": m1,
@@ -119,6 +126,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("चैट साफ़ करें"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "चैट इतिहास साफ़ करें",
+    ),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
+      "बातचीत के पिन हटाएँ",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "बॉट जोड़ने के लिए ऊपरी दाएं कोने में + पर क्लिक करें",
@@ -297,6 +307,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("उत्पादन रोकें"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "इस बातचीत के लिए चयनित कौशल पिन करें",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("पिन किया गया"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले API कुंजी दर्ज करें",
     ),
@@ -328,6 +342,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
+      "जाँच चलाएँ",
+    ),
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("कौशल खोजें"),
@@ -345,6 +362,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "एसेट उपलब्ध हैं",
     ),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("संगतता"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "इस उदाहरण से कौशल सक्रिय होना चाहिए",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "उदाहरण उपयोगकर्ता अनुरोध",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "सक्रियण परिणाम",
+    ),
     "skillDetails": MessageLookupByLibrary.simpleMessage("कौशल का विवरण"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("सामग्री डाइजेस्ट"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
@@ -393,6 +419,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("प्रतिक्रिया भेजें"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("सिस्टम प्रॉम्प्ट"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage(
+      "विवरण जाँचें",
+    ),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "थीम डार्क मोड पर सेट की गई",
     ),

@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-
 const List<Locale> supportedLocales = <Locale>[
   Locale('zh', 'CN'), // 简体中文
   Locale('en', 'US'), // 英文

@@ -97,6 +97,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "appTitle": MessageLookupByLibrary.simpleMessage(
       "Stars - KI-Chat-Assistent",
     ),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("Automatisch"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Unterstützte Modelle können diese Fähigkeit anhand ihrer Beschreibung aktivieren.",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Dieser Anbieter unterstützt nur manuelle Fähigkeiten.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Bot-Avatar"),
     "botDeleted": m1,
@@ -122,6 +129,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("Chat löschen"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Chat-Verlauf löschen",
+    ),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
+      "Anheftungen des Gesprächs löschen",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "Klicken Sie auf + in der oberen rechten Ecke, um einen Bot hinzuzufügen",
@@ -308,6 +318,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Generierung pausieren",
     ),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "Auswahl für dieses Gespräch anheften",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("Angeheftet"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Bitte geben Sie zuerst den API-Schlüssel ein",
     ),
@@ -347,6 +361,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Auf Standard zurücksetzen",
     ),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
+      "Test ausführen",
+    ),
     "save": MessageLookupByLibrary.simpleMessage("Speichern"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Änderungen speichern"),
     "searchSkills": MessageLookupByLibrary.simpleMessage(
@@ -369,6 +386,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage(
       "Kompatibilität",
+    ),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "Dieses Beispiel soll die Fähigkeit aktivieren",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "Beispielanfrage",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "Aktivierungsergebnis",
     ),
     "skillDetails": MessageLookupByLibrary.simpleMessage("Fähigkeitsdetails"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("Inhalts-Hash"),
@@ -420,6 +446,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Feedback senden"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("System-Prompt"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage(
+      "Beschreibung testen",
+    ),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "Thema auf dunkles Design gesetzt",
     ),

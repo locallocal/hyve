@@ -96,6 +96,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "appTitle": MessageLookupByLibrary.simpleMessage(
       "Stars - Asistente de chat IA",
     ),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("Automática"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "Permite que los modelos compatibles activen esta habilidad según su descripción.",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Este proveedor solo admite habilidades manuales.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Avatar del bot"),
     "botDeleted": m1,
@@ -121,6 +128,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("Limpiar chat"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Borrar historial de chat",
+    ),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
+      "Borrar habilidades fijadas",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "Haz clic en + en la esquina superior derecha para añadir un bot",
@@ -317,6 +327,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Pausar generación",
     ),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "Fijar selección en esta conversación",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("Fijada"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Por favor, introduzca primero la clave API",
     ),
@@ -358,6 +372,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Restablecer valores predeterminados",
     ),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
+      "Ejecutar prueba",
+    ),
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Guardar cambios"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Buscar habilidades"),
@@ -380,6 +397,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage(
       "Compatibilidad",
+    ),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "Este ejemplo debe activar la habilidad",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "Solicitud de usuario de ejemplo",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage(
+      "Resultado de activación",
     ),
     "skillDetails": MessageLookupByLibrary.simpleMessage(
       "Detalles de la habilidad",
@@ -433,6 +459,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enviar Comentarios",
     ),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Prompt del sistema"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage(
+      "Probar descripción",
+    ),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "Tema configurado en modo oscuro",
     ),

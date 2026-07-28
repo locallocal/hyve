@@ -64,6 +64,29 @@ final class FileSkillRepository implements SkillRepository {
   }
 
   @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) async {
+    final descriptor = await getById(skillId);
+    if (descriptor == null) {
+      throw const SkillInstallException('Skill 不存在或已卸载。');
+    }
+    if (contentDigest != null && contentDigest != descriptor.contentDigest) {
+      throw const SkillInstallException('请求的 Skill 版本已不再安装。');
+    }
+    return SkillResourceContent(
+      skillId: descriptor.id,
+      path: relativePath,
+      content: await _storageService.readReference(
+        descriptor.rootPath,
+        relativePath,
+      ),
+    );
+  }
+
+  @override
   Future<SkillDescriptor> install(SkillImportSource source) async {
     final staged = await _storageService.stage(source);
     var committed = false;

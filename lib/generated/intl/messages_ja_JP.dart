@@ -91,6 +91,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "appName": MessageLookupByLibrary.simpleMessage("Stars"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AIチャットアシスタント"),
+    "autoActivation": MessageLookupByLibrary.simpleMessage("自動"),
+    "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
+      "対応モデルが説明に基づいてこのスキルを有効化します。",
+    ),
+    "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
+      "このプロバイダーは手動スキルのみ対応しています。",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("ボットのアバター"),
     "botDeleted": m1,
@@ -113,6 +120,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clear": MessageLookupByLibrary.simpleMessage("クリア"),
     "clearChat": MessageLookupByLibrary.simpleMessage("チャットをクリア"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("チャット履歴をクリア"),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("会話の固定を解除"),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "右上の+をクリックしてボットを追加",
     ),
@@ -248,6 +256,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "outputTokens": MessageLookupByLibrary.simpleMessage("出力トークン"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回答"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("生成を一時停止"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
+      "選択したスキルをこの会話に固定",
+    ),
+    "pinnedSkill": MessageLookupByLibrary.simpleMessage("固定済み"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "APIキーを先に入力してください",
     ),
@@ -271,6 +283,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("デフォルトに戻す"),
     "responseError": m17,
+    "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("テストを実行"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("スキルを検索"),
@@ -286,6 +299,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage("アセットあり"),
     "skillCompatibility": MessageLookupByLibrary.simpleMessage("互換性"),
+    "skillDescriptionShouldActivate": MessageLookupByLibrary.simpleMessage(
+      "この例ではスキルを有効化する",
+    ),
+    "skillDescriptionTestInput": MessageLookupByLibrary.simpleMessage(
+      "ユーザー依頼の例",
+    ),
+    "skillDescriptionTestResult": MessageLookupByLibrary.simpleMessage("有効化結果"),
     "skillDetails": MessageLookupByLibrary.simpleMessage("スキルの詳細"),
     "skillDigest": MessageLookupByLibrary.simpleMessage("コンテンツダイジェスト"),
     "skillDisabled": MessageLookupByLibrary.simpleMessage("無効"),
@@ -330,6 +350,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "structuredProcessInfo": MessageLookupByLibrary.simpleMessage("構造化された処理情報"),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("フィードバックを送信"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("システムプロンプト"),
+    "testSkillDescription": MessageLookupByLibrary.simpleMessage("説明をテスト"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "テーマがダークモードに設定されました",
     ),

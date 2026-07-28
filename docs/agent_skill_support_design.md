@@ -873,6 +873,17 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 
 验收重点是误触发率和额外 Token，不以“支持自动”作为唯一完成标准。
 
+实现状态（2026-07-28）：
+
+- 已实现结构化 `activate_skill` 和 `read_skill_resource` 专用会话，不解析文本标记；
+- 已为 OpenAI 与 Anthropic Provider 开启结构化能力，其他 Provider 保持手动模式；
+- 已实现候选权限过滤、本地关键词召回、目录条数/Token 限制和确定性排序；
+- 已实现每轮最多 3 个 Skill、单 Skill/总上下文/资源/工具回合与调用次数预算；
+- 已实现 references 根目录约束、真实路径校验、UTF-8 与大小限制；
+- 已实现会话级 pin 持久化、自动模式设置、Provider 降级提示和描述触发测试；
+- 自动激活、跳过、失败与资源读取会写入消息执行信息，激活记录写入审计表；
+- 预检请求 Token 会与最终生成 Token 合并记账。
+
 ### Phase 3：结构化 Tool 与 Agent Loop
 
 目标：

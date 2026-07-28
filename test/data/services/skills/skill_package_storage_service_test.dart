@@ -39,6 +39,9 @@ description: Summarize supplied material.
 Keep the summary concise.
 ''');
       await File('${source.path}/references/tone.md').create(recursive: true);
+      await File(
+        '${source.path}/references/tone.md',
+      ).writeAsString('Use a neutral tone.');
 
       final staged = await service.stage(
         SkillImportSource(kind: SkillImportKind.directory, path: source.path),
@@ -61,6 +64,18 @@ Keep the summary concise.
       expect(
         await service.listFiles(stored.rootPath),
         containsAll(<String>['SKILL.md', 'references/tone.md']),
+      );
+      expect(
+        await service.readReference(stored.rootPath, 'references/tone.md'),
+        'Use a neutral tone.',
+      );
+      await expectLater(
+        service.readReference(stored.rootPath, '../SKILL.md'),
+        throwsA(isA<SkillInstallException>()),
+      );
+      await expectLater(
+        service.readReference(stored.rootPath, 'SKILL.md'),
+        throwsA(isA<SkillInstallException>()),
       );
     },
   );

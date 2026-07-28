@@ -14,9 +14,9 @@ enum SkillDiagnosticSeverity { warning, error }
 
 enum SkillActivationMode { manual, auto, always }
 
-enum SkillActivationTrigger { manual, always }
+enum SkillActivationTrigger { manual, always, model, pinned }
 
-enum SkillActivationStatus { activated, failed }
+enum SkillActivationStatus { activated, failed, skipped }
 
 enum SkillImportKind { directory, zipArchive }
 
@@ -118,6 +118,34 @@ final class SkillContent {
   final List<String> files;
 }
 
+final class SkillResourceContent {
+  const SkillResourceContent({
+    required this.skillId,
+    required this.path,
+    required this.content,
+  });
+
+  final String skillId;
+  final String path;
+  final String content;
+}
+
+final class SkillCatalogEntry {
+  const SkillCatalogEntry({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.contentDigest,
+    required this.priority,
+  });
+
+  final String id;
+  final String name;
+  final String description;
+  final String contentDigest;
+  final int priority;
+}
+
 final class SkillImportSource {
   const SkillImportSource({required this.kind, required this.path});
 
@@ -162,6 +190,18 @@ final class BotSkillBinding {
   }
 }
 
+final class ConversationSkillPin {
+  const ConversationSkillPin({
+    required this.chatId,
+    required this.skillId,
+    required this.createdAt,
+  });
+
+  final String chatId;
+  final String skillId;
+  final DateTime createdAt;
+}
+
 final class ActivatedSkill {
   const ActivatedSkill({
     required this.id,
@@ -174,6 +214,72 @@ final class ActivatedSkill {
   final String name;
   final String contentDigest;
   final SkillActivationTrigger trigger;
+}
+
+final class SkillActivationAttempt {
+  const SkillActivationAttempt({
+    required this.skillId,
+    required this.skillName,
+    required this.contentDigest,
+    required this.trigger,
+    required this.status,
+    required this.startedAt,
+    required this.completedAt,
+    this.durationMs,
+    this.errorCode = '',
+  });
+
+  final String skillId;
+  final String skillName;
+  final String contentDigest;
+  final SkillActivationTrigger trigger;
+  final SkillActivationStatus status;
+  final DateTime startedAt;
+  final DateTime completedAt;
+  final int? durationMs;
+  final String errorCode;
+}
+
+final class SkillDescriptionTestCase {
+  const SkillDescriptionTestCase({
+    required this.input,
+    required this.shouldActivate,
+  });
+
+  final String input;
+  final bool shouldActivate;
+}
+
+final class SkillDescriptionTestResult {
+  const SkillDescriptionTestResult({
+    required this.testCase,
+    required this.runs,
+    required this.activations,
+  });
+
+  final SkillDescriptionTestCase testCase;
+  final int runs;
+  final int activations;
+
+  double get activationRate => runs == 0 ? 0 : activations / runs;
+
+  bool get passed =>
+      testCase.shouldActivate
+          ? activations > runs / 2
+          : activations <= runs / 2;
+}
+
+final class SkillDescriptionTestReport {
+  SkillDescriptionTestReport({
+    required this.skill,
+    required List<SkillDescriptionTestResult> results,
+  }) : results = List<SkillDescriptionTestResult>.unmodifiable(results);
+
+  final SkillDescriptor skill;
+  final List<SkillDescriptionTestResult> results;
+
+  int get passedCount => results.where((result) => result.passed).length;
+  bool get passed => results.isNotEmpty && passedCount == results.length;
 }
 
 final class SkillActivationRecord {

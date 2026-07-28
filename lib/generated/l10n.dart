@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -29,9 +28,10 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -1455,7 +1455,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2771,6 +2772,111 @@ class S {
     return Intl.message(
       'Inject this Skill into every text request.',
       name: 'alwaysActivationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic`
+  String get autoActivation {
+    return Intl.message(
+      'Automatic',
+      name: 'autoActivation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Let supported models activate this Skill from its description.`
+  String get autoActivationDescription {
+    return Intl.message(
+      'Let supported models activate this Skill from its description.',
+      name: 'autoActivationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This provider supports manual Skills only.`
+  String get autoActivationUnavailable {
+    return Intl.message(
+      'This provider supports manual Skills only.',
+      name: 'autoActivationUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test description`
+  String get testSkillDescription {
+    return Intl.message(
+      'Test description',
+      name: 'testSkillDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Example user request`
+  String get skillDescriptionTestInput {
+    return Intl.message(
+      'Example user request',
+      name: 'skillDescriptionTestInput',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This example should activate the Skill`
+  String get skillDescriptionShouldActivate {
+    return Intl.message(
+      'This example should activate the Skill',
+      name: 'skillDescriptionShouldActivate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run test`
+  String get runSkillDescriptionTest {
+    return Intl.message(
+      'Run test',
+      name: 'runSkillDescriptionTest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activation result`
+  String get skillDescriptionTestResult {
+    return Intl.message(
+      'Activation result',
+      name: 'skillDescriptionTestResult',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pinned`
+  String get pinnedSkill {
+    return Intl.message('Pinned', name: 'pinnedSkill', desc: '', args: []);
+  }
+
+  /// `Pin selected for this conversation`
+  String get pinSelectedSkills {
+    return Intl.message(
+      'Pin selected for this conversation',
+      name: 'pinSelectedSkills',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear conversation pins`
+  String get clearPinnedSkills {
+    return Intl.message(
+      'Clear conversation pins',
+      name: 'clearPinnedSkills',
       desc: '',
       args: [],
     );

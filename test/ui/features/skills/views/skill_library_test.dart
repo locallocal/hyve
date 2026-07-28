@@ -197,6 +197,13 @@ final class _FakeSkillRepository implements SkillRepository {
       throw UnsupportedError('Loading content is not used in this test.');
 
   @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) => throw UnsupportedError('Resource reading is not used in this test.');
+
+  @override
   Future<void> uninstall(String skillId) =>
       throw UnsupportedError('Uninstall is not used in this test.');
 }

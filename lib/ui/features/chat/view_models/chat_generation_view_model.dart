@@ -162,6 +162,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
   ChatGenerationSnapshot _snapshot;
   Completer<ChatRunLifecycle>? _terminalCompleter;
   DateTime? _startedAt;
+  ModelTokenUsage _preflightTokenUsage = ModelTokenUsage.empty;
   final Set<String> _finalizingRuns = <String>{};
   final Set<String> _preflightCancellationRuns = <String>{};
 
@@ -182,6 +183,8 @@ class ChatGenerationViewModel extends ChangeNotifier {
     required Message userMessage,
     required List<ChatMessage> messages,
     List<ActivatedSkill> activatedSkills = const [],
+    List<SkillActivationAttempt> activationAttempts = const [],
+    ModelTokenUsage preflightTokenUsage = ModelTokenUsage.empty,
   }) async {
     if (hasBlockingRun) return false;
 
@@ -205,6 +208,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
           ..setDeepThinking(_capabilityProvider.getDeepThinking());
     _runProvider = provider;
     _startedAt = DateTime.now();
+    _preflightTokenUsage = preflightTokenUsage;
     _terminalCompleter = Completer<ChatRunLifecycle>();
     _snapshot = ChatGenerationSnapshot(
       chatId: chatId,
@@ -212,6 +216,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
       turnId: turnId,
       lifecycle: ChatRunLifecycle.submitting,
       supportsCancellation: provider.supportsCancellation,
+      tokenUsage: preflightTokenUsage,
     );
     notifyListeners();
 
@@ -238,6 +243,7 @@ class ChatGenerationViewModel extends ChangeNotifier {
       runId: runId,
       messageId: identifiedUser.messageId,
       activatedSkills: activatedSkills,
+      activationAttempts: activationAttempts,
     );
 
     unawaited(_updateLastMessageSafely(identifiedUser.content));
@@ -430,8 +436,15 @@ class ChatGenerationViewModel extends ChangeNotifier {
 
   void _onTokenUsage(String runId, ModelTokenUsage usage) {
     if (!_canReduceProviderEvent(runId)) return;
+    final combined = _preflightTokenUsage + usage;
     _snapshot = _snapshot.copyWith(
-      tokenUsage: _snapshot.tokenUsage.merge(usage),
+      tokenUsage: ModelTokenUsage(
+        model:
+            usage.model.isNotEmpty ? usage.model : _preflightTokenUsage.model,
+        inputTokens: combined.inputTokens,
+        outputTokens: combined.outputTokens,
+        totalTokens: combined.totalTokens,
+      ),
     );
     notifyListeners();
   }
@@ -564,25 +577,46 @@ class ChatGenerationViewModel extends ChangeNotifier {
     required String runId,
     required String messageId,
     required List<ActivatedSkill> activatedSkills,
+    required List<SkillActivationAttempt> activationAttempts,
   }) async {
     final persister = _skillActivationPersister;
-    if (persister == null || activatedSkills.isEmpty) return;
+    if (persister == null ||
+        (activatedSkills.isEmpty && activationAttempts.isEmpty)) {
+      return;
+    }
     final startedAt = _startedAt ?? DateTime.now();
+    final attempts =
+        activationAttempts.isNotEmpty
+            ? activationAttempts
+            : [
+              for (final skill in activatedSkills)
+                SkillActivationAttempt(
+                  skillId: skill.id,
+                  skillName: skill.name,
+                  contentDigest: skill.contentDigest,
+                  trigger: skill.trigger,
+                  status: SkillActivationStatus.activated,
+                  startedAt: startedAt,
+                  completedAt: DateTime.now(),
+                ),
+            ];
     try {
       await persister([
-        for (var index = 0; index < activatedSkills.length; index++)
+        for (var index = 0; index < attempts.length; index++)
           SkillActivationRecord(
             id: '$runId:skill:$index',
             runId: runId,
             chatId: chatId,
             messageId: messageId,
-            skillId: activatedSkills[index].id,
-            skillName: activatedSkills[index].name,
-            contentDigest: activatedSkills[index].contentDigest,
-            trigger: activatedSkills[index].trigger,
-            status: SkillActivationStatus.activated,
-            startedAt: startedAt,
-            completedAt: DateTime.now(),
+            skillId: attempts[index].skillId,
+            skillName: attempts[index].skillName,
+            contentDigest: attempts[index].contentDigest,
+            trigger: attempts[index].trigger,
+            status: attempts[index].status,
+            startedAt: attempts[index].startedAt,
+            completedAt: attempts[index].completedAt,
+            durationMs: attempts[index].durationMs,
+            errorCode: attempts[index].errorCode,
           ),
       ]);
     } catch (error) {

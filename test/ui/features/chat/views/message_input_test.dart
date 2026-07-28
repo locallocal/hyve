@@ -143,6 +143,43 @@ void main() {
       expect(secondRect.top - firstRect.bottom, 4);
     });
 
+    testWidgets('Skill picker exposes conversation pin actions', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final skill = _skill();
+      var pinCalls = 0;
+      var clearCalls = 0;
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        availableSkills: [skill],
+        selectedSkillIds: {skill.id},
+        canPinSelectedSkills: true,
+        onPinSelectedSkills: () => pinCalls += 1,
+      );
+      await tester.tap(find.text('技能 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('在当前会话中固定已选技能'));
+      expect(pinCalls, 1);
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        availableSkills: [skill],
+        selectedSkillIds: {skill.id},
+        pinnedSkillIds: {skill.id},
+        onClearPinnedSkills: () => clearCalls += 1,
+      );
+      await tester.tap(find.text('技能 1'));
+      await tester.pumpAndSettle();
+      expect(find.text('release-notes · 已固定'), findsOneWidget);
+      await tester.tap(find.text('清除会话固定技能'));
+      expect(clearCalls, 1);
+    });
+
     testWidgets('web search mirrors empty and ready send button styles', (
       tester,
     ) async {
@@ -330,8 +367,12 @@ Future<void> _pumpMessageInput(
   VoidCallback? onCancel,
   List<SkillDescriptor> availableSkills = const [],
   Set<String> selectedSkillIds = const {},
+  Set<String> pinnedSkillIds = const {},
   bool Function(String skillId)? isSkillAlways,
   ValueChanged<String>? onSkillToggled,
+  bool canPinSelectedSkills = false,
+  VoidCallback? onPinSelectedSkills,
+  VoidCallback? onClearPinnedSkills,
 }) async {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -395,8 +436,12 @@ Future<void> _pumpMessageInput(
                             onCancelRequest: onCancel ?? _noop,
                             availableSkills: availableSkills,
                             selectedSkillIds: selectedSkillIds,
+                            pinnedSkillIds: pinnedSkillIds,
                             isSkillAlways: isSkillAlways,
                             onSkillToggled: onSkillToggled,
+                            canPinSelectedSkills: canPinSelectedSkills,
+                            onPinSelectedSkills: onPinSelectedSkills,
+                            onClearPinnedSkills: onClearPinnedSkills,
                           ),
                         ),
                       ),

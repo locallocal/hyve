@@ -98,9 +98,10 @@ final class AgentRunCoordinator {
     ModelEventObserver? onModelEvent,
     ToolInvocationObserver? onToolInvocation,
   }) async {
-    final exposedTools = _toolRegistry.list(
-      allowedNames: request.requestedToolNames,
-    );
+    final exposedTools =
+        request.requestedToolNames.isEmpty
+            ? const <ToolDefinition>[]
+            : _toolRegistry.list(allowedNames: request.requestedToolNames);
     final exposedNames = exposedTools.map((tool) => tool.name).toSet();
     final policyContext = ToolPolicyContext(
       runId: request.runId,

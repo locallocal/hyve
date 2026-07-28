@@ -271,6 +271,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("MCP सर्वर"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "रिमोट MCP टूल कनेक्ट करें और नियंत्रित करें कि एजेंट किन टूल का उपयोग कर सकते हैं।",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
     "minutesAgo": m11,

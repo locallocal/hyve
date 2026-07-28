@@ -3,6 +3,7 @@ import 'package:stars/data/repositories/attachment_repository_impl.dart';
 import 'package:stars/data/repositories/feedback_repository_impl.dart';
 import 'package:stars/data/repositories/legal_document_repository_impl.dart';
 import 'package:stars/data/repositories/file_skill_repository.dart';
+import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
 import 'package:stars/data/repositories/skill_picker_repository_impl.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
@@ -16,6 +17,11 @@ import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/data/services/local_database_service.dart';
+import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
+import 'package:stars/data/services/mcp/mcp_client_service.dart';
+import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
+import 'package:stars/data/services/mcp/mcp_http_transport.dart';
+import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
 import 'package:stars/data/services/skills/skill_package_storage_service.dart';
 import 'package:stars/data/services/skills/skill_parser.dart';
 import 'package:stars/data/services/skills/skill_picker_service.dart';
@@ -31,6 +37,8 @@ import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart
 import 'package:stars/domain/repositories/feedback_repository.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
@@ -49,6 +57,7 @@ import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.d
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
 import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
+import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
 import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
@@ -70,6 +79,9 @@ class AppDependencies {
     required this.botSkillBindingRepository,
     required this.conversationSkillPinRepository,
     required this.skillRunRepository,
+    required this.mcpServerRepository,
+    required this.mcpCredentialStore,
+    required this.mcpCatalogService,
     required this.toolRegistry,
     required this.toolPolicy,
     required this.composeChatTurn,
@@ -120,12 +132,25 @@ class AppDependencies {
     final conversationSkillPinRepository = SqliteConversationSkillPinRepository(
       localDatabase: localDatabase,
     );
+    final mcpServerRepository = SqliteMcpServerRepository(
+      localDatabase: localDatabase,
+    );
+    final mcpCredentialStore = SecureMcpCredentialStore();
+    final mcpClient = McpClientService(
+      transport: McpHttpTransport(endpointPolicy: McpEndpointPolicy()),
+      credentialStore: mcpCredentialStore,
+    );
     final composeChatTurn = ComposeChatTurn(
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
     );
-    final toolRegistry = StaticToolRegistry(createBuiltInTools());
-    const toolPolicy = DefaultToolPolicy();
+    final toolRegistry = DynamicToolRegistry(createBuiltInTools());
+    final mcpCatalogService = McpCatalogService(
+      repository: mcpServerRepository,
+      client: mcpClient,
+      toolRegistry: toolRegistry,
+    );
+    const toolPolicy = DefaultToolPolicy(allowDestructiveWithApproval: true);
     return AppDependencies(
       botRepository: botRepository,
       chatRepository: chatRepository,
@@ -140,6 +165,9 @@ class AppDependencies {
       botSkillBindingRepository: botSkillBindingRepository,
       conversationSkillPinRepository: conversationSkillPinRepository,
       skillRunRepository: skillRunRepository,
+      mcpServerRepository: mcpServerRepository,
+      mcpCredentialStore: mcpCredentialStore,
+      mcpCatalogService: mcpCatalogService,
       toolRegistry: toolRegistry,
       toolPolicy: toolPolicy,
       composeChatTurn: composeChatTurn,
@@ -169,14 +197,19 @@ class AppDependencies {
   final BotSkillBindingRepository botSkillBindingRepository;
   final ConversationSkillPinRepository conversationSkillPinRepository;
   final SkillRunRepository skillRunRepository;
+  final McpServerRepository mcpServerRepository;
+  final McpCredentialStore mcpCredentialStore;
+  final McpCatalogService mcpCatalogService;
   final ToolRegistry toolRegistry;
   final ToolPolicy toolPolicy;
   final ComposeChatTurn composeChatTurn;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
 
-  StartupViewModel createStartupViewModel() =>
-      StartupViewModel(profileRepository: profileRepository);
+  StartupViewModel createStartupViewModel() => StartupViewModel(
+    profileRepository: profileRepository,
+    capabilityInitializer: mcpCatalogService.hydrateFromCache,
+  );
 
   AppViewModel createAppViewModel(Profile initialProfile) => AppViewModel(
     initialProfile: initialProfile,
@@ -215,6 +248,12 @@ class AppDependencies {
   SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
     skillRepository: skillRepository,
     pickerRepository: skillPickerRepository,
+  );
+
+  McpServersViewModel createMcpServersViewModel() => McpServersViewModel(
+    repository: mcpServerRepository,
+    credentialStore: mcpCredentialStore,
+    catalogService: mcpCatalogService,
   );
 
   ChatSkillViewModel createChatSkillViewModel(String chatId, Bot bot) =>

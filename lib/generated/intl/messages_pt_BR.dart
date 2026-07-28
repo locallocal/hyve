@@ -280,6 +280,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Selecione a habilidade no campo de mensagem quando precisar.",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("Servidores MCP"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Conecte ferramentas MCP remotas e controle quais os agentes podem usar.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
       "Digite uma mensagem...",
     ),

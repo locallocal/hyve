@@ -607,5 +607,7 @@
     "alwaysOn": "常に有効",
     "skillNotExecutable": "このバージョンでは、スキル内のスクリプトやコマンドは実行されません。",
     "skillSafetyDescription": "SKILL.md は管理されたプロンプト指示としてのみ読み込まれます。スクリプト、コマンド、外部ツールは無効のままです。",
-    "skillUserScope": "ユーザー"
+    "skillUserScope": "ユーザー",
+    "mcpServers": "MCP サーバー",
+    "mcpServersDescription": "リモート MCP ツールに接続し、エージェントが使用できるツールを管理します。"
 }

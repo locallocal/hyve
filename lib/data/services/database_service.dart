@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 8;
+  static const int databaseVersion = 9;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -102,6 +102,7 @@ class DatabaseService {
     await _createTokenUsageSchema(db);
     await _createSkillSchema(db);
     await _createConversationSkillPinSchema(db);
+    await _createMcpSchema(db);
 
     // 创建智能体表
     await db.execute('''
@@ -257,6 +258,9 @@ class DatabaseService {
     if (oldVersion < 8 && newVersion >= 8) {
       await _createConversationSkillPinSchema(db);
     }
+    if (oldVersion < 9 && newVersion >= 9) {
+      await _createMcpSchema(db);
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -363,6 +367,48 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS conversation_skill_pins_skill_id_index '
       'ON conversation_skill_pins(skill_id)',
+    );
+  }
+
+  static Future<void> _createMcpSchema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mcp_servers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        namespace TEXT NOT NULL UNIQUE,
+        endpoint_uri TEXT NOT NULL,
+        auth_type TEXT NOT NULL DEFAULT 'none',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        protocol_version TEXT NOT NULL DEFAULT '',
+        remote_server_name TEXT NOT NULL DEFAULT '',
+        remote_server_version TEXT NOT NULL DEFAULT '',
+        capabilities_json TEXT NOT NULL DEFAULT '{}',
+        connection_status TEXT NOT NULL DEFAULT 'disconnected',
+        last_error_code TEXT NOT NULL DEFAULT '',
+        last_connected_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mcp_tools (
+        server_id TEXT NOT NULL,
+        remote_name TEXT NOT NULL,
+        namespace TEXT NOT NULL,
+        canonical_name TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        input_schema_json TEXT NOT NULL,
+        output_schema_json TEXT,
+        annotations_json TEXT NOT NULL DEFAULT '{}',
+        enabled INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (server_id, remote_name)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS mcp_tools_server_id_index '
+      'ON mcp_tools(server_id)',
     );
   }
 

@@ -607,5 +607,7 @@
     "alwaysOn": "Sempre ativa",
     "skillNotExecutable": "Esta versão não executa scripts ou comandos das habilidades.",
     "skillSafetyDescription": "O SKILL.md é carregado apenas como orientação controlada de prompt; scripts, comandos e ferramentas externas permanecem desativados.",
-    "skillUserScope": "Usuário"
+    "skillUserScope": "Usuário",
+    "mcpServers": "Servidores MCP",
+    "mcpServersDescription": "Conecte ferramentas MCP remotas e controle quais os agentes podem usar."
 }

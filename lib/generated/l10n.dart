@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -29,9 +28,10 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -1455,7 +1455,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2914,6 +2915,341 @@ class S {
   /// `User`
   String get skillUserScope {
     return Intl.message('User', name: 'skillUserScope', desc: '', args: []);
+  }
+
+  /// `MCP Servers`
+  String get mcpServers {
+    return Intl.message('MCP Servers', name: 'mcpServers', desc: '', args: []);
+  }
+
+  /// `Connect remote MCP Tools and control which ones agents may use.`
+  String get mcpServersDescription {
+    return Intl.message(
+      'Connect remote MCP Tools and control which ones agents may use.',
+      name: 'mcpServersDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add MCP Server`
+  String get addMcpServer {
+    return Intl.message(
+      'Add MCP Server',
+      name: 'addMcpServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote MCP only`
+  String get remoteMcpOnly {
+    return Intl.message(
+      'Remote MCP only',
+      name: 'remoteMcpOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local process-based MCP servers remain disabled pending a platform security review.`
+  String get localMcpDisabledDescription {
+    return Intl.message(
+      'Local process-based MCP servers remain disabled pending a platform security review.',
+      name: 'localMcpDisabledDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.`
+  String get mcpProgressiveDiscoveryDescription {
+    return Intl.message(
+      'Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.',
+      name: 'mcpProgressiveDiscoveryDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote MCP endpoints must use HTTPS.`
+  String get mcpHttpsRequired {
+    return Intl.message(
+      'Remote MCP endpoints must use HTTPS.',
+      name: 'mcpHttpsRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Private, local, and link-local MCP endpoints are blocked.`
+  String get mcpPrivateEndpointBlocked {
+    return Intl.message(
+      'Private, local, and link-local MCP endpoints are blocked.',
+      name: 'mcpPrivateEndpointBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authorization required`
+  String get mcpAuthorizationRequired {
+    return Intl.message(
+      'Authorization required',
+      name: 'mcpAuthorizationRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The MCP request timed out.`
+  String get mcpRequestTimedOut {
+    return Intl.message(
+      'The MCP request timed out.',
+      name: 'mcpRequestTimedOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The MCP server uses an unsupported protocol version.`
+  String get mcpUnsupportedProtocol {
+    return Intl.message(
+      'The MCP server uses an unsupported protocol version.',
+      name: 'mcpUnsupportedProtocol',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MCP connection failed: {error}`
+  String mcpConnectionFailed(String error) {
+    return Intl.message(
+      'MCP connection failed: $error',
+      name: 'mcpConnectionFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Delete MCP Server`
+  String get deleteMcpServer {
+    return Intl.message(
+      'Delete MCP Server',
+      name: 'deleteMcpServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete {name}? Its cached Tool catalog and secure credential will also be removed.`
+  String confirmDeleteMcpServer(String name) {
+    return Intl.message(
+      'Delete $name? Its cached Tool catalog and secure credential will also be removed.',
+      name: 'confirmDeleteMcpServer',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Tools`
+  String get mcpTools {
+    return Intl.message('Tools', name: 'mcpTools', desc: '', args: []);
+  }
+
+  /// `Refresh Tools`
+  String get refreshMcpTools {
+    return Intl.message(
+      'Refresh Tools',
+      name: 'refreshMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit MCP Server`
+  String get editMcpServer {
+    return Intl.message(
+      'Edit MCP Server',
+      name: 'editMcpServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Tools discovered. Check the connection and refresh.`
+  String get noMcpToolsDiscovered {
+    return Intl.message(
+      'No Tools discovered. Check the connection and refresh.',
+      name: 'noMcpToolsDiscovered',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This Tool has an unsupported input schema and cannot be enabled.`
+  String get mcpToolSchemaUnsupported {
+    return Intl.message(
+      'This Tool has an unsupported input schema and cannot be enabled.',
+      name: 'mcpToolSchemaUnsupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected`
+  String get mcpConnected {
+    return Intl.message('Connected', name: 'mcpConnected', desc: '', args: []);
+  }
+
+  /// `Connecting`
+  String get mcpConnecting {
+    return Intl.message(
+      'Connecting',
+      name: 'mcpConnecting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection error`
+  String get mcpConnectionError {
+    return Intl.message(
+      'Connection error',
+      name: 'mcpConnectionError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disconnected`
+  String get mcpDisconnected {
+    return Intl.message(
+      'Disconnected',
+      name: 'mcpDisconnected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server name`
+  String get mcpServerName {
+    return Intl.message(
+      'Server name',
+      name: 'mcpServerName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tool namespace`
+  String get mcpNamespace {
+    return Intl.message(
+      'Tool namespace',
+      name: 'mcpNamespace',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `1–32 lowercase letters, digits, underscores, or hyphens.`
+  String get mcpNamespaceDescription {
+    return Intl.message(
+      '1–32 lowercase letters, digits, underscores, or hyphens.',
+      name: 'mcpNamespaceDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Streamable HTTP endpoint`
+  String get mcpEndpoint {
+    return Intl.message(
+      'Streamable HTTP endpoint',
+      name: 'mcpEndpoint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authentication`
+  String get mcpAuthentication {
+    return Intl.message(
+      'Authentication',
+      name: 'mcpAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `None`
+  String get mcpNoAuthentication {
+    return Intl.message(
+      'None',
+      name: 'mcpNoAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OAuth / bearer access token`
+  String get mcpAccessToken {
+    return Intl.message(
+      'OAuth / bearer access token',
+      name: 'mcpAccessToken',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stored in the operating system's secure credential store.`
+  String get mcpTokenStoredSecurely {
+    return Intl.message(
+      'Stored in the operating system\'s secure credential store.',
+      name: 'mcpTokenStoredSecurely',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leave blank to keep the existing secure credential.`
+  String get mcpTokenLeaveBlank {
+    return Intl.message(
+      'Leave blank to keep the existing secure credential.',
+      name: 'mcpTokenLeaveBlank',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save and connect`
+  String get saveAndConnect {
+    return Intl.message(
+      'Save and connect',
+      name: 'saveAndConnect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No MCP Servers`
+  String get noMcpServers {
+    return Intl.message(
+      'No MCP Servers',
+      name: 'noMcpServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add a remote Streamable HTTP server to discover its Tool catalog.`
+  String get noMcpServersDescription {
+    return Intl.message(
+      'Add a remote Streamable HTTP server to discover its Tool catalog.',
+      name: 'noMcpServersDescription',
+      desc: '',
+      args: [],
+    );
   }
 }
 

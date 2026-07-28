@@ -215,6 +215,69 @@ void main() {
       );
     },
   );
+
+  test('provider-safe aliases round-trip canonical MCP Tool names', () async {
+    Map<String, Object?>? sentPayload;
+    final client = MockClient((request) async {
+      sentPayload = (jsonDecode(request.body) as Map<Object?, Object?>).map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+      final tools = sentPayload!['tools']! as List<Object?>;
+      final function =
+          (tools.single as Map<Object?, Object?>)['function']!
+              as Map<Object?, Object?>;
+      final wireName = function['name']! as String;
+      return http.Response(
+        jsonEncode({
+          'choices': [
+            {
+              'message': {
+                'content': null,
+                'tool_calls': [
+                  {
+                    'id': 'mcp-call-1',
+                    'type': 'function',
+                    'function': {'name': wireName, 'arguments': '{}'},
+                  },
+                ],
+              },
+              'finish_reason': 'tool_calls',
+            },
+          ],
+        }),
+        200,
+      );
+    });
+    final provider = OpenAI(_bot, skillToolClient: client);
+    final request = ModelRequest(
+      messages: [ChatMessage(role: 'user', content: 'Search')],
+      tools: [
+        ToolDefinition(
+          name: 'mcp.docs.search',
+          description: 'Search documents.',
+          inputSchema: const {'type': 'object'},
+          source: ToolSource.mcp,
+          riskLevel: ToolRiskLevel.readOnly,
+          capabilities: const {ToolCapability.network},
+        ),
+      ],
+    );
+    final session = provider.openModelSession(request);
+    addTearDown(session.close);
+
+    final events = await session.start().toList();
+    final tools = sentPayload!['tools']! as List<Object?>;
+    final function =
+        (tools.single as Map<Object?, Object?>)['function']!
+            as Map<Object?, Object?>;
+
+    expect(function['name'], isNot('mcp.docs.search'));
+    expect(function['name'], matches(RegExp(r'^[A-Za-z0-9_-]{1,64}$')));
+    expect(
+      events.whereType<ToolCallRequested>().single.name,
+      'mcp.docs.search',
+    );
+  });
 }
 
 final _bot = Bot(

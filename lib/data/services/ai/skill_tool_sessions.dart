@@ -243,6 +243,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     required ProviderResponseDecoder decodeResponse,
   }) : _bot = bot,
        _request = request,
+       _toolNames = _ProviderToolNameCodec(request.tools),
        _messages =
            formattedMessages
                .map((message) => Map<String, Object?>.from(message))
@@ -255,6 +256,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
 
   final Bot _bot;
   final ModelRequest _request;
+  final _ProviderToolNameCodec _toolNames;
   final List<Map<String, Object?>> _messages;
   final Uri _uri;
   final Map<String, String> _headers;
@@ -297,7 +299,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
             'model': _bot.model,
             'messages': _messages,
             if (_request.tools.isNotEmpty) ...{
-              'tools': _openAiTools(_request.tools),
+              'tools': _openAiTools(_request.tools, _toolNames),
               'tool_choice': 'auto',
               'parallel_tool_calls': _request.options.allowParallelToolCalls,
             },
@@ -341,7 +343,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
       final call = _objectMap(rawCall);
       final function = _objectMap(call['function']);
       final callId = call['id']?.toString() ?? '';
-      final name = function['name']?.toString() ?? '';
+      final name = _toolNames.canonical(function['name']?.toString() ?? '');
       final rawArguments = function['arguments'];
       yield ToolCallStarted(callId: callId, name: name);
       if (rawArguments is String && rawArguments.isNotEmpty) {
@@ -392,6 +394,7 @@ final class AnthropicAgentModelSession implements AgentModelSession {
     required ProviderResponseDecoder decodeResponse,
   }) : _bot = bot,
        _request = request,
+       _toolNames = _ProviderToolNameCodec(request.tools),
        _system = system,
        _messages =
            formattedMessages
@@ -406,6 +409,7 @@ final class AnthropicAgentModelSession implements AgentModelSession {
 
   final Bot _bot;
   final ModelRequest _request;
+  final _ProviderToolNameCodec _toolNames;
   final String _system;
   final List<Map<String, Object?>> _messages;
   final Uri _uri;
@@ -456,7 +460,7 @@ final class AnthropicAgentModelSession implements AgentModelSession {
             'messages': _messages,
             'system': _system,
             if (_request.tools.isNotEmpty) ...{
-              'tools': _anthropicTools(_request.tools),
+              'tools': _anthropicTools(_request.tools, _toolNames),
               'tool_choice': {'type': 'auto'},
             },
             'max_tokens': _maxTokens,
@@ -487,7 +491,7 @@ final class AnthropicAgentModelSession implements AgentModelSession {
           if (thinking.isNotEmpty) yield ReasoningDelta(thinking);
         case 'tool_use':
           final callId = block['id']?.toString() ?? '';
-          final name = block['name']?.toString() ?? '';
+          final name = _toolNames.canonical(block['name']?.toString() ?? '');
           yield ToolCallStarted(callId: callId, name: name);
           yield ToolCallRequested(
             callId: callId,
@@ -560,13 +564,16 @@ List<Map<String, Object?>> _openAiSkillTools(List<SkillCatalogEntry> catalog) {
   ];
 }
 
-List<Map<String, Object?>> _openAiTools(List<ToolDefinition> definitions) {
+List<Map<String, Object?>> _openAiTools(
+  List<ToolDefinition> definitions,
+  _ProviderToolNameCodec names,
+) {
   return [
     for (final definition in definitions)
       {
         'type': 'function',
         'function': {
-          'name': definition.name,
+          'name': names.wire(definition.name),
           'description': definition.description,
           'parameters': definition.inputSchema,
         },
@@ -574,15 +581,67 @@ List<Map<String, Object?>> _openAiTools(List<ToolDefinition> definitions) {
   ];
 }
 
-List<Map<String, Object?>> _anthropicTools(List<ToolDefinition> definitions) {
+List<Map<String, Object?>> _anthropicTools(
+  List<ToolDefinition> definitions,
+  _ProviderToolNameCodec names,
+) {
   return [
     for (final definition in definitions)
       {
-        'name': definition.name,
+        'name': names.wire(definition.name),
         'description': definition.description,
         'input_schema': definition.inputSchema,
       },
   ];
+}
+
+final class _ProviderToolNameCodec {
+  _ProviderToolNameCodec(List<ToolDefinition> definitions) {
+    for (final definition in definitions) {
+      final canonical = definition.name;
+      final alias = _createAlias(canonical);
+      if (_canonicalByWire.containsKey(alias)) {
+        throw ArgumentError.value(
+          canonical,
+          'definitions',
+          'Provider Tool aliases must be unique.',
+        );
+      }
+      _wireByCanonical[canonical] = alias;
+      _canonicalByWire[alias] = canonical;
+    }
+  }
+
+  final Map<String, String> _wireByCanonical = {};
+  final Map<String, String> _canonicalByWire = {};
+
+  String wire(String canonical) => _wireByCanonical[canonical] ?? canonical;
+
+  String canonical(String wireName) => _canonicalByWire[wireName] ?? wireName;
+
+  String _createAlias(String canonical) {
+    if (canonical.length <= 64 &&
+        RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(canonical)) {
+      return canonical;
+    }
+    var base = canonical.replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+    if (base.isEmpty) base = 'tool';
+    final hash = _stableToolNameHash(canonical);
+    final maximumBaseLength = 64 - hash.length - 1;
+    if (base.length > maximumBaseLength) {
+      base = base.substring(0, maximumBaseLength);
+    }
+    return '${base}_$hash';
+  }
+}
+
+String _stableToolNameHash(String value) {
+  var hash = 0x811c9dc5;
+  for (final byte in utf8.encode(value)) {
+    hash ^= byte;
+    hash = (hash * 0x01000193) & 0xffffffff;
+  }
+  return hash.toRadixString(16).padLeft(8, '0');
 }
 
 List<Map<String, Object?>> _anthropicSkillTools(

@@ -607,5 +607,7 @@
     "alwaysOn": "항상 사용",
     "skillNotExecutable": "이 버전에서는 스킬의 스크립트나 명령을 실행하지 않습니다.",
     "skillSafetyDescription": "SKILL.md는 제어된 프롬프트 지침으로만 불러옵니다. 스크립트, 명령 및 외부 도구는 계속 비활성화됩니다.",
-    "skillUserScope": "사용자"
+    "skillUserScope": "사용자",
+    "mcpServers": "MCP 서버",
+    "mcpServersDescription": "원격 MCP 도구를 연결하고 에이전트가 사용할 수 있는 도구를 관리합니다."
 }

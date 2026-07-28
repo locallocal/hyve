@@ -95,6 +95,110 @@ class LocalDatabaseService {
     });
   }
 
+  Future<List<Map<String, Object?>>> loadMcpServers() async {
+    final database = await _databaseProvider();
+    return database.query('mcp_servers', orderBy: 'name ASC');
+  }
+
+  Future<List<Map<String, Object?>>> loadMcpServer(String id) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'mcp_servers',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+  }
+
+  Future<void> upsertMcpServer(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      final updated = await transaction.update(
+        'mcp_servers',
+        values,
+        where: 'id = ?',
+        whereArgs: [values['id']],
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      if (updated == 0) {
+        await transaction.insert(
+          'mcp_servers',
+          values,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      }
+    });
+  }
+
+  Future<void> deleteMcpServer(String id) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      await transaction.delete(
+        'mcp_tools',
+        where: 'server_id = ?',
+        whereArgs: [id],
+      );
+      await transaction.delete('mcp_servers', where: 'id = ?', whereArgs: [id]);
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadMcpTools(
+    String serverId, {
+    bool enabledOnly = false,
+  }) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'mcp_tools',
+      where: enabledOnly ? 'server_id = ? AND enabled = 1' : 'server_id = ?',
+      whereArgs: [serverId],
+      orderBy: 'remote_name ASC',
+    );
+  }
+
+  Future<void> replaceMcpTools(
+    String serverId,
+    Iterable<Map<String, Object?>> records,
+  ) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      await transaction.delete(
+        'mcp_tools',
+        where: 'server_id = ?',
+        whereArgs: [serverId],
+      );
+      for (final values in records) {
+        await transaction.insert('mcp_tools', values);
+      }
+    });
+  }
+
+  Future<void> clearMcpTools(String serverId) async {
+    final database = await _databaseProvider();
+    await database.delete(
+      'mcp_tools',
+      where: 'server_id = ?',
+      whereArgs: [serverId],
+    );
+  }
+
+  Future<void> setMcpToolEnabled(
+    String serverId,
+    String remoteName, {
+    required bool enabled,
+    required DateTime updatedAt,
+  }) async {
+    final database = await _databaseProvider();
+    await database.update(
+      'mcp_tools',
+      {
+        'enabled': enabled ? 1 : 0,
+        'updated_at': updatedAt.millisecondsSinceEpoch,
+      },
+      where: 'server_id = ? AND remote_name = ?',
+      whereArgs: [serverId, remoteName],
+    );
+  }
+
   Future<List<Map<String, Object?>>> loadBotSkillBindings(String botId) async {
     final database = await _databaseProvider();
     return database.query(

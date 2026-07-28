@@ -607,5 +607,7 @@
     "alwaysOn": "Toujours active",
     "skillNotExecutable": "Cette version n’exécute aucun script ni aucune commande provenant des compétences.",
     "skillSafetyDescription": "SKILL.md est chargé uniquement comme instruction contrôlée ; les scripts, commandes et outils externes restent désactivés.",
-    "skillUserScope": "Utilisateur"
+    "skillUserScope": "Utilisateur",
+    "mcpServers": "Serveurs MCP",
+    "mcpServersDescription": "Connectez des outils MCP distants et contrôlez ceux que les agents peuvent utiliser."
 }

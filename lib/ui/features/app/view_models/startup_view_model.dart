@@ -3,10 +3,14 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
 
 class StartupViewModel extends ChangeNotifier {
-  StartupViewModel({required ProfileRepository profileRepository})
-    : _profileRepository = profileRepository;
+  StartupViewModel({
+    required ProfileRepository profileRepository,
+    Future<void> Function()? capabilityInitializer,
+  }) : _profileRepository = profileRepository,
+       _capabilityInitializer = capabilityInitializer;
 
   final ProfileRepository _profileRepository;
+  final Future<void> Function()? _capabilityInitializer;
   Profile? _profile;
   Object? _error;
   bool _isLoading = false;
@@ -24,6 +28,11 @@ class StartupViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final profile = await _profileRepository.getProfile();
+      try {
+        await _capabilityInitializer?.call();
+      } on Object {
+        // Optional remote capabilities must never prevent the app from opening.
+      }
       if (generation != _loadGeneration) return;
       _profile = profile;
     } catch (error) {

@@ -129,6 +129,40 @@ void main() {
     ]);
   });
 
+  test('version 9 migration creates MCP server and Tool catalogs', () async {
+    final database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+    );
+    addTearDown(database.close);
+
+    await DatabaseService.migrateSchema(database, 8, 9);
+
+    final tables = await database.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    );
+    expect(
+      tables.map((table) => table['name']),
+      containsAll(<String>['mcp_servers', 'mcp_tools']),
+    );
+    final serverColumns = await database.rawQuery(
+      'PRAGMA table_info(mcp_servers)',
+    );
+    expect(
+      serverColumns.map((column) => column['name']),
+      containsAll(<String>[
+        'namespace',
+        'endpoint_uri',
+        'auth_type',
+        'capabilities_json',
+        'connection_status',
+      ]),
+    );
+    expect(
+      serverColumns.map((column) => column['name']),
+      isNot(contains('access_token')),
+    );
+  });
+
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
     addTearDown(database.close);

@@ -851,5 +851,50 @@
     "alwaysOn": "Always on",
     "skillNotExecutable": "This release does not execute Skill scripts or commands.",
     "skillSafetyDescription": "SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.",
-    "skillUserScope": "User"
+    "skillUserScope": "User",
+    "mcpServers": "MCP Servers",
+    "mcpServersDescription": "Connect remote MCP Tools and control which ones agents may use.",
+    "addMcpServer": "Add MCP Server",
+    "remoteMcpOnly": "Remote MCP only",
+    "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
+    "mcpProgressiveDiscoveryDescription": "Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.",
+    "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
+    "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
+    "mcpAuthorizationRequired": "Authorization required",
+    "mcpRequestTimedOut": "The MCP request timed out.",
+    "mcpUnsupportedProtocol": "The MCP server uses an unsupported protocol version.",
+    "mcpConnectionFailed": "MCP connection failed: {error}",
+    "@mcpConnectionFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "deleteMcpServer": "Delete MCP Server",
+    "confirmDeleteMcpServer": "Delete {name}? Its cached Tool catalog and secure credential will also be removed.",
+    "@confirmDeleteMcpServer": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "mcpTools": "Tools",
+    "refreshMcpTools": "Refresh Tools",
+    "editMcpServer": "Edit MCP Server",
+    "noMcpToolsDiscovered": "No Tools discovered. Check the connection and refresh.",
+    "mcpToolSchemaUnsupported": "This Tool has an unsupported input schema and cannot be enabled.",
+    "mcpConnected": "Connected",
+    "mcpConnecting": "Connecting",
+    "mcpConnectionError": "Connection error",
+    "mcpDisconnected": "Disconnected",
+    "mcpServerName": "Server name",
+    "mcpNamespace": "Tool namespace",
+    "mcpNamespaceDescription": "1–32 lowercase letters, digits, underscores, or hyphens.",
+    "mcpEndpoint": "Streamable HTTP endpoint",
+    "mcpAuthentication": "Authentication",
+    "mcpNoAuthentication": "None",
+    "mcpAccessToken": "OAuth / bearer access token",
+    "mcpTokenStoredSecurely": "Stored in the operating system's secure credential store.",
+    "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
+    "saveAndConnect": "Save and connect",
+    "noMcpServers": "No MCP Servers",
+    "noMcpServersDescription": "Add a remote Streamable HTTP server to discover its Tool catalog."
 }

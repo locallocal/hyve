@@ -851,5 +851,50 @@
     "alwaysOn": "始终启用",
     "skillNotExecutable": "当前版本不会执行技能中的脚本或命令。",
     "skillSafetyDescription": "SKILL.md 仅作为受控提示词加载；脚本、命令和外部工具保持禁用。",
-    "skillUserScope": "用户"
+    "skillUserScope": "用户",
+    "mcpServers": "MCP 服务器",
+    "mcpServersDescription": "连接远程 MCP 工具，并控制智能体可以使用哪些工具。",
+    "addMcpServer": "添加 MCP 服务器",
+    "remoteMcpOnly": "仅支持远程 MCP",
+    "localMcpDisabledDescription": "基于本地进程的 MCP 服务器仍处于禁用状态，待完成各平台安全评审后再开放。",
+    "mcpProgressiveDiscoveryDescription": "Stars 会保存工具目录，但仅在已激活技能请求某个已启用工具时，才向模型提供完整 Schema。",
+    "mcpHttpsRequired": "远程 MCP 端点必须使用 HTTPS。",
+    "mcpPrivateEndpointBlocked": "已阻止私网、本机和链路本地 MCP 端点。",
+    "mcpAuthorizationRequired": "需要授权",
+    "mcpRequestTimedOut": "MCP 请求超时。",
+    "mcpUnsupportedProtocol": "MCP 服务器使用了不受支持的协议版本。",
+    "mcpConnectionFailed": "MCP 连接失败：{error}",
+    "@mcpConnectionFailed": {
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "deleteMcpServer": "删除 MCP 服务器",
+    "confirmDeleteMcpServer": "确定删除“{name}”？缓存的工具目录和安全凭据也会一并移除。",
+    "@confirmDeleteMcpServer": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "mcpTools": "工具",
+    "refreshMcpTools": "刷新工具",
+    "editMcpServer": "编辑 MCP 服务器",
+    "noMcpToolsDiscovered": "尚未发现工具，请检查连接后刷新。",
+    "mcpToolSchemaUnsupported": "此工具的输入 Schema 不受支持，无法启用。",
+    "mcpConnected": "已连接",
+    "mcpConnecting": "连接中",
+    "mcpConnectionError": "连接错误",
+    "mcpDisconnected": "未连接",
+    "mcpServerName": "服务器名称",
+    "mcpNamespace": "工具命名空间",
+    "mcpNamespaceDescription": "使用 1–32 位小写字母、数字、下划线或连字符。",
+    "mcpEndpoint": "Streamable HTTP 端点",
+    "mcpAuthentication": "身份验证",
+    "mcpNoAuthentication": "无",
+    "mcpAccessToken": "OAuth / Bearer 访问令牌",
+    "mcpTokenStoredSecurely": "令牌保存在操作系统的安全凭据存储中。",
+    "mcpTokenLeaveBlank": "留空可保留现有安全凭据。",
+    "saveAndConnect": "保存并连接",
+    "noMcpServers": "尚无 MCP 服务器",
+    "noMcpServersDescription": "添加远程 Streamable HTTP 服务器以发现其工具目录。"
 }

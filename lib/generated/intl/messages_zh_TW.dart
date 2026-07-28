@@ -38,9 +38,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m8(botName) => "刪除聊天會清空所有的聊天記錄，確定要刪除與 ${botName} 的聊天嗎？";
 
+  static String m21(name) => "確定刪除「${name}」？快取的工具目錄與安全憑證也會移除。";
+
   static String m9(name) => "確定解除安裝技能「${name}」？相關智慧體綁定也會被移除。";
 
   static String m10(language) => "語言已設置為${language}";
+
+  static String m30(error) => "MCP 連線失敗：${error}";
 
   static String m11(minutes) => "${minutes}分鐘前";
 
@@ -66,6 +70,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("關於"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("關於 Stars"),
     "addBot": MessageLookupByLibrary.simpleMessage("添加機器人"),
+    "addMcpServer": MessageLookupByLibrary.simpleMessage("新增 MCP 伺服器"),
     "addSkill": MessageLookupByLibrary.simpleMessage("加入技能"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("調整應用內文字大小"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("調整文字大小"),
@@ -120,6 +125,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDelete": MessageLookupByLibrary.simpleMessage("確認刪除"),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
+    "confirmDeleteMcpServer": m21,
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("聯絡方式（可選）"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 團隊"),
@@ -132,6 +138,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("刪除"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("刪除智能體"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("刪除聊天"),
+    "deleteMcpServer": MessageLookupByLibrary.simpleMessage("刪除 MCP 伺服器"),
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage("關於與法律資訊"),
     "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
       "外觀與語言",
@@ -149,6 +156,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "管理個人資訊、外觀、語言與應用程式支援。",
     ),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
+    "editMcpServer": MessageLookupByLibrary.simpleMessage("編輯 MCP 伺服器"),
     "editName": MessageLookupByLibrary.simpleMessage("修改名稱"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "獲取回覆失敗: 伺服器返回空響應",
@@ -197,9 +205,54 @@ class MessageLookup extends MessageLookupByLibrary {
     "languageChanged": m10,
     "languageSettings": MessageLookupByLibrary.simpleMessage("語言設定"),
     "lightMode": MessageLookupByLibrary.simpleMessage("淺色模式"),
+    "localMcpDisabledDescription": MessageLookupByLibrary.simpleMessage(
+      "本機程序型 MCP 伺服器仍停用，完成各平台安全審查後才會開放。",
+    ),
     "manualActivation": MessageLookupByLibrary.simpleMessage("按訊息啟用"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "需要時從訊息輸入框選擇技能。",
+    ),
+    "mcpAccessToken": MessageLookupByLibrary.simpleMessage(
+      "OAuth / Bearer 存取權杖",
+    ),
+    "mcpAuthentication": MessageLookupByLibrary.simpleMessage("驗證"),
+    "mcpAuthorizationRequired": MessageLookupByLibrary.simpleMessage("需要授權"),
+    "mcpConnected": MessageLookupByLibrary.simpleMessage("已連線"),
+    "mcpConnecting": MessageLookupByLibrary.simpleMessage("連線中"),
+    "mcpConnectionError": MessageLookupByLibrary.simpleMessage("連線錯誤"),
+    "mcpConnectionFailed": m30,
+    "mcpDisconnected": MessageLookupByLibrary.simpleMessage("未連線"),
+    "mcpEndpoint": MessageLookupByLibrary.simpleMessage("Streamable HTTP 端點"),
+    "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
+      "遠端 MCP 端點必須使用 HTTPS。",
+    ),
+    "mcpNamespace": MessageLookupByLibrary.simpleMessage("工具命名空間"),
+    "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
+      "使用 1–32 個小寫字母、數字、底線或連字號。",
+    ),
+    "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("無"),
+    "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
+      "已封鎖私有、本機及鏈路本地 MCP 端點。",
+    ),
+    "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars 會儲存工具目錄，但僅在已啟用技能要求某個已開啟工具時，才提供完整 Schema 給模型。",
+    ),
+    "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 請求逾時。"),
+    "mcpServerName": MessageLookupByLibrary.simpleMessage("伺服器名稱"),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 伺服器"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "連接遠端 MCP 工具，並控制智慧代理可使用哪些工具。",
+    ),
+    "mcpTokenLeaveBlank": MessageLookupByLibrary.simpleMessage("留空可保留現有安全憑證。"),
+    "mcpTokenStoredSecurely": MessageLookupByLibrary.simpleMessage(
+      "權杖會儲存在作業系統的安全憑證儲存區。",
+    ),
+    "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
+      "此工具的輸入 Schema 不受支援，無法啟用。",
+    ),
+    "mcpTools": MessageLookupByLibrary.simpleMessage("工具"),
+    "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
+      "MCP 伺服器使用不支援的協定版本。",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("輸入消息..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("技能"),
@@ -217,6 +270,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "noChats": MessageLookupByLibrary.simpleMessage("還沒有聊天記錄"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("未傳回內容"),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage("找不到符合的技能"),
+    "noMcpServers": MessageLookupByLibrary.simpleMessage("尚無 MCP 伺服器"),
+    "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "新增遠端 Streamable HTTP 伺服器以探索其工具目錄。",
+    ),
+    "noMcpToolsDiscovered": MessageLookupByLibrary.simpleMessage(
+      "尚未發現工具，請檢查連線後重新整理。",
+    ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage("未獲取到任何模型"),
     "noSkillsInstalled": MessageLookupByLibrary.simpleMessage("尚未安裝技能"),
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
@@ -241,6 +301,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("思考完成"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("思考中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("思考中斷"),
+    "refreshMcpTools": MessageLookupByLibrary.simpleMessage("重新整理工具"),
+    "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("僅支援遠端 MCP"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("移除技能"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("回覆已取消"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回覆"),
@@ -248,6 +310,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "responseError": m17,
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("執行測試"),
     "save": MessageLookupByLibrary.simpleMessage("儲存"),
+    "saveAndConnect": MessageLookupByLibrary.simpleMessage("儲存並連線"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("儲存修改"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("儲存中..."),
     "searchSkills": MessageLookupByLibrary.simpleMessage("搜尋技能"),

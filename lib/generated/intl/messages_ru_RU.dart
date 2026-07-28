@@ -273,6 +273,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "При необходимости выберите навык в поле сообщения.",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("Серверы MCP"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Подключайте удалённые инструменты MCP и управляйте доступом агентов к ним.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
     "minutesAgo": m11,

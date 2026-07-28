@@ -105,6 +105,31 @@ void main() {
       expect(result.toolInvocations.single.status, ToolInvocationStatus.failed);
     });
 
+    test(
+      'does not expose any Tool schema without an active Skill request',
+      () async {
+        final session = _FakeModelSession([
+          [
+            const TextDelta('No tools needed.'),
+            const ModelTurnCompleted(stopReason: 'stop'),
+          ],
+        ]);
+        final provider = _FakeProvider(session);
+        final coordinator = AgentRunCoordinator(
+          toolRegistry: StaticToolRegistry([_FakeTool(name: 'calculate')]),
+          toolPolicy: const DefaultToolPolicy(),
+        );
+
+        final result = await coordinator.run(
+          provider: provider,
+          request: _request(toolNames: const {}),
+        );
+
+        expect(result.status, AgentRunStatus.completed);
+        expect(provider.lastRequest?.tools, isEmpty);
+      },
+    );
+
     test('reuses duplicate call id without repeating side effects', () async {
       final tool = _FakeTool(name: 'calculate');
       final repeated = ToolCallRequested(
@@ -472,6 +497,7 @@ final class _FakeProvider extends AiProvider {
 
   final AgentModelSession session;
   final bool supportsParallelToolCalls;
+  ModelRequest? lastRequest;
 
   @override
   AiProviderCapabilities get capabilities => AiProviderCapabilities(
@@ -481,7 +507,10 @@ final class _FakeProvider extends AiProvider {
   );
 
   @override
-  AgentModelSession openModelSession(ModelRequest request) => session;
+  AgentModelSession openModelSession(ModelRequest request) {
+    lastRequest = request;
+    return session;
+  }
 
   @override
   Future<void> generateText(List<ChatMessage> messages) async {}

@@ -283,6 +283,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Si nécessaire, sélectionnez la compétence dans la zone de message.",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("Serveurs MCP"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Connectez des outils MCP distants et contrôlez ceux que les agents peuvent utiliser.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Tapez un message..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Compétences"),
     "minutesAgo": m11,

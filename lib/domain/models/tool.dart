@@ -147,11 +147,13 @@ final class DefaultToolPolicy implements ToolPolicy {
     this.allowNetwork = false,
     this.allowLocalRead = false,
     this.allowExternalRead = false,
+    this.allowDestructiveWithApproval = false,
   });
 
   final bool allowNetwork;
   final bool allowLocalRead;
   final bool allowExternalRead;
+  final bool allowDestructiveWithApproval;
 
   @override
   ToolPolicyDecision evaluate(
@@ -171,9 +173,11 @@ final class DefaultToolPolicy implements ToolPolicy {
       );
     }
     if (definition.riskLevel == ToolRiskLevel.destructive) {
-      return const ToolPolicyDecision.deny(
-        reason: 'destructive_tools_disabled',
-      );
+      return allowDestructiveWithApproval
+          ? const ToolPolicyDecision.requireApproval(
+            reason: 'destructive_write_requires_approval',
+          )
+          : const ToolPolicyDecision.deny(reason: 'destructive_tools_disabled');
     }
     if (definition.capabilities.isEmpty) {
       return const ToolPolicyDecision.requireApproval(
@@ -311,6 +315,53 @@ final class StaticToolRegistry implements ToolRegistry {
   }
 }
 
+final class DynamicToolRegistry implements ToolRegistry {
+  factory DynamicToolRegistry(Iterable<ExecutableTool> fixedTools) {
+    final fixed = <String, ExecutableTool>{};
+    for (final tool in fixedTools) {
+      if (fixed.containsKey(tool.definition.name)) {
+        throw ArgumentError('Tool names must be globally unique.');
+      }
+      fixed[tool.definition.name] = tool;
+    }
+    return DynamicToolRegistry._(Map.unmodifiable(fixed));
+  }
+
+  DynamicToolRegistry._(this._fixedTools);
+
+  final Map<String, ExecutableTool> _fixedTools;
+  Map<String, ExecutableTool> _dynamicTools = const {};
+
+  void replaceDynamic(Iterable<ExecutableTool> tools) {
+    final next = <String, ExecutableTool>{};
+    for (final tool in tools) {
+      final name = tool.definition.name;
+      if (_fixedTools.containsKey(name) || next.containsKey(name)) {
+        throw ArgumentError.value(
+          name,
+          'tools',
+          'Tool names must be globally unique.',
+        );
+      }
+      next[name] = tool;
+    }
+    _dynamicTools = Map.unmodifiable(next);
+  }
+
+  @override
+  ExecutableTool? find(String name) => _fixedTools[name] ?? _dynamicTools[name];
+
+  @override
+  List<ToolDefinition> list({Set<String> allowedNames = const {}}) {
+    final definitions = [
+      for (final entry in [..._fixedTools.entries, ..._dynamicTools.entries])
+        if (allowedNames.isEmpty || allowedNames.contains(entry.key))
+          entry.value.definition,
+    ]..sort((left, right) => left.name.compareTo(right.name));
+    return List<ToolDefinition>.unmodifiable(definitions);
+  }
+}
+
 enum ToolInvocationStatus {
   requested,
   awaitingApproval,
@@ -389,8 +440,41 @@ final class JsonSchemaValidationIssue {
   final String message;
 }
 
+const _supportedJsonSchemaKeywords = <String>{
+  r'$schema',
+  'title',
+  'description',
+  'default',
+  'type',
+  'enum',
+  'const',
+  'properties',
+  'required',
+  'additionalProperties',
+  'items',
+  'minLength',
+  'maxLength',
+  'pattern',
+  'format',
+  'minimum',
+  'maximum',
+  'exclusiveMinimum',
+  'exclusiveMaximum',
+  'minItems',
+  'maxItems',
+  'uniqueItems',
+  'minProperties',
+  'maxProperties',
+  'allOf',
+  'anyOf',
+  'oneOf',
+  'not',
+};
+
 final class JsonSchemaValidator {
   const JsonSchemaValidator();
+
+  bool supports(Map<String, Object?> schema) => _supportsSchema(schema);
 
   List<JsonSchemaValidationIssue> validate(
     Object? value,
@@ -407,38 +491,8 @@ final class JsonSchemaValidator {
     String path,
     List<JsonSchemaValidationIssue> issues,
   ) {
-    const supportedKeywords = <String>{
-      r'$schema',
-      'title',
-      'description',
-      'default',
-      'type',
-      'enum',
-      'const',
-      'properties',
-      'required',
-      'additionalProperties',
-      'items',
-      'minLength',
-      'maxLength',
-      'pattern',
-      'format',
-      'minimum',
-      'maximum',
-      'exclusiveMinimum',
-      'exclusiveMaximum',
-      'minItems',
-      'maxItems',
-      'uniqueItems',
-      'minProperties',
-      'maxProperties',
-      'allOf',
-      'anyOf',
-      'oneOf',
-      'not',
-    };
     for (final keyword in schema.keys) {
-      if (!supportedKeywords.contains(keyword)) {
+      if (!_supportedJsonSchemaKeywords.contains(keyword)) {
         issues.add(
           JsonSchemaValidationIssue(
             path: path,
@@ -639,6 +693,71 @@ final class JsonSchemaValidator {
     if (value is num) {
       _validateNumber(value, schema, path, issues);
     }
+  }
+
+  bool _supportsSchema(Map<String, Object?> schema) {
+    if (schema.keys.any(
+      (keyword) => !_supportedJsonSchemaKeywords.contains(keyword),
+    )) {
+      return false;
+    }
+    final format = schema['format'];
+    if (format != null &&
+        format != 'date-time' &&
+        format != 'uri' &&
+        format != 'email') {
+      return false;
+    }
+    final rawType = schema['type'];
+    const supportedTypes = {
+      'null',
+      'boolean',
+      'object',
+      'array',
+      'number',
+      'integer',
+      'string',
+    };
+    if (rawType is String && !supportedTypes.contains(rawType)) return false;
+    if (rawType is List &&
+        rawType.any(
+          (type) => type is! String || !supportedTypes.contains(type),
+        )) {
+      return false;
+    }
+    final rawProperties = schema['properties'];
+    if (rawProperties != null && rawProperties is! Map) return false;
+    final properties = _schemaMap(rawProperties);
+    for (final property in properties.values) {
+      if (property is! Map || !_supportsSchema(_schemaMap(property))) {
+        return false;
+      }
+    }
+    for (final key in const ['items', 'not']) {
+      final rawChild = schema[key];
+      if (rawChild == null) continue;
+      if (rawChild is! Map || !_supportsSchema(_schemaMap(rawChild))) {
+        return false;
+      }
+    }
+    final additionalProperties = schema['additionalProperties'];
+    if (additionalProperties != null &&
+        additionalProperties is! bool &&
+        (additionalProperties is! Map ||
+            !_supportsSchema(_schemaMap(additionalProperties)))) {
+      return false;
+    }
+    for (final key in const ['allOf', 'anyOf', 'oneOf']) {
+      final children = schema[key];
+      if (children == null) continue;
+      if (children is! List || children.isEmpty) return false;
+      for (final rawChild in children) {
+        if (rawChild is! Map || !_supportsSchema(_schemaMap(rawChild))) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   void _validateCompositions(

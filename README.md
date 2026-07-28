@@ -18,6 +18,9 @@ local SQLite database.
   a chat interface designed for long-running conversations.
 - **Local persistence** — store bots, chats, messages, and profile settings in
   SQLite on the device.
+- **Remote MCP Tools** — connect HTTPS Streamable HTTP servers, discover Tools
+  progressively, and keep access tokens in the operating system credential
+  store.
 - **Responsive UI** — use layouts tailored for Windows, macOS, Linux, Android,
   and iOS.
 - **Light, dark, and high-contrast themes** — adapt the interface to different
@@ -37,6 +40,8 @@ The complete provider registry is available in
 - A configured desktop or mobile Flutter toolchain for your target platform
 - An API key for your chosen cloud provider, or a reachable local service such
   as Ollama
+- On Linux, the `libsecret-1-dev` build package and `libsecret-1-0` runtime
+  package for secure MCP credential storage
 
 ### Run the application
 

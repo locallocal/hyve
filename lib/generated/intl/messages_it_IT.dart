@@ -283,6 +283,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Se necessario, seleziona la competenza nel campo del messaggio.",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("Server MCP"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Collega strumenti MCP remoti e controlla quali possono essere usati dagli agenti.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
       "Inserisci messaggio...",
     ),

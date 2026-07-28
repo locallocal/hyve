@@ -220,6 +220,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "필요할 때 메시지 입력창에서 스킬을 선택하세요.",
     ),
+    "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 서버"),
+    "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "원격 MCP 도구를 연결하고 에이전트가 사용할 수 있는 도구를 관리합니다.",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("메시지 입력..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("스킬"),
     "minutesAgo": m11,

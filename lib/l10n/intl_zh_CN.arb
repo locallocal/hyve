@@ -807,7 +807,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "详情",
     "skillDetails": "技能详情",
+    "uninstall": "卸载",
     "uninstallSkill": "卸载技能",
     "confirmUninstallSkill": "确定卸载技能“{name}”？相关智能体绑定也会被移除。",
     "@confirmUninstallSkill": {

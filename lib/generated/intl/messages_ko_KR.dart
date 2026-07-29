@@ -159,6 +159,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "프로필, 모양, 언어 및 앱 지원을 관리합니다.",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("세부 정보"),
     "editBot": MessageLookupByLibrary.simpleMessage("봇 편집"),
     "editName": MessageLookupByLibrary.simpleMessage("이름 수정"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -364,6 +365,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("생각 중…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("도구 호출"),
     "typing": MessageLookupByLibrary.simpleMessage("입력 중..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("제거"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("스킬 제거"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("파일 업로드"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("이미지 업로드"),

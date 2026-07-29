@@ -571,7 +571,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "詳情",
     "skillDetails": "技能詳情",
+    "uninstall": "解除安裝",
     "uninstallSkill": "解除安裝技能",
     "confirmUninstallSkill": "確定解除安裝技能「{name}」？相關智慧體綁定也會被移除。",
     "@confirmUninstallSkill": {

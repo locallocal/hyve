@@ -186,6 +186,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("Сведения"),
     "editBot": MessageLookupByLibrary.simpleMessage("Редактировать бота"),
     "editName": MessageLookupByLibrary.simpleMessage("Изменить имя"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -457,6 +458,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Размышление…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Вызовы инструментов"),
     "typing": MessageLookupByLibrary.simpleMessage("Печатает..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("Удалить"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("Удалить навык"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("Загрузить файл"),
     "uploadImage": MessageLookupByLibrary.simpleMessage(

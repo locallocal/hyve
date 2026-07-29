@@ -155,6 +155,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "管理個人資訊、外觀、語言與應用程式支援。",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("詳情"),
     "edit": MessageLookupByLibrary.simpleMessage("編輯"),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("編輯 MCP 伺服器"),
@@ -417,6 +418,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("正在思考…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("工具呼叫"),
     "typing": MessageLookupByLibrary.simpleMessage("正在輸入..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("解除安裝"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("解除安裝技能"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("上傳檔案"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("上傳圖片"),

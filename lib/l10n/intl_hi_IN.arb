@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "विवरण",
     "skillDetails": "कौशल का विवरण",
+    "uninstall": "अनइंस्टॉल करें",
     "uninstallSkill": "कौशल अनइंस्टॉल करें",
     "confirmUninstallSkill": "{name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।",
     "@confirmUninstallSkill": {

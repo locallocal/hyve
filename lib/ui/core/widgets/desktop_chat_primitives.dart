@@ -158,6 +158,7 @@ class StarsDesktopIconAction extends StatefulWidget {
     this.autofocus = false,
     this.iconSize = 18,
     this.hoverBackgroundColor,
+    this.showFocusRing = true,
   }) : assert(
          variant != ShadButtonVariant.link,
          'ShadIconButton does not support the link variant.',
@@ -173,6 +174,7 @@ class StarsDesktopIconAction extends StatefulWidget {
   final bool autofocus;
   final double iconSize;
   final Color? hoverBackgroundColor;
+  final bool showFocusRing;
 
   @override
   State<StarsDesktopIconAction> createState() => _StarsDesktopIconActionState();
@@ -238,6 +240,10 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
                 enabled: effectiveEnabled,
                 onPressed: widget.onPressed,
                 hoverBackgroundColor: widget.hoverBackgroundColor,
+                decoration:
+                    widget.showFocusRing
+                        ? null
+                        : const ShadDecoration(disableSecondaryBorder: true),
                 iconSize: widget.iconSize,
                 icon: Icon(widget.icon, size: widget.iconSize),
               ),

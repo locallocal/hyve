@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "세부 정보",
     "skillDetails": "스킬 세부 정보",
+    "uninstall": "제거",
     "uninstallSkill": "스킬 제거",
     "confirmUninstallSkill": "{name} 스킬을 제거할까요? 봇 연결도 함께 삭제됩니다.",
     "@confirmUninstallSkill": {

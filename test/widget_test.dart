@@ -1502,6 +1502,7 @@ void main() {
         tester.getSize(selectedButtonFinder).height,
         DesktopThemeTokens.botFormFieldHeight,
       );
+      expect(selectedButton.mainAxisAlignment, MainAxisAlignment.start);
 
       if (selectedPage == 1) {
         final newChatButtonFinder =
@@ -1512,8 +1513,22 @@ void main() {
                 )
                 .first;
         final newChatButton = tester.widget<ShadButton>(newChatButtonFinder);
-        final agentIcon = selectedButton.leading! as Icon;
-        final newChatIcon = newChatButton.leading! as Icon;
+        final agentIcon = tester.widget<Icon>(
+          find
+              .descendant(
+                of: selectedButtonFinder,
+                matching: find.byIcon(LucideIcons.bot),
+              )
+              .first,
+        );
+        final newChatIcon = tester.widget<Icon>(
+          find
+              .descendant(
+                of: newChatButtonFinder,
+                matching: find.byIcon(LucideIcons.squarePen),
+              )
+              .first,
+        );
 
         expect(
           tester.getSize(newChatButtonFinder).height,
@@ -1527,11 +1542,26 @@ void main() {
         );
         expect(selectedButton.padding, newChatButton.padding);
         expect(selectedButton.gap, newChatButton.gap);
+        expect(selectedButton.leading, isNull);
+        expect(newChatButton.leading, isNull);
+        expect(selectedButton.expands, isTrue);
         expect(agentIcon.size, newChatIcon.size);
       } else if (selectedPage == 2) {
-        expect((selectedButton.leading! as Icon).icon, LucideIcons.wrench);
+        expect(
+          find.descendant(
+            of: selectedButtonFinder,
+            matching: find.byIcon(LucideIcons.wrench),
+          ),
+          findsOneWidget,
+        );
       } else if (selectedPage == 3) {
-        expect((selectedButton.leading! as Icon).icon, LucideIcons.server);
+        expect(
+          find.descendant(
+            of: selectedButtonFinder,
+            matching: find.byIcon(LucideIcons.server),
+          ),
+          findsOneWidget,
+        );
         final skillButtonFinder =
             find
                 .ancestor(
@@ -1546,6 +1576,81 @@ void main() {
       }
     }
   });
+
+  testWidgets(
+    'desktop primary navigation icons align with conversation avatars',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1440, 900);
+      addTearDown(tester.view.reset);
+
+      final timestamp = DateTime(2026);
+      final bot = Bot(
+        id: 'sidebar-alignment-bot',
+        name: '对齐测试',
+        avatar: '',
+        provider: 'OpenAI',
+        baseURL: '',
+        apiKey: '',
+        apiType: Bot.apiTypeOpenAI,
+        model: 'gpt-test',
+        systemPrompt: '',
+        createTimestamp: timestamp,
+        modifyTimestamp: timestamp,
+      );
+
+      await tester.pumpWidget(
+        _desktopHarness(
+          onCreateChat: () {},
+          chatListPage: DesktopListPanel(
+            title: '',
+            description: '',
+            searchHintText: '搜索会话',
+            onSearchChanged: (_) {},
+            action: const SizedBox.shrink(),
+            showHeader: false,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ChatListItem(
+                bot: bot,
+                lastMessage: '测试消息',
+                timestamp: '刚刚',
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final conversationIconLeft =
+          tester.getTopLeft(find.byType(ShadAvatar)).dx;
+      for (final icon in [
+        LucideIcons.squarePen,
+        LucideIcons.bot,
+        LucideIcons.wrench,
+        LucideIcons.server,
+      ]) {
+        final iconFinder = find.byIcon(icon).first;
+        final buttonFinder =
+            find
+                .ancestor(of: iconFinder, matching: find.byType(ShadButton))
+                .first;
+        final labelFinder =
+            find
+                .descendant(of: buttonFinder, matching: find.byType(Text))
+                .first;
+        expect(
+          tester.getTopLeft(iconFinder).dx,
+          closeTo(conversationIconLeft, 0.01),
+        );
+        expect(
+          tester.getCenter(labelFinder).dx,
+          closeTo(tester.getCenter(buttonFinder).dx, 0.01),
+        );
+      }
+    },
+  );
 
   testWidgets('desktop shell uses one toolbar and overlays sidebar at 800px', (
     tester,
@@ -2385,6 +2490,7 @@ Widget _desktopHarness({
   Bot? bot,
   Bot? selectedChatBot,
   String? selectedChatId,
+  Widget? chatListPage,
   VoidCallback? onCreateChat,
   VoidCallback? onSearchRequested,
 }) {
@@ -2395,12 +2501,12 @@ Widget _desktopHarness({
           body: DesktopLayout(
             currentIndex: currentIndex,
             onPageChanged: (_) {},
-            pages: const [
-              Center(child: Text('chat list')),
-              Center(child: Text('bot list')),
-              Center(child: Text('skills')),
-              Center(child: Text('mcp servers')),
-              Center(child: Text('profile')),
+            pages: [
+              chatListPage ?? const Center(child: Text('chat list')),
+              const Center(child: Text('bot list')),
+              const Center(child: Text('skills')),
+              const Center(child: Text('mcp servers')),
+              const Center(child: Text('profile')),
             ],
             selectedChatId: selectedChatId,
             selectedChatBot: selectedChatBot,

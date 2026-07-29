@@ -918,23 +918,26 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 
 目标：
 
-- 远程 MCP Server；
+- 远程和桌面端 stdio MCP Server；
 - Tool 渐进发现和安全凭据存储；
 - 本地 Server 在逐平台安全评审后灰度；
 - Server、Tool 和 Skill 的能力关联。
 
-实现状态（2026-07-29）：
+实现状态（2026-07-30）：
 
-- 已实现仅面向远程 Server 的 Streamable HTTP MCP Host，覆盖 `initialize`、协议版本
+- 已实现 Streamable HTTP 和桌面端 stdio MCP Host，覆盖 `initialize`、协议版本
   协商、`notifications/initialized`、会话 ID、分页 `tools/list`、`tools/call`、
-  JSON 与 SSE 响应、取消、超时和尽力终止会话；
+  JSON 与 SSE 响应、换行分隔的 stdio JSON-RPC、取消、超时和进程生命周期管理；
 - 已兼容 MCP `2025-11-25`、`2025-06-18` 和 `2025-03-26`，拒绝响应 ID 不匹配、
   非法 JSON-RPC、跨端点重定向和不受支持的版本；
 - 已实现 `McpServerRepository`、SQLite Server/Tool Catalog、`McpClientService`、
   `McpToolAdapter`、动态 Tool Registry 和系统安全凭据存储；访问令牌不进入 SQLite、
   Skill 文件、模型上下文、调用结果或错误日志；
 - 已实现远程端点安全策略：仅 HTTPS，禁止 URI 用户信息，阻止 localhost、私网、
-  链路本地、保留地址及 DNS 解析到非公网地址的主机；本地进程型 MCP 仍保持禁用；
+  链路本地、保留地址及 DNS 解析到非公网地址的主机；
+- 已支持桌面端配置 stdio 命令、逐行参数和环境变量；命令通过 argv 直接启动且不经过
+  Shell，环境变量保存在系统安全凭据存储中，stdout 仅用于 JSON-RPC，stderr 被安全
+  消费且不写入应用日志；
 - 已实现 Catalog → Inspect → Execute：管理页持久化 Tool 摘要和 Schema，新发现 Tool
   默认关闭；只有用户启用、Server 启用且当前激活 Skill 的 `allowed-tools` 精确请求时，
   才向模型暴露完整 Schema；
@@ -946,8 +949,8 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 - 已实现设置入口和 MCP Server 管理页，支持添加、编辑、启停、连接状态、刷新 Catalog、
   Tool 独立启停、删除及安全错误提示；英文、简体中文和繁体中文提供完整页面文案，
   其他已支持语言提供设置入口翻译并回退英文页面文案；
-- 本地 Server 灰度未开放，仍需逐平台沙箱、命令展示确认和独立安全评审，属于本阶段
-  有意保留的安全门槛。
+- 管理页会明确提示本地进程风险；stdio 当前限桌面端使用，命令仍以用户显式添加并信任
+  为前提，后续可继续增加逐平台沙箱和更细粒度的进程权限策略。
 
 ### Phase 5：桌面脚本与生态
 

@@ -377,9 +377,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpAccessToken": MessageLookupByLibrary.simpleMessage(
       "OAuth / bearer access token",
     ),
+    "mcpArguments": MessageLookupByLibrary.simpleMessage("Arguments"),
+    "mcpArgumentsDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one argument per line.",
+    ),
     "mcpAuthentication": MessageLookupByLibrary.simpleMessage("Authentication"),
     "mcpAuthorizationRequired": MessageLookupByLibrary.simpleMessage(
       "Authorization required",
+    ),
+    "mcpCommand": MessageLookupByLibrary.simpleMessage("Command"),
+    "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
+      "Executable name or absolute path. The command runs directly without a shell.",
     ),
     "mcpConnected": MessageLookupByLibrary.simpleMessage("Connected"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("Connecting"),
@@ -387,12 +395,28 @@ class MessageLookup extends MessageLookupByLibrary {
       "Connection error",
     ),
     "mcpConnectionFailed": m30,
+    "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
       "Streamable HTTP endpoint",
     ),
+    "mcpEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables",
+    ),
+    "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
+    ),
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "Remote MCP endpoints must use HTTPS.",
+    ),
+    "mcpInvalidStdioEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables must use one KEY=VALUE entry per line.",
+    ),
+    "mcpLocalProcessSecurityDescription": MessageLookupByLibrary.simpleMessage(
+      "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
+    ),
+    "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
+      "Local process security",
     ),
     "mcpNamespace": MessageLookupByLibrary.simpleMessage("Tool namespace"),
     "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
@@ -411,7 +435,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP Servers"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "Connect remote MCP Tools and control which ones agents may use.",
+      "Connect local or remote MCP Tools and control which ones agents may use.",
+    ),
+    "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
+      "The stdio MCP command could not be started.",
     ),
     "mcpTokenLeaveBlank": MessageLookupByLibrary.simpleMessage(
       "Leave blank to keep the existing secure credential.",
@@ -423,6 +450,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "This Tool has an unsupported input schema and cannot be enabled.",
     ),
     "mcpTools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "mcpTransport": MessageLookupByLibrary.simpleMessage("Transport"),
+    "mcpTransportStdio": MessageLookupByLibrary.simpleMessage(
+      "stdio (local process)",
+    ),
+    "mcpTransportStreamableHttp": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP",
+    ),
     "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
       "The MCP server uses an unsupported protocol version.",
     ),
@@ -470,7 +504,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "noMcpServers": MessageLookupByLibrary.simpleMessage("No MCP Servers"),
     "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "Add a remote Streamable HTTP server to discover its Tool catalog.",
+      "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
     ),
     "noMcpToolsDiscovered": MessageLookupByLibrary.simpleMessage(
       "No Tools discovered. Check the connection and refresh.",

@@ -123,6 +123,12 @@ final class McpHttpTransport {
         );
       }
       final token = credential.accessToken.trim();
+      if (token.isEmpty) {
+        throw const McpException(
+          'mcp_authorization_required',
+          message: 'A valid MCP access token is required.',
+        );
+      }
       if (token.contains('\r') || token.contains('\n')) {
         throw const McpException(
           'mcp_invalid_credential',

@@ -293,16 +293,38 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpAccessToken": MessageLookupByLibrary.simpleMessage(
       "OAuth / Bearer 访问令牌",
     ),
+    "mcpArguments": MessageLookupByLibrary.simpleMessage("参数"),
+    "mcpArgumentsDescription": MessageLookupByLibrary.simpleMessage(
+      "每行填写一个参数。",
+    ),
     "mcpAuthentication": MessageLookupByLibrary.simpleMessage("身份验证"),
     "mcpAuthorizationRequired": MessageLookupByLibrary.simpleMessage("需要授权"),
+    "mcpCommand": MessageLookupByLibrary.simpleMessage("命令"),
+    "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
+      "填写可执行文件名称或绝对路径；命令将直接运行，不经过 Shell。",
+    ),
     "mcpConnected": MessageLookupByLibrary.simpleMessage("已连接"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("连接中"),
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage("连接错误"),
     "mcpConnectionFailed": m30,
+    "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("连接配置"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("未连接"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage("Streamable HTTP 端点"),
+    "mcpEnvironment": MessageLookupByLibrary.simpleMessage("环境变量"),
+    "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
+      "每行填写一个 KEY=VALUE。内容保存在操作系统安全凭据存储中；编辑时留空可保留现有值。",
+    ),
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "远程 MCP 端点必须使用 HTTPS。",
+    ),
+    "mcpInvalidStdioEnvironment": MessageLookupByLibrary.simpleMessage(
+      "环境变量必须按每行一个 KEY=VALUE 的格式填写。",
+    ),
+    "mcpLocalProcessSecurityDescription": MessageLookupByLibrary.simpleMessage(
+      "stdio 服务器会在本机运行命令，请仅添加你信任的服务器和环境变量。",
+    ),
+    "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
+      "本地进程安全",
     ),
     "mcpNamespace": MessageLookupByLibrary.simpleMessage("工具命名空间"),
     "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
@@ -319,7 +341,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 服务器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "连接远程 MCP 工具，并控制智能体可以使用哪些工具。",
+      "连接本地或远程 MCP 工具，并控制智能体可以使用哪些工具。",
+    ),
+    "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
+      "无法启动 stdio MCP 命令。",
     ),
     "mcpTokenLeaveBlank": MessageLookupByLibrary.simpleMessage("留空可保留现有安全凭据。"),
     "mcpTokenStoredSecurely": MessageLookupByLibrary.simpleMessage(
@@ -329,6 +354,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "此工具的输入 Schema 不受支持，无法启用。",
     ),
     "mcpTools": MessageLookupByLibrary.simpleMessage("工具"),
+    "mcpTransport": MessageLookupByLibrary.simpleMessage("传输方式"),
+    "mcpTransportStdio": MessageLookupByLibrary.simpleMessage("stdio（本地进程）"),
+    "mcpTransportStreamableHttp": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP",
+    ),
     "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
       "MCP 服务器使用了不受支持的协议版本。",
     ),
@@ -362,7 +392,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage("未找到匹配的技能"),
     "noMcpServers": MessageLookupByLibrary.simpleMessage("尚无 MCP 服务器"),
     "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "添加远程 Streamable HTTP 服务器以发现其工具目录。",
+      "添加 Streamable HTTP 或桌面端 stdio 服务器以发现其工具目录。",
     ),
     "noMcpToolsDiscovered": MessageLookupByLibrary.simpleMessage(
       "尚未发现工具，请检查连接后刷新。",

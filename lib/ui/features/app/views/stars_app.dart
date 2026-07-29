@@ -18,6 +18,8 @@ import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:stars/ui/features/bots/views/bots.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/views/chats.dart';
+import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:stars/ui/features/mcp/views/mcp_servers_page.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/views/profile.dart';
 import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
@@ -406,6 +408,7 @@ class _MainPageState extends State<MainPage> {
   late final BotListViewModel _botListViewModel;
   late final ProfileViewModel _profileViewModel;
   late final SkillLibraryViewModel _skillLibraryViewModel;
+  late final McpServersViewModel _mcpServersViewModel;
   bool _initialized = false;
   Future<bool>? _activeRunGuardFuture;
   int _navigationIntent = 0;
@@ -422,6 +425,7 @@ class _MainPageState extends State<MainPage> {
     _profileViewModel = _dependencies.createProfileViewModel()..load();
     _skillLibraryViewModel =
         _dependencies.createSkillLibraryViewModel()..load();
+    _mcpServersViewModel = _dependencies.createMcpServersViewModel();
   }
 
   @override
@@ -433,6 +437,7 @@ class _MainPageState extends State<MainPage> {
       _botListViewModel.dispose();
       _profileViewModel.dispose();
       _skillLibraryViewModel.dispose();
+      _mcpServersViewModel.dispose();
     }
     super.dispose();
   }
@@ -466,6 +471,7 @@ class _MainPageState extends State<MainPage> {
         onSelectionCleared: _viewModel.clearSelectedBot,
       ),
       SkillLibraryPage(viewModel: _skillLibraryViewModel),
+      McpServersPage(viewModel: _mcpServersViewModel),
       ProfilePage(
         viewModel: _profileViewModel,
         avatarPicker: _profileViewModel.pickAvatar,
@@ -543,9 +549,16 @@ class _MainPageState extends State<MainPage> {
                             : Theme.of(context).colorScheme.onSurface,
                   ),
                   Icon(
-                    Icons.person_rounded,
+                    Icons.hub_outlined,
                     color:
                         _viewModel.currentIndex == 3
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurface,
+                  ),
+                  Icon(
+                    Icons.person_rounded,
+                    color:
+                        _viewModel.currentIndex == 4
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).colorScheme.onSurface,
                   ),

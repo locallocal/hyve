@@ -1459,13 +1459,14 @@ void main() {
     tester.view.physicalSize = const Size(1440, 900);
     addTearDown(tester.view.reset);
 
-    for (final selectedPage in [1, 2, 3]) {
+    for (final selectedPage in [1, 2, 3, 4]) {
       await tester.pumpWidget(_desktopHarness(currentIndex: selectedPage));
       await tester.pumpAndSettle();
 
       final label = switch (selectedPage) {
         1 => '智能体',
         2 => '技能',
+        3 => 'MCP 服务器',
         _ => '我的',
       };
       final selectedButtonFinder =
@@ -1529,6 +1530,19 @@ void main() {
         expect(agentIcon.size, newChatIcon.size);
       } else if (selectedPage == 2) {
         expect((selectedButton.leading! as Icon).icon, LucideIcons.wrench);
+      } else if (selectedPage == 3) {
+        expect((selectedButton.leading! as Icon).icon, LucideIcons.server);
+        final skillButtonFinder =
+            find
+                .ancestor(
+                  of: find.text('技能'),
+                  matching: find.byType(ShadButton),
+                )
+                .first;
+        expect(
+          tester.getRect(selectedButtonFinder).top,
+          greaterThan(tester.getRect(skillButtonFinder).bottom),
+        );
       }
     }
   });
@@ -2385,6 +2399,7 @@ Widget _desktopHarness({
               Center(child: Text('chat list')),
               Center(child: Text('bot list')),
               Center(child: Text('skills')),
+              Center(child: Text('mcp servers')),
               Center(child: Text('profile')),
             ],
             selectedChatId: selectedChatId,

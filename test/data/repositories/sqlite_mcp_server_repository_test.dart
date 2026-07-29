@@ -50,6 +50,28 @@ void main() {
     );
   });
 
+  test('persists stdio command and arguments', () async {
+    final timestamp = DateTime(2026, 7, 30);
+    final server = McpServer(
+      id: 'stdio-1',
+      name: 'Local',
+      namespace: 'local',
+      transportType: McpTransportType.stdio,
+      command: 'npx',
+      arguments: const ['-y', '@example/mcp'],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+
+    await repository.saveServer(server);
+    final restored = await repository.getServer(server.id);
+
+    expect(restored?.transportType, McpTransportType.stdio);
+    expect(restored?.command, 'npx');
+    expect(restored?.arguments, ['-y', '@example/mcp']);
+    expect(restored?.endpoint, Uri());
+  });
+
   test(
     'refresh preserves per-Tool enablement and delete clears catalog',
     () async {

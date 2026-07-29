@@ -21,6 +21,7 @@ import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
 import 'package:stars/data/services/mcp/mcp_client_service.dart';
 import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
 import 'package:stars/data/services/mcp/mcp_http_transport.dart';
+import 'package:stars/data/services/mcp/mcp_stdio_transport.dart';
 import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
 import 'package:stars/data/services/skills/skill_package_storage_service.dart';
 import 'package:stars/data/services/skills/skill_parser.dart';
@@ -138,6 +139,7 @@ class AppDependencies {
     final mcpCredentialStore = SecureMcpCredentialStore();
     final mcpClient = McpClientService(
       transport: McpHttpTransport(endpointPolicy: McpEndpointPolicy()),
+      stdioTransport: McpStdioTransport(),
       credentialStore: mcpCredentialStore,
     );
     final composeChatTurn = ComposeChatTurn(

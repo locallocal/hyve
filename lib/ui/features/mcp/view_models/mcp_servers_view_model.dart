@@ -9,15 +9,23 @@ final class McpServerDraft {
     this.id,
     required this.name,
     required this.namespace,
-    required this.endpoint,
-    required this.authType,
+    this.transportType = McpTransportType.streamableHttp,
+    this.endpoint = '',
+    this.command = '',
+    this.arguments = '',
+    this.environment = '',
+    this.authType = McpAuthType.none,
     this.accessToken = '',
   });
 
   final String? id;
   final String name;
   final String namespace;
+  final McpTransportType transportType;
   final String endpoint;
+  final String command;
+  final String arguments;
+  final String environment;
   final McpAuthType authType;
   final String accessToken;
 }
@@ -85,9 +93,29 @@ final class McpServersViewModel extends ChangeNotifier {
     final id =
         existing?.id ??
         'mcp-${timestamp.microsecondsSinceEpoch.toRadixString(36)}';
-    final endpoint = Uri.tryParse(draft.endpoint.trim());
-    if (endpoint == null || !endpoint.hasScheme || endpoint.host.isEmpty) {
-      _error = const McpException('mcp_invalid_endpoint');
+    final Uri endpoint;
+    switch (draft.transportType) {
+      case McpTransportType.streamableHttp:
+        final parsedEndpoint = Uri.tryParse(draft.endpoint.trim());
+        if (parsedEndpoint == null ||
+            !parsedEndpoint.hasScheme ||
+            parsedEndpoint.host.isEmpty) {
+          _error = const McpException('mcp_invalid_endpoint');
+          notifyListeners();
+          return false;
+        }
+        endpoint = parsedEndpoint;
+      case McpTransportType.stdio:
+        if (draft.command.trim().isEmpty) {
+          _error = const McpException('mcp_invalid_stdio_command');
+          notifyListeners();
+          return false;
+        }
+        endpoint = Uri();
+    }
+    final environment = _parseEnvironment(draft.environment);
+    if (environment == null) {
+      _error = const McpException('mcp_invalid_stdio_environment');
       notifyListeners();
       return false;
     }
@@ -97,8 +125,18 @@ final class McpServersViewModel extends ChangeNotifier {
         id: id,
         name: draft.name.trim(),
         namespace: draft.namespace.trim().toLowerCase(),
+        transportType: draft.transportType,
         endpoint: endpoint,
-        authType: draft.authType,
+        command: draft.command.trim(),
+        arguments: draft.arguments
+            .split(RegExp(r'\r?\n'))
+            .map((argument) => argument.trim())
+            .where((argument) => argument.isNotEmpty)
+            .toList(growable: false),
+        authType:
+            draft.transportType == McpTransportType.stdio
+                ? McpAuthType.none
+                : draft.authType,
         enabled: existing?.enabled ?? true,
         protocolVersion: existing?.protocolVersion ?? '',
         remoteServerName: existing?.remoteServerName ?? '',
@@ -109,15 +147,12 @@ final class McpServersViewModel extends ChangeNotifier {
         updatedAt: timestamp,
       );
       await _repository.saveServer(server);
-      final accessToken = draft.accessToken.trim();
-      if (draft.authType == McpAuthType.none) {
-        await _credentialStore.delete(id);
-      } else if (accessToken.isNotEmpty) {
-        await _credentialStore.write(
-          id,
-          McpCredential(accessToken: accessToken),
-        );
-      }
+      await _saveCredential(
+        id: id,
+        existing: existing,
+        draft: draft,
+        environment: environment,
+      );
       await _runForServer(id, () => _catalogService.refreshServer(id));
       return _error == null;
     } on Object catch (error) {
@@ -213,4 +248,49 @@ final class McpServersViewModel extends ChangeNotifier {
     _error = preserved;
     notifyListeners();
   }
+
+  Future<void> _saveCredential({
+    required String id,
+    required McpServer? existing,
+    required McpServerDraft draft,
+    required Map<String, String> environment,
+  }) async {
+    if (draft.transportType == McpTransportType.stdio) {
+      if (environment.isNotEmpty) {
+        await _credentialStore.write(
+          id,
+          McpCredential(environment: environment),
+        );
+      } else if (existing?.transportType != McpTransportType.stdio) {
+        await _credentialStore.delete(id);
+      }
+      return;
+    }
+
+    if (draft.authType == McpAuthType.none) {
+      await _credentialStore.delete(id);
+      return;
+    }
+    final accessToken = draft.accessToken.trim();
+    if (accessToken.isNotEmpty) {
+      await _credentialStore.write(id, McpCredential(accessToken: accessToken));
+    } else if (existing?.transportType != McpTransportType.streamableHttp ||
+        existing?.authType != McpAuthType.oauthAccessToken) {
+      await _credentialStore.delete(id);
+    }
+  }
+}
+
+Map<String, String>? _parseEnvironment(String source) {
+  final environment = <String, String>{};
+  for (final rawLine in source.split(RegExp(r'\r?\n'))) {
+    final line = rawLine.trim();
+    if (line.isEmpty) continue;
+    final separator = line.indexOf('=');
+    if (separator <= 0) return null;
+    final key = line.substring(0, separator).trim();
+    if (!RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(key)) return null;
+    environment[key] = line.substring(separator + 1);
+  }
+  return Map<String, String>.unmodifiable(environment);
 }

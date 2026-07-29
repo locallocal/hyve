@@ -163,6 +163,52 @@ void main() {
     );
   });
 
+  test('version 10 migration adds stdio MCP process settings', () async {
+    final database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+    );
+    addTearDown(database.close);
+    await database.execute('''
+      CREATE TABLE mcp_servers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        namespace TEXT NOT NULL UNIQUE,
+        endpoint_uri TEXT NOT NULL,
+        auth_type TEXT NOT NULL DEFAULT 'none',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        protocol_version TEXT NOT NULL DEFAULT '',
+        remote_server_name TEXT NOT NULL DEFAULT '',
+        remote_server_version TEXT NOT NULL DEFAULT '',
+        capabilities_json TEXT NOT NULL DEFAULT '{}',
+        connection_status TEXT NOT NULL DEFAULT 'disconnected',
+        last_error_code TEXT NOT NULL DEFAULT '',
+        last_connected_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await database.insert('mcp_servers', <String, Object?>{
+      'id': 'legacy-http',
+      'name': 'Legacy',
+      'namespace': 'legacy',
+      'endpoint_uri': 'https://example.com/mcp',
+      'created_at': 0,
+      'updated_at': 0,
+    });
+
+    await DatabaseService.migrateSchema(database, 9, 10);
+
+    final columns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
+    expect(
+      columns.map((column) => column['name']),
+      containsAll(<String>['transport_type', 'command', 'arguments_json']),
+    );
+    final row = (await database.query('mcp_servers')).single;
+    expect(row['transport_type'], 'streamableHttp');
+    expect(row['command'], '');
+    expect(row['arguments_json'], '[]');
+  });
+
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
     addTearDown(database.close);

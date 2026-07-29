@@ -31,12 +31,14 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
         (key, value) => MapEntry(key.toString(), value as Object?),
       );
       final accessToken = values['accessToken']?.toString() ?? '';
-      if (accessToken.isEmpty) return null;
+      final environment = _stringMap(values['environment']);
+      if (accessToken.isEmpty && environment.isEmpty) return null;
       final expiresAt = DateTime.tryParse(
         values['expiresAt']?.toString() ?? '',
       );
       return McpCredential(
         accessToken: accessToken,
+        environment: environment,
         tokenType: values['tokenType']?.toString() ?? 'Bearer',
         scope: values['scope']?.toString() ?? '',
         expiresAt: expiresAt,
@@ -48,17 +50,19 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
 
   @override
   Future<void> write(String serverId, McpCredential credential) {
-    if (credential.accessToken.trim().isEmpty) {
+    if (credential.accessToken.trim().isEmpty &&
+        credential.environment.isEmpty) {
       throw ArgumentError.value(
-        credential.accessToken,
+        credential,
         'credential',
-        'MCP access token cannot be empty.',
+        'MCP credential cannot be empty.',
       );
     }
     return _storage.write(
       key: _key(serverId),
       value: jsonEncode({
         'accessToken': credential.accessToken,
+        'environment': credential.environment,
         'tokenType': credential.tokenType,
         'scope': credential.scope,
         'expiresAt': credential.expiresAt?.toUtc().toIso8601String(),
@@ -73,4 +77,11 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
     final safeId = serverId.replaceAll(RegExp(r'[^A-Za-z0-9_.:-]'), '_');
     return 'stars.mcp.credential.$safeId';
   }
+}
+
+Map<String, String> _stringMap(Object? value) {
+  if (value is! Map) return const {};
+  return Map<String, String>.unmodifiable(
+    value.map((key, mapValue) => MapEntry(key.toString(), mapValue.toString())),
+  );
 }

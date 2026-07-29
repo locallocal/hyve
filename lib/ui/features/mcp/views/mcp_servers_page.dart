@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:stars/utils/theme.dart';
+import 'package:stars/utils/utils.dart';
 
 class McpServersPage extends StatefulWidget {
   const McpServersPage({super.key, this.viewModel});
@@ -37,6 +40,17 @@ class _McpServersPageState extends State<McpServersPage> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder:
+          (context, _) =>
+              isDesktopOrTabletPlatform(context)
+                  ? _buildDesktop(context)
+                  : _buildMobile(context),
+    );
+  }
+
+  Widget _buildMobile(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).mcpServers),
@@ -53,14 +67,144 @@ class _McpServersPageState extends State<McpServersPage> {
         icon: const Icon(Icons.add_rounded),
         label: Text(S.of(context).addMcpServer),
       ),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) => _buildBody(context),
+      body: _buildMobileBody(context),
+    );
+  }
+
+  Widget _buildDesktop(BuildContext context) {
+    final strings = S.of(context);
+    return ColoredBox(
+      color: DesktopThemeTokens.workspaceSurface(context),
+      child: RefreshIndicator(
+        onRefresh: _viewModel.load,
+        child: SingleChildScrollView(
+          key: const ValueKey<String>('mcp-servers-desktop-page'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: DesktopThemeTokens.formPagePadding,
+          child: Center(
+            child: ConstrainedBox(
+              key: const ValueKey<String>('mcp-servers-desktop-content'),
+              constraints: const BoxConstraints(
+                maxWidth: DesktopThemeTokens.formContentMaxWidth,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              strings.mcpServers,
+                              style: DesktopThemeTokens.pageTitleStyle(context),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              strings.mcpServersDescription,
+                              style: DesktopThemeTokens.bodyStyle(
+                                context,
+                              )?.copyWith(
+                                color: DesktopThemeTokens.mutedText(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      ShadButton(
+                        key: const ValueKey<String>('add-mcp-server-desktop'),
+                        onPressed: () => _showEditor(),
+                        leading: const Icon(LucideIcons.plus, size: 16),
+                        child: Text(strings.addMcpServer),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ShadAlert(
+                    icon: const Icon(LucideIcons.shieldCheck),
+                    title: Text(strings.mcpLocalProcessSecurityTitle),
+                    description: Text(
+                      strings.mcpLocalProcessSecurityDescription,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    strings.mcpProgressiveDiscoveryDescription,
+                    style: DesktopThemeTokens.bodyStyle(
+                      context,
+                    )?.copyWith(color: DesktopThemeTokens.mutedText(context)),
+                  ),
+                  if (_viewModel.error != null) ...[
+                    const SizedBox(height: 16),
+                    ShadAlert.destructive(
+                      icon: const Icon(LucideIcons.circleAlert),
+                      title: Text(_errorMessage(_viewModel.error!)),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  if (_viewModel.isLoading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: ShadProgress(),
+                      ),
+                    )
+                  else if (_viewModel.servers.isEmpty)
+                    DesktopEmptyStateCard(
+                      icon: LucideIcons.server,
+                      title: strings.noMcpServers,
+                      description: strings.noMcpServersDescription,
+                      action: ShadButton(
+                        size: ShadButtonSize.sm,
+                        onPressed: () => _showEditor(),
+                        leading: const Icon(LucideIcons.plus, size: 16),
+                        child: Text(strings.addMcpServer),
+                      ),
+                    )
+                  else
+                    for (
+                      var index = 0;
+                      index < _viewModel.servers.length;
+                      index++
+                    ) ...[
+                      _ServerCard(
+                        server: _viewModel.servers[index],
+                        tools: _viewModel.toolsFor(
+                          _viewModel.servers[index].id,
+                        ),
+                        busy:
+                            _viewModel.busyServerId ==
+                            _viewModel.servers[index].id,
+                        onEdit: () => _showEditor(_viewModel.servers[index]),
+                        onRefresh:
+                            () => _viewModel.refresh(
+                              _viewModel.servers[index].id,
+                            ),
+                        onDelete:
+                            () => _confirmDelete(_viewModel.servers[index]),
+                        onEnabledChanged:
+                            (enabled) => _viewModel.setServerEnabled(
+                              _viewModel.servers[index],
+                              enabled,
+                            ),
+                        onToolEnabledChanged: _viewModel.setToolEnabled,
+                      ),
+                      if (index != _viewModel.servers.length - 1)
+                        const SizedBox(height: 12),
+                    ],
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildMobileBody(BuildContext context) {
     if (_viewModel.isLoading && _viewModel.servers.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -70,8 +214,14 @@ class _McpServersPageState extends State<McpServersPage> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: [
           _SecurityNotice(
-            title: S.of(context).remoteMcpOnly,
-            description: S.of(context).localMcpDisabledDescription,
+            title:
+                isDesktopPlatform(context)
+                    ? S.of(context).mcpLocalProcessSecurityTitle
+                    : S.of(context).remoteMcpOnly,
+            description:
+                isDesktopPlatform(context)
+                    ? S.of(context).mcpLocalProcessSecurityDescription
+                    : S.of(context).localMcpDisabledDescription,
           ),
           const SizedBox(height: 12),
           Text(
@@ -114,6 +264,9 @@ class _McpServersPageState extends State<McpServersPage> {
         'mcp_authorization_required' => S.of(context).mcpAuthorizationRequired,
         'mcp_request_timeout' => S.of(context).mcpRequestTimedOut,
         'mcp_unsupported_protocol' => S.of(context).mcpUnsupportedProtocol,
+        'mcp_stdio_start_failed' => S.of(context).mcpStdioStartFailed,
+        'mcp_invalid_stdio_environment' =>
+          S.of(context).mcpInvalidStdioEnvironment,
         _ => S.of(context).mcpConnectionFailed(code),
       };
     }
@@ -121,10 +274,22 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   Future<void> _showEditor([McpServer? server]) async {
-    final draft = await showDialog<McpServerDraft>(
-      context: context,
-      builder: (context) => _McpServerEditorDialog(server: server),
-    );
+    final desktop = isDesktopOrTabletPlatform(context);
+    final draft =
+        desktop
+            ? await showShadDialog<McpServerDraft>(
+              context: context,
+              barrierDismissible: false,
+              builder:
+                  (context) =>
+                      _McpServerEditorDialog(server: server, desktop: true),
+            )
+            : await showDialog<McpServerDraft>(
+              context: context,
+              builder:
+                  (context) =>
+                      _McpServerEditorDialog(server: server, desktop: false),
+            );
     if (draft == null) return;
     await _viewModel.saveAndConnect(draft);
   }
@@ -190,7 +355,16 @@ class _ServerCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(server.endpoint.toString()),
+            Text(
+              server.transportType == McpTransportType.stdio
+                  ? [
+                    server.command,
+                    ...server.arguments,
+                  ].where((part) => part.isNotEmpty).join(' ')
+                  : server.endpoint.toString(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 2),
             Text(
               '${_statusLabel(context, server.status)} · '
@@ -289,8 +463,9 @@ class _ServerCard extends StatelessWidget {
 }
 
 class _McpServerEditorDialog extends StatefulWidget {
-  const _McpServerEditorDialog({this.server});
+  const _McpServerEditorDialog({required this.desktop, this.server});
 
+  final bool desktop;
   final McpServer? server;
 
   @override
@@ -298,10 +473,32 @@ class _McpServerEditorDialog extends StatefulWidget {
 }
 
 class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
+  static const double _desktopFieldWidth =
+      DesktopThemeTokens.addBotFormFieldWidth;
+  static const double _desktopSectionPadding =
+      DesktopThemeTokens.botFormSectionPadding;
+  static const double _desktopSectionBorderWidth =
+      DesktopThemeTokens.botFormSectionBorderWidth;
+  static const double _desktopFormWidth =
+      _desktopFieldWidth +
+      _desktopSectionPadding * 2 +
+      _desktopSectionBorderWidth * 2;
+  static const BoxConstraints _desktopInputConstraints = BoxConstraints(
+    minHeight: DesktopThemeTokens.botFormFieldHeight,
+  );
+
+  final _desktopFormKey = GlobalKey<ShadFormState>();
+  final _desktopScrollController = ScrollController();
   late final TextEditingController _nameController;
   late final TextEditingController _namespaceController;
+  late final TextEditingController _transportController;
   late final TextEditingController _endpointController;
+  late final TextEditingController _commandController;
+  late final TextEditingController _argumentsController;
+  late final TextEditingController _environmentController;
   late final TextEditingController _tokenController;
+  late final TextEditingController _authController;
+  late McpTransportType _transportType;
   late McpAuthType _authType;
 
   @override
@@ -310,24 +507,151 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
     final server = widget.server;
     _nameController = TextEditingController(text: server?.name ?? '');
     _namespaceController = TextEditingController(text: server?.namespace ?? '');
+    _transportController = TextEditingController();
     _endpointController = TextEditingController(
       text: server?.endpoint.toString() ?? '',
     );
+    _commandController = TextEditingController(text: server?.command ?? '');
+    _argumentsController = TextEditingController(
+      text: server?.arguments.join('\n') ?? '',
+    );
+    _environmentController = TextEditingController();
     _tokenController = TextEditingController();
+    _authController = TextEditingController();
+    _transportType = server?.transportType ?? McpTransportType.streamableHttp;
     _authType = server?.authType ?? McpAuthType.none;
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncTransportController();
+    _syncAuthController();
+  }
+
+  @override
   void dispose() {
+    _desktopScrollController.dispose();
     _nameController.dispose();
     _namespaceController.dispose();
+    _transportController.dispose();
     _endpointController.dispose();
+    _commandController.dispose();
+    _argumentsController.dispose();
+    _environmentController.dispose();
     _tokenController.dispose();
+    _authController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return widget.desktop
+        ? _buildDesktopDialog(context)
+        : _buildMobileDialog(context);
+  }
+
+  Widget _buildDesktopDialog(BuildContext context) {
+    final windowSize = MediaQuery.sizeOf(context);
+    final inset =
+        windowSize.width < 900 || windowSize.height < 760 ? 16.0 : 24.0;
+    final dialogWidth =
+        (windowSize.width - inset * 2).clamp(0.0, 840.0).toDouble();
+    final dialogHeight =
+        (windowSize.height - inset * 2).clamp(0.0, 720.0).toDouble();
+
+    return ShadDialog(
+      constraints: BoxConstraints.tightFor(
+        width: dialogWidth,
+        height: dialogHeight,
+      ),
+      padding: EdgeInsets.zero,
+      gap: 0,
+      scrollable: false,
+      useSafeArea: false,
+      removeBorderRadiusWhenTiny: false,
+      closeIcon: const SizedBox.shrink(),
+      child: SizedBox(
+        key: const ValueKey<String>('mcp-server-dialog-content'),
+        width: dialogWidth,
+        height: dialogHeight,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Column(
+            children: [
+              _buildDesktopHeader(context),
+              const ShadSeparator.horizontal(),
+              Expanded(
+                child: Scrollbar(
+                  controller: _desktopScrollController,
+                  child: SingleChildScrollView(
+                    controller: _desktopScrollController,
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: _desktopFormWidth,
+                        ),
+                        child: ShadForm(
+                          key: _desktopFormKey,
+                          autovalidateMode:
+                              ShadAutovalidateMode.alwaysAfterFirstValidation,
+                          child: FocusTraversalGroup(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildDesktopSection(
+                                  context,
+                                  S.of(context).basicInformation,
+                                  [
+                                    _buildDesktopNameInput(context),
+                                    _buildDesktopNamespaceInput(context),
+                                  ],
+                                  sectionKey: const ValueKey<String>(
+                                    'mcp-server-basic-section',
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                _buildDesktopSection(
+                                  context,
+                                  S.of(context).mcpConnectionSettings,
+                                  [
+                                    _buildDesktopTransportInput(context),
+                                    if (_transportType ==
+                                        McpTransportType.streamableHttp) ...[
+                                      _buildDesktopEndpointInput(context),
+                                      _buildDesktopAuthInput(context),
+                                      if (_authType ==
+                                          McpAuthType.oauthAccessToken)
+                                        _buildDesktopTokenInput(context),
+                                    ] else ...[
+                                      _buildDesktopCommandInput(context),
+                                      _buildDesktopArgumentsInput(context),
+                                      _buildDesktopEnvironmentInput(context),
+                                    ],
+                                  ],
+                                  sectionKey: const ValueKey<String>(
+                                    'mcp-server-connection-section',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _buildDesktopFooter(context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileDialog(BuildContext context) {
     return AlertDialog(
       title: Text(
         widget.server == null
@@ -356,48 +680,77 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _endpointController,
-                autocorrect: false,
-                keyboardType: TextInputType.url,
-                decoration: InputDecoration(
-                  labelText: S.of(context).mcpEndpoint,
-                  hintText: 'https://example.com/mcp',
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<McpAuthType>(
-                initialValue: _authType,
-                decoration: InputDecoration(
-                  labelText: S.of(context).mcpAuthentication,
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: McpAuthType.none,
-                    child: Text(S.of(context).mcpNoAuthentication),
+              if (_transportType == McpTransportType.streamableHttp) ...[
+                TextField(
+                  controller: _endpointController,
+                  autocorrect: false,
+                  keyboardType: TextInputType.url,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).mcpEndpoint,
+                    hintText: 'https://example.com/mcp',
                   ),
-                  DropdownMenuItem(
-                    value: McpAuthType.oauthAccessToken,
-                    child: Text(S.of(context).mcpAccessToken),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<McpAuthType>(
+                  initialValue: _authType,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).mcpAuthentication,
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: McpAuthType.none,
+                      child: Text(S.of(context).mcpNoAuthentication),
+                    ),
+                    DropdownMenuItem(
+                      value: McpAuthType.oauthAccessToken,
+                      child: Text(S.of(context).mcpAccessToken),
+                    ),
+                  ],
+                  onChanged: (value) => _setAuthType(value ?? McpAuthType.none),
+                ),
+                if (_authType == McpAuthType.oauthAccessToken) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _tokenController,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      labelText: S.of(context).mcpAccessToken,
+                      helperText:
+                          widget.server == null
+                              ? S.of(context).mcpTokenStoredSecurely
+                              : S.of(context).mcpTokenLeaveBlank,
+                    ),
                   ),
                 ],
-                onChanged:
-                    (value) =>
-                        setState(() => _authType = value ?? McpAuthType.none),
-              ),
-              if (_authType == McpAuthType.oauthAccessToken) ...[
-                const SizedBox(height: 12),
+              ] else ...[
                 TextField(
-                  controller: _tokenController,
-                  obscureText: true,
-                  enableSuggestions: false,
+                  controller: _commandController,
                   autocorrect: false,
                   decoration: InputDecoration(
-                    labelText: S.of(context).mcpAccessToken,
-                    helperText:
-                        widget.server == null
-                            ? S.of(context).mcpTokenStoredSecurely
-                            : S.of(context).mcpTokenLeaveBlank,
+                    labelText: S.of(context).mcpCommand,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _argumentsController,
+                  autocorrect: false,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).mcpArguments,
+                    helperText: S.of(context).mcpArgumentsDescription,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _environmentController,
+                  autocorrect: false,
+                  obscureText: true,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).mcpEnvironment,
+                    helperText: S.of(context).mcpEnvironmentDescription,
                   ),
                 ),
               ],
@@ -418,13 +771,453 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
     );
   }
 
+  Widget _buildDesktopHeader(BuildContext context) {
+    final strings = S.of(context);
+    final tokens = StarsDesktopTokens.of(context);
+    final editing = widget.server != null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: tokens.controlFill,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              LucideIcons.server,
+              size: 23,
+              color: tokens.secondaryText,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  editing ? strings.editMcpServer : strings.addMcpServer,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DesktopThemeTokens.pageTitleStyle(context),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  strings.mcpServersDescription,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DesktopThemeTokens.metaStyle(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ShadTooltip(
+            builder:
+                (context) =>
+                    Text(MaterialLocalizations.of(context).closeButtonTooltip),
+            child: ShadIconButton.ghost(
+              onPressed: () => Navigator.of(context).pop(),
+              width: 36,
+              height: 36,
+              iconSize: 17,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopSection(
+    BuildContext context,
+    String title,
+    List<Widget> children, {
+    required Key sectionKey,
+  }) {
+    final tokens = StarsDesktopTokens.of(context);
+    return ShadCard(
+      key: sectionKey,
+      width: double.infinity,
+      padding: const EdgeInsets.all(_desktopSectionPadding),
+      backgroundColor: tokens.raisedSurface,
+      border: ShadBorder.all(
+        color: tokens.separator,
+        width: _desktopSectionBorderWidth,
+      ),
+      columnCrossAxisAlignment: CrossAxisAlignment.stretch,
+      title: Text(
+        title,
+        style: DesktopThemeTokens.sectionTitleStyle(
+          context,
+        )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < children.length; index++) ...[
+              children[index],
+              if (index != children.length - 1) const SizedBox(height: 12),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopFooter(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const ShadSeparator.horizontal(),
+        ColoredBox(
+          color: ShadTheme.of(context).colorScheme.background,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: _desktopFormWidth,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ShadButton.outline(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(S.of(context).cancel),
+                      ),
+                      const SizedBox(width: 8),
+                      ShadButton(
+                        onPressed: _save,
+                        leading: const Icon(Icons.link_rounded, size: 17),
+                        child: Text(S.of(context).saveAndConnect),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopNameInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-name'),
+      id: 'name',
+      controller: _nameController,
+      textInputAction: TextInputAction.next,
+      label: Text(S.of(context).mcpServerName),
+      leading: _desktopInputLeading(LucideIcons.server),
+      constraints: _desktopInputConstraints,
+      validator:
+          (value) =>
+              value.trim().isEmpty ? S.of(context).fillRequiredFields : null,
+    );
+  }
+
+  Widget _buildDesktopNamespaceInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-namespace'),
+      id: 'namespace',
+      controller: _namespaceController,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
+      label: Text(S.of(context).mcpNamespace),
+      description: Text(S.of(context).mcpNamespaceDescription),
+      leading: _desktopInputLeading(LucideIcons.braces),
+      constraints: _desktopInputConstraints,
+      validator:
+          (value) =>
+              RegExp(r'^[a-z][a-z0-9_-]{0,31}$').hasMatch(value.trim())
+                  ? null
+                  : S.of(context).mcpNamespaceDescription,
+    );
+  }
+
+  Widget _buildDesktopTransportInput(BuildContext context) {
+    final tokens = StarsDesktopTokens.of(context);
+    final shadTheme = ShadTheme.of(context);
+    final inputTextStyle = shadTheme.textTheme.muted
+        .copyWith(color: shadTheme.colorScheme.foreground)
+        .merge(shadTheme.inputTheme.style);
+    return MenuAnchor(
+      alignmentOffset: const Offset(0, 4),
+      style: _desktopMenuStyle(tokens),
+      menuChildren: [
+        for (final transportType in McpTransportType.values)
+          MenuItemButton(
+            trailingIcon:
+                transportType == _transportType
+                    ? Icon(Icons.check_rounded, size: 16, color: tokens.accent)
+                    : const SizedBox.square(dimension: 16),
+            onPressed: () => _setTransportType(transportType),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 180),
+              child: Text(
+                _transportLabel(transportType),
+                style: inputTextStyle,
+              ),
+            ),
+          ),
+      ],
+      builder:
+          (context, controller, child) => ShadInputFormField(
+            key: const ValueKey<String>('mcp-server-transport'),
+            id: 'transport',
+            controller: _transportController,
+            readOnly: true,
+            label: Text(S.of(context).mcpTransport),
+            leading: _desktopInputLeading(Icons.swap_horiz_rounded),
+            constraints: _desktopInputConstraints,
+            onPressed: () => _toggleMenu(controller),
+            trailing: ShadIconButton.ghost(
+              key: const ValueKey<String>('mcp-server-transport-menu'),
+              onPressed: () => _toggleMenu(controller),
+              icon: const Icon(Icons.expand_more_rounded),
+              iconSize: 16,
+              width: 30,
+              height: 30,
+              padding: EdgeInsets.zero,
+            ),
+          ),
+    );
+  }
+
+  Widget _buildDesktopEndpointInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-endpoint'),
+      id: 'endpoint',
+      controller: _endpointController,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
+      keyboardType: TextInputType.url,
+      label: Text(S.of(context).mcpEndpoint),
+      placeholder: const Text('https://example.com/mcp'),
+      leading: _desktopInputLeading(LucideIcons.link),
+      constraints: _desktopInputConstraints,
+      validator:
+          (value) =>
+              value.trim().isEmpty ? S.of(context).fillRequiredFields : null,
+    );
+  }
+
+  Widget _buildDesktopCommandInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-command'),
+      id: 'command',
+      controller: _commandController,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
+      label: Text(S.of(context).mcpCommand),
+      description: Text(S.of(context).mcpCommandDescription),
+      placeholder: const Text('npx'),
+      leading: _desktopInputLeading(Icons.terminal_rounded),
+      constraints: _desktopInputConstraints,
+      validator:
+          (value) =>
+              value.trim().isEmpty ? S.of(context).fillRequiredFields : null,
+    );
+  }
+
+  Widget _buildDesktopArgumentsInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-arguments'),
+      id: 'arguments',
+      controller: _argumentsController,
+      autocorrect: false,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      maxLines: 4,
+      label: Text(S.of(context).mcpArguments),
+      description: Text(S.of(context).mcpArgumentsDescription),
+      placeholder: const Text('-y\n@modelcontextprotocol/server-filesystem'),
+      leading: _desktopInputLeading(Icons.format_list_bulleted_rounded),
+      constraints: const BoxConstraints(minHeight: 104),
+    );
+  }
+
+  Widget _buildDesktopEnvironmentInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-environment'),
+      id: 'environment',
+      controller: _environmentController,
+      autocorrect: false,
+      enableSuggestions: false,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      maxLines: 4,
+      label: Text(S.of(context).mcpEnvironment),
+      description: Text(S.of(context).mcpEnvironmentDescription),
+      placeholder: const Text('API_KEY=secret'),
+      leading: _desktopInputLeading(Icons.password_rounded),
+      constraints: const BoxConstraints(minHeight: 104),
+    );
+  }
+
+  Widget _buildDesktopAuthInput(BuildContext context) {
+    final tokens = StarsDesktopTokens.of(context);
+    final shadTheme = ShadTheme.of(context);
+    final inputTextStyle = shadTheme.textTheme.muted
+        .copyWith(color: shadTheme.colorScheme.foreground)
+        .merge(shadTheme.inputTheme.style);
+    return MenuAnchor(
+      alignmentOffset: const Offset(0, 4),
+      style: _desktopMenuStyle(tokens),
+      menuChildren: [
+        for (final authType in McpAuthType.values)
+          MenuItemButton(
+            trailingIcon:
+                authType == _authType
+                    ? Icon(Icons.check_rounded, size: 16, color: tokens.accent)
+                    : const SizedBox.square(dimension: 16),
+            onPressed: () => _setAuthType(authType),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 180),
+              child: Text(_authLabel(authType), style: inputTextStyle),
+            ),
+          ),
+      ],
+      builder:
+          (context, controller, child) => ShadInputFormField(
+            key: const ValueKey<String>('mcp-server-authentication'),
+            id: 'authentication',
+            controller: _authController,
+            readOnly: true,
+            label: Text(S.of(context).mcpAuthentication),
+            leading: _desktopInputLeading(LucideIcons.keyRound),
+            constraints: _desktopInputConstraints,
+            onPressed: () => _toggleMenu(controller),
+            trailing: ShadIconButton.ghost(
+              key: const ValueKey<String>('mcp-server-authentication-menu'),
+              onPressed: () => _toggleMenu(controller),
+              icon: const Icon(Icons.expand_more_rounded),
+              iconSize: 16,
+              width: 30,
+              height: 30,
+              padding: EdgeInsets.zero,
+            ),
+          ),
+    );
+  }
+
+  MenuStyle _desktopMenuStyle(StarsDesktopTokens tokens) {
+    return MenuStyle(
+      backgroundColor: WidgetStatePropertyAll(tokens.raisedSurface),
+      surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+      shadowColor: WidgetStatePropertyAll(
+        Colors.black.withValues(alpha: tokens.highContrast ? 0 : 0.18),
+      ),
+      elevation: WidgetStatePropertyAll(tokens.highContrast ? 0 : 6),
+      maximumSize: const WidgetStatePropertyAll(Size(420, 240)),
+      side: WidgetStatePropertyAll(
+        BorderSide(color: tokens.separator, width: 0),
+      ),
+      shape: const WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: DesktopThemeTokens.containerRadius,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopTokenInput(BuildContext context) {
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-access-token'),
+      id: 'accessToken',
+      controller: _tokenController,
+      obscureText: true,
+      enableSuggestions: false,
+      autocorrect: false,
+      label: Text(S.of(context).mcpAccessToken),
+      description: Text(
+        widget.server == null
+            ? S.of(context).mcpTokenStoredSecurely
+            : S.of(context).mcpTokenLeaveBlank,
+      ),
+      leading: _desktopInputLeading(LucideIcons.lockKeyhole),
+      constraints: _desktopInputConstraints,
+    );
+  }
+
+  Widget _desktopInputLeading(IconData icon) {
+    return SizedBox(
+      width: 17,
+      height: 30,
+      child: Center(child: Icon(icon, size: 17)),
+    );
+  }
+
+  void _toggleMenu(MenuController controller) {
+    controller.isOpen ? controller.close() : controller.open();
+  }
+
+  void _setAuthType(McpAuthType value) {
+    setState(() {
+      _authType = value;
+      _syncAuthController();
+    });
+  }
+
+  void _setTransportType(McpTransportType value) {
+    setState(() {
+      _transportType = value;
+      if (value == McpTransportType.stdio) {
+        _authType = McpAuthType.none;
+      }
+      _syncTransportController();
+      _syncAuthController();
+    });
+  }
+
+  void _syncTransportController() {
+    final label = _transportLabel(_transportType);
+    if (_transportController.text != label) {
+      _transportController.text = label;
+    }
+  }
+
+  void _syncAuthController() {
+    final label = _authLabel(_authType);
+    if (_authController.text != label) {
+      _authController.text = label;
+    }
+  }
+
+  String _authLabel(McpAuthType value) => switch (value) {
+    McpAuthType.none => S.of(context).mcpNoAuthentication,
+    McpAuthType.oauthAccessToken => S.of(context).mcpAccessToken,
+  };
+
+  String _transportLabel(McpTransportType value) => switch (value) {
+    McpTransportType.streamableHttp => S.of(context).mcpTransportStreamableHttp,
+    McpTransportType.stdio => S.of(context).mcpTransportStdio,
+  };
+
   void _save() {
+    if (widget.desktop &&
+        !(_desktopFormKey.currentState?.saveAndValidate() ?? false)) {
+      return;
+    }
     final name = _nameController.text.trim();
     final namespace = _namespaceController.text.trim().toLowerCase();
     final endpoint = _endpointController.text.trim();
+    final command = _commandController.text.trim();
     if (name.isEmpty ||
         !RegExp(r'^[a-z][a-z0-9_-]{0,31}$').hasMatch(namespace) ||
-        endpoint.isEmpty) {
+        (_transportType == McpTransportType.streamableHttp &&
+            endpoint.isEmpty) ||
+        (_transportType == McpTransportType.stdio && command.isEmpty)) {
       return;
     }
     Navigator.of(context).pop(
@@ -432,8 +1225,15 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
         id: widget.server?.id,
         name: name,
         namespace: namespace,
+        transportType: _transportType,
         endpoint: endpoint,
-        authType: _authType,
+        command: command,
+        arguments: _argumentsController.text,
+        environment: _environmentController.text,
+        authType:
+            _transportType == McpTransportType.stdio
+                ? McpAuthType.none
+                : _authType,
         accessToken: _tokenController.text,
       ),
     );

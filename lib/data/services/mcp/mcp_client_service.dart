@@ -1,4 +1,5 @@
 import 'package:stars/data/services/mcp/mcp_http_transport.dart';
+import 'package:stars/data/services/mcp/mcp_stdio_transport.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
@@ -6,8 +7,10 @@ import 'package:stars/domain/repositories/mcp_credential_store.dart';
 final class McpClientService implements McpClient {
   McpClientService({
     required McpHttpTransport transport,
+    McpStdioTransport? stdioTransport,
     required McpCredentialStore credentialStore,
-  }) : _transport = transport,
+  }) : _httpTransport = transport,
+       _stdioTransport = stdioTransport ?? McpStdioTransport(),
        _credentialStore = credentialStore;
 
   static const String latestProtocolVersion = '2025-11-25';
@@ -17,7 +20,8 @@ final class McpClientService implements McpClient {
     '2025-03-26',
   };
 
-  final McpHttpTransport _transport;
+  final McpHttpTransport _httpTransport;
+  final McpStdioTransport _stdioTransport;
   final McpCredentialStore _credentialStore;
   final Map<String, _McpSession> _sessions = {};
   int _nextRequestId = 1;
@@ -28,8 +32,12 @@ final class McpClientService implements McpClient {
     AgentCancellationToken? cancellationToken,
   }) async {
     final cancellation = cancellationToken ?? AgentCancellationToken();
-    final fingerprint =
-        '${server.endpoint}|${server.authType.name}|${server.namespace}';
+    final fingerprint = switch (server.transportType) {
+      McpTransportType.streamableHttp =>
+        '${server.endpoint}|${server.authType.name}|${server.namespace}',
+      McpTransportType.stdio =>
+        '${server.command}|${server.arguments}|${server.namespace}',
+    };
     final existing = _sessions[server.id];
     if (existing != null && existing.fingerprint == fingerprint) {
       return existing.initializeResult;
@@ -37,7 +45,7 @@ final class McpClientService implements McpClient {
     if (existing != null) await disconnect(server);
 
     final credential = await _credentialStore.read(server.id);
-    final response = await _transport.post(
+    final response = await _post(
       server: server,
       credential: credential,
       cancellationToken: cancellation,
@@ -51,13 +59,22 @@ final class McpClientService implements McpClient {
         },
       }),
     );
-    final result = _result(response.payload);
-    final protocolVersion = result['protocolVersion']?.toString() ?? '';
-    if (!supportedProtocolVersions.contains(protocolVersion)) {
-      throw McpException(
-        'mcp_unsupported_protocol',
-        message: 'Unsupported MCP protocol version: $protocolVersion.',
-      );
+    final Map<String, Object?> result;
+    final String protocolVersion;
+    try {
+      result = _result(response.payload);
+      protocolVersion = result['protocolVersion']?.toString() ?? '';
+      if (!supportedProtocolVersions.contains(protocolVersion)) {
+        throw McpException(
+          'mcp_unsupported_protocol',
+          message: 'Unsupported MCP protocol version: $protocolVersion.',
+        );
+      }
+    } on Object {
+      if (server.transportType == McpTransportType.stdio) {
+        await _stdioTransport.close(server.id);
+      }
+      rethrow;
     }
     final serverInfo = _map(result['serverInfo']);
     final capabilities = _map(result['capabilities']);
@@ -80,7 +97,7 @@ final class McpClientService implements McpClient {
     _sessions[server.id] = session;
 
     try {
-      await _transport.post(
+      await _post(
         server: server.copyWith(protocolVersion: protocolVersion),
         credential: credential,
         cancellationToken: cancellation,
@@ -92,6 +109,9 @@ final class McpClientService implements McpClient {
       );
     } on Object {
       _sessions.remove(server.id);
+      if (server.transportType == McpTransportType.stdio) {
+        await _stdioTransport.close(server.id);
+      }
       rethrow;
     }
     return initialized;
@@ -118,7 +138,7 @@ final class McpClientService implements McpClient {
     final tools = <McpToolDescriptor>[];
     String? cursor;
     for (var page = 0; page < 100; page += 1) {
-      final response = await _transport.post(
+      final response = await _post(
         server: server.copyWith(protocolVersion: initialized.protocolVersion),
         credential: credential,
         cancellationToken: cancellation,
@@ -182,7 +202,7 @@ final class McpClientService implements McpClient {
     );
     final session = _sessions[server.id]!;
     final credential = await _credentialStore.read(server.id);
-    final response = await _transport.post(
+    final response = await _post(
       server: server.copyWith(protocolVersion: initialized.protocolVersion),
       credential: credential,
       cancellationToken: cancellationToken,
@@ -210,9 +230,13 @@ final class McpClientService implements McpClient {
   @override
   Future<void> disconnect(McpServer server) async {
     final session = _sessions.remove(server.id);
+    if (server.transportType == McpTransportType.stdio) {
+      await _stdioTransport.close(server.id);
+      return;
+    }
     if (session?.sessionId == null) return;
     try {
-      await _transport.deleteSession(
+      await _httpTransport.deleteSession(
         server: server.copyWith(
           protocolVersion: session!.initializeResult.protocolVersion,
         ),
@@ -222,6 +246,30 @@ final class McpClientService implements McpClient {
     } on Object {
       // The local session is already gone; remote cleanup is best effort.
     }
+  }
+
+  Future<McpTransportResponse> _post({
+    required McpServer server,
+    required McpCredential? credential,
+    required AgentCancellationToken cancellationToken,
+    required Map<String, Object?> payload,
+    String? sessionId,
+  }) {
+    return switch (server.transportType) {
+      McpTransportType.streamableHttp => _httpTransport.post(
+        server: server,
+        credential: credential,
+        cancellationToken: cancellationToken,
+        payload: payload,
+        sessionId: sessionId,
+      ),
+      McpTransportType.stdio => _stdioTransport.post(
+        server: server,
+        credential: credential,
+        cancellationToken: cancellationToken,
+        payload: payload,
+      ),
+    };
   }
 
   Map<String, Object?> _request(String method, Map<String, Object?> params) {

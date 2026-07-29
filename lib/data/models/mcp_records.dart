@@ -10,7 +10,10 @@ final class McpServerRecord {
       'id': server.id,
       'name': server.name,
       'namespace': server.namespace,
+      'transport_type': server.transportType.name,
       'endpoint_uri': server.endpoint.toString(),
+      'command': server.command,
+      'arguments_json': jsonEncode(server.arguments),
       'auth_type': server.authType.name,
       'enabled': server.enabled ? 1 : 0,
       'protocol_version': server.protocolVersion,
@@ -33,7 +36,14 @@ final class McpServerRecord {
       id: _text('id'),
       name: _text('name'),
       namespace: _text('namespace'),
+      transportType: _enumValue(
+        McpTransportType.values,
+        _text('transport_type'),
+        McpTransportType.streamableHttp,
+      ),
       endpoint: Uri.parse(_text('endpoint_uri')),
+      command: _text('command'),
+      arguments: _decodeStringList(_text('arguments_json')),
       authType: _enumValue(
         McpAuthType.values,
         _text('auth_type'),
@@ -126,6 +136,18 @@ Map<String, Object?> _decodeMap(String source) {
     return const {};
   }
   return const {};
+}
+
+List<String> _decodeStringList(String source) {
+  try {
+    final decoded = jsonDecode(source);
+    if (decoded is List) {
+      return decoded.map((value) => value.toString()).toList(growable: false);
+    }
+  } on FormatException {
+    // Invalid persisted values fail closed to an empty argument list.
+  }
+  return const [];
 }
 
 T _enumValue<T extends Enum>(List<T> values, String name, T fallback) {

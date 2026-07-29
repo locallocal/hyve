@@ -32,4 +32,23 @@ void main() {
     await store.delete('server-1');
     expect(await store.read('server-1'), isNull);
   });
+
+  test('stores stdio environment variables as secure credentials', () async {
+    final store = SecureMcpCredentialStore();
+
+    await store.write(
+      'stdio-1',
+      const McpCredential(
+        environment: {'API_KEY': 'stdio-secret', 'MCP_REGION': 'local'},
+      ),
+    );
+    final restored = await store.read('stdio-1');
+
+    expect(restored?.accessToken, isEmpty);
+    expect(restored?.environment, {
+      'API_KEY': 'stdio-secret',
+      'MCP_REGION': 'local',
+    });
+    expect(restored.toString(), isNot(contains('stdio-secret')));
+  });
 }

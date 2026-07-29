@@ -4,6 +4,8 @@ import 'package:stars/domain/models/tool.dart';
 
 enum McpAuthType { none, oauthAccessToken }
 
+enum McpTransportType { streamableHttp, stdio }
+
 enum McpConnectionStatus {
   disconnected,
   connecting,
@@ -39,7 +41,10 @@ final class McpServer {
     required this.id,
     required this.name,
     required this.namespace,
-    required this.endpoint,
+    this.transportType = McpTransportType.streamableHttp,
+    Uri? endpoint,
+    this.command = '',
+    List<String> arguments = const [],
     this.authType = McpAuthType.none,
     this.enabled = true,
     this.protocolVersion = '',
@@ -51,7 +56,8 @@ final class McpServer {
     this.lastConnectedAt,
     required this.createdAt,
     required this.updatedAt,
-  }) {
+  }) : endpoint = endpoint ?? Uri(),
+       arguments = List<String>.unmodifiable(arguments) {
     if (id.trim().isEmpty) {
       throw ArgumentError.value(id, 'id', 'MCP server id cannot be empty.');
     }
@@ -69,19 +75,40 @@ final class McpServer {
         'Use 1-32 lowercase letters, digits, underscores, or hyphens.',
       );
     }
-    if (!endpoint.hasScheme || endpoint.host.isEmpty) {
-      throw ArgumentError.value(
-        endpoint,
-        'endpoint',
-        'MCP endpoint must be an absolute URI.',
-      );
+    switch (transportType) {
+      case McpTransportType.streamableHttp:
+        if (!this.endpoint.hasScheme || this.endpoint.host.isEmpty) {
+          throw ArgumentError.value(
+            this.endpoint,
+            'endpoint',
+            'MCP endpoint must be an absolute URI.',
+          );
+        }
+      case McpTransportType.stdio:
+        if (command.trim().isEmpty) {
+          throw ArgumentError.value(
+            command,
+            'command',
+            'MCP stdio command cannot be empty.',
+          );
+        }
+        if (authType != McpAuthType.none) {
+          throw ArgumentError.value(
+            authType,
+            'authType',
+            'MCP stdio servers do not use HTTP authentication.',
+          );
+        }
     }
   }
 
   final String id;
   final String name;
   final String namespace;
+  final McpTransportType transportType;
   final Uri endpoint;
+  final String command;
+  final List<String> arguments;
   final McpAuthType authType;
   final bool enabled;
   final String protocolVersion;
@@ -97,7 +124,10 @@ final class McpServer {
   McpServer copyWith({
     String? name,
     String? namespace,
+    McpTransportType? transportType,
     Uri? endpoint,
+    String? command,
+    List<String>? arguments,
     McpAuthType? authType,
     bool? enabled,
     String? protocolVersion,
@@ -115,7 +145,10 @@ final class McpServer {
       id: id,
       name: name ?? this.name,
       namespace: namespace ?? this.namespace,
+      transportType: transportType ?? this.transportType,
       endpoint: endpoint ?? this.endpoint,
+      command: command ?? this.command,
+      arguments: arguments ?? this.arguments,
       authType: authType ?? this.authType,
       enabled: enabled ?? this.enabled,
       protocolVersion: protocolVersion ?? this.protocolVersion,
@@ -239,13 +272,15 @@ final class McpToolDescriptor {
 
 final class McpCredential {
   const McpCredential({
-    required this.accessToken,
+    this.accessToken = '',
+    this.environment = const {},
     this.tokenType = 'Bearer',
     this.scope = '',
     this.expiresAt,
   });
 
   final String accessToken;
+  final Map<String, String> environment;
   final String tokenType;
   final String scope;
   final DateTime? expiresAt;

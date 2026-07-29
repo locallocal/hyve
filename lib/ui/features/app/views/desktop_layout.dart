@@ -415,9 +415,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         }
       },
       const SingleActivator(LogicalKeyboardKey.comma, control: true):
-          () => _selectPage(3),
+          () => _selectPage(4),
       const SingleActivator(LogicalKeyboardKey.comma, meta: true):
-          () => _selectPage(3),
+          () => _selectPage(4),
       const SingleActivator(LogicalKeyboardKey.keyN, control: true):
           _invokePrimaryAction,
       const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
@@ -876,6 +876,13 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   selected: widget.currentIndex == 2,
                   onTap: () => _selectPage(2),
                 ),
+                const SizedBox(height: 4),
+                _SidebarDestination(
+                  label: S.of(context).mcpServers,
+                  icon: LucideIcons.server,
+                  selected: widget.currentIndex == 3,
+                  onTap: () => _selectPage(3),
+                ),
               ],
             ),
           ),
@@ -891,9 +898,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
             child: _AccountButton(
-              selected: widget.currentIndex == 3,
+              selected: widget.currentIndex == 4,
               useLucideIcon: widget.currentIndex == 0,
-              onTap: () => _selectPage(3),
+              onTap: () => _selectPage(4),
             ),
           ),
         ],
@@ -944,14 +951,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   }
 
   Widget _buildWorkspace(BuildContext context) {
-    final hasSkillPage = widget.pages.length >= 4;
-    final skillPage = hasSkillPage ? widget.pages[2] : const SizedBox.shrink();
+    final skillPage =
+        widget.pages.length > 2 ? widget.pages[2] : const SizedBox.shrink();
+    final mcpPage =
+        widget.pages.length > 3 ? widget.pages[3] : const SizedBox.shrink();
     final profilePage =
-        hasSkillPage
-            ? widget.pages[3]
-            : widget.pages.length > 2
-            ? widget.pages[2]
-            : const SizedBox.shrink();
+        widget.pages.length > 4 ? widget.pages[4] : const SizedBox.shrink();
     return ColoredBox(
       color: DesktopThemeTokens.workspaceSurface(context),
       child: IndexedStack(
@@ -962,6 +967,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               ? widget.pages[1]
               : _buildBotDetail(context),
           skillPage,
+          mcpPage,
           profilePage,
         ],
       ),
@@ -1177,6 +1183,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
             desktopConversationText(context, S.of(context).chats),
       1 => activeBot?.name ?? S.of(context).Bots,
       2 => S.of(context).skillLibrary,
+      3 => S.of(context).mcpServers,
       _ => S.of(context).profile,
     };
     final summary =

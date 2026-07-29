@@ -28,10 +28,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -2922,10 +2921,10 @@ class S {
     return Intl.message('MCP Servers', name: 'mcpServers', desc: '', args: []);
   }
 
-  /// `Connect remote MCP Tools and control which ones agents may use.`
+  /// `Connect local or remote MCP Tools and control which ones agents may use.`
   String get mcpServersDescription {
     return Intl.message(
-      'Connect remote MCP Tools and control which ones agents may use.',
+      'Connect local or remote MCP Tools and control which ones agents may use.',
       name: 'mcpServersDescription',
       desc: '',
       args: [],
@@ -2957,6 +2956,26 @@ class S {
     return Intl.message(
       'Local process-based MCP servers remain disabled pending a platform security review.',
       name: 'localMcpDisabledDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local process security`
+  String get mcpLocalProcessSecurityTitle {
+    return Intl.message(
+      'Local process security',
+      name: 'mcpLocalProcessSecurityTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `stdio servers run commands on this computer. Only add servers and environment variables you trust.`
+  String get mcpLocalProcessSecurityDescription {
+    return Intl.message(
+      'stdio servers run commands on this computer. Only add servers and environment variables you trust.',
+      name: 'mcpLocalProcessSecurityDescription',
       desc: '',
       args: [],
     );
@@ -3017,6 +3036,26 @@ class S {
     return Intl.message(
       'The MCP server uses an unsupported protocol version.',
       name: 'mcpUnsupportedProtocol',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The stdio MCP command could not be started.`
+  String get mcpStdioStartFailed {
+    return Intl.message(
+      'The stdio MCP command could not be started.',
+      name: 'mcpStdioStartFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Environment variables must use one KEY=VALUE entry per line.`
+  String get mcpInvalidStdioEnvironment {
+    return Intl.message(
+      'Environment variables must use one KEY=VALUE entry per line.',
+      name: 'mcpInvalidStdioEnvironment',
       desc: '',
       args: [],
     );
@@ -3162,11 +3201,96 @@ class S {
     );
   }
 
+  /// `Connection`
+  String get mcpConnectionSettings {
+    return Intl.message(
+      'Connection',
+      name: 'mcpConnectionSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transport`
+  String get mcpTransport {
+    return Intl.message('Transport', name: 'mcpTransport', desc: '', args: []);
+  }
+
+  /// `Streamable HTTP`
+  String get mcpTransportStreamableHttp {
+    return Intl.message(
+      'Streamable HTTP',
+      name: 'mcpTransportStreamableHttp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `stdio (local process)`
+  String get mcpTransportStdio {
+    return Intl.message(
+      'stdio (local process)',
+      name: 'mcpTransportStdio',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Streamable HTTP endpoint`
   String get mcpEndpoint {
     return Intl.message(
       'Streamable HTTP endpoint',
       name: 'mcpEndpoint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Command`
+  String get mcpCommand {
+    return Intl.message('Command', name: 'mcpCommand', desc: '', args: []);
+  }
+
+  /// `Executable name or absolute path. The command runs directly without a shell.`
+  String get mcpCommandDescription {
+    return Intl.message(
+      'Executable name or absolute path. The command runs directly without a shell.',
+      name: 'mcpCommandDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Arguments`
+  String get mcpArguments {
+    return Intl.message('Arguments', name: 'mcpArguments', desc: '', args: []);
+  }
+
+  /// `Enter one argument per line.`
+  String get mcpArgumentsDescription {
+    return Intl.message(
+      'Enter one argument per line.',
+      name: 'mcpArgumentsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Environment variables`
+  String get mcpEnvironment {
+    return Intl.message(
+      'Environment variables',
+      name: 'mcpEnvironment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter one KEY=VALUE per line. Values are stored in the operating system's secure credential store; leave blank while editing to keep existing values.`
+  String get mcpEnvironmentDescription {
+    return Intl.message(
+      'Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.',
+      name: 'mcpEnvironmentDescription',
       desc: '',
       args: [],
     );
@@ -3242,10 +3366,10 @@ class S {
     );
   }
 
-  /// `Add a remote Streamable HTTP server to discover its Tool catalog.`
+  /// `Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.`
   String get noMcpServersDescription {
     return Intl.message(
-      'Add a remote Streamable HTTP server to discover its Tool catalog.',
+      'Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.',
       name: 'noMcpServersDescription',
       desc: '',
       args: [],

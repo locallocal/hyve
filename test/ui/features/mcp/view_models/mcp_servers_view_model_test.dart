@@ -87,6 +87,54 @@ void main() {
 
     expect(registry.find(tool.canonicalName), isNotNull);
   });
+
+  test('saves stdio process settings and secure environment', () async {
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Local files',
+        namespace: 'local_files',
+        transportType: McpTransportType.stdio,
+        command: 'npx',
+        arguments: '-y\n@modelcontextprotocol/server-filesystem\n/tmp',
+        environment: 'API_KEY=local-secret\nMCP_MODE=read_only',
+      ),
+    );
+
+    expect(saved, isTrue);
+    final server = viewModel.servers.single;
+    expect(server.transportType, McpTransportType.stdio);
+    expect(server.command, 'npx');
+    expect(server.arguments, [
+      '-y',
+      '@modelcontextprotocol/server-filesystem',
+      '/tmp',
+    ]);
+    expect(server.authType, McpAuthType.none);
+    expect(credentials.values[server.id]?.environment, {
+      'API_KEY': 'local-secret',
+      'MCP_MODE': 'read_only',
+    });
+  });
+
+  test('rejects malformed stdio environment variables', () async {
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Local',
+        namespace: 'local',
+        transportType: McpTransportType.stdio,
+        command: 'npx',
+        environment: 'NOT VALID',
+      ),
+    );
+
+    expect(saved, isFalse);
+    expect(viewModel.error, isA<McpException>());
+    expect(
+      (viewModel.error! as McpException).code,
+      'mcp_invalid_stdio_environment',
+    );
+    expect(viewModel.servers, isEmpty);
+  });
 }
 
 final class _MemoryCredentialStore implements McpCredentialStore {

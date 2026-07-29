@@ -7,6 +7,7 @@ import 'package:http/testing.dart';
 import 'package:stars/data/services/mcp/mcp_client_service.dart';
 import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
 import 'package:stars/data/services/mcp/mcp_http_transport.dart';
+import 'package:stars/data/services/mcp/mcp_stdio_transport.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 
@@ -196,6 +197,55 @@ void main() {
     );
     expect(error.toString(), isNot(contains('do-not-leak')));
   });
+
+  test(
+    'initializes, calls, and disconnects a local stdio MCP process',
+    () async {
+      final credentials =
+          _MemoryCredentialStore()
+            ..value = const McpCredential(
+              environment: {'STARS_MCP_TEST_VALUE': 'secure-environment'},
+            );
+      final client = McpClientService(
+        transport: McpHttpTransport(
+          endpointPolicy: McpEndpointPolicy(
+            resolver: (_) async => [InternetAddress('8.8.8.8')],
+          ),
+        ),
+        stdioTransport: McpStdioTransport(
+          requestTimeout: const Duration(seconds: 10),
+        ),
+        credentialStore: credentials,
+      );
+      final timestamp = DateTime(2026, 7, 30);
+      final server = McpServer(
+        id: 'stdio-server',
+        name: 'Fixture',
+        namespace: 'fixture',
+        transportType: McpTransportType.stdio,
+        command: 'dart',
+        arguments: const [
+          'test/fixtures/mcp_stdio_server.dart',
+          'fixture-argument',
+        ],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      );
+      addTearDown(() => client.disconnect(server));
+
+      final tools = await client.listTools(server);
+      final result = await client.callTool(
+        server: server,
+        remoteName: 'echo',
+        arguments: const {'message': 'hello'},
+        cancellationToken: AgentCancellationToken(),
+      );
+
+      expect(tools.single.remoteName, 'echo');
+      expect(result.content, 'hello|secure-environment|fixture-argument');
+      await client.disconnect(server);
+    },
+  );
 }
 
 McpServer _server() {

@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 9;
+  static const int databaseVersion = 10;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -261,6 +261,26 @@ class DatabaseService {
     if (oldVersion < 9 && newVersion >= 9) {
       await _createMcpSchema(db);
     }
+    if (oldVersion < 10 && newVersion >= 10) {
+      await _addColumnIfMissing(
+        db,
+        'mcp_servers',
+        'transport_type',
+        "TEXT NOT NULL DEFAULT 'streamableHttp'",
+      );
+      await _addColumnIfMissing(
+        db,
+        'mcp_servers',
+        'command',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'mcp_servers',
+        'arguments_json',
+        "TEXT NOT NULL DEFAULT '[]'",
+      );
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -376,7 +396,10 @@ class DatabaseService {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         namespace TEXT NOT NULL UNIQUE,
+        transport_type TEXT NOT NULL DEFAULT 'streamableHttp',
         endpoint_uri TEXT NOT NULL,
+        command TEXT NOT NULL DEFAULT '',
+        arguments_json TEXT NOT NULL DEFAULT '[]',
         auth_type TEXT NOT NULL DEFAULT 'none',
         enabled INTEGER NOT NULL DEFAULT 1,
         protocol_version TEXT NOT NULL DEFAULT '',

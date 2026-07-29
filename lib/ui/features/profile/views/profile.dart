@@ -8,7 +8,6 @@ import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/features/feedback/views/feedback_page.dart';
-import 'package:stars/ui/features/mcp/views/mcp_servers_page.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/views/privacy_policy.dart';
 import 'package:stars/ui/features/profile/views/user_agreement.dart';
@@ -322,19 +321,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             _buildSettingsSection(
               context,
-              title: S.of(context).desktopGeneral,
-              children: [
-                _buildSettingItem(
-                  context,
-                  Icons.hub_outlined,
-                  S.of(context).mcpServers,
-                  S.of(context).mcpServersDescription,
-                  _openMcpServersPage,
-                ),
-              ],
-            ),
-            _buildSettingsSection(
-              context,
               title: S.of(context).desktopHelpAndSupport,
               children: [
                 _buildSettingItem(
@@ -422,16 +408,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   sectionKey: _desktopSectionKeys[2],
                   title: S.of(context).desktopGeneral,
                   description: S.of(context).desktopSavedImmediatelyDescription,
-                  children: [
-                    _buildDesktopExecutionStatusControl(context),
-                    _buildDesktopSettingRow(
-                      context,
-                      icon: Icons.hub_outlined,
-                      title: S.of(context).mcpServers,
-                      subtitle: S.of(context).mcpServersDescription,
-                      onTap: _openMcpServersPage,
-                    ),
-                  ],
+                  children: [_buildDesktopExecutionStatusControl(context)],
                 ),
                 const SizedBox(height: 32),
                 _buildDesktopSettingsSection(
@@ -920,13 +897,6 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.push(
       context,
       MaterialPageRoute<void>(builder: (context) => const FeedbackPage()),
-    );
-  }
-
-  void _openMcpServersPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(builder: (context) => const McpServersPage()),
     );
   }
 

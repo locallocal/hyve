@@ -35,6 +35,38 @@ void main() {
     );
   });
 
+  test('stdio MCP servers require a command and copy their arguments', () {
+    final timestamp = DateTime(2026);
+    expect(
+      () => McpServer(
+        id: 'stdio-1',
+        name: 'Local',
+        namespace: 'local',
+        transportType: McpTransportType.stdio,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+      throwsArgumentError,
+    );
+
+    final arguments = <String>['-y', 'example-server'];
+    final server = McpServer(
+      id: 'stdio-1',
+      name: 'Local',
+      namespace: 'local',
+      transportType: McpTransportType.stdio,
+      command: 'npx',
+      arguments: arguments,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+    arguments.add('--mutated');
+
+    expect(server.endpoint, Uri());
+    expect(server.arguments, ['-y', 'example-server']);
+    expect(() => server.arguments.add('blocked'), throwsUnsupportedError);
+  });
+
   test('MCP Tool compatibility fails closed for unsupported schemas', () {
     final descriptor = McpToolDescriptor(
       serverId: 'server-1',

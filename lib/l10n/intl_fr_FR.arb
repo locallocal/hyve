@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Détails",
     "skillDetails": "Détails de la compétence",
+    "uninstall": "Désinstaller",
     "uninstallSkill": "Désinstaller la compétence",
     "confirmUninstallSkill": "Désinstaller {name} ? Les associations aux Bots seront également supprimées.",
     "@confirmUninstallSkill": {

@@ -180,6 +180,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("विवरण"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -441,6 +442,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("टूल कॉल"),
     "typing": MessageLookupByLibrary.simpleMessage("टाइप कर रहा है..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("अनइंस्टॉल करें"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "कौशल अनइंस्टॉल करें",
     ),

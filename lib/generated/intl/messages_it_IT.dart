@@ -188,6 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "Gestisci il profilo, l’aspetto, la lingua e il supporto dell’app.",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("Dettagli"),
     "editBot": MessageLookupByLibrary.simpleMessage("Modifica bot"),
     "editName": MessageLookupByLibrary.simpleMessage("Modifica nome"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -475,6 +476,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Chiamate agli strumenti",
     ),
     "typing": MessageLookupByLibrary.simpleMessage("Digitando..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("Disinstalla"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "Disinstalla competenza",
     ),

@@ -121,6 +121,95 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets('desktop Skill card actions use the Agent-style menu', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final skill = _skill('Release Notes', 'Create polished changelogs');
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([skill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final menuButton = find.byKey(
+        ValueKey<String>('desktop-skill-menu-button-${skill.id}'),
+      );
+      expect(menuButton, findsOneWidget);
+      final menuIconButton = tester.widget<ShadIconButton>(
+        find.descendant(of: menuButton, matching: find.byType(ShadIconButton)),
+      );
+      expect(menuIconButton.decoration?.disableSecondaryBorder, isTrue);
+      expect(find.text('技能详情'), findsNothing);
+      expect(find.text('卸载技能'), findsNothing);
+      expect(
+        find.byKey(ValueKey<String>('desktop-skill-details-${skill.id}')),
+        findsNothing,
+      );
+
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      final actionMenu = find.byKey(
+        ValueKey<String>('desktop-skill-action-menu-${skill.id}'),
+      );
+      final detailsAction = find.byKey(
+        ValueKey<String>('desktop-skill-details-${skill.id}'),
+      );
+      expect(actionMenu, findsOneWidget);
+      expect(
+        find.descendant(of: actionMenu, matching: find.byType(ShadButton)),
+        findsNWidgets(2),
+      );
+      expect(detailsAction, findsOneWidget);
+      expect(
+        find.byKey(ValueKey<String>('desktop-skill-uninstall-${skill.id}')),
+        findsOneWidget,
+      );
+      expect(find.text('详情'), findsOneWidget);
+      expect(find.text('卸载'), findsOneWidget);
+      expect(
+        tester.getRect(actionMenu).right,
+        closeTo(tester.getRect(menuButton).right, 1),
+      );
+
+      await tester.tap(detailsAction);
+      await tester.pumpAndSettle();
+
+      expect(actionMenu, findsNothing);
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(find.text('Instructions for Release Notes'), findsOneWidget);
+
+      await tester.tap(find.text('关闭'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(ValueKey<String>('desktop-skill-uninstall-${skill.id}')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(find.text('确定卸载技能“Release Notes”？相关智能体绑定也会被移除。'), findsOneWidget);
+
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
 }
 
 Widget _harness(SkillLibraryViewModel viewModel) {
@@ -193,8 +282,14 @@ final class _FakeSkillRepository implements SkillRepository {
       throw UnsupportedError('Import is not used in this test.');
 
   @override
-  Future<SkillContent> load(String skillId, {String? contentDigest}) =>
-      throw UnsupportedError('Loading content is not used in this test.');
+  Future<SkillContent> load(String skillId, {String? contentDigest}) async {
+    final skill = skills.firstWhere((skill) => skill.id == skillId);
+    return SkillContent(
+      descriptor: skill,
+      instructions: 'Instructions for ${skill.name}',
+      files: const ['SKILL.md'],
+    );
+  }
 
   @override
   Future<SkillResourceContent> readResource(

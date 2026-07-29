@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Detalles",
     "skillDetails": "Detalles de la habilidad",
+    "uninstall": "Desinstalar",
     "uninstallSkill": "Desinstalar habilidad",
     "confirmUninstallSkill": "¿Desinstalar {name}? También se eliminarán las vinculaciones con bots.",
     "@confirmUninstallSkill": {

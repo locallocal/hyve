@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "詳細",
     "skillDetails": "スキルの詳細",
+    "uninstall": "アンインストール",
     "uninstallSkill": "スキルをアンインストール",
     "confirmUninstallSkill": "{name} をアンインストールしますか？ボットとの関連付けも削除されます。",
     "@confirmUninstallSkill": {

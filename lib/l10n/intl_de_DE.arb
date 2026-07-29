@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Details",
     "skillDetails": "Fähigkeitsdetails",
+    "uninstall": "Deinstallieren",
     "uninstallSkill": "Fähigkeit deinstallieren",
     "confirmUninstallSkill": "{name} deinstallieren? Die Bot-Zuordnungen werden ebenfalls entfernt.",
     "@confirmUninstallSkill": {

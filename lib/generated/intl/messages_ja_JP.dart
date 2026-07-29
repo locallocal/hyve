@@ -163,6 +163,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "プロフィール、外観、言語、アプリのサポートを管理します。",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("詳細"),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
     "editName": MessageLookupByLibrary.simpleMessage("名前を編集"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -370,6 +371,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("思考中…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("ツール呼び出し"),
     "typing": MessageLookupByLibrary.simpleMessage("入力中..."),
+    "uninstall": MessageLookupByLibrary.simpleMessage("アンインストール"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("スキルをアンインストール"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("ファイルをアップロード"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("画像をアップロード"),

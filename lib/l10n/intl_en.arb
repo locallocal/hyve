@@ -807,7 +807,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Details",
     "skillDetails": "Skill details",
+    "uninstall": "Uninstall",
     "uninstallSkill": "Uninstall Skill",
     "confirmUninstallSkill": "Uninstall {name}? Bot bindings will also be removed.",
     "@confirmUninstallSkill": {

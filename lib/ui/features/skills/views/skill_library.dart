@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -560,7 +561,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   }
 }
 
-class _DesktopSkillCard extends StatelessWidget {
+class _DesktopSkillCard extends StatefulWidget {
   const _DesktopSkillCard({
     required this.skill,
     required this.onOpen,
@@ -572,43 +573,132 @@ class _DesktopSkillCard extends StatelessWidget {
   final VoidCallback onUninstall;
 
   @override
+  State<_DesktopSkillCard> createState() => _DesktopSkillCardState();
+}
+
+class _DesktopSkillCardState extends State<_DesktopSkillCard> {
+  static const double _menuContentWidth = 184;
+  static const EdgeInsets _menuPadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 6,
+  );
+
+  final ShadPopoverController _menuController = ShadPopoverController();
+  final FocusNode _menuFocusNode = FocusNode(
+    debugLabel: 'desktop-skill-card-actions',
+  );
+
+  @override
+  void dispose() {
+    _menuController.dispose();
+    _menuFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _invokeMenuAction(VoidCallback action) {
+    _menuController.hide();
+    action();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (FocusManager.instance.highlightMode ==
+          FocusHighlightMode.traditional) {
+        _menuFocusNode.requestFocus();
+      } else {
+        _menuFocusNode.unfocus();
+      }
+    });
+  }
+
+  Widget _buildActionMenu(BuildContext context) {
+    final colors = ShadTheme.of(context).colorScheme;
+    return ShadPopover(
+      controller: _menuController,
+      anchor: const ShadAnchorAuto(
+        offset: Offset(0, 4),
+        followerAnchor: AlignmentDirectional.topStart,
+        targetAnchor: AlignmentDirectional.bottomEnd,
+        fallback: ShadAnchorAuto(
+          offset: Offset(0, -4),
+          followerAnchor: AlignmentDirectional.bottomStart,
+          targetAnchor: AlignmentDirectional.topEnd,
+        ),
+      ),
+      padding: EdgeInsets.zero,
+      popover:
+          (context) => SizedBox(
+            key: ValueKey<String>(
+              'desktop-skill-action-menu-${widget.skill.id}',
+            ),
+            width: _menuContentWidth + _menuPadding.horizontal,
+            child: Padding(
+              padding: _menuPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShadButton.ghost(
+                    key: ValueKey<String>(
+                      'desktop-skill-details-${widget.skill.id}',
+                    ),
+                    size: ShadButtonSize.sm,
+                    onPressed: () => _invokeMenuAction(widget.onOpen),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.info, size: 16),
+                    child: Text(S.of(context).details),
+                  ),
+                  ShadButton.raw(
+                    key: ValueKey<String>(
+                      'desktop-skill-uninstall-${widget.skill.id}',
+                    ),
+                    variant: ShadButtonVariant.ghost,
+                    size: ShadButtonSize.sm,
+                    foregroundColor: colors.destructive,
+                    onPressed: () => _invokeMenuAction(widget.onUninstall),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.trash2, size: 16),
+                    child: Text(S.of(context).uninstall),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      child: StarsDesktopIconAction(
+        key: ValueKey<String>('desktop-skill-menu-button-${widget.skill.id}'),
+        icon: LucideIcons.ellipsis,
+        label: MaterialLocalizations.of(context).showMenuTooltip,
+        focusNode: _menuFocusNode,
+        onPressed: _menuController.toggle,
+        hoverBackgroundColor: Colors.transparent,
+        showFocusRing: false,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
     return ShadCard(
       width: double.infinity,
       title: Row(
         children: [
-          Expanded(child: Text(skill.name)),
+          Expanded(child: Text(widget.skill.name)),
           ShadBadge.outline(
             child: Text(
-              skill.version.isEmpty
+              widget.skill.version.isEmpty
                   ? strings.skillUserScope
-                  : 'v${skill.version}',
+                  : 'v${widget.skill.version}',
             ),
           ),
         ],
       ),
       description: Text(
-        skill.description,
+        widget.skill.description,
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
       ),
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ShadButton.ghost(
-            size: ShadButtonSize.sm,
-            onPressed: onUninstall,
-            leading: const Icon(LucideIcons.trash2, size: 15),
-            child: Text(strings.uninstallSkill),
-          ),
-          const SizedBox(width: 8),
-          ShadButton.outline(
-            size: ShadButtonSize.sm,
-            onPressed: onOpen,
-            child: Text(strings.skillDetails),
-          ),
-        ],
+      footer: Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: _buildActionMenu(context),
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 14, bottom: 10),
@@ -616,19 +706,19 @@ class _DesktopSkillCard extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (skill.hasScripts)
+            if (widget.skill.hasScripts)
               ShadBadge.destructive(child: Text(strings.skillScriptsDisabled)),
-            if (skill.hasReferences)
+            if (widget.skill.hasReferences)
               ShadBadge.secondary(
                 child: Text(strings.skillReferencesAvailable),
               ),
-            if (skill.hasAssets)
+            if (widget.skill.hasAssets)
               ShadBadge.secondary(child: Text(strings.skillAssetsAvailable)),
-            if (skill.diagnostics.isNotEmpty)
+            if (widget.skill.diagnostics.isNotEmpty)
               ShadBadge.outline(
                 child: Text(
                   '${strings.skillValidationWarnings} '
-                  '${skill.diagnostics.length}',
+                  '${widget.skill.diagnostics.length}',
                 ),
               ),
           ],

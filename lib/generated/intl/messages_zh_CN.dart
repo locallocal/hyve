@@ -208,6 +208,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "管理个人信息、外观、语言与应用支持。",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("详情"),
     "directPlayback": MessageLookupByLibrary.simpleMessage("可直接播放"),
     "directPreview": MessageLookupByLibrary.simpleMessage("可直接预览"),
     "edit": MessageLookupByLibrary.simpleMessage("编辑"),
@@ -561,6 +562,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "unableToLoadChats": MessageLookupByLibrary.simpleMessage("无法加载聊天列表"),
     "unableToLoadMessages": MessageLookupByLibrary.simpleMessage("无法加载消息"),
     "unavailableBot": MessageLookupByLibrary.simpleMessage("智能体不可用"),
+    "uninstall": MessageLookupByLibrary.simpleMessage("卸载"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("卸载技能"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("文件"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("图片"),

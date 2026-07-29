@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Сведения",
     "skillDetails": "Сведения о навыке",
+    "uninstall": "Удалить",
     "uninstallSkill": "Удалить навык",
     "confirmUninstallSkill": "Удалить {name}? Привязки к ботам также будут удалены.",
     "@confirmUninstallSkill": {

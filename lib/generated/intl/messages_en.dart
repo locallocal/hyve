@@ -258,6 +258,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "Manage your profile, appearance, language, and app support.",
     ),
+    "details": MessageLookupByLibrary.simpleMessage("Details"),
     "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
     "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
     "edit": MessageLookupByLibrary.simpleMessage("Edit"),
@@ -737,6 +738,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Unable to load messages",
     ),
     "unavailableBot": MessageLookupByLibrary.simpleMessage("Unavailable bot"),
+    "uninstall": MessageLookupByLibrary.simpleMessage("Uninstall"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("Uninstall Skill"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("File"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("Image"),

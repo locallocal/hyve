@@ -562,7 +562,9 @@
             "error": {"type": "String"}
         }
     },
+    "details": "Dettagli",
     "skillDetails": "Dettagli della competenza",
+    "uninstall": "Disinstalla",
     "uninstallSkill": "Disinstalla competenza",
     "confirmUninstallSkill": "Disinstallare {name}? Verranno rimossi anche i collegamenti ai bot.",
     "@confirmUninstallSkill": {

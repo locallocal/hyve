@@ -854,6 +854,8 @@
     "skillUserScope": "User",
     "mcpServers": "MCP Servers",
     "mcpServersDescription": "Connect local or remote MCP Tools and control which ones agents may use.",
+    "searchMcpServers": "Search MCP servers",
+    "noMatchingMcpServers": "No matching MCP servers found",
     "addMcpServer": "Add MCP Server",
     "remoteMcpOnly": "Remote MCP only",
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",

@@ -499,6 +499,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingChats": MessageLookupByLibrary.simpleMessage(
       "No matching chats found",
     ),
+    "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
+      "No matching MCP servers found",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "No matching skills found",
     ),
@@ -599,6 +602,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("Search bots"),
     "searchChats": MessageLookupByLibrary.simpleMessage("Search conversations"),
+    "searchMcpServers": MessageLookupByLibrary.simpleMessage(
+      "Search MCP servers",
+    ),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Search skills"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Select Language"),

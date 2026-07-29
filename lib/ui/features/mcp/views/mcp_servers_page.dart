@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -18,6 +19,9 @@ class McpServersPage extends StatefulWidget {
 
 class _McpServersPageState extends State<McpServersPage> {
   McpServersViewModel? _resolvedViewModel;
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  String _query = '';
   bool _initialized = false;
 
   McpServersViewModel get _viewModel => widget.viewModel ?? _resolvedViewModel!;
@@ -34,6 +38,8 @@ class _McpServersPageState extends State<McpServersPage> {
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     if (widget.viewModel == null) _resolvedViewModel?.dispose();
     super.dispose();
   }
@@ -73,6 +79,7 @@ class _McpServersPageState extends State<McpServersPage> {
 
   Widget _buildDesktop(BuildContext context) {
     final strings = S.of(context);
+    final filteredServers = _filteredServers;
     return ColoredBox(
       color: DesktopThemeTokens.workspaceSurface(context),
       child: RefreshIndicator(
@@ -131,6 +138,8 @@ class _McpServersPageState extends State<McpServersPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  _buildDesktopSearchField(context),
+                  const SizedBox(height: 16),
                   Text(
                     strings.mcpProgressiveDiscoveryDescription,
                     style: DesktopThemeTokens.bodyStyle(
@@ -164,37 +173,10 @@ class _McpServersPageState extends State<McpServersPage> {
                         child: Text(strings.addMcpServer),
                       ),
                     )
+                  else if (filteredServers.isEmpty)
+                    _buildDesktopSearchEmpty(context)
                   else
-                    for (
-                      var index = 0;
-                      index < _viewModel.servers.length;
-                      index++
-                    ) ...[
-                      _ServerCard(
-                        server: _viewModel.servers[index],
-                        tools: _viewModel.toolsFor(
-                          _viewModel.servers[index].id,
-                        ),
-                        busy:
-                            _viewModel.busyServerId ==
-                            _viewModel.servers[index].id,
-                        onEdit: () => _showEditor(_viewModel.servers[index]),
-                        onRefresh:
-                            () => _viewModel.refresh(
-                              _viewModel.servers[index].id,
-                            ),
-                        onDelete:
-                            () => _confirmDelete(_viewModel.servers[index]),
-                        onEnabledChanged:
-                            (enabled) => _viewModel.setServerEnabled(
-                              _viewModel.servers[index],
-                              enabled,
-                            ),
-                        onToolEnabledChanged: _viewModel.setToolEnabled,
-                      ),
-                      if (index != _viewModel.servers.length - 1)
-                        const SizedBox(height: 12),
-                    ],
+                    _buildDesktopServers(filteredServers),
                 ],
               ),
             ),
@@ -202,6 +184,115 @@ class _McpServersPageState extends State<McpServersPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildDesktopSearchField(BuildContext context) {
+    final strings = S.of(context);
+    return StarsSearchField(
+      key: const ValueKey<String>('mcp-search-field'),
+      hintText: strings.searchMcpServers,
+      semanticLabel: strings.searchMcpServers,
+      controller: _searchController,
+      focusNode: _searchFocusNode,
+      onChanged: _search,
+      suffixIcon:
+          _query.isNotEmpty
+              ? IconButton(
+                key: const ValueKey<String>('clear-mcp-search'),
+                tooltip: strings.clearSearch,
+                onPressed: _clearSearch,
+                icon: const Icon(LucideIcons.x, size: 16),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              )
+              : null,
+    );
+  }
+
+  Widget _buildDesktopSearchEmpty(BuildContext context) {
+    final strings = S.of(context);
+    return DesktopEmptyStateCard(
+      icon: LucideIcons.search,
+      title: strings.noMatchingMcpServers,
+      description: strings.tryDifferentSearch,
+      action: ShadButton(
+        size: ShadButtonSize.sm,
+        onPressed: _clearSearch,
+        leading: const Icon(LucideIcons.x, size: 16),
+        child: Text(strings.clearSearch),
+      ),
+    );
+  }
+
+  Widget _buildDesktopServers(List<McpServer> servers) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 800 ? 2 : 1;
+        const gap = 14.0;
+        final itemWidth =
+            (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final server in servers)
+              SizedBox(
+                width: itemWidth,
+                child: _DesktopServerCard(
+                  key: ValueKey<String>('desktop-mcp-server-${server.id}'),
+                  server: server,
+                  tools: _viewModel.toolsFor(server.id),
+                  busy: _viewModel.busyServerId == server.id,
+                  onEdit: () => _showEditor(server),
+                  onRefresh: () => _viewModel.refresh(server.id),
+                  onDelete: () => _confirmDelete(server),
+                  onEnabledChanged:
+                      (enabled) => _viewModel.setServerEnabled(server, enabled),
+                  onToolEnabledChanged: _viewModel.setToolEnabled,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<McpServer> get _filteredServers {
+    final normalized = _query.trim().toLowerCase();
+    if (normalized.isEmpty) return _viewModel.servers;
+    return _viewModel.servers
+        .where((server) {
+          final tools = _viewModel.toolsFor(server.id);
+          final searchableText =
+              [
+                server.name,
+                server.namespace,
+                _mcpConnectionSummary(server),
+                server.transportType.name,
+                server.status.name,
+                server.remoteServerName,
+                server.remoteServerVersion,
+                for (final tool in tools) ...[
+                  tool.remoteName,
+                  tool.title,
+                  tool.description,
+                  tool.canonicalName,
+                ],
+              ].join('\n').toLowerCase();
+          return searchableText.contains(normalized);
+        })
+        .toList(growable: false);
+  }
+
+  void _search(String query) {
+    if (_query == query) return;
+    setState(() => _query = query);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchFocusNode.requestFocus();
+    if (_query.isNotEmpty) setState(() => _query = '');
   }
 
   Widget _buildMobileBody(BuildContext context) {
@@ -317,6 +408,392 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 }
 
+String _mcpConnectionSummary(McpServer server) {
+  return server.transportType == McpTransportType.stdio
+      ? [
+        server.command,
+        ...server.arguments,
+      ].where((part) => part.isNotEmpty).join(' ')
+      : server.endpoint.toString();
+}
+
+IconData _mcpStatusIcon(McpConnectionStatus status) => switch (status) {
+  McpConnectionStatus.connected => Icons.cloud_done_outlined,
+  McpConnectionStatus.connecting => Icons.cloud_sync_outlined,
+  McpConnectionStatus.authorizationRequired => Icons.key_outlined,
+  McpConnectionStatus.error => Icons.cloud_off_outlined,
+  McpConnectionStatus.disconnected => Icons.cloud_outlined,
+};
+
+String _mcpStatusLabel(BuildContext context, McpConnectionStatus status) =>
+    switch (status) {
+      McpConnectionStatus.connected => S.of(context).mcpConnected,
+      McpConnectionStatus.connecting => S.of(context).mcpConnecting,
+      McpConnectionStatus.authorizationRequired =>
+        S.of(context).mcpAuthorizationRequired,
+      McpConnectionStatus.error => S.of(context).mcpConnectionError,
+      McpConnectionStatus.disconnected => S.of(context).mcpDisconnected,
+    };
+
+class _DesktopServerCard extends StatefulWidget {
+  const _DesktopServerCard({
+    super.key,
+    required this.server,
+    required this.tools,
+    required this.busy,
+    required this.onEdit,
+    required this.onRefresh,
+    required this.onDelete,
+    required this.onEnabledChanged,
+    required this.onToolEnabledChanged,
+  });
+
+  final McpServer server;
+  final List<McpToolDescriptor> tools;
+  final bool busy;
+  final VoidCallback onEdit;
+  final VoidCallback onRefresh;
+  final VoidCallback onDelete;
+  final ValueChanged<bool> onEnabledChanged;
+  final Future<void> Function(McpToolDescriptor, bool) onToolEnabledChanged;
+
+  @override
+  State<_DesktopServerCard> createState() => _DesktopServerCardState();
+}
+
+class _DesktopServerCardState extends State<_DesktopServerCard> {
+  static const double _menuContentWidth = 184;
+  static const EdgeInsets _menuPadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 6,
+  );
+
+  final ShadPopoverController _menuController = ShadPopoverController();
+  final FocusNode _menuFocusNode = FocusNode(
+    debugLabel: 'desktop-mcp-server-card-actions',
+  );
+
+  @override
+  void didUpdateWidget(covariant _DesktopServerCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.busy && widget.busy) _menuController.hide();
+  }
+
+  @override
+  void dispose() {
+    _menuController.dispose();
+    _menuFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _invokeMenuAction(VoidCallback action) {
+    _menuController.hide();
+    action();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (FocusManager.instance.highlightMode ==
+          FocusHighlightMode.traditional) {
+        _menuFocusNode.requestFocus();
+      } else {
+        _menuFocusNode.unfocus();
+      }
+    });
+  }
+
+  Widget _buildActionMenu(BuildContext context) {
+    final colors = ShadTheme.of(context).colorScheme;
+    return ShadPopover(
+      controller: _menuController,
+      anchor: const ShadAnchorAuto(
+        offset: Offset(0, 4),
+        followerAnchor: AlignmentDirectional.topStart,
+        targetAnchor: AlignmentDirectional.bottomEnd,
+        fallback: ShadAnchorAuto(
+          offset: Offset(0, -4),
+          followerAnchor: AlignmentDirectional.bottomStart,
+          targetAnchor: AlignmentDirectional.topEnd,
+        ),
+      ),
+      padding: EdgeInsets.zero,
+      popover:
+          (context) => SizedBox(
+            key: ValueKey<String>(
+              'desktop-mcp-server-action-menu-${widget.server.id}',
+            ),
+            width: _menuContentWidth + _menuPadding.horizontal,
+            child: Padding(
+              padding: _menuPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShadButton.ghost(
+                    key: ValueKey<String>(
+                      'desktop-mcp-server-refresh-${widget.server.id}',
+                    ),
+                    size: ShadButtonSize.sm,
+                    onPressed:
+                        widget.busy
+                            ? null
+                            : () => _invokeMenuAction(widget.onRefresh),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.refreshCw, size: 16),
+                    child: Text(S.of(context).refreshMcpTools),
+                  ),
+                  ShadButton.ghost(
+                    key: ValueKey<String>(
+                      'desktop-mcp-server-edit-${widget.server.id}',
+                    ),
+                    size: ShadButtonSize.sm,
+                    onPressed:
+                        widget.busy
+                            ? null
+                            : () => _invokeMenuAction(widget.onEdit),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(Icons.edit_outlined, size: 16),
+                    child: Text(S.of(context).editMcpServer),
+                  ),
+                  ShadButton.raw(
+                    key: ValueKey<String>(
+                      'desktop-mcp-server-delete-${widget.server.id}',
+                    ),
+                    variant: ShadButtonVariant.ghost,
+                    size: ShadButtonSize.sm,
+                    foregroundColor: colors.destructive,
+                    onPressed:
+                        widget.busy
+                            ? null
+                            : () => _invokeMenuAction(widget.onDelete),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.trash2, size: 16),
+                    child: Text(S.of(context).deleteMcpServer),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      child: StarsDesktopIconAction(
+        key: ValueKey<String>('desktop-mcp-server-actions-${widget.server.id}'),
+        icon: LucideIcons.ellipsis,
+        label: MaterialLocalizations.of(context).showMenuTooltip,
+        focusNode: _menuFocusNode,
+        enabled: !widget.busy,
+        onPressed: widget.busy ? null : _menuController.toggle,
+        hoverBackgroundColor: Colors.transparent,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = S.of(context);
+    final tokens = StarsDesktopTokens.of(context);
+    final statusColor = _statusColor(tokens, widget.server.status);
+
+    return ShadCard(
+      width: double.infinity,
+      title: Row(
+        children: [
+          if (widget.busy)
+            const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Icon(
+              _mcpStatusIcon(widget.server.status),
+              size: 18,
+              color: statusColor,
+            ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              widget.server.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ShadSwitch(
+            key: ValueKey<String>(
+              'desktop-mcp-server-toggle-${widget.server.id}',
+            ),
+            value: widget.server.enabled,
+            enabled: !widget.busy,
+            onChanged: widget.onEnabledChanged,
+          ),
+        ],
+      ),
+      description: Text(
+        _mcpConnectionSummary(widget.server),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      footer: Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: _buildActionMenu(context),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 14, bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ShadBadge.outline(
+                  child: Text(
+                    _mcpStatusLabel(context, widget.server.status),
+                    style: TextStyle(color: statusColor),
+                  ),
+                ),
+                ShadBadge.secondary(child: Text(widget.server.namespace)),
+                ShadBadge.secondary(
+                  child: Text(
+                    widget.server.transportType == McpTransportType.stdio
+                        ? strings.mcpTransportStdio
+                        : strings.mcpTransportStreamableHttp,
+                  ),
+                ),
+                ShadBadge.outline(
+                  child: Text('${widget.tools.length} ${strings.mcpTools}'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              strings.mcpTools,
+              style: ShadTheme.of(
+                context,
+              ).textTheme.small.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            if (widget.tools.isEmpty)
+              Text(
+                strings.noMcpToolsDiscovered,
+                style: DesktopThemeTokens.metaStyle(context),
+              )
+            else
+              for (var index = 0; index < widget.tools.length; index++) ...[
+                _DesktopMcpToolCard(
+                  key: ValueKey<String>(
+                    'desktop-mcp-tool-${widget.server.id}-${widget.tools[index].remoteName}',
+                  ),
+                  serverEnabled: widget.server.enabled,
+                  tool: widget.tools[index],
+                  onEnabledChanged: widget.onToolEnabledChanged,
+                ),
+                if (index != widget.tools.length - 1) const SizedBox(height: 8),
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(StarsDesktopTokens tokens, McpConnectionStatus status) =>
+      switch (status) {
+        McpConnectionStatus.connected => tokens.success,
+        McpConnectionStatus.connecting => tokens.warning,
+        McpConnectionStatus.authorizationRequired => tokens.warning,
+        McpConnectionStatus.error => tokens.danger,
+        McpConnectionStatus.disconnected => tokens.secondaryText,
+      };
+}
+
+class _DesktopMcpToolCard extends StatelessWidget {
+  const _DesktopMcpToolCard({
+    super.key,
+    required this.serverEnabled,
+    required this.tool,
+    required this.onEnabledChanged,
+  });
+
+  final bool serverEnabled;
+  final McpToolDescriptor tool;
+  final Future<void> Function(McpToolDescriptor, bool) onEnabledChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = StarsDesktopTokens.of(context);
+    final compatible = tool.hasCompatibleSchema;
+    final title = tool.title.isEmpty ? tool.remoteName : tool.title;
+
+    return ShadCard(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      backgroundColor: tokens.controlFill,
+      border: ShadBorder.all(color: tokens.separator, width: 1),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              tool.annotations.destructiveHint
+                  ? LucideIcons.triangleAlert
+                  : tool.annotations.readOnlyHint
+                  ? LucideIcons.eye
+                  : LucideIcons.pencil,
+              size: 16,
+              color:
+                  tool.annotations.destructiveHint
+                      ? tokens.warning
+                      : tokens.secondaryText,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: ShadTheme.of(
+                    context,
+                  ).textTheme.small.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  tool.canonicalName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DesktopThemeTokens.metaStyle(context),
+                ),
+                if (tool.description.isNotEmpty || !compatible) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    compatible
+                        ? tool.description
+                        : S.of(context).mcpToolSchemaUnsupported,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: DesktopThemeTokens.metaStyle(context)?.copyWith(
+                      color: compatible ? tokens.secondaryText : tokens.danger,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ShadSwitch(
+            key: ValueKey<String>(
+              'desktop-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
+            ),
+            value: tool.enabled,
+            enabled: serverEnabled && compatible,
+            onChanged: (enabled) => onEnabledChanged(tool, enabled),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ServerCard extends StatelessWidget {
   const _ServerCard({
     required this.server,
@@ -350,24 +827,19 @@ class _ServerCard extends StatelessWidget {
                   dimension: 24,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-                : Icon(_statusIcon(server.status)),
+                : Icon(_mcpStatusIcon(server.status)),
         title: Text(server.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              server.transportType == McpTransportType.stdio
-                  ? [
-                    server.command,
-                    ...server.arguments,
-                  ].where((part) => part.isNotEmpty).join(' ')
-                  : server.endpoint.toString(),
+              _mcpConnectionSummary(server),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
-              '${_statusLabel(context, server.status)} · '
+              '${_mcpStatusLabel(context, server.status)} · '
               '${server.namespace} · ${tools.length} ${S.of(context).mcpTools}',
               style: TextStyle(
                 color:
@@ -442,24 +914,6 @@ class _ServerCard extends StatelessWidget {
       ),
     );
   }
-
-  IconData _statusIcon(McpConnectionStatus status) => switch (status) {
-    McpConnectionStatus.connected => Icons.cloud_done_outlined,
-    McpConnectionStatus.connecting => Icons.cloud_sync_outlined,
-    McpConnectionStatus.authorizationRequired => Icons.key_outlined,
-    McpConnectionStatus.error => Icons.cloud_off_outlined,
-    McpConnectionStatus.disconnected => Icons.cloud_outlined,
-  };
-
-  String _statusLabel(BuildContext context, McpConnectionStatus status) =>
-      switch (status) {
-        McpConnectionStatus.connected => S.of(context).mcpConnected,
-        McpConnectionStatus.connecting => S.of(context).mcpConnecting,
-        McpConnectionStatus.authorizationRequired =>
-          S.of(context).mcpAuthorizationRequired,
-        McpConnectionStatus.error => S.of(context).mcpConnectionError,
-        McpConnectionStatus.disconnected => S.of(context).mcpDisconnected,
-      };
 }
 
 class _McpServerEditorDialog extends StatefulWidget {

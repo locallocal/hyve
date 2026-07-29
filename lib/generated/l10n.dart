@@ -2931,6 +2931,26 @@ class S {
     );
   }
 
+  /// `Search MCP servers`
+  String get searchMcpServers {
+    return Intl.message(
+      'Search MCP servers',
+      name: 'searchMcpServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No matching MCP servers found`
+  String get noMatchingMcpServers {
+    return Intl.message(
+      'No matching MCP servers found',
+      name: 'noMatchingMcpServers',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add MCP Server`
   String get addMcpServer {
     return Intl.message(

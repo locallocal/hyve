@@ -9,6 +9,8 @@ void main() {
   const pageKeys = <String>{
     'mcpServers',
     'mcpServersDescription',
+    'searchMcpServers',
+    'noMatchingMcpServers',
     'addMcpServer',
     'remoteMcpOnly',
     'localMcpDisabledDescription',
@@ -91,6 +93,7 @@ void main() {
     () async {
       await S.load(const Locale('en'));
       expect(S.current.mcpServers, 'MCP Servers');
+      expect(S.current.searchMcpServers, 'Search MCP servers');
       expect(
         S.current.mcpConnectionFailed('network'),
         'MCP connection failed: network',
@@ -98,6 +101,7 @@ void main() {
 
       await S.load(const Locale('zh', 'CN'));
       expect(S.current.mcpServers, 'MCP 服务器');
+      expect(S.current.searchMcpServers, '搜索 MCP 服务器');
       expect(S.current.mcpConnectionFailed('网络'), 'MCP 连接失败：网络');
     },
   );

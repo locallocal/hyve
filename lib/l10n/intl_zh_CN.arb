@@ -854,6 +854,8 @@
     "skillUserScope": "用户",
     "mcpServers": "MCP 服务器",
     "mcpServersDescription": "连接本地或远程 MCP 工具，并控制智能体可以使用哪些工具。",
+    "searchMcpServers": "搜索 MCP 服务器",
+    "noMatchingMcpServers": "未找到匹配的 MCP 服务器",
     "addMcpServer": "添加 MCP 服务器",
     "remoteMcpOnly": "仅支持远程 MCP",
     "localMcpDisabledDescription": "基于本地进程的 MCP 服务器仍处于禁用状态，待完成各平台安全评审后再开放。",

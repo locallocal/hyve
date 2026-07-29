@@ -24,7 +24,7 @@ void main() {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
 
-    final repository = _EmptyMcpServerRepository();
+    final repository = _FakeMcpServerRepository();
     final viewModel = McpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
@@ -52,8 +52,207 @@ void main() {
         find.byKey(const ValueKey<String>('add-mcp-server-desktop')),
         findsOneWidget,
       );
+      final searchField = find.byKey(
+        const ValueKey<String>('mcp-search-field'),
+      );
+      final securityAlert = find.ancestor(
+        of: find.text('本地进程安全'),
+        matching: find.byType(ShadAlert),
+      );
+      expect(searchField, findsOneWidget);
+      expect(tester.getSize(searchField).width, 920);
+      expect(
+        tester.getTopLeft(searchField).dy,
+        greaterThan(tester.getBottomLeft(securityAlert).dy),
+      );
       expect(find.byType(AppBar), findsNothing);
       expect(find.byType(FloatingActionButton), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('desktop MCP servers use two columns and show Tool cards', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final now = DateTime.utc(2026, 7, 30);
+    final servers = [
+      McpServer(
+        id: 'github',
+        name: 'GitHub',
+        namespace: 'github',
+        endpoint: Uri.parse('https://example.com/github/mcp'),
+        status: McpConnectionStatus.connected,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      McpServer(
+        id: 'filesystem',
+        name: 'Filesystem',
+        namespace: 'files',
+        transportType: McpTransportType.stdio,
+        command: 'npx',
+        arguments: const ['-y', '@example/filesystem-mcp'],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ];
+    final repository = _FakeMcpServerRepository(
+      servers: servers,
+      toolsByServer: {
+        'github': [
+          McpToolDescriptor(
+            serverId: 'github',
+            namespace: 'github',
+            remoteName: 'search_issues',
+            title: '搜索议题',
+            description: '搜索仓库中的议题。',
+            inputSchema: const {
+              'type': 'object',
+              'properties': <String, Object?>{},
+            },
+            enabled: true,
+            updatedAt: now,
+          ),
+        ],
+        'filesystem': [
+          McpToolDescriptor(
+            serverId: 'filesystem',
+            namespace: 'files',
+            remoteName: 'read_file',
+            title: '读取文件',
+            description: '读取工作区中的文件。',
+            inputSchema: const {
+              'type': 'object',
+              'properties': <String, Object?>{},
+            },
+            updatedAt: now,
+          ),
+        ],
+      },
+    );
+    final viewModel = McpServersViewModel(
+      repository: repository,
+      credentialStore: const _UnusedCredentialStore(),
+      catalogService: McpCatalogService(
+        repository: repository,
+        client: const _UnusedMcpClient(),
+        toolRegistry: DynamicToolRegistry(const []),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final githubCard = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-github'),
+      );
+      final filesystemCard = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-filesystem'),
+      );
+      expect(githubCard, findsOneWidget);
+      expect(filesystemCard, findsOneWidget);
+
+      final githubRect = tester.getRect(githubCard);
+      final filesystemRect = tester.getRect(filesystemCard);
+      expect(githubRect.width, 453);
+      expect(filesystemRect.width, 453);
+      expect(githubRect.top, filesystemRect.top);
+      expect(filesystemRect.left - githubRect.right, 14);
+
+      expect(find.byType(ExpansionTile), findsNothing);
+      final githubActions = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-actions-github'),
+      );
+      expect(githubActions, findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
+        findsNothing,
+      );
+
+      await tester.tap(githubActions);
+      await tester.pumpAndSettle();
+      final githubActionMenu = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-action-menu-github'),
+      );
+      expect(githubActionMenu, findsOneWidget);
+      expect(
+        tester.getRect(githubActionMenu).right,
+        closeTo(tester.getRect(githubActions).right, 1),
+      );
+      expect(
+        find.descendant(
+          of: githubActionMenu,
+          matching: find.byType(ShadButton),
+        ),
+        findsNWidgets(3),
+      );
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-edit-github')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-delete-github')),
+        findsOneWidget,
+      );
+      expect(find.text('刷新工具'), findsOneWidget);
+      expect(find.text('编辑 MCP 服务器'), findsOneWidget);
+      expect(find.text('删除 MCP 服务器'), findsOneWidget);
+
+      await tester.tap(find.text('MCP 服务器').first);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-filesystem-read_file'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('搜索议题'), findsOneWidget);
+      expect(find.text('读取文件'), findsOneWidget);
+
+      final searchInput = find.descendant(
+        of: find.byKey(const ValueKey<String>('mcp-search-field')),
+        matching: find.byType(EditableText),
+      );
+      await tester.enterText(searchInput, 'read_file');
+      await tester.pump();
+      expect(githubCard, findsNothing);
+      expect(filesystemCard, findsOneWidget);
+      expect(find.text('读取文件'), findsOneWidget);
+
+      await tester.enterText(searchInput, 'not-found');
+      await tester.pump();
+      expect(githubCard, findsNothing);
+      expect(filesystemCard, findsNothing);
+      expect(find.text('未找到匹配的 MCP 服务器'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('clear-mcp-search')));
+      await tester.pump();
+      expect(githubCard, findsOneWidget);
+      expect(filesystemCard, findsOneWidget);
+      expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
       tester.view.resetPhysicalSize();
@@ -68,7 +267,7 @@ void main() {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
 
-    final repository = _EmptyMcpServerRepository();
+    final repository = _FakeMcpServerRepository();
     final viewModel = McpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
@@ -279,7 +478,15 @@ Widget _harness(McpServersViewModel viewModel) {
   );
 }
 
-final class _EmptyMcpServerRepository implements McpServerRepository {
+final class _FakeMcpServerRepository implements McpServerRepository {
+  const _FakeMcpServerRepository({
+    this.servers = const [],
+    this.toolsByServer = const {},
+  });
+
+  final List<McpServer> servers;
+  final Map<String, List<McpToolDescriptor>> toolsByServer;
+
   @override
   Stream<List<McpServer>> get changes => const Stream.empty();
 
@@ -287,17 +494,27 @@ final class _EmptyMcpServerRepository implements McpServerRepository {
   Future<void> deleteServer(String id) async {}
 
   @override
-  Future<McpServer?> getServer(String id) async => null;
+  Future<McpServer?> getServer(String id) async {
+    for (final server in servers) {
+      if (server.id == id) return server;
+    }
+    return null;
+  }
 
   @override
   Future<List<McpServer>> getServers({bool forceRefresh = false}) async =>
-      const [];
+      servers;
 
   @override
   Future<List<McpToolDescriptor>> getTools(
     String serverId, {
     bool enabledOnly = false,
-  }) async => const [];
+  }) async {
+    final tools = toolsByServer[serverId] ?? const [];
+    return enabledOnly
+        ? tools.where((tool) => tool.enabled).toList(growable: false)
+        : tools;
+  }
 
   @override
   Future<void> replaceTools(

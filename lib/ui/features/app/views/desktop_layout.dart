@@ -855,10 +855,15 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   child: ShadButton(
                     size: ShadButtonSize.sm,
                     height: DesktopThemeTokens.botFormFieldHeight,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    expands: true,
                     onPressed: widget.onCreateChat,
-                    leading: const Icon(LucideIcons.squarePen, size: 16),
-                    child: Text(
-                      desktopConversationText(context, S.of(context).newChat),
+                    child: _SidebarButtonContent(
+                      icon: LucideIcons.squarePen,
+                      label: desktopConversationText(
+                        context,
+                        S.of(context).newChat,
+                      ),
                     ),
                   ),
                 ),
@@ -1580,11 +1585,41 @@ class _SidebarDestination extends StatelessWidget {
           foregroundColor: selected ? Colors.white : null,
           hoverForegroundColor: selected ? Colors.white : null,
           pressedForegroundColor: selected ? Colors.white : null,
+          mainAxisAlignment: MainAxisAlignment.start,
+          expands: true,
           onPressed: onTap,
-          leading: Icon(icon, size: 16),
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          child: _SidebarButtonContent(icon: icon, label: label),
         ),
       ),
+    );
+  }
+}
+
+class _SidebarButtonContent extends StatelessWidget {
+  const _SidebarButtonContent({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Icon(icon, size: 16),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

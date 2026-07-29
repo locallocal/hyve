@@ -155,6 +155,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "管理個人資訊、外觀、語言與應用程式支援。",
     ),
+    "edit": MessageLookupByLibrary.simpleMessage("編輯"),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("編輯 MCP 伺服器"),
     "editName": MessageLookupByLibrary.simpleMessage("修改名稱"),
@@ -260,6 +261,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stars 會儲存工具目錄，但僅在已啟用技能要求某個已開啟工具時，才提供完整 Schema 給模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 請求逾時。"),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("伺服器詳情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("伺服器名稱"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 伺服器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
@@ -299,6 +301,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("沒有可用的智能體"),
     "noChats": MessageLookupByLibrary.simpleMessage("還沒有聊天記錄"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("未傳回內容"),
+    "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
+      "找不到符合的 MCP 伺服器",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage("找不到符合的技能"),
     "noMcpServers": MessageLookupByLibrary.simpleMessage("尚無 MCP 伺服器"),
     "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
@@ -343,6 +348,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("儲存並連線"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("儲存修改"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("儲存中..."),
+    "searchMcpServers": MessageLookupByLibrary.simpleMessage("搜尋 MCP 伺服器"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("搜尋技能"),
     "selectBot": MessageLookupByLibrary.simpleMessage("選擇智能體"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("選擇語言"),

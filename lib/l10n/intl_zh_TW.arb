@@ -371,6 +371,7 @@
         "description": "開始聊天的提示"
     },
     "delete": "刪除",
+    "edit": "編輯",
     "@delete": {
         "description": "刪除按鈕"
     },
@@ -618,6 +619,8 @@
     "skillUserScope": "使用者",
     "mcpServers": "MCP 伺服器",
     "mcpServersDescription": "連接本機或遠端 MCP 工具，並控制智慧代理可使用哪些工具。",
+    "searchMcpServers": "搜尋 MCP 伺服器",
+    "noMatchingMcpServers": "找不到符合的 MCP 伺服器",
     "addMcpServer": "新增 MCP 伺服器",
     "remoteMcpOnly": "僅支援遠端 MCP",
     "localMcpDisabledDescription": "本機程序型 MCP 伺服器仍停用，完成各平台安全審查後才會開放。",
@@ -646,6 +649,7 @@
     },
     "mcpTools": "工具",
     "refreshMcpTools": "重新整理工具",
+    "mcpServerDetails": "伺服器詳情",
     "editMcpServer": "編輯 MCP 伺服器",
     "noMcpToolsDiscovered": "尚未發現工具，請檢查連線後重新整理。",
     "mcpToolSchemaUnsupported": "此工具的輸入 Schema 不受支援，無法啟用。",

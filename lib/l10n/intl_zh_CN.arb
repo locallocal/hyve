@@ -383,6 +383,7 @@
         "description": "开始聊天的提示"
     },
     "delete": "删除",
+    "edit": "编辑",
     "@delete": {
         "description": "删除按钮"
     },
@@ -854,6 +855,8 @@
     "skillUserScope": "用户",
     "mcpServers": "MCP 服务器",
     "mcpServersDescription": "连接本地或远程 MCP 工具，并控制智能体可以使用哪些工具。",
+    "searchMcpServers": "搜索 MCP 服务器",
+    "noMatchingMcpServers": "未找到匹配的 MCP 服务器",
     "addMcpServer": "添加 MCP 服务器",
     "remoteMcpOnly": "仅支持远程 MCP",
     "localMcpDisabledDescription": "基于本地进程的 MCP 服务器仍处于禁用状态，待完成各平台安全评审后再开放。",
@@ -882,6 +885,7 @@
     },
     "mcpTools": "工具",
     "refreshMcpTools": "刷新工具",
+    "mcpServerDetails": "服务器详情",
     "editMcpServer": "编辑 MCP 服务器",
     "noMcpToolsDiscovered": "尚未发现工具，请检查连接后刷新。",
     "mcpToolSchemaUnsupported": "此工具的输入 Schema 不受支持，无法启用。",

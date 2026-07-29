@@ -383,6 +383,7 @@
         "description": "Start chatting"
     },
     "delete": "Delete",
+    "edit": "Edit",
     "@delete": {
         "description": "Delete"
     },
@@ -854,6 +855,8 @@
     "skillUserScope": "User",
     "mcpServers": "MCP Servers",
     "mcpServersDescription": "Connect local or remote MCP Tools and control which ones agents may use.",
+    "searchMcpServers": "Search MCP servers",
+    "noMatchingMcpServers": "No matching MCP servers found",
     "addMcpServer": "Add MCP Server",
     "remoteMcpOnly": "Remote MCP only",
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
@@ -882,6 +885,7 @@
     },
     "mcpTools": "Tools",
     "refreshMcpTools": "Refresh Tools",
+    "mcpServerDetails": "Server details",
     "editMcpServer": "Edit MCP Server",
     "noMcpToolsDiscovered": "No Tools discovered. Check the connection and refresh.",
     "mcpToolSchemaUnsupported": "This Tool has an unsupported input schema and cannot be enabled.",

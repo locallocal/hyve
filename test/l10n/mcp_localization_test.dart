@@ -9,6 +9,8 @@ void main() {
   const pageKeys = <String>{
     'mcpServers',
     'mcpServersDescription',
+    'searchMcpServers',
+    'noMatchingMcpServers',
     'addMcpServer',
     'remoteMcpOnly',
     'localMcpDisabledDescription',
@@ -27,6 +29,8 @@ void main() {
     'confirmDeleteMcpServer',
     'mcpTools',
     'refreshMcpTools',
+    'mcpServerDetails',
+    'edit',
     'editMcpServer',
     'noMcpToolsDiscovered',
     'mcpToolSchemaUnsupported',
@@ -91,6 +95,9 @@ void main() {
     () async {
       await S.load(const Locale('en'));
       expect(S.current.mcpServers, 'MCP Servers');
+      expect(S.current.searchMcpServers, 'Search MCP servers');
+      expect(S.current.mcpServerDetails, 'Server details');
+      expect(S.current.edit, 'Edit');
       expect(
         S.current.mcpConnectionFailed('network'),
         'MCP connection failed: network',
@@ -98,6 +105,9 @@ void main() {
 
       await S.load(const Locale('zh', 'CN'));
       expect(S.current.mcpServers, 'MCP 服务器');
+      expect(S.current.searchMcpServers, '搜索 MCP 服务器');
+      expect(S.current.mcpServerDetails, '服务器详情');
+      expect(S.current.edit, '编辑');
       expect(S.current.mcpConnectionFailed('网络'), 'MCP 连接失败：网络');
     },
   );

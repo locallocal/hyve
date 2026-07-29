@@ -243,12 +243,12 @@ class _McpServersPageState extends State<McpServersPage> {
                   server: server,
                   tools: _viewModel.toolsFor(server.id),
                   busy: _viewModel.busyServerId == server.id,
+                  onOpenDetails: () => _showDetails(server),
                   onEdit: () => _showEditor(server),
                   onRefresh: () => _viewModel.refresh(server.id),
                   onDelete: () => _confirmDelete(server),
                   onEnabledChanged:
                       (enabled) => _viewModel.setServerEnabled(server, enabled),
-                  onToolEnabledChanged: _viewModel.setToolEnabled,
                 ),
               ),
           ],
@@ -364,6 +364,31 @@ class _McpServersPageState extends State<McpServersPage> {
     return S.of(context).mcpConnectionFailed('mcp_unknown_error');
   }
 
+  Future<void> _showDetails(McpServer server) async {
+    await showShadDialog<void>(
+      context: context,
+      builder:
+          (dialogContext) => ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              var currentServer = server;
+              for (final candidate in _viewModel.servers) {
+                if (candidate.id == server.id) {
+                  currentServer = candidate;
+                  break;
+                }
+              }
+              return _McpServerDetailsDialog(
+                server: currentServer,
+                tools: _viewModel.toolsFor(server.id),
+                busy: _viewModel.busyServerId == server.id,
+                onToolEnabledChanged: _viewModel.setToolEnabled,
+              );
+            },
+          ),
+    );
+  }
+
   Future<void> _showEditor([McpServer? server]) async {
     final desktop = isDesktopOrTabletPlatform(context);
     final draft =
@@ -441,21 +466,21 @@ class _DesktopServerCard extends StatefulWidget {
     required this.server,
     required this.tools,
     required this.busy,
+    required this.onOpenDetails,
     required this.onEdit,
     required this.onRefresh,
     required this.onDelete,
     required this.onEnabledChanged,
-    required this.onToolEnabledChanged,
   });
 
   final McpServer server;
   final List<McpToolDescriptor> tools;
   final bool busy;
+  final VoidCallback onOpenDetails;
   final VoidCallback onEdit;
   final VoidCallback onRefresh;
   final VoidCallback onDelete;
   final ValueChanged<bool> onEnabledChanged;
-  final Future<void> Function(McpToolDescriptor, bool) onToolEnabledChanged;
 
   @override
   State<_DesktopServerCard> createState() => _DesktopServerCardState();
@@ -529,6 +554,16 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                 children: [
                   ShadButton.ghost(
                     key: ValueKey<String>(
+                      'desktop-mcp-server-details-${widget.server.id}',
+                    ),
+                    size: ShadButtonSize.sm,
+                    onPressed: () => _invokeMenuAction(widget.onOpenDetails),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.info, size: 16),
+                    child: Text(S.of(context).mcpServerDetails),
+                  ),
+                  ShadButton.ghost(
+                    key: ValueKey<String>(
                       'desktop-mcp-server-refresh-${widget.server.id}',
                     ),
                     size: ShadButtonSize.sm,
@@ -551,7 +586,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                             : () => _invokeMenuAction(widget.onEdit),
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(Icons.edit_outlined, size: 16),
-                    child: Text(S.of(context).editMcpServer),
+                    child: Text(S.of(context).edit),
                   ),
                   ShadButton.raw(
                     key: ValueKey<String>(
@@ -566,7 +601,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                             : () => _invokeMenuAction(widget.onDelete),
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(LucideIcons.trash2, size: 16),
-                    child: Text(S.of(context).deleteMcpServer),
+                    child: Text(S.of(context).delete),
                   ),
                 ],
               ),
@@ -577,8 +612,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
         focusNode: _menuFocusNode,
-        enabled: !widget.busy,
-        onPressed: widget.busy ? null : _menuController.toggle,
+        onPressed: _menuController.toggle,
         hoverBackgroundColor: Colors.transparent,
       ),
     );
@@ -635,57 +669,27 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 14, bottom: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
           children: [
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                ShadBadge.outline(
-                  child: Text(
-                    _mcpStatusLabel(context, widget.server.status),
-                    style: TextStyle(color: statusColor),
-                  ),
-                ),
-                ShadBadge.secondary(child: Text(widget.server.namespace)),
-                ShadBadge.secondary(
-                  child: Text(
-                    widget.server.transportType == McpTransportType.stdio
-                        ? strings.mcpTransportStdio
-                        : strings.mcpTransportStreamableHttp,
-                  ),
-                ),
-                ShadBadge.outline(
-                  child: Text('${widget.tools.length} ${strings.mcpTools}'),
-                ),
-              ],
+            ShadBadge.outline(
+              child: Text(
+                _mcpStatusLabel(context, widget.server.status),
+                style: TextStyle(color: statusColor),
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              strings.mcpTools,
-              style: ShadTheme.of(
-                context,
-              ).textTheme.small.copyWith(fontWeight: FontWeight.w600),
+            ShadBadge.secondary(child: Text(widget.server.namespace)),
+            ShadBadge.secondary(
+              child: Text(
+                widget.server.transportType == McpTransportType.stdio
+                    ? strings.mcpTransportStdio
+                    : strings.mcpTransportStreamableHttp,
+              ),
             ),
-            const SizedBox(height: 8),
-            if (widget.tools.isEmpty)
-              Text(
-                strings.noMcpToolsDiscovered,
-                style: DesktopThemeTokens.metaStyle(context),
-              )
-            else
-              for (var index = 0; index < widget.tools.length; index++) ...[
-                _DesktopMcpToolCard(
-                  key: ValueKey<String>(
-                    'desktop-mcp-tool-${widget.server.id}-${widget.tools[index].remoteName}',
-                  ),
-                  serverEnabled: widget.server.enabled,
-                  tool: widget.tools[index],
-                  onEnabledChanged: widget.onToolEnabledChanged,
-                ),
-                if (index != widget.tools.length - 1) const SizedBox(height: 8),
-              ],
+            ShadBadge.outline(
+              child: Text('${widget.tools.length} ${strings.mcpTools}'),
+            ),
           ],
         ),
       ),
@@ -700,6 +704,106 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
         McpConnectionStatus.error => tokens.danger,
         McpConnectionStatus.disconnected => tokens.secondaryText,
       };
+}
+
+class _McpServerDetailsDialog extends StatelessWidget {
+  const _McpServerDetailsDialog({
+    required this.server,
+    required this.tools,
+    required this.busy,
+    required this.onToolEnabledChanged,
+  });
+
+  final McpServer server;
+  final List<McpToolDescriptor> tools;
+  final bool busy;
+  final Future<void> Function(McpToolDescriptor, bool) onToolEnabledChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = S.of(context);
+    final tokens = StarsDesktopTokens.of(context);
+    final statusColor = switch (server.status) {
+      McpConnectionStatus.connected => tokens.success,
+      McpConnectionStatus.connecting => tokens.warning,
+      McpConnectionStatus.authorizationRequired => tokens.warning,
+      McpConnectionStatus.error => tokens.danger,
+      McpConnectionStatus.disconnected => tokens.secondaryText,
+    };
+
+    return ShadDialog(
+      key: ValueKey<String>('desktop-mcp-server-details-dialog-${server.id}'),
+      title: Text(server.name),
+      description: Text(
+        _mcpConnectionSummary(server),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      constraints: const BoxConstraints(maxWidth: 720),
+      actions: [
+        ShadButton.outline(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).closeButtonLabel),
+        ),
+      ],
+      child: SizedBox(
+        height: 520,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ShadBadge.outline(
+                    child: Text(
+                      _mcpStatusLabel(context, server.status),
+                      style: TextStyle(color: statusColor),
+                    ),
+                  ),
+                  ShadBadge.secondary(child: Text(server.namespace)),
+                  ShadBadge.secondary(
+                    child: Text(
+                      server.transportType == McpTransportType.stdio
+                          ? strings.mcpTransportStdio
+                          : strings.mcpTransportStreamableHttp,
+                    ),
+                  ),
+                  ShadBadge.outline(
+                    child: Text('${tools.length} ${strings.mcpTools}'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const ShadSeparator.horizontal(),
+              const SizedBox(height: 18),
+              Text(strings.mcpTools, style: ShadTheme.of(context).textTheme.h4),
+              const SizedBox(height: 10),
+              if (tools.isEmpty)
+                Text(
+                  strings.noMcpToolsDiscovered,
+                  style: DesktopThemeTokens.metaStyle(context),
+                )
+              else
+                for (var index = 0; index < tools.length; index++) ...[
+                  _DesktopMcpToolCard(
+                    key: ValueKey<String>(
+                      'desktop-mcp-tool-${server.id}-${tools[index].remoteName}',
+                    ),
+                    serverEnabled: server.enabled && !busy,
+                    tool: tools[index],
+                    onEnabledChanged: onToolEnabledChanged,
+                  ),
+                  if (index != tools.length - 1) const SizedBox(height: 8),
+                ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DesktopMcpToolCard extends StatelessWidget {

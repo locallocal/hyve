@@ -260,6 +260,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
     "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
+    "edit": MessageLookupByLibrary.simpleMessage("Edit"),
     "editBot": MessageLookupByLibrary.simpleMessage("Edit Bot"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
     "editName": MessageLookupByLibrary.simpleMessage("Edit Name"),
@@ -432,6 +433,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
     ),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("Server details"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP Servers"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(

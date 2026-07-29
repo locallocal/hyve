@@ -371,6 +371,7 @@
         "description": "開始聊天的提示"
     },
     "delete": "刪除",
+    "edit": "編輯",
     "@delete": {
         "description": "刪除按鈕"
     },
@@ -648,6 +649,7 @@
     },
     "mcpTools": "工具",
     "refreshMcpTools": "重新整理工具",
+    "mcpServerDetails": "伺服器詳情",
     "editMcpServer": "編輯 MCP 伺服器",
     "noMcpToolsDiscovered": "尚未發現工具，請檢查連線後重新整理。",
     "mcpToolSchemaUnsupported": "此工具的輸入 Schema 不受支援，無法啟用。",

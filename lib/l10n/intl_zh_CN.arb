@@ -383,6 +383,7 @@
         "description": "开始聊天的提示"
     },
     "delete": "删除",
+    "edit": "编辑",
     "@delete": {
         "description": "删除按钮"
     },
@@ -884,6 +885,7 @@
     },
     "mcpTools": "工具",
     "refreshMcpTools": "刷新工具",
+    "mcpServerDetails": "服务器详情",
     "editMcpServer": "编辑 MCP 服务器",
     "noMcpToolsDiscovered": "尚未发现工具，请检查连接后刷新。",
     "mcpToolSchemaUnsupported": "此工具的输入 Schema 不受支持，无法启用。",

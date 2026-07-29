@@ -74,7 +74,7 @@ void main() {
     }
   });
 
-  testWidgets('desktop MCP servers use two columns and show Tool cards', (
+  testWidgets('desktop MCP cards show Tool counts and details in a dialog', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
@@ -169,12 +169,32 @@ void main() {
       expect(filesystemRect.left - githubRect.right, 14);
 
       expect(find.byType(ExpansionTile), findsNothing);
+      expect(find.text('1 工具'), findsNWidgets(2));
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-filesystem-read_file'),
+        ),
+        findsNothing,
+      );
+      expect(find.text('搜索议题'), findsNothing);
+      expect(find.text('读取文件'), findsNothing);
+
       final githubActions = find.byKey(
         const ValueKey<String>('desktop-mcp-server-actions-github'),
       );
       expect(githubActions, findsOneWidget);
       expect(
         find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-details-github')),
         findsNothing,
       );
 
@@ -193,8 +213,12 @@ void main() {
           of: githubActionMenu,
           matching: find.byType(ShadButton),
         ),
-        findsNWidgets(3),
+        findsNWidgets(4),
       );
+      final githubDetails = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-details-github'),
+      );
+      expect(githubDetails, findsOneWidget);
       expect(
         find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
         findsOneWidget,
@@ -207,15 +231,24 @@ void main() {
         find.byKey(const ValueKey<String>('desktop-mcp-server-delete-github')),
         findsOneWidget,
       );
+      expect(find.text('服务器详情'), findsOneWidget);
       expect(find.text('刷新工具'), findsOneWidget);
-      expect(find.text('编辑 MCP 服务器'), findsOneWidget);
-      expect(find.text('删除 MCP 服务器'), findsOneWidget);
+      expect(find.text('编辑'), findsOneWidget);
+      expect(find.text('删除'), findsOneWidget);
+      expect(find.text('编辑 MCP 服务器'), findsNothing);
+      expect(find.text('删除 MCP 服务器'), findsNothing);
 
-      await tester.tap(find.text('MCP 服务器').first);
+      await tester.tap(githubDetails);
       await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
         findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-server-details-dialog-github'),
+        ),
+        findsOneWidget,
       );
       expect(
         find.byKey(
@@ -227,10 +260,27 @@ void main() {
         find.byKey(
           const ValueKey<String>('desktop-mcp-tool-filesystem-read_file'),
         ),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.text('搜索议题'), findsOneWidget);
-      expect(find.text('读取文件'), findsOneWidget);
+      expect(find.text('读取文件'), findsNothing);
+      expect(
+        find.byKey(
+          const ValueKey<String>(
+            'desktop-mcp-tool-toggle-github-search_issues',
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('关闭'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsNothing,
+      );
 
       final searchInput = find.descendant(
         of: find.byKey(const ValueKey<String>('mcp-search-field')),
@@ -240,7 +290,7 @@ void main() {
       await tester.pump();
       expect(githubCard, findsNothing);
       expect(filesystemCard, findsOneWidget);
-      expect(find.text('读取文件'), findsOneWidget);
+      expect(find.text('读取文件'), findsNothing);
 
       await tester.enterText(searchInput, 'not-found');
       await tester.pump();

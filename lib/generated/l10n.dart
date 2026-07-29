@@ -899,6 +899,11 @@ class S {
     return Intl.message('Delete', name: 'delete', desc: 'Delete', args: []);
   }
 
+  /// `Edit`
+  String get edit {
+    return Intl.message('Edit', name: 'edit', desc: '', args: []);
+  }
+
   /// `Deleting this chat will clear all chat history. Are you sure you want to delete the chat with {botName}?`
   String confirmDeleteChat(String botName) {
     return Intl.message(
@@ -3121,6 +3126,16 @@ class S {
     return Intl.message(
       'Refresh Tools',
       name: 'refreshMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server details`
+  String get mcpServerDetails {
+    return Intl.message(
+      'Server details',
+      name: 'mcpServerDetails',
       desc: '',
       args: [],
     );

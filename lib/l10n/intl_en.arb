@@ -383,6 +383,7 @@
         "description": "Start chatting"
     },
     "delete": "Delete",
+    "edit": "Edit",
     "@delete": {
         "description": "Delete"
     },
@@ -884,6 +885,7 @@
     },
     "mcpTools": "Tools",
     "refreshMcpTools": "Refresh Tools",
+    "mcpServerDetails": "Server details",
     "editMcpServer": "Edit MCP Server",
     "noMcpToolsDiscovered": "No Tools discovered. Check the connection and refresh.",
     "mcpToolSchemaUnsupported": "This Tool has an unsupported input schema and cannot be enabled.",

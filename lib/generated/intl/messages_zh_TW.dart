@@ -155,6 +155,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopSettingsDescription": MessageLookupByLibrary.simpleMessage(
       "管理個人資訊、外觀、語言與應用程式支援。",
     ),
+    "edit": MessageLookupByLibrary.simpleMessage("編輯"),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("編輯 MCP 伺服器"),
     "editName": MessageLookupByLibrary.simpleMessage("修改名稱"),
@@ -260,6 +261,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stars 會儲存工具目錄，但僅在已啟用技能要求某個已開啟工具時，才提供完整 Schema 給模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 請求逾時。"),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("伺服器詳情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("伺服器名稱"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 伺服器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(

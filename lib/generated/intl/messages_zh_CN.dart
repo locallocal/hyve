@@ -210,6 +210,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "directPlayback": MessageLookupByLibrary.simpleMessage("可直接播放"),
     "directPreview": MessageLookupByLibrary.simpleMessage("可直接预览"),
+    "edit": MessageLookupByLibrary.simpleMessage("编辑"),
     "editBot": MessageLookupByLibrary.simpleMessage("编辑智能体"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("编辑 MCP 服务器"),
     "editName": MessageLookupByLibrary.simpleMessage("修改名称"),
@@ -338,6 +339,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stars 会保存工具目录，但仅在已激活技能请求某个已启用工具时，才向模型提供完整 Schema。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 请求超时。"),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("服务器详情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 服务器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(

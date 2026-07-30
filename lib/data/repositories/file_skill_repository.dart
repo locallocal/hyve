@@ -5,7 +5,9 @@ import 'package:stars/data/models/skill_records.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/skills/skill_package_storage_service.dart';
 import 'package:stars/data/services/skills/skill_parser.dart';
+import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
 final class FileSkillRepository implements SkillRepository {
@@ -13,13 +15,19 @@ final class FileSkillRepository implements SkillRepository {
     required LocalDatabaseService localDatabase,
     required SkillPackageStorageService storageService,
     required SkillParser parser,
+    SkillEcosystemRepository? ecosystemRepository,
+    SkillSignatureService? signatureService,
   }) : _localDatabase = localDatabase,
        _storageService = storageService,
-       _parser = parser;
+       _parser = parser,
+       _ecosystemRepository = ecosystemRepository,
+       _signatureService = signatureService;
 
   final LocalDatabaseService _localDatabase;
   final SkillPackageStorageService _storageService;
   final SkillParser _parser;
+  final SkillEcosystemRepository? _ecosystemRepository;
+  final SkillSignatureService? _signatureService;
   final StreamController<List<SkillDescriptor>> _changes =
       StreamController<List<SkillDescriptor>>.broadcast();
   List<SkillDescriptor>? _cache;
@@ -104,8 +112,61 @@ final class FileSkillRepository implements SkillRepository {
             .join('；');
         throw SkillInstallException(errors);
       }
+      if ((source.expectedName.isNotEmpty &&
+              source.expectedName != parsed.name) ||
+          (source.expectedVersion.isNotEmpty &&
+              source.expectedVersion != parsed.version)) {
+        throw const SkillInstallException('Skill 身份或版本与目录声明不匹配。');
+      }
 
       final scope = SkillScope.user;
+      final contentDigest = await _storageService.computeContentDigest(
+        staged.skillRoot,
+      );
+      if (source.expectedContentDigest.isNotEmpty &&
+          source.expectedContentDigest.toLowerCase() != contentDigest) {
+        throw const SkillInstallException('Skill 内容摘要与目录声明不匹配。');
+      }
+      final verification =
+          await _signatureService?.verify(
+            skillRoot: staged.skillRoot,
+            contentDigest: contentDigest,
+            skillName: parsed.name,
+            version: parsed.version,
+            expectedPublisherId: source.publisherId,
+          ) ??
+          const SkillSignatureVerification(
+            status: SkillSignatureStatus.unsigned,
+          );
+      final policy =
+          await _ecosystemRepository?.getOrganizationPolicy() ??
+          SkillOrganizationPolicy.defaults;
+      final signatureError = switch (verification.status) {
+        SkillSignatureStatus.invalid => 'Skill 签名无效，已拒绝安装。',
+        SkillSignatureStatus.unsigned when !policy.allowUnsignedSkills =>
+          '组织策略要求 Skill 必须包含可信签名。',
+        SkillSignatureStatus.unknownPublisher
+            when !policy.allowUnknownPublishers =>
+          'Skill 发布者不在组织信任列表中。',
+        SkillSignatureStatus.verified
+            when policy.allowedPublisherIds.isNotEmpty &&
+                !policy.allowedPublisherIds.contains(
+                  verification.publisherId,
+                ) =>
+          'Skill 发布者不在组织允许列表中。',
+        _ => '',
+      };
+      if (signatureError.isNotEmpty) {
+        await _appendEvent(
+          type: SkillComplianceEventType.signatureRejected,
+          skillId: '${scope.name}:${parsed.name}',
+          contentDigest: contentDigest,
+          publisherId: verification.publisherId,
+          decision: 'deny',
+          reason: verification.reason,
+        );
+        throw SkillInstallException(signatureError);
+      }
       final stored = await _storageService.commit(
         staged,
         scope: scope.name,
@@ -121,6 +182,9 @@ final class FileSkillRepository implements SkillRepository {
               ? null
               : SkillRecord(existingRecords.single).toDomain();
       final now = DateTime.now();
+      if (existing != null && existing.contentDigest != stored.contentDigest) {
+        await _ecosystemRepository?.deleteScriptGrant(existing.id);
+      }
       final descriptor = SkillDescriptor(
         id: '${scope.name}:${parsed.name}',
         name: parsed.name,
@@ -138,6 +202,12 @@ final class FileSkillRepository implements SkillRepository {
         hasScripts: parsed.hasScripts,
         hasReferences: parsed.hasReferences,
         hasAssets: parsed.hasAssets,
+        publisherId: verification.publisherId,
+        publisherName: verification.publisherName,
+        signatureStatus: verification.status,
+        catalogId: source.catalogId,
+        catalogEntryId: source.catalogEntryId,
+        updatePolicy: existing?.updatePolicy ?? SkillUpdatePolicy.manual,
         installedAt: existing?.installedAt ?? now,
         updatedAt: now,
       );
@@ -145,6 +215,26 @@ final class FileSkillRepository implements SkillRepository {
         SkillRecord.fromDomain(descriptor).values,
       );
       await _refreshAndEmit();
+      await _appendEvent(
+        type:
+            existing == null
+                ? SkillComplianceEventType.installed
+                : SkillComplianceEventType.updated,
+        skillId: descriptor.id,
+        contentDigest: descriptor.contentDigest,
+        publisherId: descriptor.publisherId,
+        decision: 'allow',
+        reason: descriptor.signatureStatus.name,
+      );
+      if (verification.status == SkillSignatureStatus.verified) {
+        await _appendEvent(
+          type: SkillComplianceEventType.signatureVerified,
+          skillId: descriptor.id,
+          contentDigest: descriptor.contentDigest,
+          publisherId: descriptor.publisherId,
+          decision: 'allow',
+        );
+      }
       return descriptor;
     } finally {
       if (!committed) await _storageService.cleanup(staged);
@@ -158,6 +248,42 @@ final class FileSkillRepository implements SkillRepository {
     await _localDatabase.deleteSkill(skillId);
     await _storageService.removeInstallation(descriptor);
     await _refreshAndEmit();
+    await _appendEvent(
+      type: SkillComplianceEventType.uninstalled,
+      skillId: descriptor.id,
+      contentDigest: descriptor.contentDigest,
+      publisherId: descriptor.publisherId,
+      decision: 'allow',
+    );
+  }
+
+  Future<void> _appendEvent({
+    required SkillComplianceEventType type,
+    required String skillId,
+    required String contentDigest,
+    required String publisherId,
+    required String decision,
+    String reason = '',
+  }) async {
+    final repository = _ecosystemRepository;
+    if (repository == null) return;
+    final now = DateTime.now();
+    try {
+      await repository.appendComplianceEvent(
+        SkillComplianceEvent(
+          id: '${now.microsecondsSinceEpoch}:${type.name}:$skillId',
+          type: type,
+          skillId: skillId,
+          contentDigest: contentDigest,
+          publisherId: publisherId,
+          decision: decision,
+          reason: reason,
+          timestamp: now,
+        ),
+      );
+    } on Object {
+      // Audit storage must not change an already determined security outcome.
+    }
   }
 
   Future<void> _refreshAndEmit() async {

@@ -133,6 +133,7 @@ final class AiProviderCapabilities {
     this.supportsStructuredToolCalls = false,
     this.supportsToolResults = false,
     this.supportsParallelToolCalls = false,
+    this.supportsHostedSkills = false,
   });
 
   static const legacy = AiProviderCapabilities();
@@ -140,6 +141,7 @@ final class AiProviderCapabilities {
   final bool supportsStructuredToolCalls;
   final bool supportsToolResults;
   final bool supportsParallelToolCalls;
+  final bool supportsHostedSkills;
 
   bool get supportsAutomaticSkillActivation =>
       supportsStructuredToolCalls && supportsToolResults;
@@ -172,6 +174,39 @@ final class SkillToolResult {
   final String name;
   final String content;
   final bool isError;
+}
+
+enum HostedSkillPreparationStatus { unavailable, prepared, rejected }
+
+final class HostedSkillDescriptor {
+  const HostedSkillDescriptor({
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.contentDigest,
+  });
+
+  final String id;
+  final String name;
+  final String version;
+  final String contentDigest;
+}
+
+final class HostedSkillPreparation {
+  HostedSkillPreparation({
+    required this.status,
+    Map<String, String> providerReferences = const {},
+    this.reason = '',
+  }) : providerReferences = Map.unmodifiable(providerReferences);
+
+  const HostedSkillPreparation.unavailable()
+    : status = HostedSkillPreparationStatus.unavailable,
+      providerReferences = const {},
+      reason = '';
+
+  final HostedSkillPreparationStatus status;
+  final Map<String, String> providerReferences;
+  final String reason;
 }
 
 final class SkillToolTurn {

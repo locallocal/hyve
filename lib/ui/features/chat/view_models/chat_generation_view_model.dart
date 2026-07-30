@@ -126,6 +126,13 @@ typedef ProviderFactory = AiProvider Function(Bot bot);
 typedef MessageIdFactory = String Function(String prefix);
 typedef SkillActivationPersister =
     Future<void> Function(Iterable<SkillActivationRecord> records);
+typedef ToolInvocationPersister =
+    Future<void> Function(
+      String runId,
+      String chatId,
+      String botId,
+      MessageToolCall audit,
+    );
 
 int _identitySequence = 0;
 
@@ -150,6 +157,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
+    ToolInvocationPersister? toolInvocationPersister,
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
@@ -159,6 +167,7 @@ class ChatGenerationViewModel extends ChangeNotifier
        _lastMessageUpdater = lastMessageUpdater,
        _messageIdFactory = messageIdFactory,
        _skillActivationPersister = skillActivationPersister,
+       _toolInvocationPersister = toolInvocationPersister,
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
        _agentRunLimits = agentRunLimits,
@@ -171,6 +180,7 @@ class ChatGenerationViewModel extends ChangeNotifier
   final LastMessageUpdater _lastMessageUpdater;
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
+  final ToolInvocationPersister? _toolInvocationPersister;
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
@@ -611,6 +621,17 @@ class ChatGenerationViewModel extends ChangeNotifier
     }
     _snapshot = _snapshot.copyWith(toolCalls: calls);
     notifyListeners();
+    final persister = _toolInvocationPersister;
+    if (persister != null) {
+      unawaited(
+        persister(runId, chatId, _bot.id, item).catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('Failed to persist Tool audit for $runId: $error');
+        }),
+      );
+    }
   }
 
   String _truncateAuditText(String value) {
@@ -897,6 +918,7 @@ class ChatGenerationRegistry {
     required ProviderFactory providerFactory,
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
+    ToolInvocationPersister? toolInvocationPersister,
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
@@ -905,6 +927,7 @@ class ChatGenerationRegistry {
        _providerFactory = providerFactory,
        _messageIdFactory = messageIdFactory,
        _skillActivationPersister = skillActivationPersister,
+       _toolInvocationPersister = toolInvocationPersister,
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
        _agentRunLimits = agentRunLimits;
@@ -916,6 +939,7 @@ class ChatGenerationRegistry {
   final ProviderFactory _providerFactory;
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
+  final ToolInvocationPersister? _toolInvocationPersister;
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
@@ -931,6 +955,7 @@ class ChatGenerationRegistry {
         providerFactory: _providerFactory,
         messageIdFactory: _messageIdFactory,
         skillActivationPersister: _skillActivationPersister,
+        toolInvocationPersister: _toolInvocationPersister,
         toolRegistry: _toolRegistry,
         toolPolicy: _toolPolicy,
         agentRunLimits: _agentRunLimits,

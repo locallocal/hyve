@@ -108,6 +108,48 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('Dynamic Tool registry keeps independent capability sources', () {
+    final registry = DynamicToolRegistry([_FakeTool('calculate')]);
+    registry.replaceDynamicSource('mcp', [_FakeTool('mcp.docs.search')]);
+    registry.replaceDynamicSource('skill-scripts', [
+      _FakeTool('skill.example.transform'),
+    ]);
+
+    registry.replaceDynamicSource('mcp', [_FakeTool('mcp.github.issue')]);
+
+    expect(registry.find('mcp.docs.search'), isNull);
+    expect(registry.find('mcp.github.issue'), isNotNull);
+    expect(registry.find('skill.example.transform'), isNotNull);
+  });
+
+  test('Skill script tools remain approval-gated when enabled', () {
+    final definition = ToolDefinition(
+      name: 'skill.example.transform',
+      description: 'Transform input.',
+      inputSchema: const {'type': 'object'},
+      source: ToolSource.skillScript,
+      riskLevel: ToolRiskLevel.readOnly,
+      capabilities: const {ToolCapability.compute, ToolCapability.process},
+    );
+    final call = ToolCallRequest(callId: 'call-1', name: definition.name);
+    final context = ToolPolicyContext(
+      runId: 'run-1',
+      chatId: 'chat-1',
+      botId: 'bot-1',
+      requestedToolNames: {definition.name},
+    );
+
+    expect(
+      const DefaultToolPolicy().evaluate(definition, call, context).outcome,
+      ToolPolicyOutcome.deny,
+    );
+    final enabled = const DefaultToolPolicy(
+      allowSkillScripts: true,
+    ).evaluate(definition, call, context);
+    expect(enabled.outcome, ToolPolicyOutcome.requireApproval);
+    expect(enabled.reason, 'skill_script_requires_approval');
+  });
 }
 
 final class _FakeTool implements ExecutableTool {

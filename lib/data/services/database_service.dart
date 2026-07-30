@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 10;
+  static const int databaseVersion = 11;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -101,6 +101,7 @@ class DatabaseService {
     await db.execute('CREATE INDEX messages_bot_id_index ON messages(bot_id)');
     await _createTokenUsageSchema(db);
     await _createSkillSchema(db);
+    await _createSkillEcosystemSchema(db);
     await _createConversationSkillPinSchema(db);
     await _createMcpSchema(db);
 
@@ -281,6 +282,45 @@ class DatabaseService {
         "TEXT NOT NULL DEFAULT '[]'",
       );
     }
+    if (oldVersion < 11 && newVersion >= 11) {
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'publisher_id',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'publisher_name',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'signature_status',
+        "TEXT NOT NULL DEFAULT 'unsigned'",
+      );
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'catalog_id',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'catalog_entry_id',
+        "TEXT NOT NULL DEFAULT ''",
+      );
+      await _addColumnIfMissing(
+        db,
+        'skills',
+        'update_policy',
+        "TEXT NOT NULL DEFAULT 'manual'",
+      );
+      await _createSkillEcosystemSchema(db);
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -325,6 +365,12 @@ class DatabaseService {
         has_scripts INTEGER NOT NULL DEFAULT 0,
         has_references INTEGER NOT NULL DEFAULT 0,
         has_assets INTEGER NOT NULL DEFAULT 0,
+        publisher_id TEXT NOT NULL DEFAULT '',
+        publisher_name TEXT NOT NULL DEFAULT '',
+        signature_status TEXT NOT NULL DEFAULT 'unsigned',
+        catalog_id TEXT NOT NULL DEFAULT '',
+        catalog_entry_id TEXT NOT NULL DEFAULT '',
+        update_policy TEXT NOT NULL DEFAULT 'manual',
         installed_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         UNIQUE(scope, name)
@@ -370,6 +416,71 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS skill_activations_chat_id_index '
       'ON skill_activations(chat_id)',
+    );
+  }
+
+  static Future<void> _createSkillEcosystemSchema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_publishers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        key_id TEXT NOT NULL,
+        public_key TEXT NOT NULL,
+        organization TEXT NOT NULL DEFAULT '',
+        trusted INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_catalogs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        index_uri TEXT NOT NULL,
+        publisher_id TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        last_error TEXT NOT NULL DEFAULT '',
+        last_fetched_at INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_script_grants (
+        skill_id TEXT PRIMARY KEY,
+        content_digest TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 0,
+        approved_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_organization_policy (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        allow_unsigned_skills INTEGER NOT NULL DEFAULT 1,
+        allow_unknown_publishers INTEGER NOT NULL DEFAULT 0,
+        allow_script_execution INTEGER NOT NULL DEFAULT 1,
+        allow_automatic_updates INTEGER NOT NULL DEFAULT 0,
+        allowed_publishers_json TEXT NOT NULL DEFAULT '[]',
+        updated_at INTEGER
+      )
+    ''');
+    await db.execute('''
+      INSERT OR IGNORE INTO skill_organization_policy (id) VALUES (1)
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS skill_compliance_events (
+        id TEXT PRIMARY KEY,
+        event_type TEXT NOT NULL,
+        skill_id TEXT NOT NULL DEFAULT '',
+        content_digest TEXT NOT NULL DEFAULT '',
+        publisher_id TEXT NOT NULL DEFAULT '',
+        decision TEXT NOT NULL DEFAULT '',
+        reason TEXT NOT NULL DEFAULT '',
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        timestamp INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS skill_compliance_events_skill_id_index '
+      'ON skill_compliance_events(skill_id, timestamp DESC)',
     );
   }
 

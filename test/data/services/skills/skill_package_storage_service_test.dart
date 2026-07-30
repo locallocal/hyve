@@ -112,6 +112,60 @@ Do work.
     );
   });
 
+  test(
+    'detached signature does not change the signed content digest',
+    () async {
+      final source = Directory('${temporaryDirectory.path}/signed');
+      await source.create(recursive: true);
+      await File('${source.path}/SKILL.md').writeAsString('''
+---
+name: signed
+description: Signed content.
+---
+Do work.
+''');
+      final before = await service.computeContentDigest(source);
+      await File(
+        '${source.path}/SIGNATURE.json',
+      ).writeAsString('{"signature":"detached"}');
+      final after = await service.computeContentDigest(source);
+
+      expect(after, before);
+    },
+  );
+
+  test(
+    'script execution verification rejects a modified installation',
+    () async {
+      final source = Directory('${temporaryDirectory.path}/immutable');
+      await source.create(recursive: true);
+      await File('${source.path}/SKILL.md').writeAsString('''
+---
+name: immutable
+description: Immutable content.
+---
+Do work.
+''');
+      final staged = await service.stage(
+        SkillImportSource(kind: SkillImportKind.directory, path: source.path),
+      );
+      final stored = await service.commit(
+        staged,
+        scope: SkillScope.user.name,
+        skillName: 'immutable',
+      );
+      await File('${stored.rootPath}/SKILL.md').writeAsString('modified');
+
+      expect(
+        () => service.verifyImmutableInstallation(
+          stored.rootPath,
+          stored.contentDigest,
+        ),
+        throwsA(isA<SkillInstallException>()),
+      );
+    },
+  );
+
   test('rejects symbolic links in directory imports', () async {
     if (Platform.isWindows) return;
     final source = Directory('${temporaryDirectory.path}/linked');

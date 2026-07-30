@@ -148,12 +148,14 @@ final class DefaultToolPolicy implements ToolPolicy {
     this.allowLocalRead = false,
     this.allowExternalRead = false,
     this.allowDestructiveWithApproval = false,
+    this.allowSkillScripts = false,
   });
 
   final bool allowNetwork;
   final bool allowLocalRead;
   final bool allowExternalRead;
   final bool allowDestructiveWithApproval;
+  final bool allowSkillScripts;
 
   @override
   ToolPolicyDecision evaluate(
@@ -168,9 +170,11 @@ final class DefaultToolPolicy implements ToolPolicy {
     }
     if (definition.source == ToolSource.skillScript ||
         definition.capabilities.contains(ToolCapability.process)) {
-      return const ToolPolicyDecision.deny(
-        reason: 'process_execution_disabled',
-      );
+      return allowSkillScripts
+          ? const ToolPolicyDecision.requireApproval(
+            reason: 'skill_script_requires_approval',
+          )
+          : const ToolPolicyDecision.deny(reason: 'process_execution_disabled');
     }
     if (definition.riskLevel == ToolRiskLevel.destructive) {
       return allowDestructiveWithApproval
@@ -330,13 +334,25 @@ final class DynamicToolRegistry implements ToolRegistry {
   DynamicToolRegistry._(this._fixedTools);
 
   final Map<String, ExecutableTool> _fixedTools;
-  Map<String, ExecutableTool> _dynamicTools = const {};
+  Map<String, Map<String, ExecutableTool>> _dynamicSources = const {};
 
   void replaceDynamic(Iterable<ExecutableTool> tools) {
+    replaceDynamicSource('default', tools);
+  }
+
+  void replaceDynamicSource(String source, Iterable<ExecutableTool> tools) {
+    if (source.trim().isEmpty) {
+      throw ArgumentError.value(source, 'source', 'Source cannot be empty.');
+    }
     final next = <String, ExecutableTool>{};
     for (final tool in tools) {
       final name = tool.definition.name;
-      if (_fixedTools.containsKey(name) || next.containsKey(name)) {
+      final usedByOtherSource = _dynamicSources.entries.any(
+        (entry) => entry.key != source && entry.value.containsKey(name),
+      );
+      if (_fixedTools.containsKey(name) ||
+          usedByOtherSource ||
+          next.containsKey(name)) {
         throw ArgumentError.value(
           name,
           'tools',
@@ -345,16 +361,30 @@ final class DynamicToolRegistry implements ToolRegistry {
       }
       next[name] = tool;
     }
-    _dynamicTools = Map.unmodifiable(next);
+    _dynamicSources = Map<String, Map<String, ExecutableTool>>.unmodifiable({
+      ..._dynamicSources,
+      source: Map<String, ExecutableTool>.unmodifiable(next),
+    });
   }
 
   @override
-  ExecutableTool? find(String name) => _fixedTools[name] ?? _dynamicTools[name];
+  ExecutableTool? find(String name) {
+    final fixed = _fixedTools[name];
+    if (fixed != null) return fixed;
+    for (final tools in _dynamicSources.values) {
+      final dynamic = tools[name];
+      if (dynamic != null) return dynamic;
+    }
+    return null;
+  }
 
   @override
   List<ToolDefinition> list({Set<String> allowedNames = const {}}) {
     final definitions = [
-      for (final entry in [..._fixedTools.entries, ..._dynamicTools.entries])
+      for (final entry in [
+        ..._fixedTools.entries,
+        for (final source in _dynamicSources.values) ...source.entries,
+      ])
         if (allowedNames.isEmpty || allowedNames.contains(entry.key))
           entry.value.definition,
     ]..sort((left, right) => left.name.compareTo(right.name));

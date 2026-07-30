@@ -44,25 +44,28 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m9(name) => "${name} をアンインストールしますか？ボットとの関連付けも削除されます。";
 
-  static String m10(language) => "言語が${language}に設定されました";
+  static String m10(name) =>
+      "${name} が宣言済みスクリプトをツールとして登録することを許可します。各呼び出しにも承認が必要です。";
 
-  static String m11(minutes) => "${minutes}分前";
+  static String m11(language) => "言語が${language}に設定されました";
 
-  static String m12(count) => "${count}個のモデルが正常に取得されました";
+  static String m12(minutes) => "${minutes}分前";
 
-  static String m13(count) => "コマンド実行 ${count} 件";
+  static String m13(count) => "${count}個のモデルが正常に取得されました";
 
-  static String m14(duration) => "所要時間 ${duration}";
+  static String m14(count) => "コマンド実行 ${count} 件";
 
-  static String m15(count) => "ファイル更新 ${count} 件";
+  static String m15(duration) => "所要時間 ${duration}";
 
-  static String m16(count) => "ツール呼び出し ${count} 件";
+  static String m16(count) => "ファイル更新 ${count} 件";
 
-  static String m17(error) => "応答の取得に失敗しました：${error}";
+  static String m17(count) => "ツール呼び出し ${count} 件";
 
-  static String m18(error) => "スキルをインポートできませんでした：${error}";
+  static String m18(error) => "応答の取得に失敗しました：${error}";
 
-  static String m19(duration) => "思考完了 · ${duration}";
+  static String m19(error) => "スキルをインポートできませんでした：${error}";
+
+  static String m20(duration) => "思考完了 · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -164,11 +167,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "プロフィール、外観、言語、アプリのサポートを管理します。",
     ),
     "details": MessageLookupByLibrary.simpleMessage("詳細"),
+    "disableSkillScripts": MessageLookupByLibrary.simpleMessage("スクリプトを無効化"),
     "edit": MessageLookupByLibrary.simpleMessage("編集"),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
     "editName": MessageLookupByLibrary.simpleMessage("名前を編集"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "応答の取得に失敗しました：サーバーが空の応答を返しました",
+    ),
+    "enableSkillScripts": MessageLookupByLibrary.simpleMessage("スクリプトを有効化"),
+    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
+      "隔離されたスキルスクリプトを有効にしますか？",
     ),
     "enterApiAddress": MessageLookupByLibrary.simpleMessage("APIアドレスを入力..."),
     "enterApiKey": MessageLookupByLibrary.simpleMessage("APIキーを入力..."),
@@ -222,8 +231,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "importSkillZip": MessageLookupByLibrary.simpleMessage("スキル ZIP をインポート"),
     "importingSkill": MessageLookupByLibrary.simpleMessage("スキルをインポート中…"),
     "inputTokens": MessageLookupByLibrary.simpleMessage("入力トークン"),
+    "installSkillUpdate": MessageLookupByLibrary.simpleMessage("更新をインストール"),
     "justNow": MessageLookupByLibrary.simpleMessage("たった今"),
-    "languageChanged": m10,
+    "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("言語設定"),
     "lightMode": MessageLookupByLibrary.simpleMessage("ライトモード"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("メッセージごと"),
@@ -236,9 +246,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("メッセージを入力..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("スキル"),
-    "minutesAgo": m11,
+    "minutesAgo": m12,
     "model": MessageLookupByLibrary.simpleMessage("モデル"),
-    "modelsRetrievedSuccess": m12,
+    "modelsRetrievedSuccess": m13,
     "name": MessageLookupByLibrary.simpleMessage("名前"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("名前が更新されました"),
     "newChat": MessageLookupByLibrary.simpleMessage("新しいチャット"),
@@ -271,11 +281,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("テキスト効果のプレビュー"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("プライバシーポリシー"),
-    "processCommandCount": m13,
-    "processDuration": m14,
-    "processFileCount": m15,
+    "processCommandCount": m14,
+    "processDuration": m15,
+    "processFileCount": m16,
     "processInformation": MessageLookupByLibrary.simpleMessage("処理情報"),
-    "processToolCount": m16,
+    "processToolCount": m17,
     "profile": MessageLookupByLibrary.simpleMessage("プロフィール"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("ご意見やご提案をお寄せください"),
     "provider": MessageLookupByLibrary.simpleMessage("プロバイダー"),
@@ -283,13 +293,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("推論中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("推論中断"),
     "refresh": MessageLookupByLibrary.simpleMessage("更新"),
+    "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage("カタログを更新"),
+    "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "カタログを更新中…",
+    ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("スキルを削除"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("応答がキャンセルされました"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(
       "停止済み · 部分回答を保持",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("デフォルトに戻す"),
-    "responseError": m17,
+    "responseError": m18,
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("テストを実行"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存"),
@@ -318,7 +332,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("無効"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("有効"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("ファイル"),
-    "skillImportFailed": m18,
+    "skillImportFailed": m19,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "スキルをインポートしました",
     ),
@@ -329,16 +343,46 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
       "このバージョンでは、スキル内のスクリプトやコマンドは実行されません。",
     ),
+    "skillPublisher": MessageLookupByLibrary.simpleMessage("発行者"),
     "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
       "参照ファイルあり",
     ),
     "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md は管理されたプロンプト指示としてのみ読み込まれます。スクリプト、コマンド、外部ツールは無効のままです。",
     ),
+    "skillSandboxAvailable": MessageLookupByLibrary.simpleMessage(
+      "デスクトップスクリプトサンドボックスが利用可能",
+    ),
+    "skillSandboxAvailableDescription": MessageLookupByLibrary.simpleMessage(
+      "承認するまでスクリプトはスキルごとに無効です。各呼び出しにも引き続き承認が必要です。",
+    ),
+    "skillSandboxUnavailable": MessageLookupByLibrary.simpleMessage(
+      "スキルスクリプトは利用不可",
+    ),
+    "skillSandboxUnavailableDescription": MessageLookupByLibrary.simpleMessage(
+      "このプラットフォームには必要な隔離環境がありません。指示とリソースは引き続き利用できます。",
+    ),
+    "skillScriptSettingUpdated": MessageLookupByLibrary.simpleMessage(
+      "スキルスクリプト設定を更新しました。",
+    ),
     "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
       "スクリプトはインストールされていますが、実行は無効です。",
     ),
+    "skillScriptsEnabled": MessageLookupByLibrary.simpleMessage("スクリプト有効"),
+    "skillSignature": MessageLookupByLibrary.simpleMessage("署名"),
+    "skillSignatureInvalid": MessageLookupByLibrary.simpleMessage("無効な署名"),
+    "skillSignatureUnknownPublisher": MessageLookupByLibrary.simpleMessage(
+      "不明な発行者",
+    ),
+    "skillSignatureUnsigned": MessageLookupByLibrary.simpleMessage("未署名"),
+    "skillSignatureVerified": MessageLookupByLibrary.simpleMessage("署名検証済み"),
     "skillSource": MessageLookupByLibrary.simpleMessage("ソース"),
+    "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("自動"),
+    "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage("更新あり"),
+    "skillUpdateManual": MessageLookupByLibrary.simpleMessage("手動"),
+    "skillUpdateNotify": MessageLookupByLibrary.simpleMessage("通知"),
+    "skillUpdatePinned": MessageLookupByLibrary.simpleMessage("固定"),
+    "skillUpdatePolicy": MessageLookupByLibrary.simpleMessage("更新ポリシー"),
     "skillUserScope": MessageLookupByLibrary.simpleMessage("ユーザー"),
     "skillValidationWarnings": MessageLookupByLibrary.simpleMessage("検証メモ"),
     "skillVersion": MessageLookupByLibrary.simpleMessage("バージョン"),
@@ -369,7 +413,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("テーマ設定"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("思考完了"),
-    "thinkingCompletedWithDuration": m19,
+    "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("思考中…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("ツール呼び出し"),
     "typing": MessageLookupByLibrary.simpleMessage("入力中..."),

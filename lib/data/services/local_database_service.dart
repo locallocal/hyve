@@ -91,8 +91,145 @@ class LocalDatabaseService {
         where: 'skill_id = ?',
         whereArgs: [id],
       );
+      await transaction.delete(
+        'skill_script_grants',
+        where: 'skill_id = ?',
+        whereArgs: [id],
+      );
       await transaction.delete('skills', where: 'id = ?', whereArgs: [id]);
     });
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillPublishers() async {
+    final database = await _databaseProvider();
+    return database.query('skill_publishers', orderBy: 'name ASC');
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillPublisher(String id) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skill_publishers',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+  }
+
+  Future<void> upsertSkillPublisher(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'skill_publishers',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillCatalogs() async {
+    final database = await _databaseProvider();
+    return database.query('skill_catalogs', orderBy: 'name ASC');
+  }
+
+  Future<void> upsertSkillCatalog(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'skill_catalogs',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> setSkillUpdatePolicy(String skillId, String policy) async {
+    final database = await _databaseProvider();
+    await database.update(
+      'skills',
+      {
+        'update_policy': policy,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      where: 'id = ?',
+      whereArgs: [skillId],
+    );
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillOrganizationPolicy() async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skill_organization_policy',
+      where: 'id = 1',
+      limit: 1,
+    );
+  }
+
+  Future<void> saveSkillOrganizationPolicy(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert('skill_organization_policy', {
+      'id': 1,
+      ...values,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillScriptGrant(
+    String skillId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skill_script_grants',
+      where: 'skill_id = ?',
+      whereArgs: [skillId],
+      limit: 1,
+    );
+  }
+
+  Future<void> upsertSkillScriptGrant(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.insert(
+      'skill_script_grants',
+      values,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteSkillScriptGrant(String skillId) async {
+    final database = await _databaseProvider();
+    await database.delete(
+      'skill_script_grants',
+      where: 'skill_id = ?',
+      whereArgs: [skillId],
+    );
+  }
+
+  Future<void> insertSkillComplianceEvent(Map<String, Object?> values) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      await transaction.insert(
+        'skill_compliance_events',
+        values,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await transaction.rawDelete('''
+        DELETE FROM skill_compliance_events
+        WHERE id IN (
+          SELECT id
+          FROM skill_compliance_events
+          ORDER BY timestamp DESC
+          LIMIT -1 OFFSET 10000
+        )
+      ''');
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadSkillComplianceEvents({
+    String? skillId,
+    int limit = 100,
+  }) async {
+    final database = await _databaseProvider();
+    return database.query(
+      'skill_compliance_events',
+      where: skillId == null ? null : 'skill_id = ?',
+      whereArgs: skillId == null ? null : [skillId],
+      orderBy: 'timestamp DESC',
+      limit: limit,
+    );
   }
 
   Future<List<Map<String, Object?>>> loadMcpServers() async {

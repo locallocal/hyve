@@ -209,6 +209,50 @@ void main() {
     expect(row['arguments_json'], '[]');
   });
 
+  test('version 11 migration creates the Skill ecosystem schema', () async {
+    final database = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+    );
+    addTearDown(database.close);
+    await DatabaseService.createSchema(database, 10);
+    for (final column in const [
+      'publisher_id',
+      'publisher_name',
+      'signature_status',
+      'catalog_id',
+      'catalog_entry_id',
+      'update_policy',
+    ]) {
+      await database.execute('ALTER TABLE skills DROP COLUMN $column');
+    }
+
+    await DatabaseService.migrateSchema(database, 10, 11);
+
+    final skillColumns = await database.rawQuery('PRAGMA table_info(skills)');
+    expect(
+      skillColumns.map((column) => column['name']),
+      containsAll(<String>[
+        'publisher_id',
+        'signature_status',
+        'catalog_id',
+        'update_policy',
+      ]),
+    );
+    final tables = await database.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    );
+    expect(
+      tables.map((table) => table['name']),
+      containsAll(<String>[
+        'skill_publishers',
+        'skill_catalogs',
+        'skill_script_grants',
+        'skill_organization_policy',
+        'skill_compliance_events',
+      ]),
+    );
+  });
+
   test('replacing a duplicate message id leaves exactly one row', () async {
     final database = await _openMigratedV2Database();
     addTearDown(database.close);

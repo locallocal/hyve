@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/data/services/skills/skill_catalog_service.dart';
+import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
+import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
 final class SkillLibraryViewModel extends ChangeNotifier {
@@ -10,17 +13,28 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   SkillLibraryViewModel({
     required SkillRepository skillRepository,
     required SkillPickerRepository pickerRepository,
+    SkillEcosystemRepository? ecosystemRepository,
+    SkillScriptCatalogService? scriptCatalogService,
+    SkillCatalogService? catalogService,
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
        _pickerRepository = pickerRepository,
+       _ecosystemRepository = ecosystemRepository,
+       _scriptCatalogService = scriptCatalogService,
+       _catalogService = catalogService,
        assert(pageSize > 0) {
     _changesSubscription = _skillRepository.changes.listen((skills) {
+      if (_disposed) return;
       _applySkills(skills);
+      unawaited(_refreshEcosystemState());
     });
   }
 
   final SkillRepository _skillRepository;
   final SkillPickerRepository _pickerRepository;
+  final SkillEcosystemRepository? _ecosystemRepository;
+  final SkillScriptCatalogService? _scriptCatalogService;
+  final SkillCatalogService? _catalogService;
   final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _changesSubscription;
 
@@ -32,6 +46,12 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   bool _isImporting = false;
   Object? _error;
   SkillDescriptor? _lastImported;
+  SkillSandboxStatus? _sandboxStatus;
+  Set<String> _scriptEnabledSkillIds = const {};
+  List<OnlineSkillCatalogEntry> _availableUpdates = const [];
+  List<SkillCatalogSource> _configuredCatalogs = const [];
+  bool _isRefreshingCatalogs = false;
+  bool _disposed = false;
 
   List<SkillDescriptor> get skills => _skills;
   List<SkillDescriptor> get filteredSkills => _filteredSkills;
@@ -60,6 +80,13 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   bool get isImporting => _isImporting;
   Object? get error => _error;
   SkillDescriptor? get lastImported => _lastImported;
+  SkillSandboxStatus? get sandboxStatus => _sandboxStatus;
+  List<OnlineSkillCatalogEntry> get availableUpdates => _availableUpdates;
+  bool get isRefreshingCatalogs => _isRefreshingCatalogs;
+  bool get hasConfiguredCatalogs => _configuredCatalogs.isNotEmpty;
+
+  bool isScriptEnabled(String skillId) =>
+      _scriptEnabledSkillIds.contains(skillId);
 
   Future<void> load() async {
     _isLoading = true;
@@ -70,6 +97,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
         await _skillRepository.getInstalled(forceRefresh: true),
         notify: false,
       );
+      await _refreshEcosystemState(notify: false);
     } catch (error) {
       _error = error;
     } finally {
@@ -125,6 +153,77 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> setScriptEnabled(SkillDescriptor skill, bool enabled) async {
+    final service = _scriptCatalogService;
+    if (service == null) {
+      throw const SkillInstallException('当前构建未启用 Skill 脚本生态。');
+    }
+    _error = null;
+    try {
+      await service.setEnabled(skill, enabled);
+      await _refreshEcosystemState();
+    } catch (error) {
+      _error = error;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> setUpdatePolicy(
+    SkillDescriptor skill,
+    SkillUpdatePolicy policy,
+  ) async {
+    final repository = _ecosystemRepository;
+    if (repository == null) return;
+    await repository.setSkillUpdatePolicy(skill.id, policy);
+    _applySkills(await _skillRepository.getInstalled(forceRefresh: true));
+  }
+
+  Future<void> refreshCatalogs() async {
+    final repository = _ecosystemRepository;
+    final service = _catalogService;
+    if (repository == null || service == null || _isRefreshingCatalogs) return;
+    _isRefreshingCatalogs = true;
+    _error = null;
+    notifyListeners();
+    try {
+      Object? firstError;
+      for (final catalog in await repository.getCatalogs()) {
+        if (!catalog.enabled) continue;
+        try {
+          await service.refresh(catalog);
+        } on Object catch (error) {
+          firstError ??= error;
+        }
+      }
+      await service.applyAutomaticUpdates();
+      _applySkills(
+        await _skillRepository.getInstalled(forceRefresh: true),
+        notify: false,
+      );
+      _availableUpdates = await service.availableUpdates();
+      if (firstError != null) throw firstError;
+    } catch (error) {
+      _error = error;
+      rethrow;
+    } finally {
+      _isRefreshingCatalogs = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> installUpdate(OnlineSkillCatalogEntry entry) async {
+    final service = _catalogService;
+    if (service == null) return;
+    await service.install(entry);
+    _applySkills(
+      await _skillRepository.getInstalled(forceRefresh: true),
+      notify: false,
+    );
+    _availableUpdates = await service.availableUpdates();
+    notifyListeners();
+  }
+
   Future<SkillDescriptor?> _install(SkillImportSource source) async {
     if (_isImporting) return null;
     _isImporting = true;
@@ -173,8 +272,32 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> _refreshEcosystemState({bool notify = true}) async {
+    final scriptService = _scriptCatalogService;
+    if (scriptService != null) {
+      _sandboxStatus = await scriptService.sandboxStatus();
+      final enabled = <String>{};
+      for (final skill in _skills) {
+        if (skill.hasScripts && await scriptService.isEnabled(skill)) {
+          enabled.add(skill.id);
+        }
+      }
+      _scriptEnabledSkillIds = Set.unmodifiable(enabled);
+    }
+    final catalog = _catalogService;
+    final ecosystem = _ecosystemRepository;
+    if (ecosystem != null) {
+      _configuredCatalogs = await ecosystem.getCatalogs();
+    }
+    if (catalog != null) {
+      _availableUpdates = await catalog.availableUpdates();
+    }
+    if (notify && !_disposed) notifyListeners();
+  }
+
   @override
   void dispose() {
+    _disposed = true;
     unawaited(_changesSubscription.cancel());
     super.dispose();
   }

@@ -963,6 +963,68 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 
 没有满足隔离要求的平台不进入脚本支持范围。
 
+实现状态（2026-07-31）：
+
+- Skill 脚本沙箱的安全边界、启用授权、Linux 隔离参数、资源限制、完整性校验、
+  输入输出协议和排障说明见
+  [《Skill 脚本沙箱实现》](skill_sandbox_implementation.md)；
+- 已实现桌面脚本 Tool 清单 `scripts/tools.json`，仅接受版本化 JSON、受限
+  `python3` / `bash` 解释器、`scripts/` 内相对入口、object 输入/输出 Schema
+  和本地允许的风险/能力声明；未声明在 `allowed-tools` 中的脚本 Tool 不会注册；
+- 已实现 Linux `bubblewrap + prlimit` 隔离 helper：启动时执行真实隔离探测，Skill
+  目录只读、工作目录独立可写、网络命名空间隔离、主目录不可见、环境变量清空，
+  命令只通过 argv 传递，并限制 CPU、内存、进程数、打开文件数、单文件、输出和墙钟
+  时间；每次执行前重新验证安装真实路径、特殊文件和完整内容 digest，取消会终止整个
+  沙箱进程。非 Linux、helper 缺失或内核不允许隔离时失败关闭，不注册任何脚本 Tool；
+- 已实现按 `skillId + contentDigest` 保存的脚本授权。脚本默认关闭，用户需在桌面技能卡
+  明确确认后启用；Skill 更新或 digest 变化自动撤销旧授权，每次实际 Tool 调用仍经过
+  `DefaultToolPolicy` 的一次性审批，不提供永久绕过；
+- 已将动态 Tool Registry 拆分为 MCP 与 Skill Script 独立来源，任一 Catalog 刷新不会
+  覆盖另一来源；脚本 stdout 受大小限制、敏感模式脱敏，结构化结果继续由 Agent Loop
+  的输出 Schema 校验，stderr 不作为成功结果进入模型；
+- 已实现分离式 `SIGNATURE.json`、Ed25519 校验和可信发布者存储。签名载荷为
+  `stars-skill-v1\n<publisherId>\n<keyId>\n<contentDigest>\n<name>\n<version>`，
+  内容摘要排除签名文件；
+  无效签名一律拒绝，未签名和未知发布者由组织策略决定；
+- 已实现签名 HTTPS 在线目录、禁止重定向和私网/本机/链路本地/保留地址的端点策略、
+  目录与下载大小限制、ZIP SHA-256 和内容 digest 双重校验，以及
+  `manual`、`notify`、`automatic`、`pinned` 更新策略；自动更新还要求组织策略允许且
+  当前版本已有可信签名，并拒绝版本降级和静默发布者迁移；
+- 已实现发布者、目录、脚本授权、组织策略和合规事件的 SQLite v11 持久化；支持导入
+  可信发布者签名的组织策略包，并记录安装、更新、卸载、签名、目录、授权、脚本执行
+  以及所有 Tool 生命周期的脱敏摘要，不写入凭据或原始敏感返回；
+  本地合规事件最多保留最近 10,000 条；
+- 已在桌面技能管理页展示沙箱可用性、脚本启停、发布者、签名、更新策略和可用更新，
+  并为全部 12 个现有 Locale 补齐文案；
+- 已增加 `supportsHostedSkills`、不可变 Skill 描述和 `prepareHostedSkills` Provider
+  优化边界。当前 Provider 均保持关闭并使用本地权威路径；只有后续经过安全审计的
+  Provider 显式声明能力时才能接入，不影响本地回退。
+
+Stars 扩展脚本清单示例：
+
+```json
+{
+  "schemaVersion": 1,
+  "tools": [
+    {
+      "name": "transform",
+      "title": "Transform",
+      "description": "Transform structured input.",
+      "entry": "scripts/transform.py",
+      "interpreter": "python3",
+      "inputSchema": {"type": "object"},
+      "outputSchema": {"type": "object"},
+      "riskLevel": "readOnly",
+      "capabilities": ["compute"]
+    }
+  ]
+}
+```
+
+其规范 Tool 名为 `skill.<skill-name>.<name>`，必须同时出现在 `SKILL.md` 的
+`allowed-tools` 中。脚本从 stdin 接收一个 JSON object；声明 `outputSchema` 时，
+stdout 必须是与该 Schema 匹配的单个 JSON 值。
+
 ## 16. 建议的代码落点
 
 ```text

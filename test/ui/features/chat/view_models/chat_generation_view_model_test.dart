@@ -398,6 +398,7 @@ void main() {
         final tool = _ViewModelTool();
         final factory = _AgentProviderFactory();
         final persisted = <Message>[];
+        final toolAudits = <MessageToolCall>[];
         final controller = ChatGenerationViewModel(
           chatId: 'chat-1',
           bot: _bot,
@@ -407,6 +408,9 @@ void main() {
             return message;
           },
           lastMessageUpdater: (_, _) async {},
+          toolInvocationPersister: (_, _, _, audit) async {
+            toolAudits.add(audit);
+          },
           toolRegistry: StaticToolRegistry([tool]),
         );
         addTearDown(controller.dispose);
@@ -452,6 +456,18 @@ void main() {
         expect(
           assistant.processInfo.toolCalls.single.approvalStatus,
           ToolApprovalDecision.allowOnce.name,
+        );
+        await _flushAsyncWork();
+        expect(toolAudits, isNotEmpty);
+        expect(
+          toolAudits.every(
+            (audit) => !audit.argumentsSummary.contains('do-not-persist'),
+          ),
+          isTrue,
+        );
+        expect(
+          toolAudits.last.argumentsSummary,
+          contains('"api_token":"[redacted]"'),
         );
       },
     );

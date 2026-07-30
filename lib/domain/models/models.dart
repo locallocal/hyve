@@ -6,4 +6,5 @@
 export '../../model/model.dart';
 export 'mcp.dart';
 export 'skill.dart';
+export 'skill_ecosystem.dart';
 export 'tool.dart';

@@ -27,6 +27,12 @@ final class SkillRecord {
       'has_scripts': skill.hasScripts ? 1 : 0,
       'has_references': skill.hasReferences ? 1 : 0,
       'has_assets': skill.hasAssets ? 1 : 0,
+      'publisher_id': skill.publisherId,
+      'publisher_name': skill.publisherName,
+      'signature_status': skill.signatureStatus.name,
+      'catalog_id': skill.catalogId,
+      'catalog_entry_id': skill.catalogEntryId,
+      'update_policy': skill.updatePolicy.name,
       'installed_at': skill.installedAt.millisecondsSinceEpoch,
       'updated_at': skill.updatedAt.millisecondsSinceEpoch,
     });
@@ -60,6 +66,20 @@ final class SkillRecord {
       hasScripts: _integer('has_scripts') == 1,
       hasReferences: _integer('has_references') == 1,
       hasAssets: _integer('has_assets') == 1,
+      publisherId: _text('publisher_id'),
+      publisherName: _text('publisher_name'),
+      signatureStatus: _enumValue(
+        SkillSignatureStatus.values,
+        _text('signature_status'),
+        SkillSignatureStatus.unsigned,
+      ),
+      catalogId: _text('catalog_id'),
+      catalogEntryId: _text('catalog_entry_id'),
+      updatePolicy: _enumValue(
+        SkillUpdatePolicy.values,
+        _text('update_policy'),
+        SkillUpdatePolicy.manual,
+      ),
       installedAt: DateTime.fromMillisecondsSinceEpoch(
         _integer('installed_at'),
       ),

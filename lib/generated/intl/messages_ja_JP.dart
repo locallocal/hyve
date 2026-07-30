@@ -164,6 +164,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "プロフィール、外観、言語、アプリのサポートを管理します。",
     ),
     "details": MessageLookupByLibrary.simpleMessage("詳細"),
+    "edit": MessageLookupByLibrary.simpleMessage("編集"),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
     "editName": MessageLookupByLibrary.simpleMessage("名前を編集"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(

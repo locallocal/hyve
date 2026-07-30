@@ -1,3 +1,5 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -156,7 +158,7 @@ void main() {
         findsNothing,
       );
 
-      await tester.tap(menuButton);
+      await tester.tap(menuButton, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
 
       final actionMenu = find.byKey(
@@ -182,15 +184,18 @@ void main() {
         closeTo(tester.getRect(menuButton).right, 1),
       );
 
-      await tester.tap(detailsAction);
+      await tester.tap(detailsAction, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
 
       expect(actionMenu, findsNothing);
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.text('Instructions for Release Notes'), findsOneWidget);
 
-      await tester.tap(find.text('关闭'));
+      await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
+
+      expect(actionMenu, findsNothing);
+      expect(find.text('显示菜单'), findsNothing);
 
       await tester.tap(menuButton);
       await tester.pumpAndSettle();

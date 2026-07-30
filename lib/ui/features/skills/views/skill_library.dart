@@ -587,6 +587,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
   final FocusNode _menuFocusNode = FocusNode(
     debugLabel: 'desktop-skill-card-actions',
   );
+  bool _menuActionInvokedByPointer = false;
 
   @override
   void dispose() {
@@ -596,12 +597,19 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
   }
 
   void _invokeMenuAction(VoidCallback action) {
+    final invokedByPointer = _menuActionInvokedByPointer;
+    _menuActionInvokedByPointer = false;
+    if (invokedByPointer) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      _menuFocusNode.unfocus();
+    }
     _menuController.hide();
     action();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (FocusManager.instance.highlightMode ==
-          FocusHighlightMode.traditional) {
+      if (!invokedByPointer &&
+          FocusManager.instance.highlightMode ==
+              FocusHighlightMode.traditional) {
         _menuFocusNode.requestFocus();
       } else {
         _menuFocusNode.unfocus();
@@ -625,40 +633,48 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
       ),
       padding: EdgeInsets.zero,
       popover:
-          (context) => SizedBox(
-            key: ValueKey<String>(
-              'desktop-skill-action-menu-${widget.skill.id}',
-            ),
-            width: _menuContentWidth + _menuPadding.horizontal,
-            child: Padding(
-              padding: _menuPadding,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ShadButton.ghost(
-                    key: ValueKey<String>(
-                      'desktop-skill-details-${widget.skill.id}',
+          (context) => Listener(
+            onPointerDown: (_) => _menuActionInvokedByPointer = true,
+            onPointerUp:
+                (_) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _menuActionInvokedByPointer = false;
+                }),
+            onPointerCancel: (_) => _menuActionInvokedByPointer = false,
+            child: SizedBox(
+              key: ValueKey<String>(
+                'desktop-skill-action-menu-${widget.skill.id}',
+              ),
+              width: _menuContentWidth + _menuPadding.horizontal,
+              child: Padding(
+                padding: _menuPadding,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ShadButton.ghost(
+                      key: ValueKey<String>(
+                        'desktop-skill-details-${widget.skill.id}',
+                      ),
+                      size: ShadButtonSize.sm,
+                      onPressed: () => _invokeMenuAction(widget.onOpen),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(LucideIcons.info, size: 16),
+                      child: Text(S.of(context).details),
                     ),
-                    size: ShadButtonSize.sm,
-                    onPressed: () => _invokeMenuAction(widget.onOpen),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.info, size: 16),
-                    child: Text(S.of(context).details),
-                  ),
-                  ShadButton.raw(
-                    key: ValueKey<String>(
-                      'desktop-skill-uninstall-${widget.skill.id}',
+                    ShadButton.raw(
+                      key: ValueKey<String>(
+                        'desktop-skill-uninstall-${widget.skill.id}',
+                      ),
+                      variant: ShadButtonVariant.ghost,
+                      size: ShadButtonSize.sm,
+                      foregroundColor: colors.destructive,
+                      onPressed: () => _invokeMenuAction(widget.onUninstall),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(LucideIcons.trash2, size: 16),
+                      child: Text(S.of(context).uninstall),
                     ),
-                    variant: ShadButtonVariant.ghost,
-                    size: ShadButtonSize.sm,
-                    foregroundColor: colors.destructive,
-                    onPressed: () => _invokeMenuAction(widget.onUninstall),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.trash2, size: 16),
-                    child: Text(S.of(context).uninstall),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

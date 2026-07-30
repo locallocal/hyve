@@ -100,6 +100,7 @@
     "@addBot": {
         "description": "Añadir bot"
     },
+    "edit": "Editar",
     "editBot": "Editar bot",
     "@editBot": {
         "description": "Editar bot"

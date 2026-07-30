@@ -187,6 +187,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Сведения"),
+    "edit": MessageLookupByLibrary.simpleMessage("Редактировать"),
     "editBot": MessageLookupByLibrary.simpleMessage("Редактировать бота"),
     "editName": MessageLookupByLibrary.simpleMessage("Изменить имя"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(

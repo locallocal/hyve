@@ -20,7 +20,15 @@ class AddBotSkills extends StatefulWidget {
 }
 
 class _AddBotSkillsState extends State<AddBotSkills> {
+  final _searchController = TextEditingController();
+
   BotSkillViewModel get viewModel => widget.viewModel;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -290,26 +298,35 @@ class _AddBotSkillsState extends State<AddBotSkills> {
 
   Future<void> _showAddSkillDialog() async {
     if (viewModel.availableSkills.isEmpty) return;
+    _searchController.clear();
+    viewModel.clearAvailableSearch();
     viewModel.resetAvailablePage();
-    await showShadDialog<void>(
-      context: context,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (dialogContext, refresh) => ShadDialog(
-                  title: Text(S.of(context).addSkill),
-                  description: Text(S.of(context).botSkillsDescription),
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  actions: [
-                    ShadButton.outline(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(S.of(context).cancel),
+    try {
+      await showShadDialog<void>(
+        context: context,
+        builder:
+            (dialogContext) => StatefulBuilder(
+              builder:
+                  (dialogContext, refresh) => ShadDialog(
+                    title: Text(S.of(context).addSkill),
+                    description: Text(S.of(context).botSkillsDescription),
+                    constraints: const BoxConstraints(maxWidth: 620),
+                    actions: [
+                      ShadButton.outline(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: Text(S.of(context).cancel),
+                      ),
+                    ],
+                    child: _buildAvailableSkills(
+                      dialogContext,
+                      refresh: refresh,
                     ),
-                  ],
-                  child: _buildAvailableSkills(dialogContext, refresh: refresh),
-                ),
-          ),
-    );
+                  ),
+            ),
+      );
+    } finally {
+      viewModel.clearAvailableSearch();
+    }
   }
 
   Widget _buildAvailableSkills(
@@ -324,6 +341,42 @@ class _AddBotSkillsState extends State<AddBotSkills> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          StarsSearchField(
+            key: const ValueKey<String>('add-bot-skill-search-field'),
+            hintText: strings.searchSkills,
+            semanticLabel: strings.searchSkills,
+            controller: _searchController,
+            autofocus: true,
+            onChanged: (query) {
+              viewModel.searchAvailableSkills(query);
+              refresh(() {});
+            },
+            suffixIcon:
+                viewModel.availableQuery.isEmpty
+                    ? null
+                    : IconButton(
+                      key: const ValueKey<String>('clear-add-bot-skill-search'),
+                      tooltip: strings.clearSearch,
+                      onPressed: () {
+                        _searchController.clear();
+                        viewModel.clearAvailableSearch();
+                        refresh(() {});
+                      },
+                      icon: const Icon(LucideIcons.x, size: 16),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+          ),
+          const SizedBox(height: 12),
+          if (skills.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                strings.noMatchingSkills,
+                textAlign: TextAlign.center,
+                style: DesktopThemeTokens.metaStyle(context),
+              ),
+            ),
           for (var index = 0; index < skills.length; index++) ...[
             Padding(
               key: ValueKey<String>(

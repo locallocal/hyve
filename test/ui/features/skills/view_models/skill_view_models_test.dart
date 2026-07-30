@@ -251,6 +251,52 @@ void main() {
     ]);
   });
 
+  test(
+    'bot Skill picker searches names and descriptions and resets pagination',
+    () async {
+      final viewModel = BotSkillViewModel(
+        botId: 'bot-1',
+        skillRepository: _FakeSkillRepository([
+          _skill('Release Notes', description: 'Create polished changelogs'),
+          _skill('Code Review', description: 'Find concise improvements'),
+          _skill('Research'),
+          _skill('Translation'),
+        ]),
+        bindingRepository: _FakeBindingRepository(),
+        pageSize: 2,
+      );
+      addTearDown(viewModel.dispose);
+      await viewModel.load();
+
+      viewModel.nextAvailablePage();
+      expect(viewModel.currentAvailablePage, 2);
+
+      viewModel.searchAvailableSkills('  release  ');
+      expect(viewModel.currentAvailablePage, 1);
+      expect(viewModel.totalAvailablePages, 1);
+      expect(viewModel.paginatedAvailableSkills.map((skill) => skill.name), [
+        'Release Notes',
+      ]);
+
+      viewModel.searchAvailableSkills('CONCISE');
+      expect(viewModel.paginatedAvailableSkills.map((skill) => skill.name), [
+        'Code Review',
+      ]);
+
+      viewModel.searchAvailableSkills('missing');
+      expect(viewModel.paginatedAvailableSkills, isEmpty);
+      expect(viewModel.currentAvailablePage, 0);
+
+      viewModel.clearAvailableSearch();
+      expect(viewModel.availableQuery, isEmpty);
+      expect(viewModel.totalAvailablePages, 2);
+      expect(viewModel.paginatedAvailableSkills.map((skill) => skill.name), [
+        'Release Notes',
+        'Code Review',
+      ]);
+    },
+  );
+
   test('bot enables automatic mode only for capable providers', () async {
     final skillRepository = _FakeSkillRepository([_skill('auto')]);
     final bindingRepository = _FakeBindingRepository();

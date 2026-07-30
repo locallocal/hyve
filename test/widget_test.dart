@@ -2282,6 +2282,20 @@ void main() {
       await tester.ensureVisible(addSkill);
       await tester.tap(addSkill);
       await tester.pumpAndSettle();
+      final skillSearchField = find.byKey(
+        const ValueKey<String>('add-bot-skill-search-field'),
+      );
+      expect(skillSearchField, findsOneWidget);
+      await tester.enterText(
+        find.descendant(
+          of: skillSearchField,
+          matching: find.byType(EditableText),
+        ),
+        'release',
+      );
+      await tester.pump();
+      expect(find.text('Release Notes'), findsOneWidget);
+      expect(find.text('Code Review'), findsNothing);
       await tester.tap(
         find.byKey(
           const ValueKey<String>('select-add-bot-skill-user:Release Notes'),

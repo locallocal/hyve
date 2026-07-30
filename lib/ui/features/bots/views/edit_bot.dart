@@ -39,6 +39,7 @@ class EditBotPage extends StatefulWidget {
 }
 
 class _EditAIBotPageState extends State<EditBotPage> {
+  final _skillSearchController = TextEditingController();
   late final TextEditingController nameController;
   late final TextEditingController providerController;
   late final TextEditingController apiTypeController;
@@ -125,6 +126,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
 
   @override
   void dispose() {
+    _skillSearchController.dispose();
     nameController.dispose();
     providerController.dispose();
     apiTypeController.dispose();
@@ -786,59 +788,69 @@ class _EditAIBotPageState extends State<EditBotPage> {
   Future<void> _showAddSkillDialog() async {
     final viewModel = _skillViewModel;
     if (viewModel == null || viewModel.availableSkills.isEmpty) return;
+    _skillSearchController.clear();
+    viewModel.clearAvailableSearch();
     viewModel.resetAvailablePage();
     if (widget.embedded) {
-      await showShadDialog<void>(
+      try {
+        await showShadDialog<void>(
+          context: context,
+          builder:
+              (dialogContext) => StatefulBuilder(
+                builder:
+                    (dialogContext, setDialogState) => ShadDialog(
+                      title: Text(S.of(context).addSkill),
+                      description: Text(S.of(context).botSkillsDescription),
+                      constraints: const BoxConstraints(maxWidth: 620),
+                      actions: [
+                        ShadButton.outline(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          child: Text(S.of(context).cancel),
+                        ),
+                      ],
+                      child: _buildAvailableSkillPicker(
+                        dialogContext,
+                        viewModel,
+                        embedded: true,
+                        refresh: setDialogState,
+                      ),
+                    ),
+              ),
+        );
+      } finally {
+        viewModel.clearAvailableSearch();
+      }
+      return;
+    }
+    try {
+      await showDialog<void>(
         context: context,
         builder:
             (dialogContext) => StatefulBuilder(
               builder:
-                  (dialogContext, setDialogState) => ShadDialog(
+                  (dialogContext, setDialogState) => AlertDialog(
                     title: Text(S.of(context).addSkill),
-                    description: Text(S.of(context).botSkillsDescription),
-                    constraints: const BoxConstraints(maxWidth: 620),
+                    content: SizedBox(
+                      width: 520,
+                      child: _buildAvailableSkillPicker(
+                        dialogContext,
+                        viewModel,
+                        embedded: false,
+                        refresh: setDialogState,
+                      ),
+                    ),
                     actions: [
-                      ShadButton.outline(
+                      TextButton(
                         onPressed: () => Navigator.of(dialogContext).pop(),
                         child: Text(S.of(context).cancel),
                       ),
                     ],
-                    child: _buildAvailableSkillPicker(
-                      dialogContext,
-                      viewModel,
-                      embedded: true,
-                      refresh: setDialogState,
-                    ),
                   ),
             ),
       );
-      return;
+    } finally {
+      viewModel.clearAvailableSearch();
     }
-    await showDialog<void>(
-      context: context,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (dialogContext, setDialogState) => AlertDialog(
-                  title: Text(S.of(context).addSkill),
-                  content: SizedBox(
-                    width: 520,
-                    child: _buildAvailableSkillPicker(
-                      dialogContext,
-                      viewModel,
-                      embedded: false,
-                      refresh: setDialogState,
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(S.of(context).cancel),
-                    ),
-                  ],
-                ),
-          ),
-    );
   }
 
   Widget _buildAvailableSkillPicker(
@@ -855,6 +867,47 @@ class _EditAIBotPageState extends State<EditBotPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (embedded) ...[
+            StarsSearchField(
+              key: const ValueKey<String>('bot-skill-search-field'),
+              hintText: strings.searchSkills,
+              semanticLabel: strings.searchSkills,
+              controller: _skillSearchController,
+              autofocus: true,
+              onChanged: (query) {
+                viewModel.searchAvailableSkills(query);
+                refresh(() {});
+              },
+              suffixIcon:
+                  viewModel.availableQuery.isEmpty
+                      ? null
+                      : IconButton(
+                        key: const ValueKey<String>('clear-bot-skill-search'),
+                        tooltip: strings.clearSearch,
+                        onPressed: () {
+                          _skillSearchController.clear();
+                          viewModel.clearAvailableSearch();
+                          refresh(() {});
+                        },
+                        icon: const Icon(LucideIcons.x, size: 16),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (skills.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                strings.noMatchingSkills,
+                textAlign: TextAlign.center,
+                style:
+                    embedded
+                        ? DesktopThemeTokens.metaStyle(context)
+                        : Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           for (var index = 0; index < skills.length; index++) ...[
             Padding(
               key: ValueKey<String>('available-bot-skill-${skills[index].id}'),

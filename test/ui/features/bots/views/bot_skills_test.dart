@@ -104,6 +104,45 @@ void main() {
         await tester.tap(addSkill);
         await tester.pumpAndSettle();
 
+        final searchField = find.byKey(
+          const ValueKey<String>('bot-skill-search-field'),
+        );
+        expect(searchField, findsOneWidget);
+        await tester.enterText(
+          find.descendant(of: searchField, matching: find.byType(EditableText)),
+          'Skill 13',
+        );
+        await tester.pump();
+
+        expect(find.text('Skill 06'), findsNothing);
+        expect(
+          find.byKey(
+            const ValueKey<String>('available-bot-skill-user:Skill 13'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey<String>('available-skills-page-indicator')),
+          findsNothing,
+        );
+
+        await tester.enterText(
+          find.descendant(of: searchField, matching: find.byType(EditableText)),
+          'missing',
+        );
+        await tester.pump();
+        expect(find.text('未找到匹配的技能'), findsOneWidget);
+        expect(
+          find.byKey(
+            const ValueKey<String>('available-bot-skill-user:Skill 13'),
+          ),
+          findsNothing,
+        );
+
+        await tester.tap(
+          find.byKey(const ValueKey<String>('clear-bot-skill-search')),
+        );
+        await tester.pump();
         expect(find.text('Skill 06'), findsOneWidget);
         expect(find.text('Skill 10'), findsOneWidget);
         expect(find.text('Skill 13'), findsNothing);

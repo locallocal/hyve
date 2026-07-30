@@ -37,6 +37,7 @@ final class BotSkillViewModel extends ChangeNotifier {
 
   List<SkillDescriptor> _skills = const [];
   Map<String, BotSkillBinding> _bindings = const {};
+  String _availableQuery = '';
   int _addedPageIndex = 0;
   int _availablePageIndex = 0;
   bool _isLoading = false;
@@ -52,22 +53,36 @@ final class BotSkillViewModel extends ChangeNotifier {
           (skill) => skill.isUsable && !_bindings.containsKey(skill.id),
         ),
       );
+  List<SkillDescriptor> get filteredAvailableSkills {
+    final normalized = _availableQuery.trim().toLowerCase();
+    final skills = availableSkills;
+    if (normalized.isEmpty) return skills;
+    return List<SkillDescriptor>.unmodifiable(
+      skills.where(
+        (skill) =>
+            skill.name.toLowerCase().contains(normalized) ||
+            skill.description.toLowerCase().contains(normalized),
+      ),
+    );
+  }
+
   List<BotSkillBinding> get bindings => List<BotSkillBinding>.unmodifiable(
     _skills
         .where((skill) => _bindings.containsKey(skill.id))
         .map((skill) => _bindings[skill.id]!),
   );
+  String get availableQuery => _availableQuery;
   List<SkillDescriptor> get paginatedAddedSkills =>
       _paginate(addedSkills, _addedPageIndex);
   List<SkillDescriptor> get paginatedAvailableSkills =>
-      _paginate(availableSkills, _availablePageIndex);
+      _paginate(filteredAvailableSkills, _availablePageIndex);
   int get currentAddedPage => totalAddedPages == 0 ? 0 : _addedPageIndex + 1;
   int get totalAddedPages => _pageCount(addedSkills.length);
   bool get hasPreviousAddedPage => _addedPageIndex > 0;
   bool get hasNextAddedPage => _addedPageIndex + 1 < totalAddedPages;
   int get currentAvailablePage =>
       totalAvailablePages == 0 ? 0 : _availablePageIndex + 1;
-  int get totalAvailablePages => _pageCount(availableSkills.length);
+  int get totalAvailablePages => _pageCount(filteredAvailableSkills.length);
   bool get hasPreviousAvailablePage => _availablePageIndex > 0;
   bool get hasNextAvailablePage =>
       _availablePageIndex + 1 < totalAvailablePages;
@@ -177,6 +192,15 @@ final class BotSkillViewModel extends ChangeNotifier {
     _availablePageIndex = 0;
     notifyListeners();
   }
+
+  void searchAvailableSkills(String query) {
+    if (_availableQuery == query) return;
+    _availableQuery = query;
+    _availablePageIndex = 0;
+    notifyListeners();
+  }
+
+  void clearAvailableSearch() => searchAvailableSkills('');
 
   void previousAvailablePage() {
     if (!hasPreviousAvailablePage) return;

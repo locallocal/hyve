@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/views/add_bot.dart';
@@ -547,21 +548,34 @@ class ContactsPageState extends State<ContactsPage> {
 
   Future<void> _openAddBotPage() async {
     if (isDesktopOrTabletPlatform(context)) {
-      await showShadDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (dialogContext) => AddBotDialog(
-              modelLoader: widget.viewModel.listModels,
-              avatarPicker: widget.viewModel.pickAvatar,
-              onBotAdded: (newBot) async {
-                await widget.viewModel.addBot(newBot);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-      );
+      final botId = 'bot_${DateTime.now().millisecondsSinceEpoch}';
+      final skillViewModel = AppScope.of(
+        context,
+      ).createDraftBotSkillViewModel(botId);
+      try {
+        await showShadDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (dialogContext) => AddBotDialog(
+                botId: botId,
+                skillViewModel: skillViewModel,
+                modelLoader: widget.viewModel.listModels,
+                avatarPicker: widget.viewModel.pickAvatar,
+                onBotAdded: (newBot, skillBindings) async {
+                  await widget.viewModel.addBot(
+                    newBot,
+                    skillBindings: skillBindings,
+                  );
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop();
+                  }
+                },
+              ),
+        );
+      } finally {
+        skillViewModel.dispose();
+      }
       return;
     }
 
@@ -572,7 +586,7 @@ class ContactsPageState extends State<ContactsPage> {
             (context) => AddBotPage(
               modelLoader: widget.viewModel.listModels,
               avatarPicker: widget.viewModel.pickAvatar,
-              onBotAdded: (newBot) async {
+              onBotAdded: (newBot, _) async {
                 await widget.viewModel.addBot(newBot);
               },
             ),

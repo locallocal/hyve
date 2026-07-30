@@ -52,6 +52,11 @@ final class BotSkillViewModel extends ChangeNotifier {
           (skill) => skill.isUsable && !_bindings.containsKey(skill.id),
         ),
       );
+  List<BotSkillBinding> get bindings => List<BotSkillBinding>.unmodifiable(
+    _skills
+        .where((skill) => _bindings.containsKey(skill.id))
+        .map((skill) => _bindings[skill.id]!),
+  );
   List<SkillDescriptor> get paginatedAddedSkills =>
       _paginate(addedSkills, _addedPageIndex);
   List<SkillDescriptor> get paginatedAvailableSkills =>
@@ -248,5 +253,31 @@ final class BotSkillViewModel extends ChangeNotifier {
     unawaited(_skillChanges.cancel());
     unawaited(_bindingChanges.cancel());
     super.dispose();
+  }
+}
+
+/// Keeps new-Bot Skill choices in memory until the Bot itself is persisted.
+final class DraftBotSkillBindingRepository
+    implements BotSkillBindingRepository {
+  final Map<String, BotSkillBinding> _bindings = {};
+
+  @override
+  Stream<void> get changes => const Stream<void>.empty();
+
+  @override
+  Future<List<BotSkillBinding>> getForBot(String botId) async =>
+      List<BotSkillBinding>.unmodifiable(
+        _bindings.values.where((binding) => binding.botId == botId),
+      );
+
+  @override
+  Future<void> save(BotSkillBinding binding) async {
+    _bindings[binding.skillId] = binding;
+  }
+
+  @override
+  Future<void> remove(String botId, String skillId) async {
+    final binding = _bindings[skillId];
+    if (binding?.botId == botId) _bindings.remove(skillId);
   }
 }

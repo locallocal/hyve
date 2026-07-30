@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:stars/domain/models/provider_catalog.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:stars/ui/features/bots/views/add_bot_skills.dart';
 import 'package:stars/utils/theme.dart';
 
 class AddBotDialog extends StatelessWidget {
@@ -15,11 +18,15 @@ class AddBotDialog extends StatelessWidget {
     required this.onBotAdded,
     this.modelLoader,
     this.avatarPicker,
+    this.botId,
+    this.skillViewModel,
   });
 
-  final Future<void> Function(Bot) onBotAdded;
+  final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
   final Future<List<String>> Function(Bot)? modelLoader;
   final Future<String?> Function()? avatarPicker;
+  final String? botId;
+  final BotSkillViewModel? skillViewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +58,8 @@ class AddBotDialog extends StatelessWidget {
           onBotAdded: onBotAdded,
           modelLoader: modelLoader,
           avatarPicker: avatarPicker,
+          botId: botId,
+          skillViewModel: skillViewModel,
         ),
       ),
     );
@@ -58,10 +67,12 @@ class AddBotDialog extends StatelessWidget {
 }
 
 class AddBotPage extends StatefulWidget {
-  final Future<void> Function(Bot) onBotAdded;
+  final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
   final Future<List<String>> Function(Bot)? modelLoader;
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
+  final String? botId;
+  final BotSkillViewModel? skillViewModel;
 
   const AddBotPage({
     super.key,
@@ -69,6 +80,8 @@ class AddBotPage extends StatefulWidget {
     this.modelLoader,
     this.avatarPicker,
     this.embedded = false,
+    this.botId,
+    this.skillViewModel,
   });
 
   @override
@@ -102,6 +115,7 @@ class _AddBotPageState extends State<AddBotPage> {
   final apiKeyController = TextEditingController();
   final selectedModelController = TextEditingController();
   final systemPromptController = TextEditingController();
+  late final String _botId;
 
   bool _isLoadingModels = false;
   bool _isSubmitting = false;
@@ -183,6 +197,10 @@ class _AddBotPageState extends State<AddBotPage> {
   @override
   void initState() {
     super.initState();
+    _botId = widget.botId ?? 'bot_${DateTime.now().millisecondsSinceEpoch}';
+    if (widget.embedded && widget.skillViewModel != null) {
+      unawaited(widget.skillViewModel!.load());
+    }
     // 初始化baseURLController
     baseURLController.text =
         providersInfo[providerController.text]?['base_url'] as String? ?? '';
@@ -307,7 +325,7 @@ class _AddBotPageState extends State<AddBotPage> {
     final baseURL = baseURLController.text.trim();
 
     final newBot = Bot(
-      id: 'bot_${DateTime.now().millisecondsSinceEpoch}',
+      id: _botId,
       name: nameController.text.trim(),
       avatar: avatarImage?.path ?? '',
       provider: providerController.text,
@@ -322,7 +340,12 @@ class _AddBotPageState extends State<AddBotPage> {
 
     setState(() => _isSubmitting = true);
     try {
-      await widget.onBotAdded(newBot);
+      await widget.onBotAdded(
+        newBot,
+        widget.embedded
+            ? widget.skillViewModel?.bindings ?? const []
+            : const [],
+      );
       if (!widget.embedded && mounted) {
         navigator.pop();
       }
@@ -521,6 +544,21 @@ class _AddBotPageState extends State<AddBotPage> {
                                 'add-bot-model-section',
                               ),
                             ),
+                            if (widget.skillViewModel != null) ...[
+                              const SizedBox(height: 20),
+                              _buildDesktopSection(
+                                context,
+                                S.of(context).botSkills,
+                                [
+                                  AddBotSkills(
+                                    viewModel: widget.skillViewModel!,
+                                  ),
+                                ],
+                                sectionKey: const ValueKey<String>(
+                                  'add-bot-skills-section',
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -711,6 +749,7 @@ class _AddBotPageState extends State<AddBotPage> {
                       ),
                       const SizedBox(width: 8),
                       ShadButton(
+                        key: const ValueKey<String>('add-bot-submit'),
                         enabled: !_isSubmitting,
                         onPressed: _isSubmitting ? null : _submitBot,
                         leading:

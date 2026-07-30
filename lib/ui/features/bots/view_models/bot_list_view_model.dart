@@ -5,6 +5,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
+import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
 
 class BotListViewModel extends ChangeNotifier {
@@ -13,10 +14,12 @@ class BotListViewModel extends ChangeNotifier {
     required CreateChat createChat,
     required AiProviderRepository aiProviderRepository,
     required AttachmentRepository attachmentRepository,
+    BotSkillBindingRepository? botSkillBindingRepository,
   }) : _botRepository = botRepository,
        _createChat = createChat,
        _aiProviderRepository = aiProviderRepository,
-       _attachmentRepository = attachmentRepository {
+       _attachmentRepository = attachmentRepository,
+       _botSkillBindingRepository = botSkillBindingRepository {
     _subscription = _botRepository.changes.listen(_applyBots);
   }
 
@@ -24,6 +27,7 @@ class BotListViewModel extends ChangeNotifier {
   final CreateChat _createChat;
   final AiProviderRepository _aiProviderRepository;
   final AttachmentRepository _attachmentRepository;
+  final BotSkillBindingRepository? _botSkillBindingRepository;
   late final StreamSubscription<List<Bot>> _subscription;
 
   List<Bot> _bots = const [];
@@ -72,7 +76,21 @@ class BotListViewModel extends ChangeNotifier {
 
   Future<String?> pickAvatar() => _attachmentRepository.selectImage();
 
-  Future<void> addBot(Bot bot) => _botRepository.addBot(bot);
+  Future<void> addBot(
+    Bot bot, {
+    List<BotSkillBinding> skillBindings = const [],
+  }) async {
+    await _botRepository.addBot(bot);
+    if (skillBindings.isEmpty) return;
+
+    final bindingRepository = _botSkillBindingRepository;
+    if (bindingRepository == null) {
+      throw StateError('No Bot Skill binding repository was configured.');
+    }
+    for (final binding in skillBindings) {
+      await bindingRepository.save(binding);
+    }
+  }
 
   Future<void> updateBot(Bot bot) => _botRepository.updateBot(bot);
 

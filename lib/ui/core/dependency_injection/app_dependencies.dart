@@ -231,6 +231,7 @@ class AppDependencies {
     createChat: createChat,
     aiProviderRepository: aiProviderRepository,
     attachmentRepository: attachmentRepository,
+    botSkillBindingRepository: botSkillBindingRepository,
   );
 
   BotTokenUsageViewModel createBotTokenUsageViewModel(String botId) =>
@@ -246,6 +247,13 @@ class AppDependencies {
     bindingRepository: botSkillBindingRepository,
     skillToolProvider: aiProviderRepository.create(bot),
   );
+
+  BotSkillViewModel createDraftBotSkillViewModel(String botId) =>
+      BotSkillViewModel(
+        botId: botId,
+        skillRepository: skillRepository,
+        bindingRepository: DraftBotSkillBindingRepository(),
+      );
 
   SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
     skillRepository: skillRepository,

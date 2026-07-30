@@ -45,25 +45,28 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m9(name) =>
       "${name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।";
 
-  static String m10(language) => "भाषा ${language} में बदली गई";
+  static String m10(name) =>
+      "${name} को घोषित स्क्रिप्ट टूल के रूप में पंजीकृत करने दें। हर कॉल को फिर भी स्वीकृति चाहिए।";
 
-  static String m11(minutes) => "${minutes} मिनट पहले";
+  static String m11(language) => "भाषा ${language} में बदली गई";
 
-  static String m12(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+  static String m12(minutes) => "${minutes} मिनट पहले";
 
-  static String m13(count) => "${count} कमांड निष्पादन";
+  static String m13(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
 
-  static String m14(duration) => "अवधि ${duration}";
+  static String m14(count) => "${count} कमांड निष्पादन";
 
-  static String m15(count) => "${count} फ़ाइल बदलाव";
+  static String m15(duration) => "अवधि ${duration}";
 
-  static String m16(count) => "${count} टूल कॉल";
+  static String m16(count) => "${count} फ़ाइल बदलाव";
 
-  static String m17(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m17(count) => "${count} टूल कॉल";
 
-  static String m18(error) => "कौशल आयात नहीं हो सका: ${error}";
+  static String m18(error) => "उत्तर प्राप्त करने में विफल: ${error}";
 
-  static String m19(duration) => "सोचना पूर्ण · ${duration}";
+  static String m19(error) => "कौशल आयात नहीं हो सका: ${error}";
+
+  static String m20(duration) => "सोचना पूर्ण · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -181,11 +184,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
     ),
     "details": MessageLookupByLibrary.simpleMessage("विवरण"),
+    "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "स्क्रिप्ट अक्षम करें",
+    ),
     "edit": MessageLookupByLibrary.simpleMessage("संपादित करें"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "उत्तर प्राप्त करने में विफल: सर्वर ने खाली प्रतिक्रिया लौटाई",
+    ),
+    "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "स्क्रिप्ट सक्षम करें",
+    ),
+    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
+      "अलग की गई कौशल स्क्रिप्ट सक्षम करें?",
     ),
     "enterApiAddress": MessageLookupByLibrary.simpleMessage(
       "API पता दर्ज करें...",
@@ -265,8 +278,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "कौशल आयात हो रहा है…",
     ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("इनपुट टोकन"),
+    "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
+      "अपडेट इंस्टॉल करें",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
-    "languageChanged": m10,
+    "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("प्रति संदेश"),
@@ -279,9 +295,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
-    "minutesAgo": m11,
+    "minutesAgo": m12,
     "model": MessageLookupByLibrary.simpleMessage("मॉडल"),
-    "modelsRetrievedSuccess": m12,
+    "modelsRetrievedSuccess": m13,
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
@@ -322,13 +338,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
-    "processCommandCount": m13,
-    "processDuration": m14,
-    "processFileCount": m15,
+    "processCommandCount": m14,
+    "processDuration": m15,
+    "processFileCount": m16,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "प्रक्रिया जानकारी",
     ),
-    "processToolCount": m16,
+    "processToolCount": m17,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
@@ -338,6 +354,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
     "refresh": MessageLookupByLibrary.simpleMessage("ताज़ा करें"),
+    "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "कैटलॉग रीफ़्रेश करें",
+    ),
+    "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "कैटलॉग रीफ़्रेश हो रहे हैं…",
+    ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("कौशल हटाएँ"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "उत्तर रद्द किया गया",
@@ -348,7 +370,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
-    "responseError": m17,
+    "responseError": m18,
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "जाँच चलाएँ",
     ),
@@ -383,7 +405,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("चालू"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
-    "skillImportFailed": m18,
+    "skillImportFailed": m19,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "कौशल आयात किया गया",
     ),
@@ -394,16 +416,56 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
       "यह संस्करण कौशल की स्क्रिप्ट या कमांड नहीं चलाता।",
     ),
+    "skillPublisher": MessageLookupByLibrary.simpleMessage("प्रकाशक"),
     "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
       "संदर्भ फ़ाइलें उपलब्ध हैं",
     ),
     "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md को केवल नियंत्रित प्रॉम्प्ट निर्देश के रूप में लोड किया जाता है; स्क्रिप्ट, कमांड और बाहरी टूल अक्षम रहते हैं।",
     ),
+    "skillSandboxAvailable": MessageLookupByLibrary.simpleMessage(
+      "डेस्कटॉप स्क्रिप्ट सैंडबॉक्स उपलब्ध",
+    ),
+    "skillSandboxAvailableDescription": MessageLookupByLibrary.simpleMessage(
+      "आपकी अनुमति तक स्क्रिप्ट बंद रहती हैं। हर कॉल के लिए फिर भी स्वीकृति आवश्यक है।",
+    ),
+    "skillSandboxUnavailable": MessageLookupByLibrary.simpleMessage(
+      "कौशल स्क्रिप्ट उपलब्ध नहीं",
+    ),
+    "skillSandboxUnavailableDescription": MessageLookupByLibrary.simpleMessage(
+      "यह प्लेटफ़ॉर्म आवश्यक अलगाव नहीं देता। निर्देश और संसाधन उपलब्ध रहेंगे।",
+    ),
+    "skillScriptSettingUpdated": MessageLookupByLibrary.simpleMessage(
+      "कौशल स्क्रिप्ट सेटिंग अपडेट हुई।",
+    ),
     "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट इंस्टॉल हैं, लेकिन उनका निष्पादन अक्षम है।",
     ),
+    "skillScriptsEnabled": MessageLookupByLibrary.simpleMessage(
+      "स्क्रिप्ट सक्षम",
+    ),
+    "skillSignature": MessageLookupByLibrary.simpleMessage("हस्ताक्षर"),
+    "skillSignatureInvalid": MessageLookupByLibrary.simpleMessage(
+      "अमान्य हस्ताक्षर",
+    ),
+    "skillSignatureUnknownPublisher": MessageLookupByLibrary.simpleMessage(
+      "अज्ञात प्रकाशक",
+    ),
+    "skillSignatureUnsigned": MessageLookupByLibrary.simpleMessage(
+      "अहस्ताक्षरित",
+    ),
+    "skillSignatureVerified": MessageLookupByLibrary.simpleMessage(
+      "सत्यापित हस्ताक्षर",
+    ),
     "skillSource": MessageLookupByLibrary.simpleMessage("स्रोत"),
+    "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("स्वचालित"),
+    "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
+      "अपडेट उपलब्ध",
+    ),
+    "skillUpdateManual": MessageLookupByLibrary.simpleMessage("मैन्युअल"),
+    "skillUpdateNotify": MessageLookupByLibrary.simpleMessage("सूचित करें"),
+    "skillUpdatePinned": MessageLookupByLibrary.simpleMessage("पिन किया गया"),
+    "skillUpdatePolicy": MessageLookupByLibrary.simpleMessage("अपडेट नीति"),
     "skillUserScope": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता"),
     "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
       "सत्यापन टिप्पणियाँ",
@@ -440,7 +502,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
-    "thinkingCompletedWithDuration": m19,
+    "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("टूल कॉल"),
     "typing": MessageLookupByLibrary.simpleMessage("टाइप कर रहा है..."),

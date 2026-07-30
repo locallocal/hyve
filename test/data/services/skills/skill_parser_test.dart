@@ -64,7 +64,7 @@ Summarize user-visible changes first.
     );
   });
 
-  test('keeps scripts inert and reports a validation warning', () async {
+  test('keeps scripts gated and reports a sandbox approval warning', () async {
     final root = await _createSkill(
       temporaryDirectory,
       name: 'safe-review',
@@ -84,7 +84,7 @@ Review the change.
     expect(parsed.validationStatus, SkillValidationStatus.validWithWarnings);
     expect(
       parsed.diagnostics.map((item) => item.code),
-      contains('scripts_disabled'),
+      contains('scripts_require_sandbox_approval'),
     );
   });
 

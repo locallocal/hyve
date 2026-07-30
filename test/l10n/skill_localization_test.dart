@@ -61,6 +61,31 @@ void main() {
     'skillNotExecutable',
     'skillSafetyDescription',
     'skillUserScope',
+    'refreshSkillCatalogs',
+    'refreshingSkillCatalogs',
+    'skillSandboxAvailable',
+    'skillSandboxAvailableDescription',
+    'skillSandboxUnavailable',
+    'skillSandboxUnavailableDescription',
+    'skillScriptsEnabled',
+    'enableSkillScripts',
+    'disableSkillScripts',
+    'enableSkillScriptsTitle',
+    'enableSkillScriptsDescription',
+    'skillScriptSettingUpdated',
+    'skillPublisher',
+    'skillSignature',
+    'skillSignatureUnsigned',
+    'skillSignatureVerified',
+    'skillSignatureUnknownPublisher',
+    'skillSignatureInvalid',
+    'skillUpdatePolicy',
+    'skillUpdateManual',
+    'skillUpdateNotify',
+    'skillUpdateAutomatic',
+    'skillUpdatePinned',
+    'skillUpdateAvailable',
+    'installSkillUpdate',
   };
 
   test('every supported locale defines the complete Skill feature copy', () {
@@ -91,6 +116,11 @@ void main() {
         messages['confirmUninstallSkill'],
         contains('{name}'),
         reason: '${file.path} must preserve the name placeholder',
+      );
+      expect(
+        messages['enableSkillScriptsDescription'],
+        contains('{name}'),
+        reason: '${file.path} must preserve the Skill name placeholder',
       );
       if (!file.path.endsWith('intl_en.arb')) {
         expect(
@@ -151,6 +181,11 @@ void main() {
         'skillReferencesAvailable': S.current.skillReferencesAvailable,
         'skillAssetsAvailable': S.current.skillAssetsAvailable,
         'skillValidationWarnings': S.current.skillValidationWarnings,
+        'skillSandboxAvailable': S.current.skillSandboxAvailable,
+        'skillSandboxUnavailable': S.current.skillSandboxUnavailable,
+        'enableSkillScripts': S.current.enableSkillScripts,
+        'skillSignatureVerified': S.current.skillSignatureVerified,
+        'skillUpdateAvailable': S.current.skillUpdateAvailable,
       };
 
       for (final message in generated.entries) {

@@ -169,7 +169,10 @@ final class SkillParser {
     final hasAssets = files.any((file) => _isInDirectory(file, 'assets'));
     if (hasScripts) {
       diagnostics.add(
-        _warning('scripts_disabled', '包含 scripts/；当前版本会安装但不会执行任何脚本。'),
+        _warning(
+          'scripts_require_sandbox_approval',
+          '包含 scripts/；仅在桌面隔离环境可用且用户明确授权后执行。',
+        ),
       );
     }
 

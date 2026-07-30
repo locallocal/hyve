@@ -45,26 +45,29 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m9(name) =>
       "Desinstalar ${name}? Os vínculos com bots também serão removidos.";
 
-  static String m10(language) => "Idioma alterado para ${language}";
+  static String m10(name) =>
+      "Permitir que ${name} registre os scripts declarados como ferramentas. Cada chamada ainda exigirá aprovação.";
 
-  static String m11(minutes) => "há ${minutes} minutos";
+  static String m11(language) => "Idioma alterado para ${language}";
 
-  static String m12(count) => "${count} modelos recuperados com sucesso";
+  static String m12(minutes) => "há ${minutes} minutos";
 
-  static String m13(count) => "${count} execuções de comando";
+  static String m13(count) => "${count} modelos recuperados com sucesso";
 
-  static String m14(duration) => "Duração ${duration}";
+  static String m14(count) => "${count} execuções de comando";
 
-  static String m15(count) => "${count} alterações de arquivo";
+  static String m15(duration) => "Duração ${duration}";
 
-  static String m16(count) => "${count} chamadas de ferramenta";
+  static String m16(count) => "${count} alterações de arquivo";
 
-  static String m17(error) => "Falha ao obter resposta: ${error}";
+  static String m17(count) => "${count} chamadas de ferramenta";
 
-  static String m18(error) =>
+  static String m18(error) => "Falha ao obter resposta: ${error}";
+
+  static String m19(error) =>
       "Não foi possível importar a habilidade: ${error}";
 
-  static String m19(duration) => "Pensamento concluído · ${duration}";
+  static String m20(duration) => "Pensamento concluído · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -186,11 +189,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gerencie seu perfil, aparência, idioma e suporte do aplicativo.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Detalhes"),
+    "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "Desativar scripts",
+    ),
     "edit": MessageLookupByLibrary.simpleMessage("Editar"),
     "editBot": MessageLookupByLibrary.simpleMessage("Editar bot"),
     "editName": MessageLookupByLibrary.simpleMessage("Editar nome"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Falha ao obter resposta: o servidor retornou uma resposta vazia",
+    ),
+    "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "Ativar scripts",
+    ),
+    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
+      "Ativar scripts isolados?",
     ),
     "enterApiAddress": MessageLookupByLibrary.simpleMessage(
       "Digite o endereço da API...",
@@ -272,8 +285,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Importando habilidade…",
     ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Tokens de entrada"),
+    "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
+      "Instalar atualização",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("Agora mesmo"),
-    "languageChanged": m10,
+    "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Configurações de idioma",
     ),
@@ -290,9 +306,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Digite uma mensagem...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
-    "minutesAgo": m11,
+    "minutesAgo": m12,
     "model": MessageLookupByLibrary.simpleMessage("Modelo"),
-    "modelsRetrievedSuccess": m12,
+    "modelsRetrievedSuccess": m13,
     "name": MessageLookupByLibrary.simpleMessage("Nome"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Nome atualizado"),
     "newChat": MessageLookupByLibrary.simpleMessage("Nova conversa"),
@@ -337,13 +353,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidade",
     ),
-    "processCommandCount": m13,
-    "processDuration": m14,
-    "processFileCount": m15,
+    "processCommandCount": m14,
+    "processDuration": m15,
+    "processFileCount": m16,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Informações do processo",
     ),
-    "processToolCount": m16,
+    "processToolCount": m17,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Forneça suas sugestões e feedback",
@@ -359,6 +375,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Raciocínio interrompido",
     ),
     "refresh": MessageLookupByLibrary.simpleMessage("Atualizar"),
+    "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "Atualizar catálogos",
+    ),
+    "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "Atualizando catálogos…",
+    ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("Remover habilidade"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "Resposta cancelada",
@@ -367,7 +389,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Interrompido · Resposta parcial mantida",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Restaurar padrão"),
-    "responseError": m17,
+    "responseError": m18,
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "Executar teste",
     ),
@@ -408,7 +430,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Desativada"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Ativada"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Arquivos"),
-    "skillImportFailed": m18,
+    "skillImportFailed": m19,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Habilidade importada",
     ),
@@ -419,16 +441,58 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
       "Esta versão não executa scripts ou comandos das habilidades.",
     ),
+    "skillPublisher": MessageLookupByLibrary.simpleMessage("Publicador"),
     "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
       "Arquivos de referência disponíveis",
     ),
     "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
       "O SKILL.md é carregado apenas como orientação controlada de prompt; scripts, comandos e ferramentas externas permanecem desativados.",
     ),
+    "skillSandboxAvailable": MessageLookupByLibrary.simpleMessage(
+      "Sandbox de scripts disponível",
+    ),
+    "skillSandboxAvailableDescription": MessageLookupByLibrary.simpleMessage(
+      "Os scripts permanecem desativados até sua aprovação. Cada chamada ainda exige aprovação.",
+    ),
+    "skillSandboxUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Scripts de habilidades indisponíveis",
+    ),
+    "skillSandboxUnavailableDescription": MessageLookupByLibrary.simpleMessage(
+      "Esta plataforma não oferece o isolamento necessário. Instruções e recursos continuam disponíveis.",
+    ),
+    "skillScriptSettingUpdated": MessageLookupByLibrary.simpleMessage(
+      "Configuração dos scripts atualizada.",
+    ),
     "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
       "Os scripts estão instalados, mas a execução está desativada.",
     ),
+    "skillScriptsEnabled": MessageLookupByLibrary.simpleMessage(
+      "Scripts ativados",
+    ),
+    "skillSignature": MessageLookupByLibrary.simpleMessage("Assinatura"),
+    "skillSignatureInvalid": MessageLookupByLibrary.simpleMessage(
+      "Assinatura inválida",
+    ),
+    "skillSignatureUnknownPublisher": MessageLookupByLibrary.simpleMessage(
+      "Publicador desconhecido",
+    ),
+    "skillSignatureUnsigned": MessageLookupByLibrary.simpleMessage(
+      "Sem assinatura",
+    ),
+    "skillSignatureVerified": MessageLookupByLibrary.simpleMessage(
+      "Assinatura verificada",
+    ),
     "skillSource": MessageLookupByLibrary.simpleMessage("Origem"),
+    "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("Automática"),
+    "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
+      "Atualização disponível",
+    ),
+    "skillUpdateManual": MessageLookupByLibrary.simpleMessage("Manual"),
+    "skillUpdateNotify": MessageLookupByLibrary.simpleMessage("Notificar"),
+    "skillUpdatePinned": MessageLookupByLibrary.simpleMessage("Fixada"),
+    "skillUpdatePolicy": MessageLookupByLibrary.simpleMessage(
+      "Política de atualização",
+    ),
     "skillUserScope": MessageLookupByLibrary.simpleMessage("Usuário"),
     "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
       "Notas de validação",
@@ -469,7 +533,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Pensamento concluído",
     ),
-    "thinkingCompletedWithDuration": m19,
+    "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Chamadas de ferramenta"),
     "typing": MessageLookupByLibrary.simpleMessage("Digitando..."),

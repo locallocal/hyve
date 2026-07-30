@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1460,7 +1459,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -3421,6 +3421,256 @@ class S {
     return Intl.message(
       'Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.',
       name: 'noMcpServersDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh catalogs`
+  String get refreshSkillCatalogs {
+    return Intl.message(
+      'Refresh catalogs',
+      name: 'refreshSkillCatalogs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refreshing catalogs…`
+  String get refreshingSkillCatalogs {
+    return Intl.message(
+      'Refreshing catalogs…',
+      name: 'refreshingSkillCatalogs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Desktop script sandbox available`
+  String get skillSandboxAvailable {
+    return Intl.message(
+      'Desktop script sandbox available',
+      name: 'skillSandboxAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scripts remain disabled per Skill until you approve them. Every invocation still requires approval and runs without network, home-directory, or inherited environment access.`
+  String get skillSandboxAvailableDescription {
+    return Intl.message(
+      'Scripts remain disabled per Skill until you approve them. Every invocation still requires approval and runs without network, home-directory, or inherited environment access.',
+      name: 'skillSandboxAvailableDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skill scripts unavailable`
+  String get skillSandboxUnavailable {
+    return Intl.message(
+      'Skill scripts unavailable',
+      name: 'skillSandboxUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This platform does not provide the required isolated helper. Skill instructions and resources remain available, but scripts cannot run.`
+  String get skillSandboxUnavailableDescription {
+    return Intl.message(
+      'This platform does not provide the required isolated helper. Skill instructions and resources remain available, but scripts cannot run.',
+      name: 'skillSandboxUnavailableDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scripts enabled`
+  String get skillScriptsEnabled {
+    return Intl.message(
+      'Scripts enabled',
+      name: 'skillScriptsEnabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable scripts`
+  String get enableSkillScripts {
+    return Intl.message(
+      'Enable scripts',
+      name: 'enableSkillScripts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disable scripts`
+  String get disableSkillScripts {
+    return Intl.message(
+      'Disable scripts',
+      name: 'disableSkillScripts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable isolated Skill scripts?`
+  String get enableSkillScriptsTitle {
+    return Intl.message(
+      'Enable isolated Skill scripts?',
+      name: 'enableSkillScriptsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Allow {name} to register its declared scripts as tools. Each call still requires approval and runs inside the desktop sandbox.`
+  String enableSkillScriptsDescription(String name) {
+    return Intl.message(
+      'Allow $name to register its declared scripts as tools. Each call still requires approval and runs inside the desktop sandbox.',
+      name: 'enableSkillScriptsDescription',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Skill script setting updated.`
+  String get skillScriptSettingUpdated {
+    return Intl.message(
+      'Skill script setting updated.',
+      name: 'skillScriptSettingUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Publisher`
+  String get skillPublisher {
+    return Intl.message(
+      'Publisher',
+      name: 'skillPublisher',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature`
+  String get skillSignature {
+    return Intl.message(
+      'Signature',
+      name: 'skillSignature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unsigned`
+  String get skillSignatureUnsigned {
+    return Intl.message(
+      'Unsigned',
+      name: 'skillSignatureUnsigned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verified signature`
+  String get skillSignatureVerified {
+    return Intl.message(
+      'Verified signature',
+      name: 'skillSignatureVerified',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown publisher`
+  String get skillSignatureUnknownPublisher {
+    return Intl.message(
+      'Unknown publisher',
+      name: 'skillSignatureUnknownPublisher',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid signature`
+  String get skillSignatureInvalid {
+    return Intl.message(
+      'Invalid signature',
+      name: 'skillSignatureInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update policy`
+  String get skillUpdatePolicy {
+    return Intl.message(
+      'Update policy',
+      name: 'skillUpdatePolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual`
+  String get skillUpdateManual {
+    return Intl.message(
+      'Manual',
+      name: 'skillUpdateManual',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notify`
+  String get skillUpdateNotify {
+    return Intl.message(
+      'Notify',
+      name: 'skillUpdateNotify',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic`
+  String get skillUpdateAutomatic {
+    return Intl.message(
+      'Automatic',
+      name: 'skillUpdateAutomatic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pinned`
+  String get skillUpdatePinned {
+    return Intl.message(
+      'Pinned',
+      name: 'skillUpdatePinned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update available`
+  String get skillUpdateAvailable {
+    return Intl.message(
+      'Update available',
+      name: 'skillUpdateAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Install update`
+  String get installSkillUpdate {
+    return Intl.message(
+      'Install update',
+      name: 'installSkillUpdate',
       desc: '',
       args: [],
     );

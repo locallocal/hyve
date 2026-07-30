@@ -106,6 +106,13 @@ abstract class AiProvider {
     );
   }
 
+  /// Optional optimization boundary for audited providers that can host
+  /// immutable Skill bundles. Local prompt/tool execution remains the
+  /// authoritative fallback when this capability is unavailable.
+  Future<HostedSkillPreparation> prepareHostedSkills(
+    List<HostedSkillDescriptor> skills,
+  ) async => const HostedSkillPreparation.unavailable();
+
   List<String> getSupportImageStyles() => const [];
 
   List<String> getSupportedImageSizes() => const [];

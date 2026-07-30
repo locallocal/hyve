@@ -12,6 +12,7 @@ import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
+import 'package:stars/data/repositories/sqlite_skill_ecosystem_repository.dart';
 import 'package:stars/data/services/feedback_service.dart';
 import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
@@ -26,6 +27,13 @@ import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
 import 'package:stars/data/services/skills/skill_package_storage_service.dart';
 import 'package:stars/data/services/skills/skill_parser.dart';
 import 'package:stars/data/services/skills/skill_picker_service.dart';
+import 'package:stars/data/services/skills/linux_bubblewrap_skill_sandbox.dart';
+import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
+import 'package:stars/data/services/skills/skill_catalog_service.dart';
+import 'package:stars/data/services/skills/skill_organization_policy_bundle_service.dart';
+import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
+import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
+import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/data/services/tools/built_in_tools.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
@@ -42,6 +50,7 @@ import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
@@ -88,6 +97,10 @@ class AppDependencies {
     required this.composeChatTurn,
     required this.createChat,
     required this.generationRegistry,
+    this.skillEcosystemRepository,
+    this.skillScriptCatalogService,
+    this.skillCatalogService,
+    this.skillOrganizationPolicyBundleService,
   });
 
   factory AppDependencies.production() {
@@ -116,10 +129,18 @@ class AppDependencies {
     const legalDocumentRepository = LegalDocumentRepositoryImpl(
       service: AssetTextService(),
     );
+    final skillEcosystemRepository = SqliteSkillEcosystemRepository(
+      localDatabase: localDatabase,
+    );
+    final skillStorageService = SkillPackageStorageService();
     final skillRepository = FileSkillRepository(
       localDatabase: localDatabase,
-      storageService: SkillPackageStorageService(),
+      storageService: skillStorageService,
       parser: const SkillParser(),
+      ecosystemRepository: skillEcosystemRepository,
+      signatureService: SkillSignatureService(
+        ecosystemRepository: skillEcosystemRepository,
+      ),
     );
     const skillPickerRepository = SkillPickerRepositoryImpl(
       service: SkillPickerService(),
@@ -152,7 +173,28 @@ class AppDependencies {
       client: mcpClient,
       toolRegistry: toolRegistry,
     );
-    const toolPolicy = DefaultToolPolicy(allowDestructiveWithApproval: true);
+    final skillScriptCatalogService = SkillScriptCatalogService(
+      skillRepository: skillRepository,
+      ecosystemRepository: skillEcosystemRepository,
+      manifestParser: const SkillScriptManifestParser(),
+      sandbox: LinuxBubblewrapSkillSandbox(
+        installationVerifier: skillStorageService.verifyImmutableInstallation,
+      ),
+      toolRegistry: toolRegistry,
+    );
+    final skillCatalogService = SkillCatalogService(
+      ecosystemRepository: skillEcosystemRepository,
+      skillRepository: skillRepository,
+      endpointPolicy: SkillCatalogEndpointPolicy(),
+    );
+    final skillOrganizationPolicyBundleService =
+        SkillOrganizationPolicyBundleService(
+          ecosystemRepository: skillEcosystemRepository,
+        );
+    const toolPolicy = DefaultToolPolicy(
+      allowDestructiveWithApproval: true,
+      allowSkillScripts: true,
+    );
     return AppDependencies(
       botRepository: botRepository,
       chatRepository: chatRepository,
@@ -180,9 +222,41 @@ class AppDependencies {
         providerFactory: aiProviderRepository.create,
         messageIdFactory: messageRepository.createId,
         skillActivationPersister: skillRunRepository.saveActivations,
+        toolInvocationPersister: (runId, chatId, botId, audit) async {
+          final now = DateTime.now();
+          await skillEcosystemRepository.appendComplianceEvent(
+            SkillComplianceEvent(
+              id:
+                  '${now.microsecondsSinceEpoch}:tool:$runId:'
+                  '${audit.callId}:${audit.status}',
+              type: SkillComplianceEventType.toolInvoked,
+              decision: audit.approvalStatus,
+              reason: audit.errorCode,
+              metadata: {
+                'runId': runId,
+                'chatId': chatId,
+                'botId': botId,
+                'callId': audit.callId,
+                'tool': audit.name,
+                'source': audit.source,
+                'riskLevel': audit.riskLevel,
+                'status': audit.status,
+                'argumentsSummary': audit.argumentsSummary,
+                'resultSummary': audit.resultSummary,
+                'durationMs': audit.durationMs,
+              },
+              timestamp: now,
+            ),
+          );
+        },
         toolRegistry: toolRegistry,
         toolPolicy: toolPolicy,
       ),
+      skillEcosystemRepository: skillEcosystemRepository,
+      skillScriptCatalogService: skillScriptCatalogService,
+      skillCatalogService: skillCatalogService,
+      skillOrganizationPolicyBundleService:
+          skillOrganizationPolicyBundleService,
     );
   }
 
@@ -207,10 +281,31 @@ class AppDependencies {
   final ComposeChatTurn composeChatTurn;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
+  final SkillEcosystemRepository? skillEcosystemRepository;
+  final SkillScriptCatalogService? skillScriptCatalogService;
+  final SkillCatalogService? skillCatalogService;
+  final SkillOrganizationPolicyBundleService?
+  skillOrganizationPolicyBundleService;
 
   StartupViewModel createStartupViewModel() => StartupViewModel(
     profileRepository: profileRepository,
-    capabilityInitializer: mcpCatalogService.hydrateFromCache,
+    capabilityInitializer: () async {
+      try {
+        await mcpCatalogService.hydrateFromCache();
+      } on Object {
+        // One optional capability source must not block the others.
+      }
+      try {
+        await skillScriptCatalogService?.hydrateFromCache();
+      } on Object {
+        // Unsupported or malformed script packages fail closed.
+      }
+      try {
+        await skillCatalogService?.refreshConfiguredCatalogs();
+      } on Object {
+        // Online catalogs are optional and must not block startup.
+      }
+    },
   );
 
   AppViewModel createAppViewModel(Profile initialProfile) => AppViewModel(
@@ -258,6 +353,9 @@ class AppDependencies {
   SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
     skillRepository: skillRepository,
     pickerRepository: skillPickerRepository,
+    ecosystemRepository: skillEcosystemRepository,
+    scriptCatalogService: skillScriptCatalogService,
+    catalogService: skillCatalogService,
   );
 
   McpServersViewModel createMcpServersViewModel() => McpServersViewModel(

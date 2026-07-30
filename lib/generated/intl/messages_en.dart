@@ -33,7 +33,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "Chat with ${botName} deleted";
 
-  static String m20(error) => "Could not clear chat history: ${error}";
+  static String m21(error) => "Could not clear chat history: ${error}";
 
   static String m6(botName) =>
       "Are you sure you want to clear all chat history with \"${botName}\"? This action cannot be undone.";
@@ -44,53 +44,56 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m8(botName) =>
       "Deleting this chat will clear all chat history. Are you sure you want to delete the chat with ${botName}?";
 
-  static String m21(name) =>
+  static String m22(name) =>
       "Delete ${name}? Its cached Tool catalog and secure credential will also be removed.";
 
   static String m9(name) =>
       "Uninstall ${name}? Bot bindings will also be removed.";
 
-  static String m22(error) => "Could not create the chat: ${error}";
+  static String m23(error) => "Could not create the chat: ${error}";
 
-  static String m23(error) => "Could not delete the chat: ${error}";
+  static String m24(error) => "Could not delete the chat: ${error}";
 
-  static String m24(count) => "${count} files";
+  static String m10(name) =>
+      "Allow ${name} to register its declared scripts as tools. Each call still requires approval and runs inside the desktop sandbox.";
 
-  static String m25(error) => "Generate image failed: ${error}";
+  static String m25(count) => "${count} files";
 
-  static String m26(error) => "Could not generate music: ${error}";
+  static String m26(error) => "Generate image failed: ${error}";
 
-  static String m27(error) => "Could not generate speech: ${error}";
+  static String m27(error) => "Could not generate music: ${error}";
 
-  static String m28(error) => "Could not generate video: ${error}";
+  static String m28(error) => "Could not generate speech: ${error}";
 
-  static String m29(count) => "${count} items";
+  static String m29(error) => "Could not generate video: ${error}";
 
-  static String m10(language) => "Language set to ${language}";
+  static String m30(count) => "${count} items";
 
-  static String m30(error) => "MCP connection failed: ${error}";
+  static String m11(language) => "Language set to ${language}";
 
-  static String m11(minutes) => "${minutes} minutes ago";
+  static String m31(error) => "MCP connection failed: ${error}";
 
-  static String m12(count) => "Successfully retrieved ${count} models";
+  static String m12(minutes) => "${minutes} minutes ago";
 
-  static String m13(count) => "${count} command runs";
+  static String m13(count) => "Successfully retrieved ${count} models";
 
-  static String m14(duration) => "Duration ${duration}";
+  static String m14(count) => "${count} command runs";
 
-  static String m15(count) => "${count} file updates";
+  static String m15(duration) => "Duration ${duration}";
 
-  static String m16(count) => "${count} tool calls";
+  static String m16(count) => "${count} file updates";
 
-  static String m17(error) => "Failed to get response: ${error}";
+  static String m17(count) => "${count} tool calls";
 
-  static String m31(error) => "Could not save image: ${error}";
+  static String m18(error) => "Failed to get response: ${error}";
 
-  static String m32(error) => "Could not share image: ${error}";
+  static String m32(error) => "Could not save image: ${error}";
 
-  static String m18(error) => "Could not import Skill: ${error}";
+  static String m33(error) => "Could not share image: ${error}";
 
-  static String m19(duration) => "Thinking complete · ${duration}";
+  static String m19(error) => "Could not import Skill: ${error}";
+
+  static String m20(duration) => "Thinking complete · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -183,7 +186,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Clear attachments",
     ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Clear Chat"),
-    "clearChatFailed": m20,
+    "clearChatFailed": m21,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Clear chat history",
     ),
@@ -208,7 +211,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDelete": MessageLookupByLibrary.simpleMessage("Confirm Delete"),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
-    "confirmDeleteMcpServer": m21,
+    "confirmDeleteMcpServer": m22,
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Contact information (optional)",
@@ -218,7 +221,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
-    "createChatFailed": m22,
+    "createChatFailed": m23,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Custom Provider...",
@@ -232,7 +235,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Delete Bot"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Delete Chat"),
-    "deleteChatFailed": m23,
+    "deleteChatFailed": m24,
     "deleteMcpServer": MessageLookupByLibrary.simpleMessage(
       "Delete MCP Server",
     ),
@@ -261,12 +264,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "details": MessageLookupByLibrary.simpleMessage("Details"),
     "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
     "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
+    "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "Disable scripts",
+    ),
     "edit": MessageLookupByLibrary.simpleMessage("Edit"),
     "editBot": MessageLookupByLibrary.simpleMessage("Edit Bot"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
     "editName": MessageLookupByLibrary.simpleMessage("Edit Name"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Failed to get response: Server returned empty response",
+    ),
+    "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
+      "Enable scripts",
+    ),
+    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
+      "Enable isolated Skill scripts?",
     ),
     "enterApiAddress": MessageLookupByLibrary.simpleMessage(
       "Enter API address...",
@@ -309,7 +322,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Please fetch model list first",
     ),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m24,
+    "fileCount": m25,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("File status"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Music"),
@@ -323,10 +336,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Font size updated",
     ),
-    "generateImageFailed": m25,
-    "generateMusicFailed": m26,
-    "generateSpeechFailed": m27,
-    "generateVideoFailed": m28,
+    "generateImageFailed": m26,
+    "generateMusicFailed": m27,
+    "generateSpeechFailed": m28,
+    "generateVideoFailed": m29,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -358,10 +371,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Includes duration",
     ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Input tokens"),
-    "itemCount": m29,
+    "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
+      "Install update",
+    ),
+    "itemCount": m30,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Just now"),
-    "languageChanged": m10,
+    "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Language Settings",
     ),
@@ -396,7 +412,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
       "Connection error",
     ),
-    "mcpConnectionFailed": m30,
+    "mcpConnectionFailed": m31,
     "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
@@ -468,12 +484,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Type a message..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Skills"),
-    "minutesAgo": m11,
+    "minutesAgo": m12,
     "model": MessageLookupByLibrary.simpleMessage("Model"),
     "modelConfiguration": MessageLookupByLibrary.simpleMessage(
       "Model Configuration",
     ),
-    "modelsRetrievedSuccess": m12,
+    "modelsRetrievedSuccess": m13,
     "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
     "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
     "name": MessageLookupByLibrary.simpleMessage("Name"),
@@ -554,13 +570,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("Preview text effect"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
-    "processCommandCount": m13,
-    "processDuration": m14,
-    "processFileCount": m15,
+    "processCommandCount": m14,
+    "processDuration": m15,
+    "processFileCount": m16,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Process information",
     ),
-    "processToolCount": m16,
+    "processToolCount": m17,
     "profile": MessageLookupByLibrary.simpleMessage("Profile"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Provide your suggestions and feedback",
@@ -581,6 +597,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "referenceAudio": MessageLookupByLibrary.simpleMessage("Reference audio"),
     "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "refreshMcpTools": MessageLookupByLibrary.simpleMessage("Refresh Tools"),
+    "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "Refresh catalogs",
+    ),
+    "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
+      "Refreshing catalogs…",
+    ),
     "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("Remote MCP only"),
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("Remove file"),
     "removeImageAttachment": MessageLookupByLibrary.simpleMessage(
@@ -592,14 +614,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stopped · Partial response kept",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
-    "responseError": m17,
+    "responseError": m18,
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("Run test"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m31,
+    "saveImageFailed": m32,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -618,7 +640,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("Send"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m32,
+    "shareImageFailed": m33,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),
@@ -646,7 +668,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Enabled"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Files"),
-    "skillImportFailed": m18,
+    "skillImportFailed": m19,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Skill imported",
     ),
@@ -657,16 +679,54 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillNotExecutable": MessageLookupByLibrary.simpleMessage(
       "This release does not execute Skill scripts or commands.",
     ),
+    "skillPublisher": MessageLookupByLibrary.simpleMessage("Publisher"),
     "skillReferencesAvailable": MessageLookupByLibrary.simpleMessage(
       "Reference files available",
     ),
     "skillSafetyDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md is loaded only as controlled prompt guidance; scripts, commands, and external tools remain disabled.",
     ),
+    "skillSandboxAvailable": MessageLookupByLibrary.simpleMessage(
+      "Desktop script sandbox available",
+    ),
+    "skillSandboxAvailableDescription": MessageLookupByLibrary.simpleMessage(
+      "Scripts remain disabled per Skill until you approve them. Every invocation still requires approval and runs without network, home-directory, or inherited environment access.",
+    ),
+    "skillSandboxUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Skill scripts unavailable",
+    ),
+    "skillSandboxUnavailableDescription": MessageLookupByLibrary.simpleMessage(
+      "This platform does not provide the required isolated helper. Skill instructions and resources remain available, but scripts cannot run.",
+    ),
+    "skillScriptSettingUpdated": MessageLookupByLibrary.simpleMessage(
+      "Skill script setting updated.",
+    ),
     "skillScriptsDisabled": MessageLookupByLibrary.simpleMessage(
       "Scripts are installed but execution is disabled.",
     ),
+    "skillScriptsEnabled": MessageLookupByLibrary.simpleMessage(
+      "Scripts enabled",
+    ),
+    "skillSignature": MessageLookupByLibrary.simpleMessage("Signature"),
+    "skillSignatureInvalid": MessageLookupByLibrary.simpleMessage(
+      "Invalid signature",
+    ),
+    "skillSignatureUnknownPublisher": MessageLookupByLibrary.simpleMessage(
+      "Unknown publisher",
+    ),
+    "skillSignatureUnsigned": MessageLookupByLibrary.simpleMessage("Unsigned"),
+    "skillSignatureVerified": MessageLookupByLibrary.simpleMessage(
+      "Verified signature",
+    ),
     "skillSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("Automatic"),
+    "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
+      "Update available",
+    ),
+    "skillUpdateManual": MessageLookupByLibrary.simpleMessage("Manual"),
+    "skillUpdateNotify": MessageLookupByLibrary.simpleMessage("Notify"),
+    "skillUpdatePinned": MessageLookupByLibrary.simpleMessage("Pinned"),
+    "skillUpdatePolicy": MessageLookupByLibrary.simpleMessage("Update policy"),
     "skillUserScope": MessageLookupByLibrary.simpleMessage("User"),
     "skillValidationWarnings": MessageLookupByLibrary.simpleMessage(
       "Validation notes",
@@ -720,7 +780,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Thinking complete",
     ),
-    "thinkingCompletedWithDuration": m19,
+    "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Thinking…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Tool calls"),

@@ -917,5 +917,35 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "refreshSkillCatalogs": "Refresh catalogs",
+    "refreshingSkillCatalogs": "Refreshing catalogs…",
+    "skillSandboxAvailable": "Desktop script sandbox available",
+    "skillSandboxAvailableDescription": "Scripts remain disabled per Skill until you approve them. Every invocation still requires approval and runs without network, home-directory, or inherited environment access.",
+    "skillSandboxUnavailable": "Skill scripts unavailable",
+    "skillSandboxUnavailableDescription": "This platform does not provide the required isolated helper. Skill instructions and resources remain available, but scripts cannot run.",
+    "skillScriptsEnabled": "Scripts enabled",
+    "enableSkillScripts": "Enable scripts",
+    "disableSkillScripts": "Disable scripts",
+    "enableSkillScriptsTitle": "Enable isolated Skill scripts?",
+    "enableSkillScriptsDescription": "Allow {name} to register its declared scripts as tools. Each call still requires approval and runs inside the desktop sandbox.",
+    "@enableSkillScriptsDescription": {
+        "placeholders": {
+            "name": {"type": "String"}
+        }
+    },
+    "skillScriptSettingUpdated": "Skill script setting updated.",
+    "skillPublisher": "Publisher",
+    "skillSignature": "Signature",
+    "skillSignatureUnsigned": "Unsigned",
+    "skillSignatureVerified": "Verified signature",
+    "skillSignatureUnknownPublisher": "Unknown publisher",
+    "skillSignatureInvalid": "Invalid signature",
+    "skillUpdatePolicy": "Update policy",
+    "skillUpdateManual": "Manual",
+    "skillUpdateNotify": "Notify",
+    "skillUpdateAutomatic": "Automatic",
+    "skillUpdatePinned": "Pinned",
+    "skillUpdateAvailable": "Update available",
+    "installSkillUpdate": "Install update"
 }

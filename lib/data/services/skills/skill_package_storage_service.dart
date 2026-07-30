@@ -59,6 +59,20 @@ final class SkillPackageStorageService {
           await _copyDirectory(Directory(source.path), staging);
           break;
         case SkillImportKind.zipArchive:
+          if (source.expectedArchiveDigest.isNotEmpty) {
+            final archive = File(source.path);
+            if (!await archive.exists()) {
+              throw const SkillInstallException('选择的 ZIP 文件不存在。');
+            }
+            if (await archive.length() > maxArchiveBytes) {
+              throw const SkillInstallException('ZIP 文件超过 20 MB 限制。');
+            }
+            final actual =
+                sha256.convert(await archive.readAsBytes()).toString();
+            if (actual != source.expectedArchiveDigest.toLowerCase()) {
+              throw const SkillInstallException('Skill 下载包摘要不匹配。');
+            }
+          }
           await _extractZip(File(source.path), staging);
           break;
       }
@@ -66,7 +80,10 @@ final class SkillPackageStorageService {
       return StagedSkillPackage(
         stagingDirectory: staging,
         skillRoot: skillRoot,
-        sourceUri: Uri.file(source.path).toString(),
+        sourceUri:
+            source.sourceUri.isEmpty
+                ? Uri.file(source.path).toString()
+                : source.sourceUri,
       );
     } catch (_) {
       await _deleteIfExists(staging);
@@ -79,7 +96,7 @@ final class SkillPackageStorageService {
     required String scope,
     required String skillName,
   }) async {
-    final digest = await _digestDirectory(staged.skillRoot);
+    final digest = await computeContentDigest(staged.skillRoot);
     final bundles = await _bundlesBase();
     final target = Directory(path.join(bundles.path, scope, skillName, digest));
     if (await target.exists()) {
@@ -95,6 +112,49 @@ final class SkillPackageStorageService {
 
   Future<void> cleanup(StagedSkillPackage staged) =>
       _deleteIfExists(staged.stagingDirectory);
+
+  /// Computes the immutable signed payload digest. The detached signature
+  /// sidecar is excluded to avoid a circular signature dependency.
+  Future<String> computeContentDigest(Directory root) async {
+    final files = <File>[];
+    await for (final entity in root.list(recursive: true, followLinks: false)) {
+      if (entity is File &&
+          path.relative(entity.path, from: root.path) != 'SIGNATURE.json') {
+        files.add(entity);
+      }
+    }
+    files.sort((left, right) => left.path.compareTo(right.path));
+    final builder = BytesBuilder(copy: false);
+    for (final file in files) {
+      final relative = path.posix.joinAll(
+        path.relative(file.path, from: root.path).split(path.separator),
+      );
+      builder
+        ..add(utf8.encode(relative))
+        ..addByte(0)
+        ..add(await file.readAsBytes())
+        ..addByte(0);
+    }
+    return sha256.convert(builder.takeBytes()).toString();
+  }
+
+  Future<void> verifyImmutableInstallation(
+    String rootPath,
+    String expectedContentDigest,
+  ) async {
+    final root = await _verifiedBundleRoot(rootPath);
+    await for (final entity in root.list(recursive: true, followLinks: false)) {
+      final type = await FileSystemEntity.type(entity.path, followLinks: false);
+      if (type != FileSystemEntityType.file &&
+          type != FileSystemEntityType.directory) {
+        throw const SkillInstallException('已安装 Skill 包含不允许的特殊文件或符号链接。');
+      }
+    }
+    final actual = await computeContentDigest(root);
+    if (actual != expectedContentDigest) {
+      throw const SkillInstallException('Skill 安装内容已被修改，脚本授权失效。');
+    }
+  }
 
   Future<String> readInstructions(String rootPath) async {
     final root = await _verifiedBundleRoot(rootPath);
@@ -310,26 +370,6 @@ final class SkillPackageStorageService {
       throw const SkillInstallException('SKILL.md 必须位于导入根目录或单一顶层目录中。');
     }
     return root;
-  }
-
-  Future<String> _digestDirectory(Directory root) async {
-    final files = <File>[];
-    await for (final entity in root.list(recursive: true, followLinks: false)) {
-      if (entity is File) files.add(entity);
-    }
-    files.sort((left, right) => left.path.compareTo(right.path));
-    final builder = BytesBuilder(copy: false);
-    for (final file in files) {
-      final relative = path.posix.joinAll(
-        path.relative(file.path, from: root.path).split(path.separator),
-      );
-      builder
-        ..add(utf8.encode(relative))
-        ..addByte(0)
-        ..add(await file.readAsBytes())
-        ..addByte(0);
-    }
-    return sha256.convert(builder.takeBytes()).toString();
   }
 
   Future<Directory> _verifiedBundleRoot(String rootPath) async {

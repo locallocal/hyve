@@ -37,7 +37,7 @@ final class McpCatalogService {
         );
       }
     }
-    _toolRegistry.replaceDynamic(tools);
+    _toolRegistry.replaceDynamicSource('mcp', tools);
   }
 
   Future<McpServer> refreshServer(

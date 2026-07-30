@@ -101,40 +101,88 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    ShadButton.outline(
-                      key: const ValueKey<String>('import-skill-folder'),
-                      enabled: !viewModel.isImporting,
-                      onPressed: () => _importDirectory(context),
-                      leading: const Icon(LucideIcons.folderUp, size: 16),
-                      child: Text(strings.importSkillFolder),
-                    ),
-                    const SizedBox(width: 8),
-                    ShadButton(
-                      key: const ValueKey<String>('import-skill-zip'),
-                      enabled: !viewModel.isImporting,
-                      onPressed: () => _importZip(context),
-                      leading:
-                          viewModel.isImporting
-                              ? const SizedBox.square(
-                                dimension: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : const Icon(LucideIcons.fileArchive, size: 16),
-                      child: Text(
-                        viewModel.isImporting
-                            ? strings.importingSkill
-                            : strings.importSkillZip,
+                    Flexible(
+                      child: Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (viewModel.hasConfiguredCatalogs)
+                            ShadButton.outline(
+                              key: const ValueKey<String>(
+                                'refresh-skill-catalogs',
+                              ),
+                              enabled: !viewModel.isRefreshingCatalogs,
+                              onPressed: () => _refreshCatalogs(context),
+                              leading:
+                                  viewModel.isRefreshingCatalogs
+                                      ? const SizedBox.square(
+                                        dimension: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                      : const Icon(
+                                        LucideIcons.refreshCw,
+                                        size: 16,
+                                      ),
+                              child: Text(
+                                viewModel.isRefreshingCatalogs
+                                    ? strings.refreshingSkillCatalogs
+                                    : strings.refreshSkillCatalogs,
+                              ),
+                            ),
+                          ShadButton.outline(
+                            key: const ValueKey<String>('import-skill-folder'),
+                            enabled: !viewModel.isImporting,
+                            onPressed: () => _importDirectory(context),
+                            leading: const Icon(LucideIcons.folderUp, size: 16),
+                            child: Text(strings.importSkillFolder),
+                          ),
+                          ShadButton(
+                            key: const ValueKey<String>('import-skill-zip'),
+                            enabled: !viewModel.isImporting,
+                            onPressed: () => _importZip(context),
+                            leading:
+                                viewModel.isImporting
+                                    ? const SizedBox.square(
+                                      dimension: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Icon(
+                                      LucideIcons.fileArchive,
+                                      size: 16,
+                                    ),
+                            child: Text(
+                              viewModel.isImporting
+                                  ? strings.importingSkill
+                                  : strings.importSkillZip,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 ShadAlert(
-                  icon: const Icon(LucideIcons.shieldCheck),
-                  title: Text(strings.skillNotExecutable),
-                  description: Text(strings.skillSafetyDescription),
+                  icon: Icon(
+                    viewModel.sandboxStatus?.isAvailable == true
+                        ? LucideIcons.shieldCheck
+                        : LucideIcons.shieldAlert,
+                  ),
+                  title: Text(
+                    viewModel.sandboxStatus?.isAvailable == true
+                        ? strings.skillSandboxAvailable
+                        : strings.skillSandboxUnavailable,
+                  ),
+                  description: Text(
+                    viewModel.sandboxStatus?.isAvailable == true
+                        ? strings.skillSandboxAvailableDescription
+                        : strings.skillSandboxUnavailableDescription,
+                  ),
                 ),
                 if (viewModel.error != null) ...[
                   const SizedBox(height: 16),
@@ -212,8 +260,17 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                     width: itemWidth,
                     child: _DesktopSkillCard(
                       skill: skill,
+                      scriptEnabled: viewModel.isScriptEnabled(skill.id),
+                      update: _updateFor(skill),
                       onOpen: () => _showDetails(context, skill),
                       onUninstall: () => _confirmUninstall(context, skill),
+                      onToggleScripts:
+                          () => _confirmScriptToggle(context, skill),
+                      onUpdate:
+                          _updateFor(skill) == null
+                              ? null
+                              : () =>
+                                  _installUpdate(context, _updateFor(skill)!),
                     ),
                   ),
               ],
@@ -459,6 +516,78 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     }
   }
 
+  OnlineSkillCatalogEntry? _updateFor(SkillDescriptor skill) {
+    for (final entry in viewModel.availableUpdates) {
+      if (entry.catalogId == skill.catalogId &&
+          entry.id == skill.catalogEntryId) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _refreshCatalogs(BuildContext context) async {
+    try {
+      await viewModel.refreshCatalogs();
+    } catch (error) {
+      if (context.mounted) _showMessage(context, error.toString());
+    }
+  }
+
+  Future<void> _installUpdate(
+    BuildContext context,
+    OnlineSkillCatalogEntry update,
+  ) async {
+    try {
+      await viewModel.installUpdate(update);
+      if (context.mounted) {
+        _showMessage(context, S.of(context).skillImportSucceeded);
+      }
+    } catch (error) {
+      if (context.mounted) _showMessage(context, error.toString());
+    }
+  }
+
+  Future<void> _confirmScriptToggle(
+    BuildContext context,
+    SkillDescriptor skill,
+  ) async {
+    final strings = S.of(context);
+    final enabled = viewModel.isScriptEnabled(skill.id);
+    if (!enabled) {
+      final confirmed = await showShadDialog<bool>(
+        context: context,
+        variant: ShadDialogVariant.alert,
+        builder:
+            (dialogContext) => ShadDialog.alert(
+              title: Text(strings.enableSkillScriptsTitle),
+              description: Text(
+                strings.enableSkillScriptsDescription(skill.name),
+              ),
+              actions: [
+                ShadButton.outline(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(strings.cancel),
+                ),
+                ShadButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(strings.enableSkillScripts),
+                ),
+              ],
+            ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
+    try {
+      await viewModel.setScriptEnabled(skill, !enabled);
+      if (context.mounted) {
+        _showMessage(context, strings.skillScriptSettingUpdated);
+      }
+    } catch (error) {
+      if (context.mounted) _showMessage(context, error.toString());
+    }
+  }
+
   Future<void> _showDetails(BuildContext context, SkillDescriptor skill) async {
     try {
       final content = await viewModel.loadContent(skill.id);
@@ -466,7 +595,12 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
       if (isDesktopOrTabletPlatform(context)) {
         await showShadDialog<void>(
           context: context,
-          builder: (dialogContext) => _SkillDetailsDialog(content: content),
+          builder:
+              (dialogContext) => _SkillDetailsDialog(
+                content: content,
+                onUpdatePolicyChanged:
+                    (policy) => viewModel.setUpdatePolicy(skill, policy),
+              ),
         );
       } else {
         await showDialog<void>(
@@ -564,13 +698,21 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
 class _DesktopSkillCard extends StatefulWidget {
   const _DesktopSkillCard({
     required this.skill,
+    required this.scriptEnabled,
+    required this.update,
     required this.onOpen,
     required this.onUninstall,
+    required this.onToggleScripts,
+    required this.onUpdate,
   });
 
   final SkillDescriptor skill;
+  final bool scriptEnabled;
+  final OnlineSkillCatalogEntry? update;
   final VoidCallback onOpen;
   final VoidCallback onUninstall;
+  final VoidCallback onToggleScripts;
+  final VoidCallback? onUpdate;
 
   @override
   State<_DesktopSkillCard> createState() => _DesktopSkillCardState();
@@ -661,6 +803,38 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                       leading: const Icon(LucideIcons.info, size: 16),
                       child: Text(S.of(context).details),
                     ),
+                    if (widget.skill.hasScripts)
+                      ShadButton.ghost(
+                        key: ValueKey<String>(
+                          'desktop-skill-script-${widget.skill.id}',
+                        ),
+                        size: ShadButtonSize.sm,
+                        onPressed:
+                            () => _invokeMenuAction(widget.onToggleScripts),
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        leading: Icon(
+                          widget.scriptEnabled
+                              ? LucideIcons.circleStop
+                              : LucideIcons.play,
+                          size: 16,
+                        ),
+                        child: Text(
+                          widget.scriptEnabled
+                              ? S.of(context).disableSkillScripts
+                              : S.of(context).enableSkillScripts,
+                        ),
+                      ),
+                    if (widget.onUpdate != null)
+                      ShadButton.ghost(
+                        key: ValueKey<String>(
+                          'desktop-skill-update-${widget.skill.id}',
+                        ),
+                        size: ShadButtonSize.sm,
+                        onPressed: () => _invokeMenuAction(widget.onUpdate!),
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        leading: const Icon(LucideIcons.download, size: 16),
+                        child: Text(S.of(context).installSkillUpdate),
+                      ),
                     ShadButton.raw(
                       key: ValueKey<String>(
                         'desktop-skill-uninstall-${widget.skill.id}',
@@ -723,7 +897,24 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
           runSpacing: 6,
           children: [
             if (widget.skill.hasScripts)
-              ShadBadge.destructive(child: Text(strings.skillScriptsDisabled)),
+              widget.scriptEnabled
+                  ? ShadBadge(child: Text(strings.skillScriptsEnabled))
+                  : ShadBadge.destructive(
+                    child: Text(strings.skillScriptsDisabled),
+                  ),
+            if (widget.update != null)
+              ShadBadge.secondary(child: Text(strings.skillUpdateAvailable)),
+            if (widget.skill.signatureStatus == SkillSignatureStatus.verified)
+              ShadBadge.secondary(child: Text(strings.skillSignatureVerified)),
+            if (widget.skill.signatureStatus == SkillSignatureStatus.unsigned)
+              ShadBadge.outline(child: Text(strings.skillSignatureUnsigned)),
+            if (widget.skill.signatureStatus ==
+                SkillSignatureStatus.unknownPublisher)
+              ShadBadge.destructive(
+                child: Text(strings.skillSignatureUnknownPublisher),
+              ),
+            if (widget.skill.signatureStatus == SkillSignatureStatus.invalid)
+              ShadBadge.destructive(child: Text(strings.skillSignatureInvalid)),
             if (widget.skill.hasReferences)
               ShadBadge.secondary(
                 child: Text(strings.skillReferencesAvailable),
@@ -744,15 +935,32 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
   }
 }
 
-class _SkillDetailsDialog extends StatelessWidget {
-  const _SkillDetailsDialog({required this.content});
+class _SkillDetailsDialog extends StatefulWidget {
+  const _SkillDetailsDialog({
+    required this.content,
+    required this.onUpdatePolicyChanged,
+  });
 
   final SkillContent content;
+  final Future<void> Function(SkillUpdatePolicy policy) onUpdatePolicyChanged;
+
+  @override
+  State<_SkillDetailsDialog> createState() => _SkillDetailsDialogState();
+}
+
+class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
+  late SkillUpdatePolicy _updatePolicy;
+
+  @override
+  void initState() {
+    super.initState();
+    _updatePolicy = widget.content.descriptor.updatePolicy;
+  }
 
   @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
-    final skill = content.descriptor;
+    final skill = widget.content.descriptor;
     return ShadDialog(
       title: Text(skill.name),
       description: Text(skill.description),
@@ -776,6 +984,71 @@ class _SkillDetailsDialog extends StatelessWidget {
               ),
               _DetailRow(label: strings.skillSource, value: skill.sourceUri),
               _DetailRow(
+                label: strings.skillPublisher,
+                value:
+                    skill.publisherName.isNotEmpty
+                        ? skill.publisherName
+                        : (skill.publisherId.isEmpty ? '—' : skill.publisherId),
+              ),
+              _DetailRow(
+                label: strings.skillSignature,
+                value: _signatureLabel(strings, skill.signatureStatus),
+              ),
+              if (skill.catalogId.isEmpty)
+                _DetailRow(
+                  label: strings.skillUpdatePolicy,
+                  value: _updatePolicyLabel(strings, _updatePolicy),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 140,
+                        child: Text(
+                          strings.skillUpdatePolicy,
+                          style: ShadTheme.of(context).textTheme.muted,
+                        ),
+                      ),
+                      Expanded(
+                        child: DropdownButton<SkillUpdatePolicy>(
+                          key: const ValueKey<String>('skill-update-policy'),
+                          value: _updatePolicy,
+                          isExpanded: true,
+                          items: [
+                            for (final policy in SkillUpdatePolicy.values)
+                              DropdownMenuItem(
+                                value: policy,
+                                child: Text(
+                                  _updatePolicyLabel(strings, policy),
+                                ),
+                              ),
+                          ],
+                          onChanged: (policy) async {
+                            if (policy == null || policy == _updatePolicy) {
+                              return;
+                            }
+                            try {
+                              await widget.onUpdatePolicyChanged(policy);
+                              if (mounted) {
+                                setState(() => _updatePolicy = policy);
+                              }
+                            } catch (error) {
+                              if (mounted) {
+                                ShadSonner.of(this.context).show(
+                                  ShadToast(title: Text(error.toString())),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              _DetailRow(
                 label: strings.skillDigest,
                 value: skill.contentDigest,
               ),
@@ -786,7 +1059,7 @@ class _SkillDetailsDialog extends StatelessWidget {
                 ),
               _DetailRow(
                 label: strings.skillFiles,
-                value: content.files.join('\n'),
+                value: widget.content.files.join('\n'),
               ),
               if (skill.diagnostics.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -802,7 +1075,7 @@ class _SkillDetailsDialog extends StatelessWidget {
               const ShadSeparator.horizontal(),
               const SizedBox(height: 18),
               SelectableText(
-                content.instructions,
+                widget.content.instructions,
                 style: ShadTheme.of(context).textTheme.p,
               ),
             ],
@@ -810,6 +1083,25 @@ class _SkillDetailsDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _signatureLabel(S strings, SkillSignatureStatus status) {
+    return switch (status) {
+      SkillSignatureStatus.unsigned => strings.skillSignatureUnsigned,
+      SkillSignatureStatus.verified => strings.skillSignatureVerified,
+      SkillSignatureStatus.unknownPublisher =>
+        strings.skillSignatureUnknownPublisher,
+      SkillSignatureStatus.invalid => strings.skillSignatureInvalid,
+    };
+  }
+
+  String _updatePolicyLabel(S strings, SkillUpdatePolicy policy) {
+    return switch (policy) {
+      SkillUpdatePolicy.manual => strings.skillUpdateManual,
+      SkillUpdatePolicy.notify => strings.skillUpdateNotify,
+      SkillUpdatePolicy.automatic => strings.skillUpdateAutomatic,
+      SkillUpdatePolicy.pinned => strings.skillUpdatePinned,
+    };
   }
 }
 

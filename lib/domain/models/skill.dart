@@ -1,3 +1,5 @@
+import 'skill_ecosystem.dart';
+
 enum SkillScope { bundled, user, project }
 
 enum SkillTrustState {
@@ -76,6 +78,12 @@ final class SkillDescriptor {
     this.hasScripts = false,
     this.hasReferences = false,
     this.hasAssets = false,
+    this.publisherId = '',
+    this.publisherName = '',
+    this.signatureStatus = SkillSignatureStatus.unsigned,
+    this.catalogId = '',
+    this.catalogEntryId = '',
+    this.updatePolicy = SkillUpdatePolicy.manual,
     required this.installedAt,
     required this.updatedAt,
   }) : requestedToolNames = Set<String>.unmodifiable(requestedToolNames),
@@ -97,6 +105,12 @@ final class SkillDescriptor {
   final bool hasScripts;
   final bool hasReferences;
   final bool hasAssets;
+  final String publisherId;
+  final String publisherName;
+  final SkillSignatureStatus signatureStatus;
+  final String catalogId;
+  final String catalogEntryId;
+  final SkillUpdatePolicy updatePolicy;
   final DateTime installedAt;
   final DateTime updatedAt;
 
@@ -147,10 +161,29 @@ final class SkillCatalogEntry {
 }
 
 final class SkillImportSource {
-  const SkillImportSource({required this.kind, required this.path});
+  const SkillImportSource({
+    required this.kind,
+    required this.path,
+    this.sourceUri = '',
+    this.catalogId = '',
+    this.catalogEntryId = '',
+    this.expectedContentDigest = '',
+    this.expectedArchiveDigest = '',
+    this.publisherId = '',
+    this.expectedName = '',
+    this.expectedVersion = '',
+  });
 
   final SkillImportKind kind;
   final String path;
+  final String sourceUri;
+  final String catalogId;
+  final String catalogEntryId;
+  final String expectedContentDigest;
+  final String expectedArchiveDigest;
+  final String publisherId;
+  final String expectedName;
+  final String expectedVersion;
 }
 
 final class BotSkillBinding {

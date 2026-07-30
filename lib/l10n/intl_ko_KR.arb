@@ -563,6 +563,7 @@
         }
     },
     "details": "세부 정보",
+    "refresh": "새로 고침",
     "skillDetails": "스킬 세부 정보",
     "uninstall": "제거",
     "uninstallSkill": "스킬 제거",

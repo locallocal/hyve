@@ -1,3 +1,5 @@
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -189,6 +191,15 @@ void main() {
         const ValueKey<String>('desktop-mcp-server-actions-github'),
       );
       expect(githubActions, findsOneWidget);
+      final githubActionsFocusNode =
+          tester
+              .widget<ShadIconButton>(
+                find.descendant(
+                  of: githubActions,
+                  matching: find.byType(ShadIconButton),
+                ),
+              )
+              .focusNode!;
       expect(
         find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
         findsNothing,
@@ -198,7 +209,7 @@ void main() {
         findsNothing,
       );
 
-      await tester.tap(githubActions);
+      await tester.tap(githubActions, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
       final githubActionMenu = find.byKey(
         const ValueKey<String>('desktop-mcp-server-action-menu-github'),
@@ -231,14 +242,14 @@ void main() {
         find.byKey(const ValueKey<String>('desktop-mcp-server-delete-github')),
         findsOneWidget,
       );
-      expect(find.text('服务器详情'), findsOneWidget);
-      expect(find.text('刷新工具'), findsOneWidget);
+      expect(find.text('详情'), findsOneWidget);
+      expect(find.text('刷新'), findsOneWidget);
       expect(find.text('编辑'), findsOneWidget);
       expect(find.text('删除'), findsOneWidget);
       expect(find.text('编辑 MCP 服务器'), findsNothing);
       expect(find.text('删除 MCP 服务器'), findsNothing);
 
-      await tester.tap(githubDetails);
+      await tester.tap(githubDetails, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey<String>('desktop-mcp-server-refresh-github')),
@@ -273,13 +284,19 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('关闭'));
+      await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
       expect(
         find.byKey(
           const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
         ),
         findsNothing,
+      );
+      expect(
+        githubActionsFocusNode.hasFocus,
+        isFalse,
+        reason:
+            'Pointer-invoked card actions must not leave a focus ring behind.',
       );
 
       final searchInput = find.descendant(

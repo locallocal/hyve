@@ -808,6 +808,7 @@
         }
     },
     "details": "Details",
+    "refresh": "Refresh",
     "skillDetails": "Skill details",
     "uninstall": "Uninstall",
     "uninstallSkill": "Uninstall Skill",

@@ -336,6 +336,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("तर्क पूर्ण"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
+    "refresh": MessageLookupByLibrary.simpleMessage("ताज़ा करें"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("कौशल हटाएँ"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "उत्तर रद्द किया गया",

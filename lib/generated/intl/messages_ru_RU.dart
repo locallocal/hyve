@@ -350,6 +350,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Рассуждение прервано",
     ),
+    "refresh": MessageLookupByLibrary.simpleMessage("Обновить"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("Удалить навык"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("Ответ отменен"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(

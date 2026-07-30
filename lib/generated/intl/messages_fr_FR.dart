@@ -364,6 +364,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Raisonnement interrompu",
     ),
+    "refresh": MessageLookupByLibrary.simpleMessage("Actualiser"),
     "removeSkill": MessageLookupByLibrary.simpleMessage(
       "Retirer la compétence",
     ),

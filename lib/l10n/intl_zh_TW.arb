@@ -572,6 +572,7 @@
         }
     },
     "details": "詳情",
+    "refresh": "重新整理",
     "skillDetails": "技能詳情",
     "uninstall": "解除安裝",
     "uninstallSkill": "解除安裝技能",

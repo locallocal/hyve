@@ -1,6 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -28,10 +29,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -1460,8 +1460,7 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc:
-          'Disabled primary action label while a request is running and cannot be cancelled',
+      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2570,6 +2569,11 @@ class S {
   /// `Details`
   String get details {
     return Intl.message('Details', name: 'details', desc: '', args: []);
+  }
+
+  /// `Refresh`
+  String get refresh {
+    return Intl.message('Refresh', name: 'refresh', desc: '', args: []);
   }
 
   /// `Skill details`

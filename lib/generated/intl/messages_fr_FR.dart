@@ -191,6 +191,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gérez votre profil, l’apparence, la langue et l’assistance de l’application.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Détails"),
+    "edit": MessageLookupByLibrary.simpleMessage("Modifier"),
     "editBot": MessageLookupByLibrary.simpleMessage("Modifier le Bot"),
     "editName": MessageLookupByLibrary.simpleMessage("Modifier le Nom"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(

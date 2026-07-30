@@ -676,7 +676,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     onPressed: () => _invokeMenuAction(widget.onOpen),
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(Icons.edit_outlined, size: 16),
-                    child: Text(S.of(context).editBot),
+                    child: Text(S.of(context).edit),
                   ),
                   ShadButton.raw(
                     variant: ShadButtonVariant.ghost,
@@ -685,7 +685,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     onPressed: () => _invokeMenuAction(widget.onDelete),
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(LucideIcons.trash2, size: 16),
-                    child: Text(S.of(context).deleteBot),
+                    child: Text(S.of(context).delete),
                   ),
                 ],
               ),

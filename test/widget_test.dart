@@ -618,20 +618,20 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('编辑智能体'), findsOneWidget);
-      expect(find.text('删除智能体'), findsOneWidget);
+      expect(find.text('编辑'), findsOneWidget);
+      expect(find.text('删除'), findsOneWidget);
       expect(
         find.descendant(of: actionMenu, matching: find.byType(ShadButton)),
         findsNWidgets(3),
       );
 
-      await tester.tap(find.text('编辑智能体'));
+      await tester.tap(find.text('编辑'));
       await tester.pumpAndSettle();
       expect(selectedBot?.id, bot.id);
 
       await tester.tap(menuButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('删除智能体'));
+      await tester.tap(find.text('删除'));
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);

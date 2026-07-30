@@ -181,6 +181,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
     ),
     "details": MessageLookupByLibrary.simpleMessage("विवरण"),
+    "edit": MessageLookupByLibrary.simpleMessage("संपादित करें"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(

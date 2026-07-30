@@ -7,16 +7,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
+import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/model/model.dart';
 import 'package:stars/ui/features/app/views/desktop_layout.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/add_bot.dart';
 import 'package:stars/ui/features/bots/views/bots.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
@@ -534,6 +537,45 @@ void main() {
         tester.getSize(find.byType(StarsSearchField)).height,
       );
     });
+  });
+
+  test('bot list persists Skill bindings with a newly added Bot', () async {
+    final botRepository = _BotCardTestBotRepository(const []);
+    final bindingRepository = _BotCardTestBindingRepository();
+    final viewModel = BotListViewModel(
+      botRepository: botRepository,
+      createChat: CreateChat(chatRepository: _BotCardTestChatRepository()),
+      aiProviderRepository: _UnusedAiProviderRepository(),
+      attachmentRepository: _UnusedAttachmentRepository(),
+      botSkillBindingRepository: bindingRepository,
+    );
+    addTearDown(viewModel.dispose);
+    final timestamp = DateTime(2026);
+    final bot = Bot(
+      id: 'bot-new',
+      name: 'Researcher',
+      avatar: '',
+      provider: 'OpenAI',
+      baseURL: 'https://example.invalid',
+      apiKey: 'secret-key',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'gpt-test',
+      systemPrompt: '',
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    final binding = BotSkillBinding(
+      botId: bot.id,
+      skillId: 'user:Release Notes',
+      activationMode: SkillActivationMode.always,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+
+    await viewModel.addBot(bot, skillBindings: [binding]);
+
+    expect(botRepository.addedBot, same(bot));
+    expect(bindingRepository.savedBindings, [same(binding)]);
   });
 
   testWidgets('desktop bot card menu exposes edit and delete actions', (
@@ -2129,12 +2171,27 @@ void main() {
     tester.view.physicalSize = const Size(1280, 900);
     addTearDown(tester.view.reset);
     Bot? submittedBot;
+    List<BotSkillBinding> submittedBindings = const [];
+    final skillViewModel = BotSkillViewModel(
+      botId: 'bot-new',
+      skillRepository: _AddBotSkillRepository([
+        _addBotSkill('Release Notes'),
+        _addBotSkill('Code Review'),
+      ]),
+      bindingRepository: DraftBotSkillBindingRepository(),
+    );
+    addTearDown(skillViewModel.dispose);
 
     await _withDesktopPlatform(() async {
       await tester.pumpWidget(
         _addBotDialogHarness(
           brightness: Brightness.light,
-          onBotAdded: (bot) async => submittedBot = bot,
+          botId: 'bot-new',
+          skillViewModel: skillViewModel,
+          onBotAdded: (bot, skillBindings) async {
+            submittedBot = bot;
+            submittedBindings = skillBindings;
+          },
         ),
       );
       await tester.pumpAndSettle();
@@ -2154,7 +2211,8 @@ void main() {
       expect(find.text('基本信息'), findsOneWidget);
       expect(find.text('提供商信息'), findsOneWidget);
       expect(find.text('模型配置'), findsOneWidget);
-      expect(find.byType(ShadCard), findsNWidgets(3));
+      expect(find.text('技能'), findsOneWidget);
+      expect(find.byType(ShadCard), findsNWidgets(4));
 
       final basicSection = find.byKey(
         const ValueKey<String>('add-bot-basic-section'),
@@ -2165,10 +2223,14 @@ void main() {
       final modelSection = find.byKey(
         const ValueKey<String>('add-bot-model-section'),
       );
+      final skillSection = find.byKey(
+        const ValueKey<String>('add-bot-skills-section'),
+      );
       for (final (section, title) in [
         (basicSection, '基本信息'),
         (providerSection, '提供商信息'),
         (modelSection, '模型配置'),
+        (skillSection, '技能'),
       ]) {
         final titleText = tester.widget<Text>(
           find.descendant(of: section, matching: find.text(title)),
@@ -2207,6 +2269,42 @@ void main() {
         tester.getRect(providerSection).bottom,
         lessThan(tester.getRect(modelSection).top),
       );
+      expect(
+        tester.getRect(modelSection).bottom,
+        lessThan(tester.getRect(skillSection).top),
+      );
+      expect(
+        tester.widget<ShadCard>(skillSection).backgroundColor,
+        tester.widget<ShadCard>(modelSection).backgroundColor,
+      );
+
+      final addSkill = find.byKey(const ValueKey<String>('add-bot-skill'));
+      await tester.ensureVisible(addSkill);
+      await tester.tap(addSkill);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('select-add-bot-skill-user:Release Notes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey<String>('add-bot-selected-skill-user:Release Notes'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('add-bot-skill-always-user:Release Notes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final providerField = find.byKey(
+        const ValueKey<String>('add-bot-provider'),
+      );
+      await tester.ensureVisible(providerField);
+      await tester.pumpAndSettle();
 
       Size inputSize(String key) {
         return tester.getSize(
@@ -2257,9 +2355,6 @@ void main() {
         const Size(DesktopThemeTokens.addBotFormFieldWidth, 114),
       );
 
-      final providerField = find.byKey(
-        const ValueKey<String>('add-bot-provider'),
-      );
       final providerMenuAnchor = find.descendant(
         of: providerField,
         matching: find.byType(MenuAnchor),
@@ -2383,8 +2478,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(submittedBot?.provider, 'HuggingFace');
+      expect(submittedBot?.id, 'bot-new');
       expect(submittedBot?.baseURL, customHuggingFaceUrl);
       expect(submittedBot?.apiType, Bot.apiTypeHuggingface);
+      expect(submittedBindings, hasLength(1));
+      expect(submittedBindings.single.botId, 'bot-new');
+      expect(submittedBindings.single.skillId, 'user:Release Notes');
+      expect(
+        submittedBindings.single.activationMode,
+        SkillActivationMode.always,
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -2403,7 +2506,7 @@ void main() {
         _addBotDialogHarness(
           brightness: Brightness.dark,
           textScaler: const TextScaler.linear(2),
-          onBotAdded: (_) {
+          onBotAdded: (_, _) {
             submitCount += 1;
             return submission.future;
           },
@@ -2472,15 +2575,23 @@ Widget _newChatDialogHarness({
 
 Widget _addBotDialogHarness({
   required Brightness brightness,
-  required Future<void> Function(Bot) onBotAdded,
+  required Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded,
   TextScaler textScaler = TextScaler.noScaling,
+  String? botId,
+  BotSkillViewModel? skillViewModel,
 }) {
   return _shadHarness(
     brightness: brightness,
     homeBuilder:
         (context) => MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: textScaler),
-          child: Scaffold(body: AddBotDialog(onBotAdded: onBotAdded)),
+          child: Scaffold(
+            body: AddBotDialog(
+              botId: botId,
+              skillViewModel: skillViewModel,
+              onBotAdded: onBotAdded,
+            ),
+          ),
         ),
   );
 }
@@ -2564,13 +2675,16 @@ class _BotCardTestBotRepository implements BotRepository {
   _BotCardTestBotRepository(this.bots);
 
   final List<Bot> bots;
+  Bot? addedBot;
   String? deletedBotId;
 
   @override
   Stream<List<Bot>> get changes => const Stream<List<Bot>>.empty();
 
   @override
-  Future<void> addBot(Bot bot) async {}
+  Future<void> addBot(Bot bot) async {
+    addedBot = bot;
+  }
 
   @override
   Future<void> deleteBot(String id) async {
@@ -2585,6 +2699,36 @@ class _BotCardTestBotRepository implements BotRepository {
 
   @override
   Future<void> updateBot(Bot bot) async {}
+}
+
+class _BotCardTestBindingRepository implements BotSkillBindingRepository {
+  final List<BotSkillBinding> savedBindings = [];
+
+  @override
+  Stream<void> get changes => const Stream<void>.empty();
+
+  @override
+  Future<List<BotSkillBinding>> getForBot(String botId) async =>
+      List<BotSkillBinding>.unmodifiable(
+        savedBindings.where((binding) => binding.botId == botId),
+      );
+
+  @override
+  Future<void> remove(String botId, String skillId) async {
+    savedBindings.removeWhere(
+      (binding) => binding.botId == botId && binding.skillId == skillId,
+    );
+  }
+
+  @override
+  Future<void> save(BotSkillBinding binding) async {
+    savedBindings
+      ..removeWhere(
+        (item) =>
+            item.botId == binding.botId && item.skillId == binding.skillId,
+      )
+      ..add(binding);
+  }
 }
 
 class _BotCardTestChatRepository implements ChatRepository {
@@ -2626,4 +2770,61 @@ class _UnusedAttachmentRepository implements AttachmentRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnsupportedError('Attachment picker is not used by this test.');
+}
+
+SkillDescriptor _addBotSkill(String name) {
+  final timestamp = DateTime(2026);
+  return SkillDescriptor(
+    id: 'user:$name',
+    name: name,
+    description: '$name description',
+    version: '1.0.0',
+    scope: SkillScope.user,
+    sourceUri: 'file:///skills/$name',
+    rootPath: '/skills/$name',
+    contentDigest: 'digest-$name',
+    trustState: SkillTrustState.userReviewed,
+    validationStatus: SkillValidationStatus.valid,
+    compatibility: 'all',
+    installedAt: timestamp,
+    updatedAt: timestamp,
+  );
+}
+
+final class _AddBotSkillRepository implements SkillRepository {
+  const _AddBotSkillRepository(this.skills);
+
+  final List<SkillDescriptor> skills;
+
+  @override
+  Stream<List<SkillDescriptor>> get changes =>
+      const Stream<List<SkillDescriptor>>.empty();
+
+  @override
+  Future<List<SkillDescriptor>> getInstalled({
+    bool forceRefresh = false,
+  }) async => List<SkillDescriptor>.unmodifiable(skills);
+
+  @override
+  Future<SkillDescriptor?> getById(String id) async =>
+      skills.where((skill) => skill.id == id).firstOrNull;
+
+  @override
+  Future<SkillDescriptor> install(SkillImportSource source) =>
+      throw UnsupportedError('Skill installation is not used by this test.');
+
+  @override
+  Future<SkillContent> load(String skillId, {String? contentDigest}) =>
+      throw UnsupportedError('Skill loading is not used by this test.');
+
+  @override
+  Future<SkillResourceContent> readResource(
+    String skillId,
+    String relativePath, {
+    String? contentDigest,
+  }) => throw UnsupportedError('Skill resources are not used by this test.');
+
+  @override
+  Future<void> uninstall(String skillId) =>
+      throw UnsupportedError('Skill removal is not used by this test.');
 }

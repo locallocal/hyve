@@ -808,6 +808,7 @@
         }
     },
     "details": "详情",
+    "refresh": "刷新",
     "skillDetails": "技能详情",
     "uninstall": "卸载",
     "uninstallSkill": "卸载技能",

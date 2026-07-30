@@ -497,6 +497,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
   final FocusNode _menuFocusNode = FocusNode(
     debugLabel: 'desktop-mcp-server-card-actions',
   );
+  bool _menuActionInvokedByPointer = false;
 
   @override
   void didUpdateWidget(covariant _DesktopServerCard oldWidget) {
@@ -512,12 +513,19 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
   }
 
   void _invokeMenuAction(VoidCallback action) {
+    final invokedByPointer = _menuActionInvokedByPointer;
+    _menuActionInvokedByPointer = false;
+    if (invokedByPointer) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      _menuFocusNode.unfocus();
+    }
     _menuController.hide();
     action();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (FocusManager.instance.highlightMode ==
-          FocusHighlightMode.traditional) {
+      if (!invokedByPointer &&
+          FocusManager.instance.highlightMode ==
+              FocusHighlightMode.traditional) {
         _menuFocusNode.requestFocus();
       } else {
         _menuFocusNode.unfocus();
@@ -541,69 +549,77 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
       ),
       padding: EdgeInsets.zero,
       popover:
-          (context) => SizedBox(
-            key: ValueKey<String>(
-              'desktop-mcp-server-action-menu-${widget.server.id}',
-            ),
-            width: _menuContentWidth + _menuPadding.horizontal,
-            child: Padding(
-              padding: _menuPadding,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ShadButton.ghost(
-                    key: ValueKey<String>(
-                      'desktop-mcp-server-details-${widget.server.id}',
+          (context) => Listener(
+            onPointerDown: (_) => _menuActionInvokedByPointer = true,
+            onPointerUp:
+                (_) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _menuActionInvokedByPointer = false;
+                }),
+            onPointerCancel: (_) => _menuActionInvokedByPointer = false,
+            child: SizedBox(
+              key: ValueKey<String>(
+                'desktop-mcp-server-action-menu-${widget.server.id}',
+              ),
+              width: _menuContentWidth + _menuPadding.horizontal,
+              child: Padding(
+                padding: _menuPadding,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ShadButton.ghost(
+                      key: ValueKey<String>(
+                        'desktop-mcp-server-details-${widget.server.id}',
+                      ),
+                      size: ShadButtonSize.sm,
+                      onPressed: () => _invokeMenuAction(widget.onOpenDetails),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(LucideIcons.info, size: 16),
+                      child: Text(S.of(context).details),
                     ),
-                    size: ShadButtonSize.sm,
-                    onPressed: () => _invokeMenuAction(widget.onOpenDetails),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.info, size: 16),
-                    child: Text(S.of(context).mcpServerDetails),
-                  ),
-                  ShadButton.ghost(
-                    key: ValueKey<String>(
-                      'desktop-mcp-server-refresh-${widget.server.id}',
+                    ShadButton.ghost(
+                      key: ValueKey<String>(
+                        'desktop-mcp-server-refresh-${widget.server.id}',
+                      ),
+                      size: ShadButtonSize.sm,
+                      onPressed:
+                          widget.busy
+                              ? null
+                              : () => _invokeMenuAction(widget.onRefresh),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(LucideIcons.refreshCw, size: 16),
+                      child: Text(S.of(context).refresh),
                     ),
-                    size: ShadButtonSize.sm,
-                    onPressed:
-                        widget.busy
-                            ? null
-                            : () => _invokeMenuAction(widget.onRefresh),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.refreshCw, size: 16),
-                    child: Text(S.of(context).refreshMcpTools),
-                  ),
-                  ShadButton.ghost(
-                    key: ValueKey<String>(
-                      'desktop-mcp-server-edit-${widget.server.id}',
+                    ShadButton.ghost(
+                      key: ValueKey<String>(
+                        'desktop-mcp-server-edit-${widget.server.id}',
+                      ),
+                      size: ShadButtonSize.sm,
+                      onPressed:
+                          widget.busy
+                              ? null
+                              : () => _invokeMenuAction(widget.onEdit),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(Icons.edit_outlined, size: 16),
+                      child: Text(S.of(context).edit),
                     ),
-                    size: ShadButtonSize.sm,
-                    onPressed:
-                        widget.busy
-                            ? null
-                            : () => _invokeMenuAction(widget.onEdit),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(Icons.edit_outlined, size: 16),
-                    child: Text(S.of(context).edit),
-                  ),
-                  ShadButton.raw(
-                    key: ValueKey<String>(
-                      'desktop-mcp-server-delete-${widget.server.id}',
+                    ShadButton.raw(
+                      key: ValueKey<String>(
+                        'desktop-mcp-server-delete-${widget.server.id}',
+                      ),
+                      variant: ShadButtonVariant.ghost,
+                      size: ShadButtonSize.sm,
+                      foregroundColor: colors.destructive,
+                      onPressed:
+                          widget.busy
+                              ? null
+                              : () => _invokeMenuAction(widget.onDelete),
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      leading: const Icon(LucideIcons.trash2, size: 16),
+                      child: Text(S.of(context).delete),
                     ),
-                    variant: ShadButtonVariant.ghost,
-                    size: ShadButtonSize.sm,
-                    foregroundColor: colors.destructive,
-                    onPressed:
-                        widget.busy
-                            ? null
-                            : () => _invokeMenuAction(widget.onDelete),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.trash2, size: 16),
-                    child: Text(S.of(context).delete),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -579,6 +579,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Reasoning interrupted",
     ),
     "referenceAudio": MessageLookupByLibrary.simpleMessage("Reference audio"),
+    "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "refreshMcpTools": MessageLookupByLibrary.simpleMessage("Refresh Tools"),
     "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("Remote MCP only"),
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("Remove file"),

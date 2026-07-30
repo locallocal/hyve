@@ -337,6 +337,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("思考完成"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("思考中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("思考中斷"),
+    "refresh": MessageLookupByLibrary.simpleMessage("重新整理"),
     "refreshMcpTools": MessageLookupByLibrary.simpleMessage("重新整理工具"),
     "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("僅支援遠端 MCP"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("移除技能"),

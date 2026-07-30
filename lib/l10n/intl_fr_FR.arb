@@ -563,6 +563,7 @@
         }
     },
     "details": "Détails",
+    "refresh": "Actualiser",
     "skillDetails": "Détails de la compétence",
     "uninstall": "Désinstaller",
     "uninstallSkill": "Désinstaller la compétence",

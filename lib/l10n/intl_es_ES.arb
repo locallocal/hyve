@@ -563,6 +563,7 @@
         }
     },
     "details": "Detalles",
+    "refresh": "Actualizar",
     "skillDetails": "Detalles de la habilidad",
     "uninstall": "Desinstalar",
     "uninstallSkill": "Desinstalar habilidad",

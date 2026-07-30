@@ -355,6 +355,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Denkvorgang unterbrochen",
     ),
+    "refresh": MessageLookupByLibrary.simpleMessage("Aktualisieren"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("Fähigkeit entfernen"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
       "Antwort abgebrochen",

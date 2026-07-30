@@ -281,6 +281,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("推論完了"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("推論中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("推論中断"),
+    "refresh": MessageLookupByLibrary.simpleMessage("更新"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("スキルを削除"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("応答がキャンセルされました"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage(

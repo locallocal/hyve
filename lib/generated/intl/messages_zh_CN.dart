@@ -447,6 +447,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("思考中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("思考中断"),
     "referenceAudio": MessageLookupByLibrary.simpleMessage("参考音频"),
+    "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
     "refreshMcpTools": MessageLookupByLibrary.simpleMessage("刷新工具"),
     "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("仅支持远程 MCP"),
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("移除文件"),

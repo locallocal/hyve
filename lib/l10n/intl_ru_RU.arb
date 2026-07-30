@@ -563,6 +563,7 @@
         }
     },
     "details": "Сведения",
+    "refresh": "Обновить",
     "skillDetails": "Сведения о навыке",
     "uninstall": "Удалить",
     "uninstallSkill": "Удалить навык",

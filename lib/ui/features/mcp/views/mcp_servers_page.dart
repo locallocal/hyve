@@ -149,8 +149,27 @@ class _McpServersPageState extends State<McpServersPage> {
                   if (_viewModel.error != null) ...[
                     const SizedBox(height: 16),
                     ShadAlert.destructive(
+                      key: const ValueKey<String>('mcp-error-alert'),
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       icon: const Icon(LucideIcons.circleAlert),
                       title: Text(_errorMessage(_viewModel.error!)),
+                      trailing: ShadTooltip(
+                        builder:
+                            (context) => Text(
+                              MaterialLocalizations.of(
+                                context,
+                              ).closeButtonTooltip,
+                            ),
+                        child: ShadIconButton.ghost(
+                          key: const ValueKey<String>('close-mcp-error'),
+                          onPressed: _viewModel.clearError,
+                          width: 28,
+                          height: 28,
+                          padding: EdgeInsets.zero,
+                          iconSize: 16,
+                          icon: const Icon(LucideIcons.x),
+                        ),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 24),

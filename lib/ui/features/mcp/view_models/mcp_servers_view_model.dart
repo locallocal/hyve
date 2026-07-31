@@ -61,6 +61,12 @@ final class McpServersViewModel extends ChangeNotifier {
   List<McpToolDescriptor> toolsFor(String serverId) =>
       _toolsByServer[serverId] ?? const [];
 
+  void clearError() {
+    if (_error == null) return;
+    _error = null;
+    notifyListeners();
+  }
+
   Future<void> load() async {
     final generation = ++_loadGeneration;
     _isLoading = true;

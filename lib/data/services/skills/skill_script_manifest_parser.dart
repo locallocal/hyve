@@ -10,8 +10,11 @@ final class SkillScriptManifestParser {
   static const int maxManifestBytes = 128 * 1024;
   static final RegExp _toolName = RegExp(r'^[a-zA-Z0-9_.-]{1,96}$');
 
+  Future<bool> hasManifest(SkillDescriptor skill) =>
+      _manifestFile(skill).exists();
+
   Future<List<SkillScriptToolManifest>> parse(SkillDescriptor skill) async {
-    final file = File(path.join(skill.rootPath, 'scripts', 'tools.json'));
+    final file = _manifestFile(skill);
     if (!await file.exists()) return const [];
     if (await file.length() > maxManifestBytes) {
       throw const SkillInstallException('scripts/tools.json 超过 128 KB 限制。');
@@ -66,6 +69,9 @@ final class SkillScriptManifestParser {
       throw const SkillInstallException('scripts/tools.json 不是有效的 JSON。');
     }
   }
+
+  File _manifestFile(SkillDescriptor skill) =>
+      File(path.join(skill.rootPath, 'scripts', 'tools.json'));
 
   String _entry(Object? value) {
     final entry = value?.toString().trim().replaceAll('\\', '/') ?? '';

@@ -26,6 +26,9 @@ final class SkillScriptCatalogService {
 
   Future<SkillSandboxStatus> sandboxStatus() => _sandbox.probe();
 
+  Future<bool> hasToolManifest(SkillDescriptor skill) async =>
+      skill.hasScripts && await _manifestParser.hasManifest(skill);
+
   Future<bool> isEnabled(SkillDescriptor skill) async {
     final grant = await _ecosystemRepository.getScriptGrant(skill.id);
     return grant?.enabled == true &&

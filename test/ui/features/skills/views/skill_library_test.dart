@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/foundation.dart';
@@ -5,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
+import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/repositories/skill_script_sandbox.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
@@ -123,6 +128,112 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets('desktop Skill card operation error can be dismissed', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final skill = _skill('Release Notes', 'Create polished changelogs');
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([skill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+      await expectLater(
+        viewModel.uninstall(skill.id),
+        throwsA(isA<UnsupportedError>()),
+      );
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(viewModel.error, isA<UnsupportedError>());
+      expect(
+        find.byKey(const ValueKey<String>('skill-error-alert')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('close-skill-error')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('close-skill-error')));
+      await tester.pump();
+
+      expect(viewModel.error, isNull);
+      expect(
+        find.byKey(const ValueKey<String>('skill-error-alert')),
+        findsNothing,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets(
+    'desktop Skill card hides script action without a tools manifest',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1;
+
+      final directory = Directory.systemTemp.createTempSync(
+        'stars-skill-card-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      File('${directory.path}/scripts/helper.sh').createSync(recursive: true);
+      final skill = _skill(
+        'Release Notes',
+        'Create polished changelogs',
+        rootPath: directory.path,
+        hasScripts: true,
+      );
+      final repository = _FakeSkillRepository([skill]);
+      final scriptService = SkillScriptCatalogService(
+        skillRepository: repository,
+        ecosystemRepository: const _UnusedSkillEcosystemRepository(),
+        manifestParser: const SkillScriptManifestParser(),
+        sandbox: const _AvailableSkillSandbox(),
+        toolRegistry: DynamicToolRegistry(const []),
+      );
+      final viewModel = SkillLibraryViewModel(
+        skillRepository: repository,
+        pickerRepository: const _FakeSkillPickerRepository(),
+        scriptCatalogService: scriptService,
+      );
+      addTearDown(viewModel.dispose);
+      try {
+        await tester.runAsync(viewModel.load);
+
+        await tester.pumpWidget(_harness(viewModel));
+        await tester.pumpAndSettle();
+
+        expect(viewModel.hasScriptTools(skill.id), isFalse);
+        await tester.tap(
+          find.byKey(ValueKey<String>('desktop-skill-menu-button-${skill.id}')),
+          kind: PointerDeviceKind.mouse,
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(ValueKey<String>('desktop-skill-script-${skill.id}')),
+          findsNothing,
+        );
+        expect(find.text('启用脚本'), findsNothing);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      }
+    },
+  );
 
   testWidgets('desktop Skill card actions use the Agent-style menu', (
     tester,
@@ -246,7 +357,12 @@ Widget _harness(SkillLibraryViewModel viewModel) {
   );
 }
 
-SkillDescriptor _skill(String name, String description) {
+SkillDescriptor _skill(
+  String name,
+  String description, {
+  String? rootPath,
+  bool hasScripts = false,
+}) {
   final timestamp = DateTime(2026, 7, 26);
   return SkillDescriptor(
     id: 'user:$name',
@@ -255,11 +371,12 @@ SkillDescriptor _skill(String name, String description) {
     version: '1.0.0',
     scope: SkillScope.user,
     sourceUri: 'file:///$name',
-    rootPath: '/skills/$name',
+    rootPath: rootPath ?? '/skills/$name',
     contentDigest: 'digest-$name',
     trustState: SkillTrustState.userReviewed,
     validationStatus: SkillValidationStatus.valid,
     compatibility: '',
+    hasScripts: hasScripts,
     installedAt: timestamp,
     updatedAt: timestamp,
   );
@@ -316,4 +433,27 @@ final class _FakeSkillPickerRepository implements SkillPickerRepository {
 
   @override
   Future<SkillImportSource?> pickZipArchive() async => null;
+}
+
+final class _AvailableSkillSandbox implements SkillScriptSandbox {
+  const _AvailableSkillSandbox();
+
+  @override
+  Future<SkillSandboxStatus> probe() async => const SkillSandboxStatus(
+    availability: SkillSandboxAvailability.available,
+  );
+
+  @override
+  Future<SkillScriptExecutionResult> execute(
+    SkillScriptExecutionRequest request,
+    AgentCancellationToken cancellationToken,
+  ) => throw UnsupportedError('Script execution is not used in this test.');
+}
+
+final class _UnusedSkillEcosystemRepository
+    implements SkillEcosystemRepository {
+  const _UnusedSkillEcosystemRepository();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -47,6 +47,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   Object? _error;
   SkillDescriptor? _lastImported;
   SkillSandboxStatus? _sandboxStatus;
+  Set<String> _scriptToolSkillIds = const {};
   Set<String> _scriptEnabledSkillIds = const {};
   List<OnlineSkillCatalogEntry> _availableUpdates = const [];
   List<SkillCatalogSource> _configuredCatalogs = const [];
@@ -84,6 +85,14 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   List<OnlineSkillCatalogEntry> get availableUpdates => _availableUpdates;
   bool get isRefreshingCatalogs => _isRefreshingCatalogs;
   bool get hasConfiguredCatalogs => _configuredCatalogs.isNotEmpty;
+
+  void clearError() {
+    if (_error == null) return;
+    _error = null;
+    notifyListeners();
+  }
+
+  bool hasScriptTools(String skillId) => _scriptToolSkillIds.contains(skillId);
 
   bool isScriptEnabled(String skillId) =>
       _scriptEnabledSkillIds.contains(skillId);
@@ -276,12 +285,16 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     final scriptService = _scriptCatalogService;
     if (scriptService != null) {
       _sandboxStatus = await scriptService.sandboxStatus();
+      final withToolManifest = <String>{};
       final enabled = <String>{};
       for (final skill in _skills) {
-        if (skill.hasScripts && await scriptService.isEnabled(skill)) {
+        if (!await scriptService.hasToolManifest(skill)) continue;
+        withToolManifest.add(skill.id);
+        if (await scriptService.isEnabled(skill)) {
           enabled.add(skill.id);
         }
       }
+      _scriptToolSkillIds = Set.unmodifiable(withToolManifest);
       _scriptEnabledSkillIds = Set.unmodifiable(enabled);
     }
     final catalog = _catalogService;

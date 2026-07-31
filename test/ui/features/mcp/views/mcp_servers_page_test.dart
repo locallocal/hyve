@@ -509,11 +509,20 @@ void main() {
       );
       await tester.ensureVisible(transportMenu);
       await tester.pumpAndSettle();
-      await tester.tap(transportMenu);
-      await tester.pumpAndSettle();
       final transportField = find.byKey(
         const ValueKey<String>('mcp-server-transport'),
       );
+      final transportInput = find.descendant(
+        of: transportField,
+        matching: find.byType(ShadInput),
+      );
+      await tester.tapAt(tester.getCenter(transportInput));
+      await tester.pumpAndSettle();
+      expect(find.byType(MenuItemButton), findsNothing);
+
+      final transportMenuRect = tester.getRect(transportMenu);
+      await tester.tap(transportMenu);
+      await tester.pumpAndSettle();
       final transportInputStyle =
           tester
               .widget<EditableText>(
@@ -528,6 +537,15 @@ void main() {
         matching: find.byType(MenuItemButton),
       );
       expect(stdioOption, findsOneWidget);
+      expect(tester.getSize(stdioOption).width, 256);
+      expect(
+        tester.getSize(stdioOption).width,
+        lessThan(inputSize('mcp-server-transport').width),
+      );
+      expect(
+        tester.getRect(stdioOption).right,
+        closeTo(transportMenuRect.right, 1),
+      );
       expect(
         tester.widget<Text>(find.text('stdio（本地进程）').last).style,
         transportInputStyle,

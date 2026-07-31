@@ -143,7 +143,7 @@ final class McpServersViewModel extends ChangeNotifier {
             draft.transportType == McpTransportType.stdio
                 ? McpAuthType.none
                 : draft.authType,
-        enabled: existing?.enabled ?? true,
+        enabled: existing?.enabled ?? false,
         protocolVersion: existing?.protocolVersion ?? '',
         remoteServerName: existing?.remoteServerName ?? '',
         remoteServerVersion: existing?.remoteServerVersion ?? '',
@@ -159,6 +159,18 @@ final class McpServersViewModel extends ChangeNotifier {
         draft: draft,
         environment: environment,
       );
+      if (existing == null) {
+        final persisted = await _repository.getServer(id);
+        if (persisted == null) {
+          throw const McpException(
+            'mcp_server_not_found',
+            message: 'The saved MCP server could not be loaded.',
+          );
+        }
+        await _repository.saveServer(
+          persisted.copyWith(enabled: true, updatedAt: _now()),
+        );
+      }
       await _runForServer(id, () => _catalogService.refreshServer(id));
       return _error == null;
     } on Object catch (error) {

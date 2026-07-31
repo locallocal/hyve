@@ -89,6 +89,42 @@ void main() {
       expect(registry.find(existing.canonicalName), isNotNull);
     },
   );
+
+  test('refresh keeps the server disabled when startup fails', () async {
+    client.initializeError = const McpException('mcp_stdio_start_failed');
+
+    await expectLater(
+      service.refreshServer('server-1'),
+      throwsA(
+        isA<McpException>().having(
+          (error) => error.code,
+          'code',
+          'mcp_stdio_start_failed',
+        ),
+      ),
+    );
+
+    final failed = await repository.getServer('server-1');
+    expect(failed, isNotNull);
+    expect(failed!.enabled, isFalse);
+    expect(failed.status, McpConnectionStatus.error);
+    expect(failed.lastErrorCode, 'mcp_stdio_start_failed');
+  });
+
+  test('refresh keeps the server disabled after an unknown failure', () async {
+    client.initializeError = StateError('process exited');
+
+    await expectLater(
+      service.refreshServer('server-1'),
+      throwsA(isA<StateError>()),
+    );
+
+    final failed = await repository.getServer('server-1');
+    expect(failed, isNotNull);
+    expect(failed!.enabled, isFalse);
+    expect(failed.status, McpConnectionStatus.error);
+    expect(failed.lastErrorCode, 'mcp_catalog_refresh_failed');
+  });
 }
 
 McpServer _server() {
@@ -121,12 +157,14 @@ McpToolDescriptor _tool(String name) {
 
 final class _FakeMcpClient implements McpClient {
   List<McpToolDescriptor> tools = const [];
+  Object? initializeError;
 
   @override
   Future<McpInitializeResult> initialize(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) async {
+    if (initializeError case final error?) throw error;
     return const McpInitializeResult(
       protocolVersion: '2025-11-25',
       serverName: 'Remote Example',

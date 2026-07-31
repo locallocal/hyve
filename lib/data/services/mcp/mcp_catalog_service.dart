@@ -84,9 +84,11 @@ final class McpCatalogService {
       await hydrateFromCache();
       return connected;
     } on McpException catch (error) {
+      final requiresAuthorization = error.code == 'mcp_authorization_required';
       final failed = server.copyWith(
+        enabled: requiresAuthorization ? server.enabled : false,
         status:
-            error.code == 'mcp_authorization_required'
+            requiresAuthorization
                 ? McpConnectionStatus.authorizationRequired
                 : McpConnectionStatus.error,
         lastErrorCode: error.code,
@@ -98,6 +100,7 @@ final class McpCatalogService {
     } on Object {
       await _repository.saveServer(
         server.copyWith(
+          enabled: false,
           status: McpConnectionStatus.error,
           lastErrorCode: 'mcp_catalog_refresh_failed',
           updatedAt: DateTime.now(),

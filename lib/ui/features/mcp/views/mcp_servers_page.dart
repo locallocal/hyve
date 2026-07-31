@@ -1072,6 +1072,8 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       DesktopThemeTokens.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
       DesktopThemeTokens.botFormSectionBorderWidth;
+  static const double _desktopDropdownButtonSize = 30;
+  static const double _desktopTransportMenuWidth = 256;
   static const double _desktopFormWidth =
       _desktopFieldWidth +
       _desktopSectionPadding * 2 +
@@ -1544,46 +1546,53 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
     final inputTextStyle = shadTheme.textTheme.muted
         .copyWith(color: shadTheme.colorScheme.foreground)
         .merge(shadTheme.inputTheme.style);
-    return MenuAnchor(
-      alignmentOffset: const Offset(0, 4),
-      style: _desktopMenuStyle(tokens),
-      menuChildren: [
-        for (final transportType in McpTransportType.values)
-          MenuItemButton(
-            trailingIcon:
-                transportType == _transportType
-                    ? Icon(Icons.check_rounded, size: 16, color: tokens.accent)
-                    : const SizedBox.square(dimension: 16),
-            onPressed: () => _setTransportType(transportType),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 180),
-              child: Text(
-                _transportLabel(transportType),
-                style: inputTextStyle,
+    return ShadInputFormField(
+      key: const ValueKey<String>('mcp-server-transport'),
+      id: 'transport',
+      controller: _transportController,
+      readOnly: true,
+      label: Text(S.of(context).mcpTransport),
+      leading: _desktopInputLeading(Icons.swap_horiz_rounded),
+      constraints: _desktopInputConstraints,
+      trailing: MenuAnchor(
+        crossAxisUnconstrained: false,
+        alignmentOffset: const Offset(
+          _desktopDropdownButtonSize - _desktopTransportMenuWidth,
+          4,
+        ),
+        style: _desktopMenuStyle(tokens, width: _desktopTransportMenuWidth),
+        menuChildren: [
+          for (final transportType in McpTransportType.values)
+            MenuItemButton(
+              trailingIcon:
+                  transportType == _transportType
+                      ? Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: tokens.accent,
+                      )
+                      : const SizedBox.square(dimension: 16),
+              onPressed: () => _setTransportType(transportType),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 180),
+                child: Text(
+                  _transportLabel(transportType),
+                  style: inputTextStyle,
+                ),
               ),
             ),
-          ),
-      ],
-      builder:
-          (context, controller, child) => ShadInputFormField(
-            key: const ValueKey<String>('mcp-server-transport'),
-            id: 'transport',
-            controller: _transportController,
-            readOnly: true,
-            label: Text(S.of(context).mcpTransport),
-            leading: _desktopInputLeading(Icons.swap_horiz_rounded),
-            constraints: _desktopInputConstraints,
-            onPressed: () => _toggleMenu(controller),
-            trailing: ShadIconButton.ghost(
+        ],
+        builder:
+            (context, controller, child) => ShadIconButton.ghost(
               key: const ValueKey<String>('mcp-server-transport-menu'),
               onPressed: () => _toggleMenu(controller),
               icon: const Icon(Icons.expand_more_rounded),
               iconSize: 16,
-              width: 30,
-              height: 30,
+              width: _desktopDropdownButtonSize,
+              height: _desktopDropdownButtonSize,
               padding: EdgeInsets.zero,
             ),
-          ),
+      ),
     );
   }
 
@@ -1696,15 +1705,15 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
               onPressed: () => _toggleMenu(controller),
               icon: const Icon(Icons.expand_more_rounded),
               iconSize: 16,
-              width: 30,
-              height: 30,
+              width: _desktopDropdownButtonSize,
+              height: _desktopDropdownButtonSize,
               padding: EdgeInsets.zero,
             ),
           ),
     );
   }
 
-  MenuStyle _desktopMenuStyle(StarsDesktopTokens tokens) {
+  MenuStyle _desktopMenuStyle(StarsDesktopTokens tokens, {double? width}) {
     return MenuStyle(
       backgroundColor: WidgetStatePropertyAll(tokens.raisedSurface),
       surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
@@ -1712,7 +1721,10 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
         Colors.black.withValues(alpha: tokens.highContrast ? 0 : 0.18),
       ),
       elevation: WidgetStatePropertyAll(tokens.highContrast ? 0 : 6),
-      maximumSize: const WidgetStatePropertyAll(Size(420, 240)),
+      visualDensity: width == null ? null : VisualDensity.standard,
+      minimumSize:
+          width == null ? null : WidgetStatePropertyAll(Size(width, 0)),
+      maximumSize: WidgetStatePropertyAll(Size(width ?? 420, 240)),
       side: WidgetStatePropertyAll(
         BorderSide(color: tokens.separator, width: 0),
       ),

@@ -16,6 +16,7 @@ void main() {
   late SqliteMcpServerRepository repository;
   late _MemoryCredentialStore credentials;
   late DynamicToolRegistry registry;
+  late _FakeMcpClient client;
   late McpServersViewModel viewModel;
 
   setUp(() async {
@@ -33,9 +34,10 @@ void main() {
     );
     credentials = _MemoryCredentialStore();
     registry = DynamicToolRegistry(const []);
+    client = _FakeMcpClient();
     final catalog = McpCatalogService(
       repository: repository,
-      client: _FakeMcpClient(),
+      client: client,
       toolRegistry: registry,
     );
     viewModel = McpServersViewModel(
@@ -52,25 +54,38 @@ void main() {
     await database.close();
   });
 
-  test('saves credentials separately and connects a new server', () async {
-    final saved = await viewModel.saveAndConnect(
-      const McpServerDraft(
-        name: 'Example',
-        namespace: 'example',
-        endpoint: 'https://example.com/mcp',
-        authType: McpAuthType.oauthAccessToken,
-        accessToken: 'secret-token',
-      ),
-    );
+  test(
+    'persists a new server disabled before enabling and connecting',
+    () async {
+      final enabledSnapshots = <bool>[];
+      final subscription = repository.changes.listen((servers) {
+        if (servers.isNotEmpty) enabledSnapshots.add(servers.single.enabled);
+      });
 
-    expect(saved, isTrue);
-    expect(viewModel.servers, hasLength(1));
-    final server = viewModel.servers.single;
-    expect(server.status, McpConnectionStatus.connected);
-    expect(credentials.values[server.id]?.accessToken, 'secret-token');
-    expect(viewModel.toolsFor(server.id), hasLength(1));
-    expect(viewModel.toolsFor(server.id).single.enabled, isFalse);
-  });
+      final saved = await viewModel.saveAndConnect(
+        const McpServerDraft(
+          name: 'Example',
+          namespace: 'example',
+          endpoint: 'https://example.com/mcp',
+          authType: McpAuthType.oauthAccessToken,
+          accessToken: 'secret-token',
+        ),
+      );
+      await subscription.cancel();
+
+      expect(saved, isTrue);
+      expect(enabledSnapshots, isNotEmpty);
+      expect(enabledSnapshots.first, isFalse);
+      expect(enabledSnapshots.skip(1), contains(isTrue));
+      expect(viewModel.servers, hasLength(1));
+      final server = viewModel.servers.single;
+      expect(server.enabled, isTrue);
+      expect(server.status, McpConnectionStatus.connected);
+      expect(credentials.values[server.id]?.accessToken, 'secret-token');
+      expect(viewModel.toolsFor(server.id), hasLength(1));
+      expect(viewModel.toolsFor(server.id).single.enabled, isFalse);
+    },
+  );
 
   test('enabling a discovered Tool updates the runtime registry', () async {
     await viewModel.saveAndConnect(
@@ -86,6 +101,24 @@ void main() {
     await viewModel.setToolEnabled(tool, true);
 
     expect(registry.find(tool.canonicalName), isNotNull);
+  });
+
+  test('a new server returns to disabled when startup fails', () async {
+    client.initializeError = const McpException('mcp_stdio_start_failed');
+
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Local files',
+        namespace: 'local_files',
+        transportType: McpTransportType.stdio,
+        command: 'missing-mcp-server',
+      ),
+    );
+
+    expect(saved, isFalse);
+    expect(viewModel.servers, hasLength(1));
+    expect(viewModel.servers.single.enabled, isFalse);
+    expect(viewModel.servers.single.status, McpConnectionStatus.error);
   });
 
   test('saves stdio process settings and secure environment', () async {
@@ -153,11 +186,14 @@ final class _MemoryCredentialStore implements McpCredentialStore {
 }
 
 final class _FakeMcpClient implements McpClient {
+  Object? initializeError;
+
   @override
   Future<McpInitializeResult> initialize(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) async {
+    if (initializeError case final error?) throw error;
     return const McpInitializeResult(
       protocolVersion: '2025-11-25',
       serverName: 'Remote Example',

@@ -1,10 +1,10 @@
 // Public domain model surface.
-//
-// The legacy model library remains exported while callers migrate to the
-// layered package paths. Domain consumers should import this file instead of
-// depending on persistence-oriented locations.
-export '../../model/model.dart';
+export 'bot.dart';
+export 'chat.dart';
+export 'message.dart';
 export 'mcp.dart';
+export 'modalities.dart';
+export 'profile.dart';
 export 'skill.dart';
 export 'skill_ecosystem.dart';
 export 'tool.dart';

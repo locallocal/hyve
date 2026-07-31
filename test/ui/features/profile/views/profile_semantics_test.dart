@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/model/model.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/ui/features/profile/views/profile.dart';
 import 'package:stars/utils/theme.dart';
 

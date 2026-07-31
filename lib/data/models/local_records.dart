@@ -1,45 +1,395 @@
+import 'dart:convert';
+
 import 'package:stars/domain/models/models.dart';
 
-/// Raw database record adapters. Mapping stays in the data layer even while
-/// the legacy domain classes retain compatibility `fromMap`/`toMap` methods.
+/// SQLite representation of a [Bot].
 final class BotRecord {
   const BotRecord(this.values);
 
-  factory BotRecord.fromDomain(Bot bot) => BotRecord(bot.toMap());
+  factory BotRecord.fromDomain(Bot bot) {
+    return BotRecord({
+      'id': bot.id,
+      'name': bot.name,
+      'avatar': bot.avatar,
+      'provider': bot.provider,
+      'base_url': bot.baseURL,
+      'api_key': bot.apiKey,
+      'api_type': bot.apiType,
+      'model': bot.model,
+      'system_prompt': bot.systemPrompt,
+      'parameters': jsonEncode(bot.parameters ?? const <String, Object?>{}),
+      'create_timestamp': bot.createTimestamp.millisecondsSinceEpoch,
+      'modify_timestamp': bot.modifyTimestamp.millisecondsSinceEpoch,
+    });
+  }
 
   final Map<String, Object?> values;
 
-  Bot toDomain() => Bot.fromMap(values);
+  Bot toDomain() {
+    return Bot(
+      id: _string(values['id']),
+      name: _string(values['name']),
+      avatar: _string(values['avatar']),
+      provider: _string(values['provider']),
+      baseURL: _string(values['base_url']),
+      apiKey: _string(values['api_key']),
+      apiType: _string(values['api_type']),
+      model: _string(values['model']),
+      systemPrompt: _string(values['system_prompt']),
+      parameters: _parameters(values['parameters']),
+      createTimestamp: _timestamp(values['create_timestamp']),
+      modifyTimestamp: _timestamp(values['modify_timestamp']),
+    );
+  }
 }
 
+/// SQLite representation of a [Chat].
 final class ChatRecord {
   const ChatRecord(this.values);
 
-  factory ChatRecord.fromDomain(Chat chat) => ChatRecord(chat.toMap());
+  factory ChatRecord.fromDomain(Chat chat) {
+    return ChatRecord({
+      'id': chat.id,
+      'bot_id': chat.botId,
+      'last_message': chat.lastMessage,
+      'last_message_timestamp':
+          chat.lastMessageTimestamp.millisecondsSinceEpoch,
+      'create_timestamp': chat.createTimestamp.millisecondsSinceEpoch,
+      'modify_timestamp': chat.modifyTimestamp.millisecondsSinceEpoch,
+    });
+  }
 
   final Map<String, Object?> values;
 
-  Chat toDomain() => Chat.fromMap(values);
+  Chat toDomain() {
+    return Chat(
+      id: _string(values['id']),
+      botId: _string(values['bot_id']),
+      lastMessage: _string(values['last_message']),
+      lastMessageTimestamp: _timestamp(values['last_message_timestamp']),
+      createTimestamp: _timestamp(values['create_timestamp']),
+      modifyTimestamp: _timestamp(values['modify_timestamp']),
+    );
+  }
 }
 
+/// JSON-compatible representation of message execution metadata.
+final class MessageProcessInfoRecord {
+  const MessageProcessInfoRecord(this.values);
+
+  factory MessageProcessInfoRecord.fromDomain(MessageProcessInfo info) {
+    return MessageProcessInfoRecord({
+      'reasoning_status': info.reasoningStatus,
+      'duration_ms': info.durationMs,
+      'tool_calls': info.toolCalls.map(_toolCallToMap).toList(),
+      'command_executions':
+          info.commandExecutions.map(_commandExecutionToMap).toList(),
+      'file_edits': info.fileEdits.map(_fileEditToMap).toList(),
+      'skill_activations':
+          info.skillActivations.map(_skillActivationToMap).toList(),
+    });
+  }
+
+  factory MessageProcessInfoRecord.fromRaw(Object? raw) {
+    if (raw == null || raw == '') {
+      return const MessageProcessInfoRecord(<String, Object?>{});
+    }
+    if (raw is String) {
+      try {
+        final Object? decoded = jsonDecode(raw);
+        return MessageProcessInfoRecord(_stringMap(decoded) ?? const {});
+      } on FormatException {
+        return const MessageProcessInfoRecord(<String, Object?>{});
+      }
+    }
+    return MessageProcessInfoRecord(_stringMap(raw) ?? const {});
+  }
+
+  final Map<String, Object?> values;
+
+  MessageProcessInfo toDomain() {
+    return MessageProcessInfo(
+      reasoningStatus: _string(values['reasoning_status']),
+      durationMs: _nullableInt(values['duration_ms']),
+      toolCalls: _records(values['tool_calls'], _toolCallFromMap),
+      commandExecutions: _records(
+        values['command_executions'],
+        _commandExecutionFromMap,
+      ),
+      fileEdits: _records(values['file_edits'], _fileEditFromMap),
+      skillActivations: _records(
+        values['skill_activations'],
+        _skillActivationFromMap,
+      ),
+    );
+  }
+}
+
+/// SQLite representation of a [Message].
 final class MessageRecord {
   const MessageRecord(this.values);
 
-  factory MessageRecord.fromDomain(Message message) =>
-      MessageRecord(message.toMap());
+  factory MessageRecord.fromDomain(Message message) {
+    return MessageRecord({
+      'message_id': message.messageId,
+      'turn_id': message.turnId,
+      'run_id': message.runId,
+      'chat_id': message.chatId,
+      'bot_id': message.botId,
+      'sender_id': message.senderId,
+      'content': message.content,
+      'reasoning': message.reasoning,
+      'process_info': jsonEncode(
+        MessageProcessInfoRecord.fromDomain(message.processInfo).values,
+      ),
+      'images': jsonEncode(message.images),
+      'files': jsonEncode(message.files),
+      'audio': message.audio,
+      'music': message.music,
+      'video': message.video,
+      'token_model': message.tokenUsage.model,
+      'input_token_count': message.tokenUsage.inputTokens,
+      'output_token_count': message.tokenUsage.outputTokens,
+      'total_token_count': message.tokenUsage.effectiveTotalTokens,
+      'terminal_state': message.terminalOutcome?.name ?? '',
+      'has_partial_content': message.hasPartialContent ? 1 : 0,
+      'timestamp': message.timestamp.millisecondsSinceEpoch,
+    });
+  }
 
   final Map<String, Object?> values;
 
-  Message toDomain() => Message.fromMap(values);
+  Message toDomain() {
+    return Message(
+      messageId: _string(values['message_id']),
+      turnId: _string(values['turn_id']),
+      runId: _string(values['run_id']),
+      chatId: _string(values['chat_id']),
+      botId: _string(values['bot_id']),
+      senderId: _string(values['sender_id']),
+      content: _string(values['content']),
+      reasoning: _string(values['reasoning']),
+      processInfo:
+          MessageProcessInfoRecord.fromRaw(values['process_info']).toDomain(),
+      images: _stringList(values['images']),
+      files: _stringList(values['files']),
+      audio: _string(values['audio']),
+      music: _string(values['music']),
+      video: _string(values['video']),
+      tokenUsage: ModelTokenUsage(
+        model: _string(values['token_model']),
+        inputTokens: _storageInt(values['input_token_count']),
+        outputTokens: _storageInt(values['output_token_count']),
+        totalTokens: _storageInt(values['total_token_count']),
+      ),
+      terminalOutcome: _terminalOutcome(values['terminal_state']),
+      hasPartialContent: _storageBool(values['has_partial_content']),
+      timestamp: _timestamp(values['timestamp']),
+    );
+  }
 }
 
+/// SQLite representation of a [Profile].
 final class ProfileRecord {
   const ProfileRecord(this.values);
 
-  factory ProfileRecord.fromDomain(Profile profile) =>
-      ProfileRecord(profile.toMap());
+  factory ProfileRecord.fromDomain(Profile profile) {
+    return ProfileRecord({
+      'name': profile.name,
+      'avatar': profile.avatar,
+      'font_size': profile.fontSize,
+      'theme_mode': profile.themeMode,
+      'language': profile.language,
+      'show_execution_status': profile.showExecutionStatus ? 1 : 0,
+      'create_timestamp': profile.createTimestamp.millisecondsSinceEpoch,
+      'modify_timestamp': profile.modifyTimestamp.millisecondsSinceEpoch,
+    });
+  }
 
   final Map<String, Object?> values;
 
-  Profile toDomain() => Profile.fromMap(values);
+  Profile toDomain() {
+    return Profile(
+      name: _string(values['name'], fallback: '用户名'),
+      avatar: _string(values['avatar']),
+      fontSize: _storageDouble(values['font_size'], fallback: 16),
+      themeMode: _storageInt(values['theme_mode']),
+      language: _string(values['language'], fallback: 'zh_CN'),
+      showExecutionStatus: _storageBool(
+        values['show_execution_status'],
+        fallback: true,
+      ),
+      createTimestamp: _timestamp(values['create_timestamp']),
+      modifyTimestamp: _timestamp(values['modify_timestamp']),
+    );
+  }
 }
+
+Map<String, dynamic>? _parameters(Object? raw) {
+  if (raw == null) return null;
+  if (raw is String) {
+    try {
+      final Object? decoded = jsonDecode(raw);
+      return _dynamicStringMap(decoded) ?? <String, dynamic>{};
+    } on FormatException {
+      return <String, dynamic>{};
+    }
+  }
+  return _dynamicStringMap(raw) ?? <String, dynamic>{};
+}
+
+Map<String, Object?>? _stringMap(Object? raw) {
+  if (raw is! Map<Object?, Object?>) return null;
+  return <String, Object?>{
+    for (final entry in raw.entries) entry.key.toString(): entry.value,
+  };
+}
+
+Map<String, dynamic>? _dynamicStringMap(Object? raw) {
+  final map = _stringMap(raw);
+  return map == null ? null : Map<String, dynamic>.from(map);
+}
+
+List<T> _records<T>(Object? raw, T Function(Map<String, Object?>) decode) {
+  if (raw is! List<Object?>) return const [];
+  return <T>[
+    for (final item in raw)
+      if (_stringMap(item) case final map?) decode(map),
+  ];
+}
+
+Map<String, Object?> _toolCallToMap(MessageToolCall call) => {
+  'call_id': call.callId,
+  'name': call.name,
+  'status': call.status,
+  'detail': call.detail,
+  'source': call.source,
+  'risk_level': call.riskLevel,
+  'arguments_summary': call.argumentsSummary,
+  'result_summary': call.resultSummary,
+  'approval_status': call.approvalStatus,
+  'error_code': call.errorCode,
+  'duration_ms': call.durationMs,
+};
+
+MessageToolCall _toolCallFromMap(Map<String, Object?> values) {
+  return MessageToolCall(
+    callId: _string(values['call_id']),
+    name: _string(values['name']),
+    status: _string(values['status']),
+    detail: _string(values['detail']),
+    source: _string(values['source']),
+    riskLevel: _string(values['risk_level']),
+    argumentsSummary: _string(values['arguments_summary']),
+    resultSummary: _string(values['result_summary']),
+    approvalStatus: _string(values['approval_status']),
+    errorCode: _string(values['error_code']),
+    durationMs: _nullableInt(values['duration_ms']),
+  );
+}
+
+Map<String, Object?> _commandExecutionToMap(
+  MessageCommandExecution execution,
+) => {
+  'command': execution.command,
+  'status': execution.status,
+  'detail': execution.detail,
+  'duration_ms': execution.durationMs,
+};
+
+MessageCommandExecution _commandExecutionFromMap(Map<String, Object?> values) {
+  return MessageCommandExecution(
+    command: _string(values['command']),
+    status: _string(values['status']),
+    detail: _string(values['detail']),
+    durationMs: _nullableInt(values['duration_ms']),
+  );
+}
+
+Map<String, Object?> _fileEditToMap(MessageFileEdit edit) => {
+  'path': edit.path,
+  'type': edit.type,
+  'status': edit.status,
+  'detail': edit.detail,
+};
+
+MessageFileEdit _fileEditFromMap(Map<String, Object?> values) {
+  return MessageFileEdit(
+    path: _string(values['path']),
+    type: _string(values['type']),
+    status: _string(values['status']),
+    detail: _string(values['detail']),
+  );
+}
+
+Map<String, Object?> _skillActivationToMap(MessageSkillActivation activation) =>
+    {
+      'name': activation.name,
+      'content_digest': activation.contentDigest,
+      'trigger': activation.trigger,
+      'status': activation.status,
+    };
+
+MessageSkillActivation _skillActivationFromMap(Map<String, Object?> values) {
+  return MessageSkillActivation(
+    name: _string(values['name']),
+    contentDigest: _string(values['content_digest']),
+    trigger: _string(values['trigger']),
+    status: _string(values['status'], fallback: 'recorded'),
+  );
+}
+
+List<String> _stringList(Object? raw) {
+  Object? decoded = raw;
+  if (raw is String) {
+    if (raw.isEmpty) return const [];
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return const [];
+    }
+  }
+  if (decoded is! List<Object?>) return const [];
+  return decoded.map((item) => item.toString()).toList(growable: false);
+}
+
+MessageTerminalOutcome? _terminalOutcome(Object? raw) {
+  final name = _string(raw);
+  if (name.isEmpty) return null;
+  for (final outcome in MessageTerminalOutcome.values) {
+    if (outcome.name == name) return outcome;
+  }
+  return null;
+}
+
+String _string(Object? value, {String fallback = ''}) =>
+    value?.toString() ?? fallback;
+
+int _storageInt(Object? value) {
+  return switch (value) {
+    final int number => number,
+    final num number => number.toInt(),
+    _ => int.tryParse(value?.toString() ?? '') ?? 0,
+  };
+}
+
+int? _nullableInt(Object? value) => value == null ? null : _storageInt(value);
+
+double _storageDouble(Object? value, {required double fallback}) {
+  return switch (value) {
+    final num number => number.toDouble(),
+    _ => double.tryParse(value?.toString() ?? '') ?? fallback,
+  };
+}
+
+bool _storageBool(Object? value, {bool fallback = false}) {
+  return switch (value) {
+    final bool flag => flag,
+    final num number => number != 0,
+    final String text => text != '0' && text.toLowerCase() != 'false',
+    _ => fallback,
+  };
+}
+
+DateTime _timestamp(Object? value) =>
+    DateTime.fromMillisecondsSinceEpoch(_storageInt(value));

@@ -42,6 +42,11 @@ class LocalDatabaseService {
         where: 'bot_id = ?',
         whereArgs: [id],
       );
+      await transaction.delete(
+        'token_usage_records',
+        where: 'bot_id = ?',
+        whereArgs: [id],
+      );
       await transaction.delete('bots', where: 'id = ?', whereArgs: [id]);
     });
   }
@@ -454,11 +459,6 @@ class LocalDatabaseService {
     await database.transaction((transaction) async {
       await transaction.delete(
         'messages',
-        where: 'chat_id = ?',
-        whereArgs: [id],
-      );
-      await transaction.delete(
-        'token_usage_records',
         where: 'chat_id = ?',
         whereArgs: [id],
       );

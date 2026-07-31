@@ -242,6 +242,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "请告诉我们您的想法、问题或建议，帮助我们改进应用",
     ),
     "feedbackHint": MessageLookupByLibrary.simpleMessage("请在此输入您的反馈内容..."),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage("反馈信息"),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage("提交失败，请稍后重试"),
     "feedbackSubmitted": MessageLookupByLibrary.simpleMessage("感谢您的反馈！"),
     "fetchModelList": MessageLookupByLibrary.simpleMessage("获取模型列表"),

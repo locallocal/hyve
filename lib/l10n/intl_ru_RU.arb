@@ -301,6 +301,10 @@
     "@provideFeedback": {
         "description": "Описание для предоставления обратной связи"
     },
+    "feedbackInformation": "Информация об обратной связи",
+    "@feedbackInformation": {
+        "description": "Заголовок раздела формы обратной связи"
+    },
     "feedbackDescription": "Пожалуйста, расскажите нам о ваших мыслях, проблемах или предложениях, чтобы помочь нам улучшить приложение",
     "@feedbackDescription": {
         "description": "Описание страницы обратной связи"

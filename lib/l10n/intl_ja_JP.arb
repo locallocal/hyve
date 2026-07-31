@@ -301,6 +301,10 @@
     "@provideFeedback": {
         "description": "フィードバック提供の説明"
     },
+    "feedbackInformation": "フィードバック情報",
+    "@feedbackInformation": {
+        "description": "フィードバックフォームのセクションタイトル"
+    },
     "feedbackDescription": "アプリの改善に役立てるたければ、あなたの考え、問題点、または提案を教えてください",
     "@feedbackDescription": {
         "description": "フィードバックページの説明"

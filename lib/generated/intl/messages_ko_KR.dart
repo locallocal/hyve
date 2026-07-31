@@ -193,6 +193,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "앱 개선에 도움이 될 수 있도록 생각, 문제 또는 제안을 알려주세요",
     ),
     "feedbackHint": MessageLookupByLibrary.simpleMessage("여기에 피드백을 입력하세요..."),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage("피드백 정보"),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage(
       "제출 실패, 나중에 다시 시도해 주세요",
     ),

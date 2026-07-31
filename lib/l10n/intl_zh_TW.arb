@@ -300,6 +300,10 @@
     "@provideFeedback": {
         "description": "提供反饋的描述"
     },
+    "feedbackInformation": "反饋資訊",
+    "@feedbackInformation": {
+        "description": "反饋表單分組標題"
+    },
     "feedbackDescription": "請告訴我們您的想法、問題或建議，幫助我們改進應用",
     "@feedbackDescription": {
         "description": "反饋頁面描述"

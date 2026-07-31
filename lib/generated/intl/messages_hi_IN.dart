@@ -234,6 +234,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "feedbackHint": MessageLookupByLibrary.simpleMessage(
       "यहां अपनी प्रतिक्रिया दर्ज करें...",
     ),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage(
+      "प्रतिक्रिया जानकारी",
+    ),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage(
       "भेजने में विफल, कृपया बाद में पुनः प्रयास करें",
     ),

@@ -238,6 +238,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "feedbackHint": MessageLookupByLibrary.simpleMessage(
       "Введите ваш отзыв здесь...",
     ),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage(
+      "Информация об обратной связи",
+    ),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage(
       "Ошибка отправки, пожалуйста, попробуйте позже",
     ),

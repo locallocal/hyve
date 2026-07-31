@@ -76,6 +76,61 @@ void main() {
     }
   });
 
+  testWidgets('desktop MCP startup error can be dismissed', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final repository = _FakeMcpServerRepository(
+      getServersError: const McpException('mcp_stdio_start_failed'),
+    );
+    final viewModel = McpServersViewModel(
+      repository: repository,
+      credentialStore: const _UnusedCredentialStore(),
+      catalogService: McpCatalogService(
+        repository: repository,
+        client: const _UnusedMcpClient(),
+        toolRegistry: DynamicToolRegistry(const []),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('mcp-error-alert')),
+        findsOneWidget,
+      );
+      final errorMessage = find.text('无法启动 stdio MCP 命令。');
+      expect(errorMessage, findsOneWidget);
+      expect(
+        tester.getCenter(errorMessage).dy,
+        closeTo(
+          tester
+              .getCenter(find.byKey(const ValueKey<String>('mcp-error-alert')))
+              .dy,
+          1,
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey<String>('close-mcp-error')));
+      await tester.pump();
+
+      expect(viewModel.error, isNull);
+      expect(
+        find.byKey(const ValueKey<String>('mcp-error-alert')),
+        findsNothing,
+      );
+      expect(find.text('无法启动 stdio MCP 命令。'), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop MCP cards show Tool counts and details in a dialog', (
     tester,
   ) async {
@@ -549,10 +604,12 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   const _FakeMcpServerRepository({
     this.servers = const [],
     this.toolsByServer = const {},
+    this.getServersError,
   });
 
   final List<McpServer> servers;
   final Map<String, List<McpToolDescriptor>> toolsByServer;
+  final Object? getServersError;
 
   @override
   Stream<List<McpServer>> get changes => const Stream.empty();
@@ -569,8 +626,10 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   }
 
   @override
-  Future<List<McpServer>> getServers({bool forceRefresh = false}) async =>
-      servers;
+  Future<List<McpServer>> getServers({bool forceRefresh = false}) async {
+    if (getServersError case final error?) throw error;
+    return servers;
+  }
 
   @override
   Future<List<McpToolDescriptor>> getTools(

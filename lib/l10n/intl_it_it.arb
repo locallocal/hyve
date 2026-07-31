@@ -313,6 +313,10 @@
     "@provideFeedback": {
         "description": "Descrizione per fornire feedback"
     },
+    "feedbackInformation": "Informazioni sul feedback",
+    "@feedbackInformation": {
+        "description": "Titolo della sezione del modulo di feedback"
+    },
     "feedbackDescription": "Raccontaci i tuoi pensieri, problemi o suggerimenti per aiutarci a migliorare l'app",
     "@feedbackDescription": {
         "description": "Descrizione pagina feedback"

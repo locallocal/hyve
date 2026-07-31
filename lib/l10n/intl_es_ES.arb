@@ -301,6 +301,10 @@
     "@provideFeedback": {
         "description": "Descripción para proporcionar comentarios"
     },
+    "feedbackInformation": "Información sobre comentarios",
+    "@feedbackInformation": {
+        "description": "Título de la sección del formulario de comentarios"
+    },
     "feedbackDescription": "Por favor, cuéntenos sus pensamientos, problemas o sugerencias para ayudarnos a mejorar la aplicación",
     "@feedbackDescription": {
         "description": "Descripción de la página de comentarios"

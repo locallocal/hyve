@@ -242,6 +242,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "feedbackHint": MessageLookupByLibrary.simpleMessage(
       "Entrez vos commentaires ici...",
     ),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage(
+      "Informations sur les commentaires",
+    ),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage(
       "Échec de l\'envoi, veuillez réessayer plus tard",
     ),

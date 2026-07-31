@@ -301,6 +301,10 @@
     "@provideFeedback": {
         "description": "प्रतिक्रिया प्रदान करने का विवरण"
     },
+    "feedbackInformation": "प्रतिक्रिया जानकारी",
+    "@feedbackInformation": {
+        "description": "प्रतिक्रिया फ़ॉर्म अनुभाग का शीर्षक"
+    },
     "feedbackDescription": "कृपया हमें अपने विचार, समस्याएं या सुझाव बताएं ताकि हम ऐप को बेहतर बना सकें",
     "@feedbackDescription": {
         "description": "प्रतिक्रिया पृष्ठ विवरण"

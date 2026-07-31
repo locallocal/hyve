@@ -312,6 +312,10 @@
     "@provideFeedback": {
         "description": "提供反馈的描述"
     },
+    "feedbackInformation": "反馈信息",
+    "@feedbackInformation": {
+        "description": "反馈表单分组标题"
+    },
     "feedbackDescription": "请告诉我们您的想法、问题或建议，帮助我们改进应用",
     "@feedbackDescription": {
         "description": "反馈页面描述"

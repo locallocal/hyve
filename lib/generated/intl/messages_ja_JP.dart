@@ -201,6 +201,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "feedbackHint": MessageLookupByLibrary.simpleMessage(
       "ここにフィードバックを入力してください...",
     ),
+    "feedbackInformation": MessageLookupByLibrary.simpleMessage("フィードバック情報"),
     "feedbackSubmitError": MessageLookupByLibrary.simpleMessage(
       "送信に失敗しました。後でもう一度お試しください",
     ),

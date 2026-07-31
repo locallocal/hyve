@@ -28,9 +28,10 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -750,6 +751,16 @@ class S {
       'Provide your suggestions and feedback',
       name: 'provideFeedback',
       desc: 'Description for providing feedback',
+      args: [],
+    );
+  }
+
+  /// `Feedback Information`
+  String get feedbackInformation {
+    return Intl.message(
+      'Feedback Information',
+      name: 'feedbackInformation',
+      desc: 'Feedback form section title',
       args: [],
     );
   }

@@ -4,6 +4,7 @@ import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
+import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -127,7 +128,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     constraints: const BoxConstraints(maxWidth: 720),
                     child: ShadCard(
                       width: double.infinity,
-                      title: const Text('反馈信息'),
+                      title: Text(S.of(context).feedbackInformation),
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Column(
@@ -147,12 +148,25 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             ),
                             const SizedBox(height: 16),
                             ShadInput(
+                              key: const ValueKey<String>(
+                                'feedback-contact-input',
+                              ),
                               controller: contactController,
                               placeholder: Text(S.of(context).contactInfoHint),
-                              leading: const Icon(
-                                Icons.email_outlined,
-                                size: 18,
+                              leading: const SizedBox(
+                                width: 17,
+                                height: 30,
+                                child: Center(
+                                  child: Icon(Icons.email_outlined, size: 17),
+                                ),
                               ),
+                              constraints: const BoxConstraints(
+                                minHeight:
+                                    DesktopThemeTokens.botFormFieldHeight,
+                              ),
+                              alignment: AlignmentDirectional.centerStart,
+                              placeholderAlignment:
+                                  AlignmentDirectional.centerStart,
                               textInputAction: TextInputAction.done,
                               onSubmitted: (_) => _handleSubmit(),
                             ),
@@ -160,6 +174,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             Align(
                               alignment: Alignment.centerRight,
                               child: ShadButton(
+                                key: const ValueKey<String>(
+                                  'feedback-submit-button',
+                                ),
+                                height: DesktopThemeTokens.botFormFieldHeight,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 enabled: !_isSubmitting,
                                 onPressed: _isSubmitting ? null : _handleSubmit,
                                 leading:
@@ -215,7 +234,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 基本信息分组
-            buildSectionContainer(context, '反馈信息', [
+            buildSectionContainer(context, S.of(context).feedbackInformation, [
               _buildFeedbacktInput(fontSize),
               _buildContactInput(fontSize),
             ]),

@@ -187,9 +187,28 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 if (viewModel.error != null) ...[
                   const SizedBox(height: 16),
                   ShadAlert.destructive(
+                    key: const ValueKey<String>('skill-error-alert'),
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     icon: const Icon(LucideIcons.circleAlert),
                     title: Text(
                       strings.skillImportFailed(viewModel.error.toString()),
+                    ),
+                    trailing: ShadTooltip(
+                      builder:
+                          (context) => Text(
+                            MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
+                          ),
+                      child: ShadIconButton.ghost(
+                        key: const ValueKey<String>('close-skill-error'),
+                        onPressed: viewModel.clearError,
+                        width: 28,
+                        height: 28,
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        icon: const Icon(LucideIcons.x),
+                      ),
                     ),
                   ),
                 ],
@@ -260,6 +279,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                     width: itemWidth,
                     child: _DesktopSkillCard(
                       skill: skill,
+                      hasScriptTools: viewModel.hasScriptTools(skill.id),
                       scriptEnabled: viewModel.isScriptEnabled(skill.id),
                       update: _updateFor(skill),
                       onOpen: () => _showDetails(context, skill),
@@ -698,6 +718,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
 class _DesktopSkillCard extends StatefulWidget {
   const _DesktopSkillCard({
     required this.skill,
+    required this.hasScriptTools,
     required this.scriptEnabled,
     required this.update,
     required this.onOpen,
@@ -707,6 +728,7 @@ class _DesktopSkillCard extends StatefulWidget {
   });
 
   final SkillDescriptor skill;
+  final bool hasScriptTools;
   final bool scriptEnabled;
   final OnlineSkillCatalogEntry? update;
   final VoidCallback onOpen;
@@ -803,7 +825,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                       leading: const Icon(LucideIcons.info, size: 16),
                       child: Text(S.of(context).details),
                     ),
-                    if (widget.skill.hasScripts)
+                    if (widget.hasScriptTools)
                       ShadButton.ghost(
                         key: ValueKey<String>(
                           'desktop-skill-script-${widget.skill.id}',
@@ -896,7 +918,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (widget.skill.hasScripts)
+            if (widget.hasScriptTools)
               widget.scriptEnabled
                   ? ShadBadge(child: Text(strings.skillScriptsEnabled))
                   : ShadBadge.destructive(

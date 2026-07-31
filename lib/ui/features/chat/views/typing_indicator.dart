@@ -3,7 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 
 /// Announces and displays an active response stream.
-class TypingIndicator extends StatelessWidget {
+class TypingIndicator extends StatefulWidget {
   final String botName;
   final bool isDesktop;
 
@@ -14,10 +14,54 @@ class TypingIndicator extends StatelessWidget {
   });
 
   @override
+  State<TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _rotationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+  bool? _shouldRotate;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateRotation();
+  }
+
+  @override
+  void didUpdateWidget(covariant TypingIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isDesktop != widget.isDesktop) _updateRotation();
+  }
+
+  void _updateRotation() {
+    final shouldRotate =
+        widget.isDesktop && !MediaQuery.disableAnimationsOf(context);
+    if (_shouldRotate == shouldRotate) return;
+    _shouldRotate = shouldRotate;
+    if (shouldRotate) {
+      _rotationController.repeat();
+    } else {
+      _rotationController
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isDesktop) {
+    if (widget.isDesktop) {
       final shadTheme = ShadTheme.of(context);
-      final label = S.of(context).botIsTyping(botName);
+      final label = S.of(context).botIsTyping(widget.botName);
       return Semantics(
         liveRegion: true,
         value: label,
@@ -27,10 +71,14 @@ class TypingIndicator extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ExcludeSemantics(
-                child: Icon(
-                  LucideIcons.loaderCircle,
-                  size: 16,
-                  color: shadTheme.colorScheme.mutedForeground,
+                child: RotationTransition(
+                  key: const ValueKey<String>('desktop-typing-spinner'),
+                  turns: _rotationController,
+                  child: Icon(
+                    LucideIcons.loaderCircle,
+                    size: 16,
+                    color: shadTheme.colorScheme.mutedForeground,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -53,7 +101,7 @@ class TypingIndicator extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           const SizedBox(width: 8),
-          Text(S.of(context).botIsTyping(botName)),
+          Text(S.of(context).botIsTyping(widget.botName)),
           const Spacer(),
         ],
       ),

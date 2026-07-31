@@ -201,8 +201,22 @@ void main() {
     expect(persisted.single.tokenUsage.effectiveTotalTokens, 140);
   });
 
-  test('clearing chat content retains persisted token usage', () async {
+  test('chat deletion retains token usage until bot deletion', () async {
     final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    final bot = _bot();
+    final timestamp = DateTime(2026, 7, 25, 10);
+    await botRepository.addBot(bot);
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-clear',
+          botId: bot.id,
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
     await repository.upsertMessage(
       Message(
         messageId: 'assistant-clear',
@@ -217,7 +231,7 @@ void main() {
           outputTokens: 30,
           totalTokens: 120,
         ),
-        timestamp: DateTime(2026, 7, 25, 10),
+        timestamp: timestamp,
       ),
     );
 
@@ -234,9 +248,20 @@ void main() {
 
     await localDatabase.deleteChat('chat-clear');
 
-    expect(await repository.getTokenUsageRecordsForChat('chat-clear'), isEmpty);
+    final retained = await repository.getTokenUsageRecordsForChat('chat-clear');
+    expect(retained, hasLength(1));
+    expect(retained.single.usage.effectiveTotalTokens, 120);
     expect(
       (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
+      120,
+    );
+
+    await botRepository.deleteBot(bot.id);
+
+    expect(await repository.getTokenUsageRecordsForChat('chat-clear'), isEmpty);
+    expect(await repository.getTokenUsageRecordsForBot(bot.id), isEmpty);
+    expect(
+      (await repository.getTokenUsageForBot(bot.id)).effectiveTotalTokens,
       0,
     );
   });

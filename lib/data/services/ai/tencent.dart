@@ -41,30 +41,10 @@ class Tencent extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    // 腾讯混元目前支持的模型列表
-    return const [
-      'hunyuan-t1-latest',
-      'hunyuan-t1-20250403',
-      'hunyuan-t1-20250321',
-      'hunyuan-turbos-latest',
-      'hunyuan-turbos-20250313',
-      'hunyuan-turbos-20250226',
-      'hunyuan-turbos-longtext-128k-20250325',
-      'hunyuan-turbo-latest',
-      'hunyuan-turbo',
-      'hunyuan-turbo-20241223',
-      'hunyuan-large',
-      'hunyuan-large-longcontext',
-      'hunyuan-standard-256K',
-      'hunyuan-standard',
-      'hunyuan-lite',
-      'hunyuan-turbos-vision',
-      'hunyuan-standard-vision',
-      'hunyuan-lite-vision',
-      'hunyuan-turbo-vision',
-      'hunyuan-vision',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

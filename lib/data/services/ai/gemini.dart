@@ -64,7 +64,7 @@ class Gemini extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final pageSize = 100;
     final url =
         bot.baseURL.isNotEmpty
@@ -76,11 +76,8 @@ class Gemini extends Provider {
         .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['models'] as List)
-              .map((model) => model['name'] as String)
-              .toList();
-      models.sort();
+      final models = providerModelInfos(data['models']);
+      models.sort((left, right) => left.modelId.compareTo(right.modelId));
       return models;
     } else {
       throw Exception('Request Failed: ${response.body}');

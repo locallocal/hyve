@@ -96,7 +96,7 @@ class HuggingFace extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final provider = _getSubProvider();
     final url =
         'https://huggingface.co/api/models?inference_provider=$provider';
@@ -110,12 +110,14 @@ class HuggingFace extends Provider {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-        final models =
-            (data as List).map((model) {
-              final m = model['id'] as String;
-              return m.substring(m.lastIndexOf('/') + 1); // 提取模型名称部分
-            }).toList();
-        models.sort();
+        final models = providerModelInfos(
+          data,
+          modelId: (model) {
+            final id = model['id'] as String?;
+            return id?.substring(id.lastIndexOf('/') + 1);
+          },
+        );
+        models.sort((left, right) => left.modelId.compareTo(right.modelId));
         return models;
       } else {
         throw Exception('List models failed: ${response.statusCode}');

@@ -131,7 +131,7 @@ class AlibabaCloud extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelUrl;
     final response = await http.get(
@@ -143,21 +143,9 @@ class AlibabaCloud extends Provider {
     );
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['data'] as List).map((model) => model['id'] as String).toList();
-      if (!models.contains('wanx2.1-t2i-turbo')) {
-        models.add('wanx2.1-t2i-turbo');
-      }
-      if (!models.contains('wanx2.1-t2i-plus')) {
-        models.add('wanx2.1-t2i-plus');
-      }
-      if (!models.contains('wanx2.0-t2i-turbo')) {
-        models.add('wanx2.0-t2i-turbo');
-      }
-      final uniqueModels = models.toSet().toList();
-      // 可选：对模型列表进行排序
-      uniqueModels.sort();
-      return uniqueModels;
+      final models = providerModelInfos(data['data']);
+      models.sort((left, right) => left.modelId.compareTo(right.modelId));
+      return models;
     } else {
       throw Exception('List models Failed: ${response.statusCode}');
     }

@@ -67,7 +67,7 @@ class StepFun extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
 
@@ -80,13 +80,7 @@ class StepFun extends Provider {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-        final models =
-            (data['data'] as List)
-                .map((model) => model['id'] as String)
-                .toList();
-        if (!models.contains('step-1o-audio')) {
-          models.add('step-1o-audio');
-        }
+        final models = providerModelInfos(data['data']);
         return models;
       } else {
         throw Exception('List models failed: ${response.statusCode}');

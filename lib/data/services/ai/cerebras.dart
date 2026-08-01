@@ -30,7 +30,7 @@ class Cerebras extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelKey;
 
@@ -43,8 +43,7 @@ class Cerebras extends Provider {
     );
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['data'] as List).map((model) => model['id'] as String).toList();
+      final models = providerModelInfos(data['data']);
       return models;
     } else {
       throw Exception('List models Failed: ${response.statusCode}');

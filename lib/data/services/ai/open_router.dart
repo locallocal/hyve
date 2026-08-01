@@ -11,7 +11,7 @@ class OpenRouter extends Provider {
   OpenRouter(super.bot);
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
 
@@ -23,8 +23,7 @@ class OpenRouter extends Provider {
 
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(response.body);
-        final models = data['data'] as List<dynamic>;
-        return models.map((model) => model['id'] as String).toList();
+        return providerModelInfos(data['data']);
       } else {
         throw Exception(
           'List models failed: ${response.statusCode} ${response.body}',

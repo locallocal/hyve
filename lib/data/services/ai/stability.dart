@@ -38,17 +38,10 @@ class Stability extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'ultra',
-      'core',
-      'sd3-large',
-      'sd3-large-turbo',
-      'sd3-medium',
-      'sd3.5-large',
-      'sd3.5-large-turbo',
-      'sd3.5-medium',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

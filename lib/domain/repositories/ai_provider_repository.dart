@@ -90,7 +90,8 @@ abstract class AiProvider {
 
   List<OutputModality> getOutputModalites() => const [OutputModality.text];
 
-  Future<List<String>> listModels() async => const [];
+  /// Fetches model metadata from the provider's external catalog endpoint.
+  Future<List<AiModelInfo>> fetchModels() async => const [];
 
   Future<void> generateText(List<ChatMessage> messages);
 
@@ -187,7 +188,9 @@ abstract class AiProvider {
 abstract interface class AiProviderRepository {
   AiProvider create(Bot bot);
 
-  Future<List<String>> listModels(Bot bot);
+  Future<AiModelInfo?> getModelInfo(Bot bot);
+
+  Future<List<AiModelInfo>> listModels(Bot bot);
 
   Future<List<String>> generateImage({
     required Bot bot,

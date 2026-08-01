@@ -101,7 +101,16 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
   }
 
   @override
-  Future<List<String>> listModels(Bot bot) => create(bot).listModels();
+  Future<AiModelInfo?> getModelInfo(Bot bot) async {
+    final models = await listModels(bot);
+    for (final model in models) {
+      if (model.modelId == bot.model) return model;
+    }
+    return null;
+  }
+
+  @override
+  Future<List<AiModelInfo>> listModels(Bot bot) => create(bot).fetchModels();
 
   @override
   Future<List<String>> generateImage({

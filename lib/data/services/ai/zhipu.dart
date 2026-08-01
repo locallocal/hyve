@@ -43,44 +43,10 @@ class Zhipu extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    // 智普AI目前支持的模型
-    return const [
-      // 推理模型
-      'glm-z1-air',
-      'glm-z1-airx',
-      'glm-z1-flash',
-      // 文本模型
-      'glm-4-plus',
-      'glm-4-air',
-      'glm-4-air-250414',
-      'glm-4-air-0111',
-      'glm-4-airx',
-      'glm-4-long',
-      'glm-4-flash',
-      'glm-4-flash-250414',
-      'glm-4-flashx',
-      'glm-4-0520',
-      'chatglm3-6b',
-      // 多模态模型
-      'glm-4v-plus-0111',
-      'glm-4v-flash',
-      // 推理模型
-      'glm-zero-preview',
-      // 图片模型
-      'cogview-4',
-      'cogview-4-250304',
-      'cogview-3',
-      'cogview-3-plus',
-      'cogview-3-flash',
-      // 视频模型
-      'cogvideox',
-      'cogvideox-2',
-      'cogvideox-flash',
-      // 实时语言
-      'glm-4-realtime',
-      'glm-4-voice',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

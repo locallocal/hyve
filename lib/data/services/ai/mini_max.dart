@@ -136,27 +136,10 @@ class MiniMax extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'MiniMax-Text-01',
-      'abab6.5s-chat',
-      'DeepSeek-R1',
-      'speech-02-hd',
-      'speech-02-turbo',
-      'speech-01-hd',
-      'speech-01-turbo',
-      'speech-01-240228',
-      'speech-01-turbo-240228',
-      'T2V-01-Director',
-      'I2V-01-Director',
-      'S2V-01',
-      'I2V-01',
-      'I2V-01-live',
-      'T2V-01',
-      'music-01',
-      'image-01',
-      'image-01-live',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

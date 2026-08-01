@@ -29,7 +29,7 @@ class Cohere extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelKey;
     final uri = Uri.parse(url).replace(queryParameters: {'page_size': '1000'});
@@ -43,10 +43,7 @@ class Cohere extends Provider {
     );
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['models'] as List)
-              .map((model) => model['name'] as String)
-              .toList();
+      final models = providerModelInfos(data['models']);
       return models;
     } else {
       throw Exception('List models Failed: ${response.statusCode}');

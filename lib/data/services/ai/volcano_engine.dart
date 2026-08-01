@@ -62,43 +62,10 @@ class VolcanoEngine extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'doubao-1-5-thinking-vision-pro-250428',
-      'doubao-1-5-thinking-pro-m-250428',
-      'doubao-1-5-thinking-pro-250415',
-      'doubao-1-5-thinking-pro-m-250415',
-      'doubao-1.5-vision-pro-250328',
-      'doubao-1-5-vision-pro-32k-250115',
-      'doubao-1-5-pro-256k-250115',
-      'doubao-1-5-pro-32k-250115',
-      'doubao-1-5-lite-32k-250115',
-      'doubao-1.5-vision-lite-250315',
-      'doubao-vision-pro-32k-241028',
-      'doubao-vision-lite-32k-241015',
-      'doubao-pro-256k-241115',
-      'doubao-pro-32k-241215',
-      'doubao-pro-32k-240828',
-      'doubao-pro-32k-240615',
-      'doubao-lite-32k-240828',
-      'doubao-lite-128k-240828',
-      'doubao-seedance-1-0-lite-i2v-250428',
-      'doubao-seedance-1-0-lite-t2v-250428',
-      'doubao-seaweed-241128',
-      'wan2-1-14b-t2v-250225',
-      'wan2-1-14b-i2v-250225',
-      'wan2-1-14b-flf2v-250417',
-      'doubao-seedream-3-0-t2i-250415',
-      'deepseek-r1-250120',
-      'deepseek-v3-241226',
-      'deepseek-r1-distill-qwen-7b-250120',
-      'deepseek-r1-distill-qwen-32b-250120',
-      'mistral-7b-instruct-v0.2',
-      'chatglm3-130b-fc-v1.0',
-      'moonshot-v1-128k',
-      'moonshot-v1-32k',
-      'moonshot-v1-8k',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

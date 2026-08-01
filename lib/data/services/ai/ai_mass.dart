@@ -51,23 +51,10 @@ class AiMass extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'taichu_llm',
-      'taichu_llm_2b',
-      'qwq_32b',
-      'taichu_o1',
-      'deepseek_r1_distill_qwen_32b',
-      'deepseek_r1_distill_qwen_14b',
-      'deepseek_r1_distill_llama_70b',
-      'deepseek_r1',
-      'taichu_vl',
-      'taichu_vl_2b',
-      'taichu_vlr_7b',
-      'taichu_vlr_3b',
-      'taichu_tts',
-      'taichu_txt2image',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

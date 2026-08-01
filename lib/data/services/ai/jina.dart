@@ -29,8 +29,10 @@ class Jina extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const ['jina-deepsearch-v1'];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

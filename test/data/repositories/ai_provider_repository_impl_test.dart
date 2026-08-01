@@ -97,10 +97,23 @@ void main() {
         isFalse,
       );
     });
+
+    test('does not fall back to a local model catalog', () async {
+      expect(
+        repository.listModels(_bot(Bot.apiTypeFlux, model: 'flux-pro')),
+        throwsA(
+          isA<UnsupportedError>().having(
+            (error) => error.message,
+            'message',
+            contains('external model catalog'),
+          ),
+        ),
+      );
+    });
   });
 }
 
-Bot _bot(String apiType) => Bot(
+Bot _bot(String apiType, {String model = 'test-model'}) => Bot(
   id: 'bot-$apiType',
   name: apiType,
   avatar: '',
@@ -108,7 +121,7 @@ Bot _bot(String apiType) => Bot(
   baseURL: 'https://example.invalid',
   apiKey: 'test-key',
   apiType: apiType,
-  model: 'test-model',
+  model: model,
   systemPrompt: '',
   createTimestamp: DateTime.fromMillisecondsSinceEpoch(1),
   modifyTimestamp: DateTime.fromMillisecondsSinceEpoch(1),

@@ -6,15 +6,22 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/data/services/ai/provider_service.dart';
 
 class Grok extends Provider {
-  static const String defaultApiModelsUrl = 'https://api.grok.ai/v1/models';
+  static const String defaultApiModelsUrl = 'https://api.x.ai/v1/models';
   static const String defaultApiChatUrl =
-      'https://api.grok.ai/v1/chat/completions';
+      'https://api.x.ai/v1/chat/completions';
   static const String defaultApiImageUrl =
-      'https://api.grok.ai/v1/images/generations';
+      'https://api.x.ai/v1/images/generations';
   Grok(super.bot);
 
   @override
+  bool supportWebSearch() {
+    return builtInModelInfo()?.supportsWebSearch ?? false;
+  }
+
+  @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     switch (bot.model) {
       case 'grok-3-mini-beta':
       case 'grok-3-mini-fast-beta':
@@ -25,6 +32,8 @@ class Grok extends Provider {
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     if (bot.model.contains('grok-2-vision')) {
       return [InputModality.text, InputModality.image];
     }
@@ -54,7 +63,6 @@ class Grok extends Provider {
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models = providerModelInfos(data['data']);
-        models.sort((left, right) => left.modelId.compareTo(right.modelId));
         return models;
       } else {
         throw Exception('List models failed: ${response.statusCode}');
@@ -72,6 +80,25 @@ class Grok extends Provider {
       // 重置取消状态
       resetCancelState();
 
+      if (webSearch) {
+        final responsesUrl =
+            bot.baseURL.isNotEmpty
+                ? '${bot.baseURL}responses'
+                : 'https://api.x.ai/v1/responses';
+        await generateResponsesText(
+          url: responsesUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${bot.apiKey}',
+          },
+          messages: messages,
+          reasoning:
+              deepThinking ? const {'effort': 'high', 'summary': 'auto'} : null,
+        );
+        if (!isCancelled && onComplete != null) onComplete!();
+        return;
+      }
+
       final url =
           bot.baseURL.isNotEmpty
               ? '${bot.baseURL}chat/completions'
@@ -88,6 +115,7 @@ class Grok extends Provider {
               'messages': processMessagesWithImages(messages),
               'temperature': 0.7,
               'stream': true,
+              if (deepThinking) 'reasoning_effort': 'high',
             });
 
       final streamedResponse = await request.send();
@@ -115,8 +143,11 @@ class Grok extends Provider {
 
           try {
             final data = decodeProviderResponse(jsonStr);
+            final choice = data['choices'][0];
             final resonContent =
-                data['choices'][0]['message']['reasoning_content'] ?? '';
+                choice['delta']?['reasoning_content'] ??
+                choice['message']?['reasoning_content'] ??
+                '';
             if (resonContent.isNotEmpty &&
                 deepThinking &&
                 onReasoningResponse != null) {

@@ -19,11 +19,13 @@ class Gemini extends Provider {
 
   @override
   bool supportWebSearch() {
-    return false;
+    return builtInModelInfo()?.supportsWebSearch ?? false;
   }
 
   @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     final model = bot.model.toLowerCase();
     if (model.contains('gemini-2.5-pro') ||
         model.contains('gemini-2.5-flash')) {
@@ -34,6 +36,8 @@ class Gemini extends Provider {
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     final model = bot.model.toLowerCase();
     if (model.contains('imagen2') || model.contains('gemma')) {
       return [InputModality.text];
@@ -77,7 +81,6 @@ class Gemini extends Provider {
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
       final models = providerModelInfos(data['models']);
-      models.sort((left, right) => left.modelId.compareTo(right.modelId));
       return models;
     } else {
       throw Exception('Request Failed: ${response.body}');
@@ -181,15 +184,22 @@ class Gemini extends Provider {
           */
           return {'role': m.role == 'user' ? 'user' : 'model', 'parts': parts};
         }).toList();
-    if (supportDeepThinking() && deepThinking) {
-      return jsonEncode({
-        'contents': geminiMessages,
-        'generationConfig': {
-          'thinkingConfig': {'thinkingBudget': 1024, 'includeThoughts': true},
-        },
-      });
+    return jsonEncode({
+      'contents': geminiMessages,
+      if (webSearch)
+        'tools': [
+          {'google_search': <String, Object>{}},
+        ],
+      if (supportDeepThinking() && deepThinking)
+        'generationConfig': {'thinkingConfig': _thinkingConfig()},
+    });
+  }
+
+  Map<String, Object> _thinkingConfig() {
+    if (bot.model.toLowerCase().contains('gemini-3')) {
+      return {'thinkingLevel': 'high', 'includeThoughts': true};
     }
-    return jsonEncode({'contents': geminiMessages});
+    return {'thinkingBudget': 1024, 'includeThoughts': true};
   }
 
   Map<String, String> _readImage(String imagePath) {
@@ -215,7 +225,13 @@ class Gemini extends Provider {
     for (final part in data['candidates'][0]['content']['parts']) {
       final text = part['text'];
       if (text != null && text.isNotEmpty) {
-        onResponse(text);
+        if (part['thought'] == true &&
+            deepThinking &&
+            onReasoningResponse != null) {
+          onReasoningResponse!(text);
+        } else if (part['thought'] != true) {
+          onResponse(text);
+        }
       }
       final inlineData = part['inlineData'] ?? {};
       if (inlineData.isNotEmpty && inlineData['data'].isNotEmpty) {

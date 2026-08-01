@@ -84,11 +84,13 @@ class Anthropic extends Provider {
 
   @override
   bool supportWebSearch() {
-    return false;
+    return builtInModelInfo()?.supportsWebSearch ?? false;
   }
 
   @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     switch (bot.model.toLowerCase()) {
       case 'claude-3-7-sonnet-latest':
       case 'claude-3-7-sonnet-20250219':
@@ -99,6 +101,8 @@ class Anthropic extends Provider {
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     switch (bot.model.toLowerCase()) {
       case 'claude-3-7-sonnet-latest':
       case 'claude-3-7-sonnet-20250219':
@@ -136,7 +140,6 @@ class Anthropic extends Provider {
     }
     final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
     final models = providerModelInfos(data['data']);
-    models.sort((left, right) => left.modelId.compareTo(right.modelId));
     return models;
   }
 
@@ -162,8 +165,15 @@ class Anthropic extends Provider {
               'system': formattedMessages['system'],
               'stream': true,
               'max_tokens': _getMaxTokens(),
-              if (deepThinking)
-                'thinking': {"type": "enabled", "budget_tokens": 16000},
+              if (_thinkingConfig() case final thinking?) 'thinking': thinking,
+              if (webSearch)
+                'tools': [
+                  {
+                    'type': 'web_search_20250305',
+                    'name': 'web_search',
+                    'max_uses': 5,
+                  },
+                ],
             });
 
       final streamedResponse = await request.send();
@@ -193,7 +203,9 @@ class Anthropic extends Provider {
               final delta = data['delta'];
               if (delta['type'] == 'text_delta') {
                 onResponse(delta['text']);
-              } else if (delta['type'] == 'thinking_delta' && deepThinking) {
+              } else if (delta['type'] == 'thinking_delta' &&
+                  deepThinking &&
+                  onReasoningResponse != null) {
                 onReasoningResponse!(delta['thinking']);
               }
             }
@@ -278,6 +290,8 @@ class Anthropic extends Provider {
   }
 
   int _getMaxTokens() {
+    final documented = builtInModelInfo()?.maxOutputTokens;
+    if (documented != null) return documented;
     switch (bot.model.toLowerCase()) {
       case 'claude-3-7-sonnet-latest':
       case 'claude-3-7-sonnet-20250219':
@@ -294,5 +308,17 @@ class Anthropic extends Provider {
         return 4096;
     }
     return 4096;
+  }
+
+  Map<String, Object>? _thinkingConfig() {
+    if (!deepThinking) return null;
+    switch (bot.model.toLowerCase()) {
+      case 'claude-fable-5':
+      case 'claude-opus-5':
+      case 'claude-sonnet-5':
+        return {'type': 'adaptive'};
+      default:
+        return {'type': 'enabled', 'budget_tokens': 16000};
+    }
   }
 }

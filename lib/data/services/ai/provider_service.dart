@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
+import 'package:stars/data/services/ai/built_in_model_catalog.dart';
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -28,15 +30,16 @@ abstract class Provider extends AiProvider {
 
   /// Maps model metadata returned by a provider catalog endpoint.
   ///
-  /// Missing fields remain unknown; this method never reads [Bot.parameters]
-  /// and never infers capabilities from a model identifier.
+  /// Missing fields remain unknown unless the exact first-party model ID is in
+  /// [BuiltInModelCatalog]. This method never reads [Bot.parameters] or guesses
+  /// capabilities from model-name patterns.
   AiModelInfo providerModelInfo(Map<String, dynamic> model, {String? modelId}) {
     final architecture = _stringMap(model['architecture']);
     final topProvider = _stringMap(model['top_provider']);
     final supportedParameters = _stringSet(model['supported_parameters']);
     final capabilities = _stringSet(model['capabilities']);
 
-    return AiModelInfo(
+    final info = AiModelInfo(
       modelId:
           modelId ??
           _firstString(model, const ['id', 'name', 'baseModelId']) ??
@@ -108,6 +111,7 @@ abstract class Provider extends AiProvider {
         model['created'] ?? model['created_at'] ?? model['release_date'],
       ),
     );
+    return _builtInProviderId == null ? info : BuiltInModelCatalog.enrich(info);
   }
 
   List<AiModelInfo> providerModelInfos(
@@ -117,11 +121,115 @@ abstract class Provider extends AiProvider {
     if (source is! List) {
       throw const FormatException('Provider model catalog is not a list');
     }
-    return source
+    final models = source
         .whereType<Map>()
         .map((raw) {
           final model = Map<String, dynamic>.from(raw);
           return providerModelInfo(model, modelId: modelId?.call(model));
+        })
+        .toList(growable: false);
+    final providerId = _builtInProviderId;
+    return providerId == null ||
+            BuiltInModelCatalog.modelsFor(providerId).isEmpty
+        ? models
+        : BuiltInModelCatalog.merge(providerId, models);
+  }
+
+  /// Returns curated metadata for the currently selected model, when known.
+  AiModelInfo? builtInModelInfo() {
+    final providerId = _builtInProviderId;
+    return providerId == null
+        ? null
+        : BuiltInModelCatalog.find(providerId, bot.model);
+  }
+
+  /// Several compatible services reuse the OpenAI adapter. Do not inject
+  /// first-party OpenAI models into their catalogs.
+  String? get _builtInProviderId {
+    if (bot.apiType == Bot.apiTypeOpenAI &&
+        bot.provider.toLowerCase() != Bot.apiTypeOpenAI) {
+      return null;
+    }
+    return bot.apiType;
+  }
+
+  /// Sends a streaming request through an OpenAI-compatible Responses API.
+  /// This is required for server-side tools such as first-party web search.
+  Future<void> generateResponsesText({
+    required String url,
+    required Map<String, String> headers,
+    required List<ChatMessage> messages,
+    Map<String, Object>? reasoning,
+  }) async {
+    final request =
+        http.Request('POST', Uri.parse(url))
+          ..headers.addAll(headers)
+          ..body = jsonEncode({
+            'model': bot.model,
+            'input': _responsesInput(messages),
+            'stream': true,
+            'tools': [
+              {'type': 'web_search'},
+            ],
+            if (reasoning != null) 'reasoning': reasoning,
+          });
+
+    cancelController?.stream.listen((_) {
+      cancelController?.close();
+    });
+
+    final streamedResponse = await request.send();
+    if (streamedResponse.statusCode != 200) {
+      final errorBody = await streamedResponse.stream.bytesToString();
+      throw Exception('${streamedResponse.statusCode}, $errorBody');
+    }
+
+    final stream = streamedResponse.stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+    await for (final line in stream) {
+      if (isCancelled) return;
+      if (!line.startsWith('data: ')) continue;
+
+      final jsonSource = line.substring(6).trim();
+      if (jsonSource.isEmpty || jsonSource == '[DONE]') continue;
+      final data = decodeProviderResponse(jsonSource);
+      switch (data['type']) {
+        case 'response.output_text.delta':
+          final delta = data['delta']?.toString() ?? '';
+          if (delta.isNotEmpty) onResponse(delta);
+        case 'response.reasoning_summary_text.delta':
+          final delta = data['delta']?.toString() ?? '';
+          if (deepThinking && delta.isNotEmpty && onReasoningResponse != null) {
+            onReasoningResponse!(delta);
+          }
+        case 'response.failed':
+        case 'error':
+          throw Exception(data['error'] ?? data);
+      }
+    }
+  }
+
+  List<Map<String, dynamic>> _responsesInput(List<ChatMessage> messages) {
+    return messages
+        .map((message) {
+          if (message.images.isEmpty) return message.toJson();
+
+          final content = <Map<String, dynamic>>[];
+          if (message.content.isNotEmpty) {
+            content.add({'type': 'input_text', 'text': message.content});
+          }
+          for (final imagePath in message.images) {
+            final file = File(imagePath);
+            if (!file.existsSync()) continue;
+            final bytes = file.readAsBytesSync();
+            content.add({
+              'type': 'input_image',
+              'image_url':
+                  'data:${getImageMediaType(bytes)};base64,${base64Encode(bytes)}',
+            });
+          }
+          return {'role': message.role, 'content': content};
         })
         .toList(growable: false);
   }

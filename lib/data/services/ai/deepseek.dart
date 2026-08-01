@@ -34,7 +34,7 @@ class Deepseek extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     // deepseek-chat
     // deepseek-reasoner
     final url =
@@ -49,8 +49,7 @@ class Deepseek extends Provider {
     );
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['data'] as List).map((model) => model['id'] as String).toList();
+      final models = providerModelInfos(data['data']);
       return models;
     } else {
       throw Exception('List models Failed: ${response.statusCode}');

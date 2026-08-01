@@ -23,7 +23,7 @@ class AddBotDialog extends StatelessWidget {
   });
 
   final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
-  final Future<List<String>> Function(Bot)? modelLoader;
+  final Future<List<AiModelInfo>> Function(Bot)? modelLoader;
   final Future<String?> Function()? avatarPicker;
   final String? botId;
   final BotSkillViewModel? skillViewModel;
@@ -68,7 +68,7 @@ class AddBotDialog extends StatelessWidget {
 
 class AddBotPage extends StatefulWidget {
   final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
-  final Future<List<String>> Function(Bot)? modelLoader;
+  final Future<List<AiModelInfo>> Function(Bot)? modelLoader;
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
   final String? botId;
@@ -123,7 +123,7 @@ class _AddBotPageState extends State<AddBotPage> {
   bool _isSyncingProviderFields = false;
   bool _isPasswordVisible = false;
   File? avatarImage;
-  List<String> providerModels = [];
+  List<AiModelInfo> providerModels = [];
 
   Future<void> _pickImage() async {
     final imagePath = await widget.avatarPicker?.call();
@@ -176,7 +176,7 @@ class _AddBotPageState extends State<AddBotPage> {
       if (models.isNotEmpty && mounted) {
         setState(() {
           providerModels = models;
-          selectedModelController.text = models.first;
+          selectedModelController.text = models.first.modelId;
         });
       } else if (mounted) {
         showSnackBar(context, S.of(context).noModelsRetrieved);
@@ -803,12 +803,13 @@ class _AddBotPageState extends State<AddBotPage> {
     );
   }
 
-  Widget _desktopMenuAnchor({
-    required List<String> options,
-    required String selectedValue,
+  Widget _desktopMenuAnchor<T>({
+    required List<T> options,
+    required T? selectedValue,
     required Widget Function(MenuController controller) fieldBuilder,
-    required ValueChanged<String> onSelected,
-    Widget Function(String value)? leadingBuilder,
+    required ValueChanged<T> onSelected,
+    String Function(T value)? labelBuilder,
+    Widget Function(T value)? leadingBuilder,
     double? menuWidth,
     bool alignEnd = false,
   }) {
@@ -851,7 +852,11 @@ class _AddBotPageState extends State<AddBotPage> {
             onPressed: () => onSelected(option),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 180),
-              child: Text(option, maxLines: 1, overflow: TextOverflow.ellipsis),
+              child: Text(
+                labelBuilder?.call(option) ?? option.toString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
       ],
@@ -1009,11 +1014,12 @@ class _AddBotPageState extends State<AddBotPage> {
   }
 
   Widget _buildDesktopModelsInput() {
-    return _desktopMenuAnchor(
+    return _desktopMenuAnchor<AiModelInfo>(
       options: providerModels,
-      selectedValue: selectedModelController.text,
+      selectedValue: _modelInfoById(selectedModelController.text),
+      labelBuilder: (model) => model.modelId,
       onSelected: (value) {
-        setState(() => selectedModelController.text = value);
+        setState(() => selectedModelController.text = value.modelId);
       },
       fieldBuilder:
           (menuController) => ShadInputFormField(
@@ -1538,11 +1544,13 @@ class _AddBotPageState extends State<AddBotPage> {
                     )
                   else
                     Flexible(
-                      child: RadioGroup<String>(
-                        groupValue: selectedModelController.text,
+                      child: RadioGroup<AiModelInfo>(
+                        groupValue: _modelInfoById(
+                          selectedModelController.text,
+                        ),
                         onChanged: (value) {
                           if (value == null) return;
-                          selectedModelController.text = value;
+                          selectedModelController.text = value.modelId;
                           Navigator.pop(context);
                         },
                         child: Scrollbar(
@@ -1563,8 +1571,8 @@ class _AddBotPageState extends State<AddBotPage> {
                                         ),
                                       ]
                                       : providerModels.map((model) {
-                                        return RadioListTile<String>(
-                                          title: Text(model),
+                                        return RadioListTile<AiModelInfo>(
+                                          title: Text(model.modelId),
                                           activeColor:
                                               Theme.of(
                                                 context,
@@ -1583,6 +1591,13 @@ class _AddBotPageState extends State<AddBotPage> {
             ),
           ),
     );
+  }
+
+  AiModelInfo? _modelInfoById(String modelId) {
+    for (final model in providerModels) {
+      if (model.modelId == modelId) return model;
+    }
+    return null;
   }
 
   Widget _buildSystemPromptInput(double? fontSize) {

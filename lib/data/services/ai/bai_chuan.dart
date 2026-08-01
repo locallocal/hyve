@@ -30,15 +30,10 @@ class BaiChuan extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'Baichuan4-Turbo',
-      'Baichuan4-Air',
-      'Baichuan4',
-      'Baichuan3-Turbo',
-      'Baichuan3-Turbo-128k',
-      'Baichuan2-Turbo',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

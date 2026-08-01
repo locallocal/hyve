@@ -71,8 +71,11 @@ class BotListViewModel extends ChangeNotifier {
 
   Future<Chat> startChat(Bot bot) => _createChat(bot);
 
-  Future<List<String>> listModels(Bot bot) =>
+  Future<List<AiModelInfo>> listModels(Bot bot) =>
       _aiProviderRepository.listModels(bot);
+
+  Future<AiModelInfo?> getModelInfo(Bot bot) =>
+      _aiProviderRepository.getModelInfo(bot);
 
   Future<String?> pickAvatar() => _attachmentRepository.selectImage();
 

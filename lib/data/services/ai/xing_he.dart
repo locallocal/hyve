@@ -46,20 +46,10 @@ class Xinghe extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'ernie-4.5-8k-preview',
-      'ernie-3.5-8k',
-      'ernie-4.0-8k',
-      'ernie-4.0-turbo-8k',
-      'ernie-char-8k',
-      'ernie-speed-8k',
-      'ernie-speed-128k',
-      'ernie-tiny-8k',
-      'ernie-lite-8k',
-      'deepseek-r1',
-      'Stable-Diffusion-XL',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

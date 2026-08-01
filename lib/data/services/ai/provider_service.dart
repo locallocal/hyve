@@ -6,6 +6,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 
 export 'package:stars/domain/models/ai_models.dart';
+export 'package:stars/domain/models/ai_model_info.dart';
 
 extension ChatMessageJson on ChatMessage {
   Map<String, Object> toJson() => {'role': role, 'content': content};
@@ -23,6 +24,106 @@ abstract class Provider extends AiProvider {
     final decoded = jsonDecode(source);
     _captureTokenUsage(decoded);
     return decoded;
+  }
+
+  /// Maps model metadata returned by a provider catalog endpoint.
+  ///
+  /// Missing fields remain unknown; this method never reads [Bot.parameters]
+  /// and never infers capabilities from a model identifier.
+  AiModelInfo providerModelInfo(Map<String, dynamic> model, {String? modelId}) {
+    final architecture = _stringMap(model['architecture']);
+    final topProvider = _stringMap(model['top_provider']);
+    final supportedParameters = _stringSet(model['supported_parameters']);
+    final capabilities = _stringSet(model['capabilities']);
+
+    return AiModelInfo(
+      modelId:
+          modelId ??
+          _firstString(model, const ['id', 'name', 'baseModelId']) ??
+          (throw const FormatException('Provider model is missing an id')),
+      providerId: bot.apiType,
+      inputModalities: _inputModalities(
+        architecture?['input_modalities'] ??
+            model['input_modalities'] ??
+            model['supportedInputTypes'],
+      ),
+      outputModalities: _outputModalities(
+        architecture?['output_modalities'] ??
+            model['output_modalities'] ??
+            model['supportedOutputTypes'],
+      ),
+      supportsWebSearch:
+          _firstBool(model, const [
+            'supports_web_search',
+            'supportsWebSearch',
+          ]) ??
+          _setCapability(supportedParameters, const {
+            'web_search',
+            'web_search_options',
+          }),
+      supportsDeepThinking:
+          _firstBool(model, const [
+            'thinking',
+            'supports_deep_thinking',
+            'supportsDeepThinking',
+          ]) ??
+          _setCapability(supportedParameters, const {
+            'reasoning',
+            'include_reasoning',
+          }),
+      supportsDeepResearch: _firstBool(model, const [
+        'supports_deep_research',
+        'supportsDeepResearch',
+      ]),
+      supportsSkills:
+          _firstBool(model, const ['supports_skills', 'supportsSkills']) ??
+          _setCapability(supportedParameters, const {'tools', 'tool_choice'}) ??
+          _setCapability(capabilities, const {'tools', 'tool_calling'}),
+      supportsAutomaticSkillActivation:
+          _firstBool(model, const [
+            'supports_automatic_skill_activation',
+            'supportsAutomaticSkillActivation',
+          ]) ??
+          _setCapability(supportedParameters, const {'tools', 'tool_choice'}) ??
+          _setCapability(capabilities, const {'tools', 'tool_calling'}),
+      supportsHostedSkills: _firstBool(model, const [
+        'supports_hosted_skills',
+        'supportsHostedSkills',
+      ]),
+      contextWindowTokens:
+          _firstPositiveInt(model, const [
+            'context_length',
+            'contextWindowTokens',
+            'inputTokenLimit',
+          ]) ??
+          _firstPositiveInt(topProvider, const ['context_length']),
+      maxOutputTokens:
+          _firstPositiveInt(model, const [
+            'max_output_length',
+            'maxOutputTokens',
+            'outputTokenLimit',
+          ]) ??
+          _firstPositiveInt(topProvider, const ['max_completion_tokens']),
+      releaseDate: _providerDate(
+        model['created'] ?? model['created_at'] ?? model['release_date'],
+      ),
+    );
+  }
+
+  List<AiModelInfo> providerModelInfos(
+    Object? source, {
+    String? Function(Map<String, dynamic> model)? modelId,
+  }) {
+    if (source is! List) {
+      throw const FormatException('Provider model catalog is not a list');
+    }
+    return source
+        .whereType<Map>()
+        .map((raw) {
+          final model = Map<String, dynamic>.from(raw);
+          return providerModelInfo(model, modelId: modelId?.call(model));
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -187,4 +288,82 @@ abstract class Provider extends AiProvider {
     }
     return left;
   }
+}
+
+Map<String, dynamic>? _stringMap(Object? value) {
+  if (value is! Map) return null;
+  return Map<String, dynamic>.from(value);
+}
+
+String? _firstString(Map<String, dynamic> values, List<String> keys) {
+  for (final key in keys) {
+    final value = values[key];
+    if (value is String && value.isNotEmpty) return value;
+  }
+  return null;
+}
+
+bool? _firstBool(Map<String, dynamic>? values, List<String> keys) {
+  if (values == null) return null;
+  for (final key in keys) {
+    final value = values[key];
+    if (value is bool) return value;
+  }
+  return null;
+}
+
+int? _firstPositiveInt(Map<String, dynamic>? values, List<String> keys) {
+  if (values == null) return null;
+  for (final key in keys) {
+    final value = values[key];
+    final parsed = switch (value) {
+      int() => value,
+      num() when value.isFinite && value == value.roundToDouble() =>
+        value.toInt(),
+      String() => int.tryParse(value),
+      _ => null,
+    };
+    if (parsed != null && parsed > 0) return parsed;
+  }
+  return null;
+}
+
+Set<String>? _stringSet(Object? value) {
+  if (value is! List) return null;
+  return value.whereType<String>().map((item) => item.toLowerCase()).toSet();
+}
+
+bool? _setCapability(Set<String>? values, Set<String> supportedValues) {
+  if (values == null) return null;
+  return values.any(supportedValues.contains);
+}
+
+List<InputModality> _inputModalities(Object? value) {
+  final names = _stringSet(value) ?? const <String>{};
+  return [
+    for (final modality in InputModality.values)
+      if (names.contains(modality.value)) modality,
+  ];
+}
+
+List<OutputModality> _outputModalities(Object? value) {
+  final names = _stringSet(value) ?? const <String>{};
+  return [
+    for (final modality in OutputModality.values)
+      if (names.contains(modality.value)) modality,
+  ];
+}
+
+DateTime? _providerDate(Object? value) {
+  if (value is num) {
+    final raw = value.toInt();
+    final milliseconds = raw.abs() < 100000000000 ? raw * 1000 : raw;
+    try {
+      return DateTime.fromMillisecondsSinceEpoch(milliseconds, isUtc: true);
+    } on ArgumentError {
+      return null;
+    }
+  }
+  if (value is String) return DateTime.tryParse(value)?.toUtc();
+  return null;
 }

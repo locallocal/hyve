@@ -36,15 +36,10 @@ class Spark extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const [
-      'lite',
-      'generalv3',
-      'pro-128k',
-      'generalv3.5',
-      'max-32k',
-      '4.0Ultra',
-    ];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

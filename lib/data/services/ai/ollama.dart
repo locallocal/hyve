@@ -6,7 +6,7 @@ class Ollama extends Provider {
   Ollama(super.bot);
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty
             ? '${bot.baseURL}/api/tags'
@@ -16,10 +16,7 @@ class Ollama extends Provider {
 
     if (response.statusCode == 200) {
       final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-      final models =
-          (data['models'] as List)
-              .map((model) => model['name'] as String)
-              .toList();
+      final models = providerModelInfos(data['models']);
       return models;
     } else {
       throw Exception('List Models Failed: ${response.statusCode}');

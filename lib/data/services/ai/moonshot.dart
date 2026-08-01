@@ -37,7 +37,7 @@ class Moonshot extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
 
@@ -50,11 +50,8 @@ class Moonshot extends Provider {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-        final models =
-            (data['data'] as List)
-                .map((model) => model['id'] as String)
-                .toList();
-        models.sort();
+        final models = providerModelInfos(data['data']);
+        models.sort((left, right) => left.modelId.compareTo(right.modelId));
         return models;
       } else {
         throw Exception(

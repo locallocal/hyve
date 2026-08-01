@@ -35,8 +35,10 @@ class Flux extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
-    return const ['flux-pro-1.1', 'flux-pro', 'flux-dev', 'flux-pro-1.1-ultra'];
+  Future<List<AiModelInfo>> fetchModels() async {
+    throw UnsupportedError(
+      "${bot.apiType} does not expose an external model catalog.",
+    );
   }
 
   @override

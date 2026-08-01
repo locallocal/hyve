@@ -59,7 +59,7 @@ class TogetherAI extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
 
@@ -72,9 +72,7 @@ class TogetherAI extends Provider {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-        final models =
-            (data as List).map((model) => model['id'] as String).toList();
-        return models;
+        return providerModelInfos(data);
       } else {
         throw Exception('List models failed: ${response.statusCode}');
       }

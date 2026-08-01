@@ -115,7 +115,7 @@ class Anthropic extends Provider {
   }
 
   @override
-  Future<List<String>> listModels() async {
+  Future<List<AiModelInfo>> fetchModels() async {
     final url =
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
     // 添加limit参数，设置为1000
@@ -135,9 +135,8 @@ class Anthropic extends Provider {
       );
     }
     final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-    final models =
-        (data['data'] as List).map((model) => model['id'] as String).toList();
-    models.sort();
+    final models = providerModelInfos(data['data']);
+    models.sort((left, right) => left.modelId.compareTo(right.modelId));
     return models;
   }
 

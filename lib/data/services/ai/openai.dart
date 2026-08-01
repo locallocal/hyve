@@ -70,6 +70,8 @@ class OpenAI extends Provider {
 
   @override
   bool supportWebSearch() {
+    final documented = builtInModelInfo()?.supportsWebSearch;
+    if (documented != null) return documented;
     switch (bot.model.toLowerCase()) {
       case 'gpt-4o-mini-search-preview':
       case 'gpt-4o-mini-search-preview-2025-03-11':
@@ -82,6 +84,8 @@ class OpenAI extends Provider {
 
   @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     switch (bot.model.toLowerCase()) {
       case 'o1':
       case 'o1-2024-12-17':
@@ -98,6 +102,8 @@ class OpenAI extends Provider {
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     switch (bot.model.toLowerCase()) {
       case 'chatgpt-4o-latest':
       case 'gpt-4.5-preview':
@@ -199,7 +205,6 @@ class OpenAI extends Provider {
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
         final models = providerModelInfos(data['data']);
-        models.sort((left, right) => left.modelId.compareTo(right.modelId));
         return models;
       } else {
         throw Exception(
@@ -219,6 +224,25 @@ class OpenAI extends Provider {
       // 重置取消状态
       resetCancelState();
 
+      if (webSearch) {
+        final responsesUrl =
+            bot.baseURL.isNotEmpty
+                ? '${bot.baseURL}responses'
+                : 'https://api.openai.com/v1/responses';
+        await generateResponsesText(
+          url: responsesUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${bot.apiKey}',
+          },
+          messages: messages,
+          reasoning:
+              deepThinking ? const {'effort': 'high', 'summary': 'auto'} : null,
+        );
+        if (!isCancelled && onComplete != null) onComplete!();
+        return;
+      }
+
       final url =
           bot.baseURL.isNotEmpty
               ? '${bot.baseURL}chat/completions'
@@ -236,6 +260,7 @@ class OpenAI extends Provider {
               'response_format': {'type': 'text'},
               'stream': true,
               'stream_options': {'include_usage': true},
+              if (deepThinking) 'reasoning_effort': 'high',
             });
 
       final streamedResponse = await request.send();

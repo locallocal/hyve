@@ -1017,7 +1017,7 @@ class _AddBotPageState extends State<AddBotPage> {
     return _desktopMenuAnchor<AiModelInfo>(
       options: providerModels,
       selectedValue: _modelInfoById(selectedModelController.text),
-      labelBuilder: (model) => model.modelId,
+      labelBuilder: _modelLabel,
       onSelected: (value) {
         setState(() => selectedModelController.text = value.modelId);
       },
@@ -1572,7 +1572,7 @@ class _AddBotPageState extends State<AddBotPage> {
                                       ]
                                       : providerModels.map((model) {
                                         return RadioListTile<AiModelInfo>(
-                                          title: Text(model.modelId),
+                                          title: Text(_modelLabel(model)),
                                           activeColor:
                                               Theme.of(
                                                 context,
@@ -1598,6 +1598,18 @@ class _AddBotPageState extends State<AddBotPage> {
       if (model.modelId == modelId) return model;
     }
     return null;
+  }
+
+  String _modelLabel(AiModelInfo model) {
+    final features = <String>[
+      if (model.supportsWebSearch case final supported?)
+        '${S.of(context).webSearch} ${supported ? '✓' : '—'}',
+      if (model.supportsDeepThinking case final supported?)
+        '${S.of(context).deepThinking} ${supported ? '✓' : '—'}',
+    ];
+    return features.isEmpty
+        ? model.modelId
+        : '${model.modelId} · ${features.join(' · ')}';
   }
 
   Widget _buildSystemPromptInput(double? fontSize) {

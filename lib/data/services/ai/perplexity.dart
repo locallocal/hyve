@@ -11,6 +11,8 @@ class Perplexity extends Provider {
 
   @override
   bool supportWebSearch() {
+    final documented = builtInModelInfo()?.supportsWebSearch;
+    if (documented != null) return documented;
     if (bot.model.toLowerCase() == 'r1-1776') {
       return false;
     }
@@ -19,6 +21,8 @@ class Perplexity extends Provider {
 
   @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     switch (bot.model.toLowerCase()) {
       case 'sonar-reasoning-pro':
       case 'sonar-reasoning':
@@ -30,6 +34,8 @@ class Perplexity extends Provider {
 
   @override
   bool supportDeepResearch() {
+    final documented = builtInModelInfo()?.supportsDeepResearch;
+    if (documented != null) return documented;
     if (bot.model.toLowerCase() == 'sonar-deep-research') {
       return true;
     }

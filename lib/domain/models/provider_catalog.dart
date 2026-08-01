@@ -118,7 +118,7 @@ final providersInfo = {
   },
   'ModelScope': {
     'api_type': Bot.apiTypeModelScope,
-    'base_urlt': 'https://api-inference.modelscope.cn/v1/',
+    'base_url': 'https://api-inference.modelscope.cn/v1/',
   },
   'Monica': {
     'api_type': Bot.apiTypeMonica,

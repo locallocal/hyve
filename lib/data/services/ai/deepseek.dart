@@ -16,6 +16,8 @@ class Deepseek extends Provider {
 
   @override
   bool supportDeepThinking() {
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
     switch (bot.model) {
       case 'deepseek-reasoner':
         return true;
@@ -76,13 +78,8 @@ class Deepseek extends Provider {
               'model': bot.model,
               'messages': messages.map((m) => m.toJson()).toList(),
               'stream': true,
-              if (webSearch)
-                'tools': [
-                  {
-                    'type': 'function',
-                    'function': {'name': 'web_search'},
-                  },
-                ],
+              'thinking': {'type': deepThinking ? 'enabled' : 'disabled'},
+              if (deepThinking) 'reasoning_effort': 'high',
             });
 
       cancelController?.stream.listen((_) {

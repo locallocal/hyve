@@ -10,16 +10,18 @@ class Mistral extends Provider {
 
   @override
   bool supportWebSearch() {
-    return false;
+    return builtInModelInfo()?.supportsWebSearch ?? false;
   }
 
   @override
   bool supportDeepThinking() {
-    return false;
+    return builtInModelInfo()?.supportsDeepThinking ?? false;
   }
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     switch (bot.model.toLowerCase()) {
       case 'pixtral-12b-latest':
       case 'pixtral-large-latest':
@@ -89,6 +91,8 @@ class Mistral extends Provider {
       'model': bot.model,
       'messages': formattedMessages,
       'stream': isStream,
+      if (supportDeepThinking())
+        'reasoning_effort': deepThinking ? 'high' : 'none',
     });
 
     try {
@@ -110,7 +114,7 @@ class Mistral extends Provider {
             .transform(utf8.decoder)
             .transform(const LineSplitter());
 
-        String fullResponse = '';
+        final fullResponse = StringBuffer();
 
         await for (final line in stream) {
           if (isCancelled) {
@@ -128,9 +132,7 @@ class Mistral extends Provider {
               if (choices.isNotEmpty) {
                 final delta = choices[0]['delta'];
                 if (delta != null && delta.containsKey('content')) {
-                  final content = delta['content'] as String;
-                  fullResponse += content;
-                  onResponse(content);
+                  _emitStreamContent(delta['content'], fullResponse);
                 }
               }
             } catch (_) {
@@ -140,7 +142,7 @@ class Mistral extends Provider {
         }
 
         onComplete?.call();
-        return fullResponse;
+        return fullResponse.toString();
       } else {
         final response = await http.post(url, headers: headers, body: body);
 
@@ -158,6 +160,35 @@ class Mistral extends Provider {
       final errorMessage = 'Send request failed: $e';
       onError?.call(errorMessage);
       return errorMessage;
+    }
+  }
+
+  void _emitStreamContent(Object? content, StringBuffer fullResponse) {
+    if (content is String) {
+      fullResponse.write(content);
+      onResponse(content);
+      return;
+    }
+    if (content is! List) return;
+
+    for (final rawChunk in content.whereType<Map>()) {
+      final chunk = Map<String, dynamic>.from(rawChunk);
+      if (chunk['type'] == 'text') {
+        final text = chunk['text']?.toString() ?? '';
+        if (text.isNotEmpty) {
+          fullResponse.write(text);
+          onResponse(text);
+        }
+      } else if (chunk['type'] == 'thinking' &&
+          deepThinking &&
+          onReasoningResponse != null) {
+        final thinking = chunk['thinking'];
+        if (thinking is! List) continue;
+        for (final rawPart in thinking.whereType<Map>()) {
+          final text = rawPart['text']?.toString() ?? '';
+          if (text.isNotEmpty) onReasoningResponse!(text);
+        }
+      }
     }
   }
 

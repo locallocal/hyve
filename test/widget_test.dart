@@ -574,6 +574,9 @@ void main() {
       final menuButton = find.byKey(
         const ValueKey<String>('desktop-bot-menu-button-bot-1'),
       );
+      final footer = find.byKey(
+        const ValueKey<String>('desktop-bot-card-footer-bot-1'),
+      );
       expect(card, findsOneWidget);
       expect(tester.getSize(card).height, 180);
       expect(tokenMetric, findsOneWidget);
@@ -583,6 +586,14 @@ void main() {
       expect(botName, findsOneWidget);
       expect(providerAndModel, findsOneWidget);
       expect(menuButton, findsOneWidget);
+      expect(footer, findsOneWidget);
+      final cardRect = tester.getRect(card);
+      final avatarRect = tester.getRect(avatar);
+      final footerRect = tester.getRect(footer);
+      final iconTopInset = avatarRect.top - cardRect.top;
+      final footerBottomInset = cardRect.bottom - footerRect.bottom;
+      expect(iconTopInset, closeTo(19, 0.5));
+      expect(footerBottomInset, closeTo(iconTopInset, 0.5));
       expect(
         tester.getTopRight(avatar).dx,
         lessThan(tester.getTopLeft(botName).dx),
@@ -1856,6 +1867,40 @@ void main() {
       }
     },
   );
+
+  testWidgets('desktop sidebar divider remains visible after resizing', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1440, 900);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_desktopHarness(currentIndex: 4));
+    await tester.pumpAndSettle();
+
+    final handle = find.byKey(
+      const ValueKey<String>('desktop-sidebar-resize-handle'),
+    );
+    expect(handle, findsOneWidget);
+    final initialCenter = tester.getCenter(handle);
+
+    await tester.drag(handle, const Offset(32, 0));
+    await tester.pumpAndSettle();
+    expect(tester.getCenter(handle).dx, greaterThan(initialCenter.dx));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+
+    final divider = find.descendant(
+      of: handle,
+      matching: find.byType(ColoredBox),
+    );
+    expect(divider, findsOneWidget);
+    expect(
+      tester.widget<ColoredBox>(divider).color,
+      ShadTheme.of(tester.element(handle)).colorScheme.border,
+    );
+  });
 
   testWidgets('desktop shell uses one toolbar and overlays sidebar at 800px', (
     tester,

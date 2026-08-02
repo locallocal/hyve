@@ -274,8 +274,13 @@ void main() {
         onCancel: () => cancelCalls += 1,
       );
       final sendButton = find.widgetWithText(ShadButton, '发送');
+      final sendIcon = find.descendant(
+        of: sendButton,
+        matching: find.byIcon(LucideIcons.send),
+      );
       final sendSize = tester.getSize(sendButton);
       final sendCenter = tester.getCenter(sendButton);
+      final sendIconSize = tester.getSize(sendIcon);
 
       await _pumpMessageInput(
         tester,
@@ -291,20 +296,18 @@ void main() {
       expect(tester.getSize(stopButton), sendSize);
       expect(tester.getCenter(stopButton), sendCenter);
       expect(tester.getSize(stopButton), const Size(96, 36));
-      expect(
-        find.descendant(
-          of: stopButton,
-          matching: find.byIcon(Icons.stop_rounded),
-        ),
-        findsOneWidget,
+      final stopIcon = find.descendant(
+        of: stopButton,
+        matching: find.byKey(const ValueKey('desktop-stop-icon')),
       );
-      expect(
-        find.descendant(
-          of: stopButton,
-          matching: find.byIcon(LucideIcons.square),
-        ),
-        findsNothing,
+      final stopGlyph = find.descendant(
+        of: stopIcon,
+        matching: find.byKey(const ValueKey('desktop-stop-glyph')),
       );
+      expect(stopIcon, findsOneWidget);
+      expect(tester.getSize(stopIcon), sendIconSize);
+      expect(sendIconSize, const Size.square(17));
+      expect(tester.getSize(stopGlyph), const Size.square(15));
 
       await tester.tap(stopButton);
       await tester.pump();

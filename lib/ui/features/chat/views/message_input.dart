@@ -329,6 +329,7 @@ class _MessageInputState extends State<MessageInput> {
                           : Icons.psychology_alt_rounded,
                   label: S.of(context).deepThinking,
                   active: isDeepThinkingEnabled,
+                  matchPrimaryActionStyle: true,
                   onTap: () {
                     setState(() {
                       isDeepThinkingEnabled = !isDeepThinkingEnabled;
@@ -801,7 +802,7 @@ class _MessageInputState extends State<MessageInput> {
             : S.of(context).send;
     final icon = Icon(
       widget.requestInProgress && widget.canCancel
-          ? LucideIcons.square
+          ? Icons.stop_rounded
           : widget.requestInProgress
           ? LucideIcons.loaderCircle
           : LucideIcons.send,

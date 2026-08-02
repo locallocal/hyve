@@ -146,6 +146,72 @@ void main() {
       expect(webSearchOpacity().opacity, 1);
     });
 
+    testWidgets('deep thinking matches the web search control style', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final provider = _FakeProvider(
+        _bot,
+        supportsWebSearch: true,
+        supportsDeepThinking: true,
+      );
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        provider: provider,
+      );
+
+      ShadButton button(String label) =>
+          tester.widget<ShadButton>(find.widgetWithText(ShadButton, label));
+
+      double opacity(String label) =>
+          tester
+              .widget<Opacity>(
+                find
+                    .ancestor(
+                      of: find.widgetWithText(ShadButton, label),
+                      matching: find.byType(Opacity),
+                    )
+                    .first,
+              )
+              .opacity;
+
+      void expectMatchingStyles() {
+        final webSearch = button('联网搜索');
+        final deepThinking = button('深度思考');
+        expect(deepThinking.variant, webSearch.variant);
+        expect(deepThinking.backgroundColor, webSearch.backgroundColor);
+        expect(deepThinking.foregroundColor, webSearch.foregroundColor);
+        expect(
+          deepThinking.hoverBackgroundColor,
+          webSearch.hoverBackgroundColor,
+        );
+        expect(
+          deepThinking.pressedBackgroundColor,
+          webSearch.pressedBackgroundColor,
+        );
+        expect(
+          tester.getSize(find.widgetWithText(ShadButton, '深度思考')),
+          tester.getSize(find.widgetWithText(ShadButton, '联网搜索')),
+        );
+        expect(opacity('深度思考'), opacity('联网搜索'));
+      }
+
+      expectMatchingStyles();
+      expect(opacity('深度思考'), 0.5);
+
+      await tester.tap(find.widgetWithText(ShadButton, '联网搜索'));
+      await tester.tap(find.widgetWithText(ShadButton, '深度思考'));
+      await tester.pump();
+
+      expect(provider.getWebSearch(), isTrue);
+      expect(provider.getDeepThinking(), isTrue);
+      expectMatchingStyles();
+      expect(opacity('深度思考'), 1);
+    });
+
     testWidgets('Shift+Enter does not send', (tester) async {
       final controller = TextEditingController();
       addTearDown(controller.dispose);
@@ -225,6 +291,20 @@ void main() {
       expect(tester.getSize(stopButton), sendSize);
       expect(tester.getCenter(stopButton), sendCenter);
       expect(tester.getSize(stopButton), const Size(96, 36));
+      expect(
+        find.descendant(
+          of: stopButton,
+          matching: find.byIcon(Icons.stop_rounded),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: stopButton,
+          matching: find.byIcon(LucideIcons.square),
+        ),
+        findsNothing,
+      );
 
       await tester.tap(stopButton);
       await tester.pump();
@@ -361,12 +441,20 @@ void _noop() {}
 void _ignoreString(String _) {}
 
 class _FakeProvider extends AiProvider {
-  _FakeProvider(super.bot, {this.supportsWebSearch = false});
+  _FakeProvider(
+    super.bot, {
+    this.supportsWebSearch = false,
+    this.supportsDeepThinking = false,
+  });
 
   final bool supportsWebSearch;
+  final bool supportsDeepThinking;
 
   @override
   bool supportWebSearch() => supportsWebSearch;
+
+  @override
+  bool supportDeepThinking() => supportsDeepThinking;
 
   @override
   Future<void> generateText(List<ChatMessage> messages) async {}

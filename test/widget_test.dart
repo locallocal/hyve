@@ -28,6 +28,8 @@ import 'package:stars/ui/features/bots/views/edit_bot.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chat/views/message_list.dart';
+import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
+import 'package:stars/ui/features/chats/views/chats.dart';
 import 'package:stars/ui/features/chats/views/chat_item.dart';
 import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
 import 'package:stars/ui/features/chats/views/new_chat_dialog.dart';
@@ -1556,6 +1558,81 @@ void main() {
 
     expect(find.text('尚未选择会话'), findsOneWidget);
     expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets('bot and chat empty states use their generated illustrations', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    addTearDown(tester.view.reset);
+
+    final botRepository = _BotCardTestBotRepository(const []);
+    final botViewModel = BotListViewModel(
+      botRepository: botRepository,
+      createChat: CreateChat(chatRepository: _BotCardTestChatRepository()),
+      aiProviderRepository: _UnusedAiProviderRepository(),
+      attachmentRepository: _UnusedAttachmentRepository(),
+    );
+    final chatViewModel = ChatListViewModel(
+      chatRepository: _BotCardTestChatRepository(),
+      botRepository: botRepository,
+    );
+    addTearDown(botViewModel.dispose);
+    addTearDown(chatViewModel.dispose);
+    await botViewModel.load();
+    await chatViewModel.load();
+
+    String emptyStateAsset(WidgetTester tester) {
+      final image = tester.widget<Image>(
+        find.descendant(
+          of: find.byType(DesktopEmptyStateCard),
+          matching: find.byType(Image),
+        ),
+      );
+      final provider = image.image;
+      final assetProvider =
+          provider is ResizeImage ? provider.imageProvider : provider;
+      return (assetProvider as AssetImage).assetName;
+    }
+
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: ContactsPage(
+                  viewModel: botViewModel,
+                  onBotSelected: (_) {},
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('没有可用的智能体'), findsOneWidget);
+      expect(emptyStateAsset(tester), 'assets/images/profile/no_bots_v2.png');
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: ChatListPage(
+                  viewModel: chatViewModel,
+                  onChatSelected: (_, _) {},
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('还没有会话记录'), findsOneWidget);
+      expect(emptyStateAsset(tester), 'assets/images/profile/no_chats_v2.png');
+      expect(tester.takeException(), isNull);
+    });
   });
 
   testWidgets('desktop home empty state has no duplicate new chat action', (

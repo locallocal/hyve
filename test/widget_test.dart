@@ -567,7 +567,6 @@ void main() {
     final binding = BotSkillBinding(
       botId: bot.id,
       skillId: 'user:Release Notes',
-      activationMode: SkillActivationMode.always,
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -954,8 +953,10 @@ void main() {
                             durationMs: 1000,
                             toolCalls: [
                               MessageToolCall(
-                                name: 'read_file',
+                                name: 'mcp.docs.search',
                                 status: 'completed',
+                                source: 'mcp',
+                                riskLevel: 'readOnly',
                               ),
                             ],
                           ),
@@ -982,14 +983,15 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('技能 1'), findsOneWidget);
+      expect(find.text('MCP 1'), findsOneWidget);
       expect(find.text('release-notes').hitTestable(), findsNothing);
-      expect(find.text('read_file').hitTestable(), findsNothing);
+      expect(find.text('mcp.docs.search').hitTestable(), findsNothing);
 
       await tester.tap(executionStatus);
       await tester.pumpAndSettle();
 
       expect(find.text('release-notes').hitTestable(), findsOneWidget);
-      expect(find.text('read_file').hitTestable(), findsOneWidget);
+      expect(find.text('mcp.docs.search').hitTestable(), findsOneWidget);
 
       await tester.tap(executionStatus);
       await tester.pumpAndSettle();
@@ -1780,18 +1782,14 @@ void main() {
     final modelSection = find.byKey(
       const ValueKey<String>('desktop-bot-model-section'),
     );
-    final skillSection = find.byKey(
-      const ValueKey<String>('desktop-bot-skills-section'),
-    );
     final tokenUsageSection = find.byKey(
       const ValueKey<String>('desktop-bot-token-usage-section'),
     );
-    expect(find.byType(ShadCard), findsNWidgets(5));
+    expect(find.byType(ShadCard), findsNWidgets(4));
     for (final section in [
       basicSection,
       providerSection,
       modelSection,
-      skillSection,
       tokenUsageSection,
     ]) {
       expect(section, findsOneWidget);
@@ -1805,7 +1803,6 @@ void main() {
       (basicSection, '基本信息'),
       (providerSection, '提供商信息'),
       (modelSection, '模型配置'),
-      (skillSection, '技能'),
       (tokenUsageSection, 'Token 用量'),
     ]) {
       final titleText = tester.widget<Text>(
@@ -1854,10 +1851,6 @@ void main() {
     );
     expect(
       tester.getRect(modelSection).bottom,
-      lessThan(tester.getRect(skillSection).top),
-    );
-    expect(
-      tester.getRect(skillSection).bottom,
       lessThan(tester.getRect(tokenUsageSection).top),
     );
     expect(
@@ -2179,6 +2172,7 @@ void main() {
         _addBotSkill('Code Review'),
       ]),
       bindingRepository: DraftBotSkillBindingRepository(),
+      supportsAutoActivation: true,
     );
     addTearDown(skillViewModel.dispose);
 
@@ -2188,6 +2182,16 @@ void main() {
           brightness: Brightness.light,
           botId: 'bot-new',
           skillViewModel: skillViewModel,
+          modelLoader:
+              (_) async => [
+                AiModelInfo(
+                  modelId: 'gpt-test',
+                  providerId: 'openai',
+                  inputModalities: const [InputModality.text],
+                  outputModalities: const [OutputModality.text],
+                  supportsAutomaticSkillActivation: true,
+                ),
+              ],
           onBotAdded: (bot, skillBindings) async {
             submittedBot = bot;
             submittedBindings = skillBindings;
@@ -2211,6 +2215,22 @@ void main() {
       expect(find.text('基本信息'), findsOneWidget);
       expect(find.text('提供商信息'), findsOneWidget);
       expect(find.text('模型配置'), findsOneWidget);
+      expect(find.text('技能'), findsNothing);
+      expect(find.byType(ShadCard), findsNWidgets(3));
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('add-bot-api-key')),
+          matching: find.byType(EditableText),
+        ),
+        'secret-key',
+      );
+      final fetchModels = find.byIcon(Icons.refresh_rounded);
+      await tester.ensureVisible(fetchModels);
+      await tester.pumpAndSettle();
+      await tester.tap(fetchModels);
+      await tester.pumpAndSettle();
+
       expect(find.text('技能'), findsOneWidget);
       expect(find.byType(ShadCard), findsNWidgets(4));
 
@@ -2308,12 +2328,14 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.tap(
+      expect(
         find.byKey(
-          const ValueKey<String>('add-bot-skill-always-user:Release Notes'),
+          const ValueKey<String>('add-bot-skill-auto-user:Release Notes'),
         ),
+        findsOneWidget,
       );
-      await tester.pumpAndSettle();
+      expect(find.text('按消息启用'), findsNothing);
+      expect(find.text('始终启用'), findsNothing);
       final providerField = find.byKey(
         const ValueKey<String>('add-bot-provider'),
       );
@@ -2495,13 +2517,8 @@ void main() {
       expect(submittedBot?.id, 'bot-new');
       expect(submittedBot?.baseURL, customHuggingFaceUrl);
       expect(submittedBot?.apiType, Bot.apiTypeHuggingface);
-      expect(submittedBindings, hasLength(1));
-      expect(submittedBindings.single.botId, 'bot-new');
-      expect(submittedBindings.single.skillId, 'user:Release Notes');
-      expect(
-        submittedBindings.single.activationMode,
-        SkillActivationMode.always,
-      );
+      expect(submittedBot?.configuredSupportsAutomaticSkillActivation, isFalse);
+      expect(submittedBindings, isEmpty);
       expect(tester.takeException(), isNull);
     });
   });
@@ -2593,6 +2610,7 @@ Widget _addBotDialogHarness({
   TextScaler textScaler = TextScaler.noScaling,
   String? botId,
   BotSkillViewModel? skillViewModel,
+  Future<List<AiModelInfo>> Function(Bot)? modelLoader,
 }) {
   return _shadHarness(
     brightness: brightness,
@@ -2603,6 +2621,7 @@ Widget _addBotDialogHarness({
             body: AddBotDialog(
               botId: botId,
               skillViewModel: skillViewModel,
+              modelLoader: modelLoader,
               onBotAdded: onBotAdded,
             ),
           ),

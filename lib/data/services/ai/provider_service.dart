@@ -78,6 +78,10 @@ abstract class Provider extends AiProvider {
         'supports_deep_research',
         'supportsDeepResearch',
       ]),
+      supportsMcp:
+          _firstBool(model, const ['supports_mcp', 'supportsMcp']) ??
+          _setCapability(supportedParameters, const {'tools', 'tool_choice'}) ??
+          _setCapability(capabilities, const {'tools', 'tool_calling'}),
       supportsSkills:
           _firstBool(model, const ['supports_skills', 'supportsSkills']) ??
           _setCapability(supportedParameters, const {'tools', 'tool_choice'}) ??
@@ -141,6 +145,14 @@ abstract class Provider extends AiProvider {
     return providerId == null
         ? null
         : BuiltInModelCatalog.find(providerId, bot.model);
+  }
+
+  @override
+  bool supportMcp() {
+    final configured = bot.configuredSupportsMcp;
+    final modelSupportsMcp =
+        configured ?? (builtInModelInfo()?.supportsMcp == true);
+    return modelSupportsMcp && capabilities.supportsAgentLoop;
   }
 
   /// Several compatible services reuse the OpenAI adapter. Do not inject

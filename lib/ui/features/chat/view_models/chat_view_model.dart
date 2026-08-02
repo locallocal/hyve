@@ -71,15 +71,11 @@ class ChatViewModel extends ChangeNotifier {
     required List<Message> history,
     required Message userMessage,
     required String currentUserId,
-    Set<String> manuallySelectedSkillIds = const {},
-    Set<String> pinnedSkillIds = const {},
   }) => _composeChatTurn(
     bot: bot,
     history: history,
     userMessage: userMessage,
     currentUserId: currentUserId,
-    manuallySelectedSkillIds: manuallySelectedSkillIds,
-    pinnedSkillIds: pinnedSkillIds,
     skillToolProvider: _aiProviderRepository.create(bot),
   );
 

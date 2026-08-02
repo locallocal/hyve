@@ -136,7 +136,6 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     final strings = S.of(context);
     final binding = viewModel.bindingFor(skill.id);
     final enabled = binding?.enabled ?? false;
-    final mode = binding?.activationMode ?? SkillActivationMode.manual;
 
     return Padding(
       key: ValueKey<String>('add-bot-selected-skill-${skill.id}'),
@@ -165,6 +164,12 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 ),
               ),
               const SizedBox(width: 12),
+              Text(
+                strings.autoActivation,
+                key: ValueKey<String>('add-bot-skill-auto-${skill.id}'),
+                style: DesktopThemeTokens.metaStyle(context),
+              ),
+              const SizedBox(width: 12),
               ShadSwitch(
                 key: ValueKey<String>('add-bot-skill-toggle-${skill.id}'),
                 value: enabled,
@@ -188,62 +193,8 @@ class _AddBotSkillsState extends State<AddBotSkills> {
               ),
             ],
           ),
-          if (enabled) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildModeChoice(
-                  key: ValueKey<String>('add-bot-skill-manual-${skill.id}'),
-                  label: strings.manualActivation,
-                  description: strings.manualActivationDescription,
-                  selected: mode == SkillActivationMode.manual,
-                  onPressed:
-                      () => _setMode(skill.id, SkillActivationMode.manual),
-                ),
-                _buildModeChoice(
-                  key: ValueKey<String>('add-bot-skill-always-${skill.id}'),
-                  label: strings.alwaysActivation,
-                  description: strings.alwaysActivationDescription,
-                  selected: mode == SkillActivationMode.always,
-                  onPressed:
-                      () => _setMode(skill.id, SkillActivationMode.always),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
-    );
-  }
-
-  Widget _buildModeChoice({
-    required Key key,
-    required String label,
-    required String description,
-    required bool selected,
-    required VoidCallback onPressed,
-  }) {
-    return ShadTooltip(
-      builder: (context) => Text(description),
-      child:
-          selected
-              ? ShadButton.secondary(
-                key: key,
-                size: ShadButtonSize.sm,
-                width: 0,
-                onPressed: onPressed,
-                leading: const Icon(LucideIcons.check, size: 14),
-                child: Text(label),
-              )
-              : ShadButton.outline(
-                key: key,
-                size: ShadButtonSize.sm,
-                width: 0,
-                onPressed: onPressed,
-                child: Text(label),
-              ),
     );
   }
 
@@ -462,17 +413,6 @@ class _AddBotSkillsState extends State<AddBotSkills> {
   Future<void> _setEnabled(String skillId, bool enabled) async {
     try {
       await viewModel.setEnabled(skillId, enabled);
-    } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
-    }
-  }
-
-  Future<void> _setMode(
-    String skillId,
-    SkillActivationMode activationMode,
-  ) async {
-    try {
-      await viewModel.setActivationMode(skillId, activationMode);
     } catch (error) {
       if (mounted) showSnackBar(context, error.toString());
     }

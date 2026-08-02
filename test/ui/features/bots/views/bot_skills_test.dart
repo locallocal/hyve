@@ -44,6 +44,7 @@ void main() {
         botId: 'bot-1',
         skillRepository: _FakeSkillRepository(skills),
         bindingRepository: bindingRepository,
+        supportsAutoActivation: true,
         pageSize: 5,
       );
       addTearDown(bindingRepository.dispose);
@@ -181,7 +182,7 @@ void main() {
     },
   );
 
-  testWidgets('capable provider exposes automatic Skill mode', (tester) async {
+  testWidgets('capable provider exposes automatic Skills only', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
@@ -208,16 +209,44 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('自动激活'), findsOneWidget);
+      expect(find.text('按消息启用'), findsNothing);
+      expect(find.text('始终启用'), findsNothing);
       expect(find.text('测试技能描述'), findsOneWidget);
-      final automaticMode = find.text('自动激活');
-      await tester.ensureVisible(automaticMode);
-      await tester.tap(automaticMode);
-      await tester.pumpAndSettle();
 
       expect(
         bindingRepository.bindingFor('user:release-notes')?.activationMode,
         SkillActivationMode.auto,
       );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('unsupported provider hides the Skill section', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    final bindingRepository = _FakeBindingRepository(const []);
+    final viewModel = BotSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: _FakeSkillRepository([_skill('release-notes')]),
+      bindingRepository: bindingRepository,
+      supportsAutoActivation: false,
+    );
+    addTearDown(bindingRepository.dispose);
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('desktop-bot-skills-section')),
+        findsNothing,
+      );
+      expect(find.text('release-notes'), findsNothing);
     } finally {
       debugDefaultTargetPlatformOverride = null;
       tester.view.resetPhysicalSize();

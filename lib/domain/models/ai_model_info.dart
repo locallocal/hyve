@@ -13,6 +13,7 @@ final class AiModelInfo {
     this.supportsWebSearch,
     this.supportsDeepThinking,
     this.supportsDeepResearch,
+    this.supportsMcp,
     this.supportsSkills,
     this.supportsAutomaticSkillActivation,
     this.supportsHostedSkills,
@@ -33,6 +34,9 @@ final class AiModelInfo {
   final bool? supportsWebSearch;
   final bool? supportsDeepThinking;
   final bool? supportsDeepResearch;
+
+  /// Whether the model can run client-provided MCP tools in an Agent Loop.
+  final bool? supportsMcp;
 
   /// Whether Stars can apply prompt-based Skills to this model.
   final bool? supportsSkills;
@@ -59,6 +63,7 @@ final class AiModelInfo {
     'supports_web_search': supportsWebSearch,
     'supports_deep_thinking': supportsDeepThinking,
     'supports_deep_research': supportsDeepResearch,
+    'supports_mcp': supportsMcp,
     'supports_skills': supportsSkills,
     'supports_automatic_skill_activation': supportsAutomaticSkillActivation,
     'supports_hosted_skills': supportsHostedSkills,

@@ -5,69 +5,78 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 
 void main() {
-  test(
-    'loads only manually selected and always-on Skill instructions',
-    () async {
-      final skills = <String, SkillContent>{
-        'user:always': _skill('user:always', 'always', 'Always instructions.'),
-        'user:selected': _skill(
-          'user:selected',
-          'selected',
-          'Selected instructions.',
-          requestedToolNames: const {'calculate'},
-        ),
-        'user:ignored': _skill('user:ignored', 'ignored', 'Ignored secret.'),
-      };
-      final skillRepository = _FakeSkillRepository(skills);
-      final bindingRepository = _FakeBindingRepository([
-        _binding('user:always', SkillActivationMode.always, priority: 10),
-        _binding('user:selected', SkillActivationMode.manual, priority: 5),
-        _binding('user:ignored', SkillActivationMode.manual),
-      ]);
-      final compose = ComposeChatTurn(
-        skillRepository: skillRepository,
-        bindingRepository: bindingRepository,
-      );
-
-      final result = await compose(
-        bot: _bot(systemPrompt: 'You are a helpful assistant.'),
-        history: [
-          _message(senderId: 'user-1', content: 'Earlier question'),
-          _message(senderId: 'bot-1', content: 'Earlier answer'),
-        ],
-        userMessage: _message(senderId: 'user-1', content: 'Current question'),
-        currentUserId: 'user-1',
-        manuallySelectedSkillIds: {'user:selected'},
-      );
-
-      expect(skillRepository.loadedIds, ['user:always', 'user:selected']);
-      expect(result.messages.map((message) => message.role), [
-        'system',
-        'user',
-        'assistant',
-        'user',
-      ]);
-      final systemPrompt = result.messages.first.content;
-      expect(systemPrompt, contains('You are a helpful assistant.'));
-      expect(systemPrompt, contains('Always instructions.'));
-      expect(systemPrompt, contains('Selected instructions.'));
-      expect(systemPrompt, isNot(contains('Ignored secret.')));
-      expect(systemPrompt, contains('Scripts and commands'));
-      expect(result.activatedSkills.map((skill) => skill.id), [
-        'user:always',
+  test('offers every enabled Skill for automatic model activation', () async {
+    final skills = <String, SkillContent>{
+      'user:always': _skill('user:always', 'always', 'Always instructions.'),
+      'user:selected': _skill(
         'user:selected',
-      ]);
-      expect(result.activatedSkills.map((skill) => skill.trigger), [
-        SkillActivationTrigger.always,
-        SkillActivationTrigger.manual,
-      ]);
-      expect(result.requestedToolNames, {'calculate'});
-    },
-  );
+        'selected',
+        'Selected instructions.',
+        requestedToolNames: const {'calculate'},
+      ),
+      'user:ignored': _skill('user:ignored', 'ignored', 'Ignored secret.'),
+    };
+    final skillRepository = _FakeSkillRepository(skills);
+    final bindingRepository = _FakeBindingRepository([
+      _binding('user:always', priority: 10),
+      _binding('user:selected', priority: 5),
+      _binding('user:ignored'),
+    ]);
+    final provider = _FakeSkillProvider([
+      SkillToolTurn(
+        calls: [
+          SkillToolCall(
+            callId: 'activate-selected',
+            name: 'activate_skill',
+            arguments: const {'name': 'selected'},
+          ),
+        ],
+      ),
+      SkillToolTurn(isComplete: true),
+    ]);
+    final compose = ComposeChatTurn(
+      skillRepository: skillRepository,
+      bindingRepository: bindingRepository,
+    );
+
+    final result = await compose(
+      bot: _bot(systemPrompt: 'You are a helpful assistant.'),
+      history: [
+        _message(senderId: 'user-1', content: 'Earlier question'),
+        _message(senderId: 'bot-1', content: 'Earlier answer'),
+      ],
+      userMessage: _message(senderId: 'user-1', content: 'Current question'),
+      currentUserId: 'user-1',
+      skillToolProvider: provider,
+    );
+
+    expect(skillRepository.loadedIds, ['user:selected']);
+    expect(result.messages.map((message) => message.role), [
+      'system',
+      'user',
+      'assistant',
+      'user',
+    ]);
+    final systemPrompt = result.messages.first.content;
+    expect(systemPrompt, contains('You are a helpful assistant.'));
+    expect(systemPrompt, contains('Selected instructions.'));
+    expect(systemPrompt, isNot(contains('Always instructions.')));
+    expect(systemPrompt, isNot(contains('Ignored secret.')));
+    expect(systemPrompt, contains('Scripts and commands'));
+    expect(result.activatedSkills.map((skill) => skill.id), ['user:selected']);
+    expect(result.activatedSkills.single.trigger, SkillActivationTrigger.model);
+    expect(provider.session.request?.catalog.map((skill) => skill.id), [
+      'user:always',
+      'user:selected',
+      'user:ignored',
+    ]);
+    expect(result.requestedToolNames, {'calculate'});
+  });
 
   test(
     'auto activation uses structured tools and injects requested references',
@@ -123,7 +132,7 @@ void main() {
       final compose = ComposeChatTurn(
         skillRepository: repository,
         bindingRepository: _FakeBindingRepository([
-          _binding('user:release-notes', SkillActivationMode.auto),
+          _binding('user:release-notes'),
         ]),
       );
 
@@ -173,9 +182,7 @@ void main() {
     );
     final compose = ComposeChatTurn(
       skillRepository: _FakeSkillRepository({'user:auto': auto}),
-      bindingRepository: _FakeBindingRepository([
-        _binding('user:auto', SkillActivationMode.auto),
-      ]),
+      bindingRepository: _FakeBindingRepository([_binding('user:auto')]),
     );
 
     final result = await compose(
@@ -245,7 +252,7 @@ void main() {
       final compose = ComposeChatTurn(
         skillRepository: repository,
         bindingRepository: _FakeBindingRepository([
-          _binding('user:reference-reader', SkillActivationMode.auto),
+          _binding('user:reference-reader'),
         ]),
         budget: const SkillContextBudget(maxResourceTokens: 3),
       );
@@ -273,31 +280,28 @@ void main() {
     },
   );
 
-  test('pinned Skills activate with a distinct audit trigger', () async {
-    final pinned = _skill('user:pinned', 'pinned', 'Pinned instructions.');
+  test('configured unsupported models do not expose Skills', () async {
+    final skill = _skill('user:auto', 'auto', 'Auto instructions.');
     final compose = ComposeChatTurn(
-      skillRepository: _FakeSkillRepository({'user:pinned': pinned}),
-      bindingRepository: _FakeBindingRepository([
-        _binding('user:pinned', SkillActivationMode.manual),
-      ]),
+      skillRepository: _FakeSkillRepository({'user:auto': skill}),
+      bindingRepository: _FakeBindingRepository([_binding('user:auto')]),
     );
 
     final result = await compose(
-      bot: _bot(),
+      bot: _bot(
+        parameters: const {
+          Bot.parameterSupportsAutomaticSkillActivation: false,
+        },
+      ),
       history: const [],
       userMessage: _message(senderId: 'user-1', content: 'Question'),
       currentUserId: 'user-1',
-      pinnedSkillIds: const {'user:pinned'},
+      skillToolProvider: _FakeSkillProvider([SkillToolTurn(isComplete: true)]),
     );
 
-    expect(
-      result.activatedSkills.single.trigger,
-      SkillActivationTrigger.pinned,
-    );
-    expect(
-      result.activationAttempts.single.status,
-      SkillActivationStatus.activated,
-    );
+    expect(result.activatedSkills, isEmpty);
+    expect(result.activationAttempts, isEmpty);
+    expect(result.messages.single.content, 'Question');
   });
 
   test('limits activation to three usable Skills', () async {
@@ -313,19 +317,29 @@ void main() {
       skillRepository: _FakeSkillRepository(skills),
       bindingRepository: _FakeBindingRepository([
         for (var index = 0; index < 5; index++)
-          _binding(
-            'user:skill-$index',
-            SkillActivationMode.always,
-            priority: index,
-          ),
+          _binding('user:skill-$index', priority: index),
       ]),
     );
+    final provider = _FakeSkillProvider([
+      SkillToolTurn(
+        calls: [
+          for (var index = 4; index >= 0; index--)
+            SkillToolCall(
+              callId: 'activate-$index',
+              name: 'activate_skill',
+              arguments: {'name': 'skill-$index'},
+            ),
+        ],
+      ),
+      SkillToolTurn(isComplete: true),
+    ]);
 
     final result = await compose(
       bot: _bot(),
       history: const [],
       userMessage: _message(senderId: 'user-1', content: 'Question'),
       currentUserId: 'user-1',
+      skillToolProvider: provider,
     );
 
     expect(result.activatedSkills, hasLength(3));
@@ -344,9 +358,7 @@ void main() {
     );
     final compose = ComposeChatTurn(
       skillRepository: _FakeSkillRepository({'user:oversized': oversized}),
-      bindingRepository: _FakeBindingRepository([
-        _binding('user:oversized', SkillActivationMode.always),
-      ]),
+      bindingRepository: _FakeBindingRepository([_binding('user:oversized')]),
       budget: const SkillContextBudget(maxTokensPerSkill: 4),
     );
 
@@ -355,6 +367,18 @@ void main() {
       history: const [],
       userMessage: _message(senderId: 'user-1', content: 'Question'),
       currentUserId: 'user-1',
+      skillToolProvider: _FakeSkillProvider([
+        SkillToolTurn(
+          calls: [
+            SkillToolCall(
+              callId: 'activate-oversized',
+              name: 'activate_skill',
+              arguments: const {'name': 'oversized'},
+            ),
+          ],
+        ),
+        SkillToolTurn(isComplete: true),
+      ]),
     );
 
     expect(result.activatedSkills, isEmpty);
@@ -398,8 +422,8 @@ void main() {
           'user:usable': usable,
         }),
         bindingRepository: _FakeBindingRepository([
-          _binding('user:blocked', SkillActivationMode.always, priority: 100),
-          _binding('user:usable', SkillActivationMode.always, priority: 1),
+          _binding('user:blocked', priority: 100),
+          _binding('user:usable', priority: 1),
         ]),
       );
 
@@ -408,6 +432,18 @@ void main() {
         history: const [],
         userMessage: _message(senderId: 'user-1', content: 'Question'),
         currentUserId: 'user-1',
+        skillToolProvider: _FakeSkillProvider([
+          SkillToolTurn(
+            calls: [
+              SkillToolCall(
+                callId: 'activate-usable',
+                name: 'activate_skill',
+                arguments: const {'name': 'usable'},
+              ),
+            ],
+          ),
+          SkillToolTurn(isComplete: true),
+        ]),
       );
 
       expect(result.activatedSkills.map((skill) => skill.id), ['user:usable']);
@@ -418,6 +454,49 @@ void main() {
       );
     },
   );
+
+  test('exposes enabled tools from MCP servers selected by the bot', () async {
+    final now = DateTime(2026, 8, 2);
+    final server = McpServer(
+      id: 'server-1',
+      name: 'Docs',
+      namespace: 'docs',
+      endpoint: Uri.parse('https://mcp.example.test'),
+      enabled: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final tool = McpToolDescriptor(
+      serverId: server.id,
+      namespace: server.namespace,
+      remoteName: 'search',
+      title: 'Search',
+      description: 'Search documentation',
+      inputSchema: const {'type': 'object', 'properties': <String, Object?>{}},
+      enabled: true,
+      updatedAt: now,
+    );
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository(const {}),
+      bindingRepository: _FakeBindingRepository(const []),
+      mcpServerRepository: _FakeMcpServerRepository(server, [tool]),
+    );
+
+    final result = await compose(
+      bot: _bot(
+        parameters: const {
+          Bot.parameterSupportsMcp: true,
+          Bot.parameterMcpServerIds: ['server-1'],
+        },
+      ),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Search the docs'),
+      currentUserId: 'user-1',
+      skillToolProvider: _McpProvider(),
+    );
+
+    expect(result.requestedToolNames, {'mcp.docs.search'});
+  });
 }
 
 SkillContent _skill(
@@ -450,23 +529,18 @@ SkillContent _skill(
   );
 }
 
-BotSkillBinding _binding(
-  String skillId,
-  SkillActivationMode mode, {
-  int priority = 0,
-}) {
+BotSkillBinding _binding(String skillId, {int priority = 0}) {
   final now = DateTime(2026, 7, 26);
   return BotSkillBinding(
     botId: 'bot-1',
     skillId: skillId,
-    activationMode: mode,
     priority: priority,
     createdAt: now,
     updatedAt: now,
   );
 }
 
-Bot _bot({String systemPrompt = ''}) => Bot(
+Bot _bot({String systemPrompt = '', Map<String, dynamic>? parameters}) => Bot(
   id: 'bot-1',
   name: 'Assistant',
   avatar: '',
@@ -476,7 +550,7 @@ Bot _bot({String systemPrompt = ''}) => Bot(
   apiType: Bot.apiTypeOpenAI,
   model: 'model',
   systemPrompt: systemPrompt,
-  parameters: const {},
+  parameters: parameters ?? const {},
   createTimestamp: DateTime(2026),
   modifyTimestamp: DateTime(2026),
 );
@@ -565,6 +639,61 @@ final class _LegacySkillProvider extends AiProvider {
 
   @override
   Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
+final class _McpProvider extends AiProvider {
+  _McpProvider() : super(_bot());
+
+  @override
+  bool supportMcp() => true;
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
+final class _FakeMcpServerRepository implements McpServerRepository {
+  const _FakeMcpServerRepository(this.server, this.tools);
+
+  final McpServer server;
+  final List<McpToolDescriptor> tools;
+
+  @override
+  Stream<List<McpServer>> get changes => const Stream.empty();
+
+  @override
+  Future<void> deleteServer(String id) => throw UnimplementedError();
+
+  @override
+  Future<McpServer?> getServer(String id) async =>
+      id == server.id ? server : null;
+
+  @override
+  Future<List<McpServer>> getServers({bool forceRefresh = false}) async => [
+    server,
+  ];
+
+  @override
+  Future<List<McpToolDescriptor>> getTools(
+    String serverId, {
+    bool enabledOnly = false,
+  }) async =>
+      serverId == server.id
+          ? tools.where((tool) => !enabledOnly || tool.enabled).toList()
+          : const [];
+
+  @override
+  Future<void> replaceTools(String serverId, List<McpToolDescriptor> tools) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> saveServer(McpServer server) => throw UnimplementedError();
+
+  @override
+  Future<void> setToolEnabled(
+    String serverId,
+    String remoteName, {
+    required bool enabled,
+  }) => throw UnimplementedError();
 }
 
 final class _FakeSkillSession implements SkillToolSession {

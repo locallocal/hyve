@@ -16,6 +16,7 @@ void main() {
       expect(sol.outputModalities, [OutputModality.text]);
       expect(sol.supportsWebSearch, isTrue);
       expect(sol.supportsDeepThinking, isTrue);
+      expect(sol.supportsMcp, isTrue);
       expect(sol.contextWindowTokens, 1050000);
       expect(sol.maxOutputTokens, 128000);
     });
@@ -42,6 +43,7 @@ void main() {
       expect(model?.inputModalities, contains(InputModality.file));
       expect(model?.supportsWebSearch, isTrue);
       expect(model?.supportsDeepThinking, isTrue);
+      expect(model?.supportsMcp, isFalse);
     });
 
     test('contains the current Mistral adjustable-reasoning models', () {
@@ -74,6 +76,7 @@ void main() {
 
       expect(sol.supportsWebSearch, isFalse);
       expect(sol.supportsDeepThinking, isTrue);
+      expect(sol.supportsMcp, isTrue);
       expect(sol.inputModalities, [InputModality.text, InputModality.image]);
       expect(sol.outputModalities, [OutputModality.text]);
       expect(sol.contextWindowTokens, 999999);

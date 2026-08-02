@@ -1269,6 +1269,16 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
       );
     }
 
+    final mcpToolCallCount =
+        widget.processInfo.toolCalls
+            .where((call) => call.source == ToolSource.mcp.name)
+            .length;
+    if (mcpToolCallCount > 0) {
+      summaryChips.add(
+        _ProcessChip(icon: LucideIcons.plug, label: 'MCP $mcpToolCallCount'),
+      );
+    }
+
     if (widget.processInfo.commandExecutions.isNotEmpty) {
       summaryChips.add(
         _ProcessChip(
@@ -1325,7 +1335,10 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
                         (item) => _joinMeta([
                           if (item.source.isNotEmpty ||
                               item.riskLevel.isNotEmpty)
-                            _joinMeta([item.source, item.riskLevel]),
+                            _joinMeta([
+                              _toolSourceLabel(item.source),
+                              item.riskLevel,
+                            ]),
                           if (item.argumentsSummary.isNotEmpty)
                             item.argumentsSummary,
                           if (item.detail.isNotEmpty) item.detail,
@@ -1386,9 +1399,7 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
                     titleBuilder: (item) => item.name,
                     subtitleBuilder:
                         (item) => _joinMeta([
-                          item.trigger == 'always'
-                              ? strings.alwaysOn
-                              : strings.manualActivation,
+                          strings.autoActivation,
                           if (item.contentDigest.isNotEmpty)
                             item.contentDigest.substring(
                               0,
@@ -1751,6 +1762,9 @@ String _joinMeta(List<String> parts) {
   final filtered = parts.where((item) => item.isNotEmpty).toList();
   return filtered.join(' · ');
 }
+
+String _toolSourceLabel(String source) =>
+    source == ToolSource.mcp.name ? 'MCP' : source;
 
 String _formatDuration(int durationMs) {
   if (durationMs < 1000) {

@@ -33,6 +33,7 @@ void main() {
       expect(info.supportsWebSearch, isTrue);
       expect(info.supportsDeepThinking, isTrue);
       expect(info.supportsDeepResearch, isNull);
+      expect(info.supportsMcp, isTrue);
       expect(info.supportsSkills, isTrue);
       expect(info.supportsAutomaticSkillActivation, isTrue);
       expect(info.supportsHostedSkills, isNull);
@@ -98,6 +99,7 @@ void main() {
         expect(info.outputModalities, [OutputModality.text]);
         expect(info.supportsWebSearch, isTrue);
         expect(info.supportsDeepThinking, isTrue);
+        expect(info.supportsMcp, isTrue);
         expect(info.contextWindowTokens, 1050000);
         expect(info.maxOutputTokens, 128000);
       },

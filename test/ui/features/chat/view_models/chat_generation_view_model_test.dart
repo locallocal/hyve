@@ -102,7 +102,7 @@ void main() {
               id: 'user:release-notes',
               name: 'release-notes',
               contentDigest: 'abc123',
-              trigger: SkillActivationTrigger.manual,
+              trigger: SkillActivationTrigger.model,
             ),
           ],
         ),
@@ -116,7 +116,7 @@ void main() {
       expect(activations.single.skillId, 'user:release-notes');
       expect(activations.single.skillName, 'release-notes');
       expect(activations.single.contentDigest, 'abc123');
-      expect(activations.single.trigger, SkillActivationTrigger.manual);
+      expect(activations.single.trigger, SkillActivationTrigger.model);
       expect(activations.single.status, SkillActivationStatus.activated);
     });
 

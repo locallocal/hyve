@@ -80,104 +80,14 @@ void main() {
       expect(sendCalls, 1);
     });
 
-    testWidgets('Skill picker exposes bound Skills and reports selection', (
-      tester,
-    ) async {
+    testWidgets('does not expose a manual Skill picker', (tester) async {
       final controller = TextEditingController();
       addTearDown(controller.dispose);
-      final toggledSkillIds = <String>[];
 
-      await _pumpMessageInput(
-        tester,
-        controller: controller,
-        availableSkills: [_skill()],
-        onSkillToggled: toggledSkillIds.add,
-      );
+      await _pumpMessageInput(tester, controller: controller);
 
-      expect(find.byIcon(LucideIcons.wrench), findsOneWidget);
-      await tester.tap(find.text('技能'));
-      await tester.pumpAndSettle();
-      expect(find.text('release-notes'), findsOneWidget);
-
-      await tester.tap(find.text('release-notes'));
-      await tester.pump();
-
-      expect(toggledSkillIds, ['user:release-notes']);
-    });
-
-    testWidgets('Skill picker aligns selection at right and spaces items', (
-      tester,
-    ) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-      final firstSkill = _skill();
-      final secondSkill = _skill(
-        id: 'user:weekly-summary',
-        name: 'weekly-summary',
-      );
-
-      await _pumpMessageInput(
-        tester,
-        controller: controller,
-        availableSkills: [firstSkill, secondSkill],
-        selectedSkillIds: {firstSkill.id},
-      );
-
-      await tester.tap(find.text('技能 1'));
-      await tester.pumpAndSettle();
-
-      final firstItem = find.ancestor(
-        of: find.text(firstSkill.name),
-        matching: find.byType(ShadButton),
-      );
-      final secondItem = find.ancestor(
-        of: find.text(secondSkill.name),
-        matching: find.byType(ShadButton),
-      );
-      final firstRect = tester.getRect(firstItem);
-      final secondRect = tester.getRect(secondItem);
-      final checkRect = tester.getRect(find.byIcon(LucideIcons.check));
-
-      expect(firstRect.width, 300);
-      expect(firstRect.right - checkRect.right, 8);
-      expect(secondRect.top - firstRect.bottom, 4);
-    });
-
-    testWidgets('Skill picker exposes conversation pin actions', (
-      tester,
-    ) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-      final skill = _skill();
-      var pinCalls = 0;
-      var clearCalls = 0;
-
-      await _pumpMessageInput(
-        tester,
-        controller: controller,
-        availableSkills: [skill],
-        selectedSkillIds: {skill.id},
-        canPinSelectedSkills: true,
-        onPinSelectedSkills: () => pinCalls += 1,
-      );
-      await tester.tap(find.text('技能 1'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('在当前会话中固定已选技能'));
-      expect(pinCalls, 1);
-
-      await _pumpMessageInput(
-        tester,
-        controller: controller,
-        availableSkills: [skill],
-        selectedSkillIds: {skill.id},
-        pinnedSkillIds: {skill.id},
-        onClearPinnedSkills: () => clearCalls += 1,
-      );
-      await tester.tap(find.text('技能 1'));
-      await tester.pumpAndSettle();
-      expect(find.text('release-notes · 已固定'), findsOneWidget);
-      await tester.tap(find.text('清除会话固定技能'));
-      expect(clearCalls, 1);
+      expect(find.byIcon(LucideIcons.wrench), findsNothing);
+      expect(find.text('技能'), findsNothing);
     });
 
     testWidgets('web search mirrors empty and ready send button styles', (
@@ -365,14 +275,6 @@ Future<void> _pumpMessageInput(
   AiProvider? provider,
   VoidCallback? onSend,
   VoidCallback? onCancel,
-  List<SkillDescriptor> availableSkills = const [],
-  Set<String> selectedSkillIds = const {},
-  Set<String> pinnedSkillIds = const {},
-  bool Function(String skillId)? isSkillAlways,
-  ValueChanged<String>? onSkillToggled,
-  bool canPinSelectedSkills = false,
-  VoidCallback? onPinSelectedSkills,
-  VoidCallback? onClearPinnedSkills,
 }) async {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -434,14 +336,6 @@ Future<void> _pumpMessageInput(
                             onVideoRatioSelected: _ignoreString,
                             onSend: onSend ?? _noop,
                             onCancelRequest: onCancel ?? _noop,
-                            availableSkills: availableSkills,
-                            selectedSkillIds: selectedSkillIds,
-                            pinnedSkillIds: pinnedSkillIds,
-                            isSkillAlways: isSkillAlways,
-                            onSkillToggled: onSkillToggled,
-                            canPinSelectedSkills: canPinSelectedSkills,
-                            onPinSelectedSkills: onPinSelectedSkills,
-                            onClearPinnedSkills: onClearPinnedSkills,
                           ),
                         ),
                       ),
@@ -465,28 +359,6 @@ Future<void> _focusAndEnterText(WidgetTester tester, String text) async {
 void _noop() {}
 
 void _ignoreString(String _) {}
-
-SkillDescriptor _skill({
-  String id = 'user:release-notes',
-  String name = 'release-notes',
-}) {
-  final timestamp = DateTime(2026, 7, 26);
-  return SkillDescriptor(
-    id: id,
-    name: name,
-    description: 'Prepare concise release notes.',
-    version: '1.0.0',
-    scope: SkillScope.user,
-    sourceUri: 'file:///release-notes',
-    rootPath: '/skills/release-notes',
-    contentDigest: 'abc123',
-    trustState: SkillTrustState.userReviewed,
-    validationStatus: SkillValidationStatus.valid,
-    compatibility: '',
-    installedAt: timestamp,
-    updatedAt: timestamp,
-  );
-}
 
 class _FakeProvider extends AiProvider {
   _FakeProvider(super.bot, {this.supportsWebSearch = false});

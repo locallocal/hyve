@@ -33,6 +33,9 @@ abstract class AiProvider {
 
   bool supportDeepResearch() => false;
 
+  /// Whether the selected model can participate in the MCP Agent Loop.
+  bool supportMcp() => false;
+
   void setWebSearch(bool enabled) => webSearch = enabled;
 
   bool getWebSearch() => webSearch;

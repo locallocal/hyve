@@ -1,4 +1,9 @@
 class Bot {
+  static const parameterSupportsMcp = 'supports_mcp';
+  static const parameterMcpServerIds = 'mcp_server_ids';
+  static const parameterSupportsAutomaticSkillActivation =
+      'supports_automatic_skill_activation';
+
   static const apiTypeOpenAI = 'openai';
   static const apiTypeAzure = 'azure';
   static const apiTypeOllama = 'ollama';
@@ -72,6 +77,27 @@ class Bot {
   final Map<String, dynamic>? parameters;
   final DateTime createTimestamp;
   final DateTime modifyTimestamp;
+
+  bool? get configuredSupportsMcp {
+    final value = parameters?[parameterSupportsMcp];
+    return value is bool ? value : null;
+  }
+
+  Set<String> get mcpServerIds {
+    final value = parameters?[parameterMcpServerIds];
+    if (value is! List) return const {};
+    return Set<String>.unmodifiable(
+      value
+          .whereType<String>()
+          .map((id) => id.trim())
+          .where((id) => id.isNotEmpty),
+    );
+  }
+
+  bool? get configuredSupportsAutomaticSkillActivation {
+    final value = parameters?[parameterSupportsAutomaticSkillActivation];
+    return value is bool ? value : null;
+  }
 
   static List<String> getAllApiTypes() {
     return [

@@ -5,7 +5,6 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
@@ -147,6 +146,7 @@ void main() {
       botId: 'bot-1',
       skillRepository: skillRepository,
       bindingRepository: bindingRepository,
+      supportsAutoActivation: true,
     );
     addTearDown(viewModel.dispose);
     await viewModel.load();
@@ -159,7 +159,7 @@ void main() {
     expect(viewModel.addedSkills.map((skill) => skill.id), ['user:one']);
     expect(
       bindingRepository.bindings.single.activationMode,
-      SkillActivationMode.manual,
+      SkillActivationMode.auto,
     );
 
     await viewModel.setEnabled('user:one', false);
@@ -169,15 +169,6 @@ void main() {
     expect(viewModel.bindingFor('user:one')?.enabled, isFalse);
 
     await viewModel.setEnabled('user:one', true);
-    await viewModel.setActivationMode('user:one', SkillActivationMode.always);
-    expect(
-      bindingRepository.bindings.single.activationMode,
-      SkillActivationMode.always,
-    );
-    await expectLater(
-      viewModel.setActivationMode('user:one', SkillActivationMode.auto),
-      throwsA(isA<UnsupportedError>()),
-    );
 
     await viewModel.removeSkill('user:one');
     await Future<void>.delayed(Duration.zero);
@@ -204,6 +195,7 @@ void main() {
       botId: 'bot-1',
       skillRepository: skillRepository,
       bindingRepository: bindingRepository,
+      supportsAutoActivation: true,
       pageSize: 5,
     );
     addTearDown(viewModel.dispose);
@@ -263,6 +255,7 @@ void main() {
           _skill('Translation'),
         ]),
         bindingRepository: _FakeBindingRepository(),
+        supportsAutoActivation: true,
         pageSize: 2,
       );
       addTearDown(viewModel.dispose);
@@ -297,95 +290,86 @@ void main() {
     },
   );
 
-  test('bot enables automatic mode only for capable providers', () async {
-    final skillRepository = _FakeSkillRepository([_skill('auto')]);
-    final bindingRepository = _FakeBindingRepository();
-    final viewModel = BotSkillViewModel(
-      botId: 'bot-1',
-      skillRepository: skillRepository,
-      bindingRepository: bindingRepository,
-      skillToolProvider: _AutoProvider(),
-    );
-    addTearDown(viewModel.dispose);
-    await viewModel.load();
-    await viewModel.addSkill('user:auto');
-
-    await viewModel.setActivationMode('user:auto', SkillActivationMode.auto);
-
-    expect(viewModel.supportsAutoActivation, isTrue);
-    expect(
-      viewModel.bindingFor('user:auto')?.activationMode,
-      SkillActivationMode.auto,
-    );
-  });
-
   test(
-    'chat selector exposes enabled bindings and keeps always-on selected',
+    'bot exposes Skills only while automatic activation is supported',
     () async {
-      final skillRepository = _FakeSkillRepository([
-        _skill('manual'),
-        _skill('always'),
-        _skill('disabled'),
-        _skill('unbound'),
-      ]);
-      final timestamp = DateTime(2026, 7, 26);
-      final bindingRepository = _FakeBindingRepository([
-        BotSkillBinding(
-          botId: 'bot-1',
-          skillId: 'user:manual',
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        ),
-        BotSkillBinding(
-          botId: 'bot-1',
-          skillId: 'user:always',
-          activationMode: SkillActivationMode.always,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        ),
-        BotSkillBinding(
-          botId: 'bot-1',
-          skillId: 'user:disabled',
-          enabled: false,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        ),
-      ]);
-      final pinRepository = _FakePinRepository();
-      final viewModel = ChatSkillViewModel(
-        chatId: 'chat-1',
+      final skillRepository = _FakeSkillRepository([_skill('auto')]);
+      final bindingRepository = _FakeBindingRepository();
+      final viewModel = BotSkillViewModel(
         botId: 'bot-1',
         skillRepository: skillRepository,
         bindingRepository: bindingRepository,
-        pinRepository: pinRepository,
+        skillToolProvider: _AutoProvider(),
       );
       addTearDown(viewModel.dispose);
       await viewModel.load();
+      await viewModel.addSkill('user:auto');
 
-      expect(viewModel.availableSkills.map((skill) => skill.id), [
-        'user:manual',
-        'user:always',
-      ]);
-      expect(viewModel.isSelected('user:always'), isTrue);
-
-      viewModel.toggleManual('user:always');
-      expect(viewModel.manuallySelectedSkillIds, isEmpty);
-
-      viewModel.toggleManual('user:manual');
-      expect(viewModel.isSelected('user:manual'), isTrue);
-      await viewModel.pinManualSelection();
-      expect(viewModel.isPinned('user:manual'), isTrue);
-      expect(viewModel.pinnedSkillIds, {'user:manual'});
-      expect(viewModel.manuallySelectedSkillIds, isEmpty);
-      await viewModel.clearPins();
-      expect(viewModel.isPinned('user:manual'), isFalse);
-
-      viewModel.toggleManual('user:manual');
-      viewModel.clearManualSelection();
-      expect(viewModel.isSelected('user:manual'), isFalse);
-      expect(viewModel.isSelected('user:always'), isTrue);
+      expect(viewModel.supportsAutoActivation, isTrue);
+      expect(
+        viewModel.bindingFor('user:auto')?.activationMode,
+        SkillActivationMode.auto,
+      );
+      viewModel.updateSupportsAutoActivation(false);
+      expect(viewModel.skills, isEmpty);
+      expect(viewModel.addedSkills, isEmpty);
+      expect(viewModel.availableSkills, isEmpty);
+      expect(viewModel.bindings, isEmpty);
     },
   );
+
+  test('chat Skill catalog is empty for unsupported models', () async {
+    final skillRepository = _FakeSkillRepository([
+      _skill('first'),
+      _skill('second'),
+      _skill('disabled'),
+      _skill('unbound'),
+    ]);
+    final timestamp = DateTime(2026, 7, 26);
+    final bindingRepository = _FakeBindingRepository([
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: 'user:first',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: 'user:second',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: 'user:disabled',
+        enabled: false,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    ]);
+    final viewModel = ChatSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: skillRepository,
+      bindingRepository: bindingRepository,
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    expect(viewModel.availableSkills, isEmpty);
+
+    final supportedViewModel = ChatSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: skillRepository,
+      bindingRepository: bindingRepository,
+      supportsAutoActivation: true,
+    );
+    addTearDown(supportedViewModel.dispose);
+    await supportedViewModel.load();
+    expect(supportedViewModel.availableSkills.map((skill) => skill.id), [
+      'user:first',
+      'user:second',
+    ]);
+  });
 }
 
 final class _AutoProvider extends AiProvider {
@@ -536,39 +520,6 @@ final class _FakeBindingRepository implements BotSkillBindingRepository {
       ),
       binding,
     ];
-    _changes.add(null);
-  }
-}
-
-final class _FakePinRepository implements ConversationSkillPinRepository {
-  final StreamController<void> _changes = StreamController<void>.broadcast();
-  final List<ConversationSkillPin> pins = [];
-
-  @override
-  Stream<void> get changes => _changes.stream;
-
-  @override
-  Future<void> clear(String chatId) async {
-    pins.removeWhere((pin) => pin.chatId == chatId);
-    _changes.add(null);
-  }
-
-  @override
-  Future<List<ConversationSkillPin>> getForChat(String chatId) async =>
-      pins.where((pin) => pin.chatId == chatId).toList(growable: false);
-
-  @override
-  Future<void> remove(String chatId, String skillId) async {
-    pins.removeWhere((pin) => pin.chatId == chatId && pin.skillId == skillId);
-    _changes.add(null);
-  }
-
-  @override
-  Future<void> save(ConversationSkillPin pin) async {
-    pins.removeWhere(
-      (item) => item.chatId == pin.chatId && item.skillId == pin.skillId,
-    );
-    pins.add(pin);
     _changes.add(null);
   }
 }

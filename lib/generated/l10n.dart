@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1470,7 +1469,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2986,6 +2986,46 @@ class S {
     return Intl.message(
       'Add MCP Server',
       name: 'addMcpServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove MCP Server`
+  String get removeMcpServer {
+    return Intl.message(
+      'Remove MCP Server',
+      name: 'removeMcpServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No MCP Servers added`
+  String get noBotMcpServersAdded {
+    return Intl.message(
+      'No MCP Servers added',
+      name: 'noBotMcpServersAdded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add the healthy MCP Servers this agent needs.`
+  String get noBotMcpServersAddedDescription {
+    return Intl.message(
+      'Add the healthy MCP Servers this agent needs.',
+      name: 'noBotMcpServersAddedDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No healthy MCP Servers are available to add.`
+  String get noAvailableMcpServers {
+    return Intl.message(
+      'No healthy MCP Servers are available to add.',
+      name: 'noAvailableMcpServers',
       desc: '',
       args: [],
     );

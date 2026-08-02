@@ -12,9 +12,93 @@ import 'package:stars/utils/theme.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('MCP-capable bot can select and save a configured server', (
-    tester,
-  ) async {
+  testWidgets(
+    'bot can add only healthy MCP servers and control their enabled state',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 1100);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      Bot? saved;
+      await tester.pumpWidget(
+        _harness(
+          bot: _bot(supportsMcp: true),
+          servers: [
+            _server(),
+            _server(
+              id: 'server-disconnected',
+              name: 'Offline',
+              status: McpConnectionStatus.disconnected,
+            ),
+            _server(id: 'server-disabled', name: 'Disabled', enabled: false),
+          ],
+          onSaved: (bot) async => saved = bot,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('bot-mcp-server-server-1')),
+        findsNothing,
+      );
+      final addButton = find.byKey(
+        const ValueKey<String>('add-bot-mcp-server'),
+      );
+      await tester.ensureVisible(addButton);
+      await tester.tap(addButton);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('available-bot-mcp-server-server-1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>(
+            'available-bot-mcp-server-server-disconnected',
+          ),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('available-bot-mcp-server-server-disabled'),
+        ),
+        findsNothing,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
+      );
+      await tester.pumpAndSettle();
+
+      final serverToggle = find.byKey(
+        const ValueKey<String>('bot-mcp-server-toggle-server-1'),
+      );
+      expect(
+        find.byKey(const ValueKey<String>('bot-mcp-server-server-1')),
+        findsOneWidget,
+      );
+      expect(tester.widget<Switch>(serverToggle).value, isTrue);
+      expect(find.text('已开启'), findsOneWidget);
+
+      await tester.tap(serverToggle);
+      await tester.pump();
+      expect(tester.widget<Switch>(serverToggle).value, isFalse);
+      expect(find.text('已关闭'), findsOneWidget);
+
+      await tester.tap(find.text('保存修改'));
+      await tester.pumpAndSettle();
+
+      expect(saved?.configuredSupportsMcp, isTrue);
+      expect(saved?.mcpServerIds, {'server-1'});
+      expect(saved?.disabledMcpServerIds, {'server-1'});
+      expect(saved?.enabledMcpServerIds, isEmpty);
+    },
+  );
+
+  testWidgets('bot can remove an added MCP server', (tester) async {
     tester.view.physicalSize = const Size(900, 1100);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -23,29 +107,38 @@ void main() {
     Bot? saved;
     await tester.pumpWidget(
       _harness(
-        bot: _bot(supportsMcp: true),
+        bot: _bot(
+          supportsMcp: true,
+          mcpServerIds: const {'server-1'},
+          disabledMcpServerIds: const {'server-1'},
+        ),
         servers: [_server()],
         onSaved: (bot) async => saved = bot,
       ),
     );
     await tester.pumpAndSettle();
 
-    final serverTile = find.byKey(
-      const ValueKey<String>('bot-mcp-server-server-1'),
+    final removeButton = find.byKey(
+      const ValueKey<String>('remove-bot-mcp-server-server-1'),
     );
-    expect(serverTile, findsOneWidget);
-    expect(tester.widget<CheckboxListTile>(serverTile).value, isFalse);
-
-    await tester.ensureVisible(serverTile);
-    await tester.tap(serverTile);
+    await tester.ensureVisible(removeButton);
+    await tester.tap(removeButton);
     await tester.pump();
-    expect(tester.widget<CheckboxListTile>(serverTile).value, isTrue);
+
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-server-server-1')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-none-added')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('保存修改'));
     await tester.pumpAndSettle();
 
-    expect(saved?.configuredSupportsMcp, isTrue);
-    expect(saved?.mcpServerIds, {'server-1'});
+    expect(saved?.mcpServerIds, isEmpty);
+    expect(saved?.disabledMcpServerIds, isEmpty);
   });
 
   testWidgets('bot without MCP model support hides server selection', (
@@ -61,12 +154,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.byKey(const ValueKey<String>('bot-mcp-server-server-1')),
+      find.byKey(const ValueKey<String>('add-bot-mcp-server')),
       findsNothing,
     );
   });
 
-  testWidgets('MCP-capable model enables server selection while creating bot', (
+  testWidgets('MCP-capable model can add a server while creating a bot', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 1000);
@@ -104,19 +197,27 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final serverTile = find.byKey(
-      const ValueKey<String>('bot-mcp-server-server-1'),
+    final addButton = find.byKey(const ValueKey<String>('add-bot-mcp-server'));
+    await tester.ensureVisible(addButton);
+    await tester.tap(addButton);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
     );
-    expect(serverTile, findsOneWidget);
-    await tester.ensureVisible(serverTile);
-    await tester.tap(serverTile);
-    await tester.pump();
+    await tester.pumpAndSettle();
+
+    final serverToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-server-toggle-server-1'),
+    );
+    expect(tester.widget<ShadSwitch>(serverToggle).value, isTrue);
 
     await tester.tap(find.byKey(const ValueKey<String>('add-bot-submit')));
     await tester.pumpAndSettle();
 
     expect(added?.configuredSupportsMcp, isTrue);
     expect(added?.mcpServerIds, {'server-1'});
+    expect(added?.disabledMcpServerIds, isEmpty);
+    expect(added?.enabledMcpServerIds, {'server-1'});
   });
 }
 
@@ -191,7 +292,11 @@ Widget _addHarness({
   );
 }
 
-Bot _bot({required bool supportsMcp}) => Bot(
+Bot _bot({
+  required bool supportsMcp,
+  Set<String> mcpServerIds = const {},
+  Set<String> disabledMcpServerIds = const {},
+}) => Bot(
   id: 'bot-1',
   name: 'Assistant',
   avatar: '',
@@ -201,18 +306,27 @@ Bot _bot({required bool supportsMcp}) => Bot(
   apiType: Bot.apiTypeOpenAI,
   model: 'test-model',
   systemPrompt: '',
-  parameters: {Bot.parameterSupportsMcp: supportsMcp},
+  parameters: {
+    Bot.parameterSupportsMcp: supportsMcp,
+    Bot.parameterMcpServerIds: mcpServerIds.toList(),
+    Bot.parameterDisabledMcpServerIds: disabledMcpServerIds.toList(),
+  },
   createTimestamp: DateTime(2026),
   modifyTimestamp: DateTime(2026),
 );
 
-McpServer _server() => McpServer(
-  id: 'server-1',
-  name: 'Docs',
-  namespace: 'docs',
-  endpoint: Uri.parse('https://mcp.example.test'),
-  enabled: true,
-  status: McpConnectionStatus.connected,
+McpServer _server({
+  String id = 'server-1',
+  String name = 'Docs',
+  bool enabled = true,
+  McpConnectionStatus status = McpConnectionStatus.connected,
+}) => McpServer(
+  id: id,
+  name: name,
+  namespace: id.replaceAll('-', '_'),
+  endpoint: Uri.parse('https://mcp.example.test/$id'),
+  enabled: enabled,
+  status: status,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );

@@ -64,6 +64,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _ownsSkillViewModel = false;
   List<McpServer> _mcpServers = const [];
   late Set<String> _selectedMcpServerIds;
+  late Set<String> _disabledMcpServerIds;
   late bool _modelSupportsMcp;
   late bool _initialModelSupportsMcp;
   late bool _modelSupportsAutomaticSkillActivation;
@@ -87,6 +88,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     selectedProvider = widget.bot.provider;
     selectedModel = widget.bot.model;
     _selectedMcpServerIds = widget.bot.mcpServerIds;
+    _disabledMcpServerIds = widget.bot.disabledMcpServerIds;
     _modelSupportsMcp = widget.bot.configuredSupportsMcp ?? false;
     _initialModelSupportsMcp = _modelSupportsMcp;
     _modelSupportsAutomaticSkillActivation =
@@ -1261,6 +1263,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
             _modelSupportsMcp
                 ? (_selectedMcpServerIds.toList()..sort())
                 : const <String>[],
+        Bot.parameterDisabledMcpServerIds:
+            _modelSupportsMcp
+                ? (_disabledMcpServerIds.toList()..sort())
+                : const <String>[],
       },
       createTimestamp: widget.bot.createTimestamp,
       modifyTimestamp: DateTime.now(),
@@ -1726,11 +1732,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
     return BotMcpServerPicker(
       servers: _mcpServers,
       selectedServerIds: _selectedMcpServerIds,
+      disabledServerIds: _disabledMcpServerIds,
       isLoading: _isLoadingMcpServers,
       embedded: widget.embedded,
-      onChanged: (serverIds) {
+      onChanged: (serverIds, disabledServerIds) {
         setState(() {
           _selectedMcpServerIds = serverIds;
+          _disabledMcpServerIds = disabledServerIds;
           _editRevision += 1;
           _isSaved = false;
         });

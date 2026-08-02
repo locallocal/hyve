@@ -393,6 +393,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
       "新建聊天后会直接在工作区打开会话。",
     ),
+    "noAvailableMcpServers": MessageLookupByLibrary.simpleMessage(
+      "没有可添加的正常 MCP 服务器。",
+    ),
+    "noBotMcpServersAdded": MessageLookupByLibrary.simpleMessage(
+      "尚未添加 MCP 服务器",
+    ),
+    "noBotMcpServersAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "按需添加这个智能体要使用的正常 MCP 服务器。",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("尚未添加技能"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
       "按需添加这个智能体要使用的已安装技能。",
@@ -464,6 +473,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("仅支持远程 MCP"),
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("移除文件"),
     "removeImageAttachment": MessageLookupByLibrary.simpleMessage("移除图片"),
+    "removeMcpServer": MessageLookupByLibrary.simpleMessage("移除 MCP 服务器"),
     "removeSkill": MessageLookupByLibrary.simpleMessage("移除技能"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("已取消回复"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回复"),

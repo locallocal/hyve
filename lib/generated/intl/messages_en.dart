@@ -504,6 +504,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
       "A new chat opens directly in the workspace.",
     ),
+    "noAvailableMcpServers": MessageLookupByLibrary.simpleMessage(
+      "No healthy MCP Servers are available to add.",
+    ),
+    "noBotMcpServersAdded": MessageLookupByLibrary.simpleMessage(
+      "No MCP Servers added",
+    ),
+    "noBotMcpServersAddedDescription": MessageLookupByLibrary.simpleMessage(
+      "Add the healthy MCP Servers this agent needs.",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("No Skills added"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
       "Add the installed Skills this bot needs.",
@@ -610,6 +619,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "removeFileAttachment": MessageLookupByLibrary.simpleMessage("Remove file"),
     "removeImageAttachment": MessageLookupByLibrary.simpleMessage(
       "Remove image",
+    ),
+    "removeMcpServer": MessageLookupByLibrary.simpleMessage(
+      "Remove MCP Server",
     ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("Remove Skill"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage("Reply cancelled"),

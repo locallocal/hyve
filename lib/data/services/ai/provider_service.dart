@@ -97,6 +97,16 @@ abstract class Provider extends AiProvider {
         'supports_hosted_skills',
         'supportsHostedSkills',
       ]),
+      taskType: _modelTaskType(
+        _firstString(model, const ['task_type', 'taskType', 'type']),
+      ),
+      lifecycle: _modelLifecycle(
+        _firstString(model, const ['lifecycle', 'status']),
+      ),
+      currentSnapshot: _firstString(model, const [
+        'current_snapshot',
+        'currentSnapshot',
+      ]),
       contextWindowTokens:
           _firstPositiveInt(model, const [
             'context_length',
@@ -104,6 +114,10 @@ abstract class Provider extends AiProvider {
             'inputTokenLimit',
           ]) ??
           _firstPositiveInt(topProvider, const ['context_length']),
+      maxInputTokens: _firstPositiveInt(model, const [
+        'max_input_tokens',
+        'maxInputTokens',
+      ]),
       maxOutputTokens:
           _firstPositiveInt(model, const [
             'max_output_length',
@@ -111,9 +125,25 @@ abstract class Provider extends AiProvider {
             'outputTokenLimit',
           ]) ??
           _firstPositiveInt(topProvider, const ['max_completion_tokens']),
+      knowledgeCutoff: _providerDate(
+        model['knowledge_cutoff'] ?? model['knowledgeCutoff'],
+      ),
       releaseDate: _providerDate(
         model['created'] ?? model['created_at'] ?? model['release_date'],
       ),
+      supportedEndpoints: _modelEndpoints(
+        model['supported_endpoints'] ?? model['supportedEndpoints'],
+      ),
+      reasoningEfforts: _stringList(
+        model['reasoning_efforts'] ?? model['reasoningEfforts'],
+      ),
+      supportedFeatures:
+          _stringSet(
+            model['supported_features'] ?? model['supportedFeatures'],
+          ) ??
+          const {},
+      nativeTools:
+          _stringSet(model['native_tools'] ?? model['nativeTools']) ?? const {},
     );
     return _builtInProviderId == null ? info : BuiltInModelCatalog.enrich(info);
   }
@@ -171,54 +201,65 @@ abstract class Provider extends AiProvider {
     required String url,
     required Map<String, String> headers,
     required List<ChatMessage> messages,
+    List<Map<String, dynamic>>? formattedInput,
     Map<String, Object>? reasoning,
+    bool includeWebSearch = true,
+    http.Client? client,
   }) async {
+    final requestClient = client ?? http.Client();
+    final closeClient = client == null;
     final request =
         http.Request('POST', Uri.parse(url))
           ..headers.addAll(headers)
           ..body = jsonEncode({
             'model': bot.model,
-            'input': _responsesInput(messages),
+            'input': formattedInput ?? _responsesInput(messages),
             'stream': true,
-            'tools': [
-              {'type': 'web_search'},
-            ],
+            if (includeWebSearch)
+              'tools': [
+                {'type': 'web_search'},
+              ],
             if (reasoning != null) 'reasoning': reasoning,
           });
 
-    cancelController?.stream.listen((_) {
-      cancelController?.close();
-    });
+    try {
+      cancelController?.stream.listen((_) => requestClient.close());
 
-    final streamedResponse = await request.send();
-    if (streamedResponse.statusCode != 200) {
-      final errorBody = await streamedResponse.stream.bytesToString();
-      throw Exception('${streamedResponse.statusCode}, $errorBody');
-    }
-
-    final stream = streamedResponse.stream
-        .transform(utf8.decoder)
-        .transform(const LineSplitter());
-    await for (final line in stream) {
-      if (isCancelled) return;
-      if (!line.startsWith('data: ')) continue;
-
-      final jsonSource = line.substring(6).trim();
-      if (jsonSource.isEmpty || jsonSource == '[DONE]') continue;
-      final data = decodeProviderResponse(jsonSource);
-      switch (data['type']) {
-        case 'response.output_text.delta':
-          final delta = data['delta']?.toString() ?? '';
-          if (delta.isNotEmpty) onResponse(delta);
-        case 'response.reasoning_summary_text.delta':
-          final delta = data['delta']?.toString() ?? '';
-          if (deepThinking && delta.isNotEmpty && onReasoningResponse != null) {
-            onReasoningResponse!(delta);
-          }
-        case 'response.failed':
-        case 'error':
-          throw Exception(data['error'] ?? data);
+      final streamedResponse = await requestClient.send(request);
+      if (streamedResponse.statusCode < 200 ||
+          streamedResponse.statusCode >= 300) {
+        final errorBody = await streamedResponse.stream.bytesToString();
+        throw Exception('${streamedResponse.statusCode}, $errorBody');
       }
+
+      final stream = streamedResponse.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
+      await for (final line in stream) {
+        if (isCancelled) return;
+        if (!line.startsWith('data: ')) continue;
+
+        final jsonSource = line.substring(6).trim();
+        if (jsonSource.isEmpty || jsonSource == '[DONE]') continue;
+        final data = decodeProviderResponse(jsonSource);
+        switch (data['type']) {
+          case 'response.output_text.delta':
+            final delta = data['delta']?.toString() ?? '';
+            if (delta.isNotEmpty) onResponse(delta);
+          case 'response.reasoning_summary_text.delta':
+            final delta = data['delta']?.toString() ?? '';
+            if (deepThinking &&
+                delta.isNotEmpty &&
+                onReasoningResponse != null) {
+              onReasoningResponse!(delta);
+            }
+          case 'response.failed':
+          case 'error':
+            throw Exception(data['error'] ?? data);
+        }
+      }
+    } finally {
+      if (closeClient) requestClient.close();
     }
   }
 
@@ -451,6 +492,37 @@ int? _firstPositiveInt(Map<String, dynamic>? values, List<String> keys) {
 Set<String>? _stringSet(Object? value) {
   if (value is! List) return null;
   return value.whereType<String>().map((item) => item.toLowerCase()).toSet();
+}
+
+List<String> _stringList(Object? value) =>
+    value is List
+        ? value.whereType<String>().toList(growable: false)
+        : const [];
+
+AiModelTaskType? _modelTaskType(String? value) {
+  if (value == null) return null;
+  final normalized = value.toLowerCase().replaceAll('-', '_');
+  for (final taskType in AiModelTaskType.values) {
+    if (taskType.value == normalized) return taskType;
+  }
+  return null;
+}
+
+AiModelLifecycle? _modelLifecycle(String? value) {
+  if (value == null) return null;
+  final normalized = value.toLowerCase();
+  for (final lifecycle in AiModelLifecycle.values) {
+    if (lifecycle.value == normalized) return lifecycle;
+  }
+  return null;
+}
+
+List<AiModelEndpoint> _modelEndpoints(Object? value) {
+  final names = _stringSet(value) ?? const <String>{};
+  return [
+    for (final endpoint in AiModelEndpoint.values)
+      if (names.contains(endpoint.value)) endpoint,
+  ];
 }
 
 bool? _setCapability(Set<String>? values, Set<String> supportedValues) {

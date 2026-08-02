@@ -20,6 +20,8 @@ Stars 是一款使用 Flutter 构建的跨平台 AI 聊天客户端。它为桌�
 
 完整的服务商注册列表请参阅
 [`ai_provider_repository_impl.dart`](../lib/data/repositories/ai_provider_repository_impl.dart)。
+截至 2026-08-03 的供应商、模型目录、能力字段和适配状态，请参阅
+[模型供应商与代码能力清单](model_providers_and_capabilities_2026-08-03.md)。
 
 ## 快速开始
 

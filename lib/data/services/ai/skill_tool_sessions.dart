@@ -117,6 +117,112 @@ final class OpenAiSkillToolSession implements SkillToolSession {
   }
 }
 
+/// Non-streaming Skill activation over the Responses API.
+///
+/// Responses tool calls and tool outputs are separate input items correlated
+/// by `call_id`; the complete model output is retained between turns so
+/// reasoning items remain available to reasoning models.
+final class OpenAiResponsesSkillToolSession implements SkillToolSession {
+  OpenAiResponsesSkillToolSession({
+    required Bot bot,
+    required SkillToolSessionRequest request,
+    required List<Map<String, dynamic>> formattedInput,
+    required Uri uri,
+    required Map<String, String> headers,
+    required http.Client client,
+    required bool closeClient,
+    required ProviderResponseDecoder decodeResponse,
+  }) : _bot = bot,
+       _request = request,
+       _input =
+           formattedInput
+               .map((item) => Map<String, Object?>.from(item))
+               .toList(),
+       _uri = uri,
+       _headers = headers,
+       _client = client,
+       _closeClient = closeClient,
+       _decodeResponse = decodeResponse;
+
+  final Bot _bot;
+  final SkillToolSessionRequest _request;
+  final List<Map<String, Object?>> _input;
+  final Uri _uri;
+  final Map<String, String> _headers;
+  final http.Client _client;
+  final bool _closeClient;
+  final ProviderResponseDecoder _decodeResponse;
+  bool _started = false;
+
+  @override
+  Future<SkillToolTurn> start() {
+    if (_started) throw StateError('Skill tool session already started.');
+    _started = true;
+    return _send();
+  }
+
+  @override
+  Future<SkillToolTurn> continueWith(List<SkillToolResult> results) async {
+    if (!_started) throw StateError('Skill tool session has not started.');
+    for (final result in results) {
+      _input.add({
+        'type': 'function_call_output',
+        'call_id': result.callId,
+        'output': result.content,
+      });
+    }
+    return _send();
+  }
+
+  Future<SkillToolTurn> _send() async {
+    final response = await _client
+        .post(
+          _uri,
+          headers: _headers,
+          body: jsonEncode({
+            'model': _bot.model,
+            'input': _input,
+            'tools': _openAiResponsesSkillTools(_request.catalog),
+            'tool_choice': 'auto',
+            'parallel_tool_calls': false,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Skill activation request failed: '
+        '${response.statusCode} ${response.body}',
+      );
+    }
+    final root = _objectMap(_decodeResponse(utf8.decode(response.bodyBytes)));
+    final output = _objectList(root['output']);
+    _input.addAll(output.map(_objectMap));
+
+    final calls = <SkillToolCall>[];
+    for (final rawItem in output) {
+      final item = _objectMap(rawItem);
+      if (item['type'] != 'function_call') continue;
+      calls.add(
+        SkillToolCall(
+          callId: item['call_id']?.toString() ?? '',
+          name: item['name']?.toString() ?? '',
+          arguments: _decodeArguments(item['arguments']),
+        ),
+      );
+    }
+    return SkillToolTurn(
+      calls: calls,
+      isComplete: calls.isEmpty,
+      tokenUsage: _openAiResponsesUsage(root, _bot.model),
+    );
+  }
+
+  @override
+  void close() {
+    if (_closeClient) _client.close();
+  }
+}
+
 final class AnthropicSkillToolSession implements SkillToolSession {
   AnthropicSkillToolSession({
     required Bot bot,
@@ -241,6 +347,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     required http.Client client,
     required bool closeClient,
     required ProviderResponseDecoder decodeResponse,
+    String? reasoningEffort,
   }) : _bot = bot,
        _request = request,
        _toolNames = _ProviderToolNameCodec(request.tools),
@@ -252,7 +359,8 @@ final class OpenAiAgentModelSession implements AgentModelSession {
        _headers = headers,
        _client = client,
        _closeClient = closeClient,
-       _decodeResponse = decodeResponse;
+       _decodeResponse = decodeResponse,
+       _reasoningEffort = reasoningEffort;
 
   final Bot _bot;
   final ModelRequest _request;
@@ -263,6 +371,7 @@ final class OpenAiAgentModelSession implements AgentModelSession {
   final http.Client _client;
   final bool _closeClient;
   final ProviderResponseDecoder _decodeResponse;
+  final String? _reasoningEffort;
   bool _started = false;
   bool _closed = false;
 
@@ -303,6 +412,8 @@ final class OpenAiAgentModelSession implements AgentModelSession {
               'tool_choice': 'auto',
               'parallel_tool_calls': _request.options.allowParallelToolCalls,
             },
+            if (_request.options.deepThinking && _reasoningEffort != null)
+              'reasoning_effort': _reasoningEffort,
             'stream': false,
           }),
         )
@@ -362,6 +473,165 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     if (usage.hasData) yield UsageReported(usage);
     yield ModelTurnCompleted(
       stopReason: choice['finish_reason']?.toString() ?? '',
+    );
+  }
+
+  @override
+  Future<void> cancel() async {
+    if (_closed) return;
+    _closed = true;
+    _client.close();
+  }
+
+  @override
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    if (_closeClient) _client.close();
+  }
+}
+
+final class OpenAiResponsesAgentModelSession implements AgentModelSession {
+  OpenAiResponsesAgentModelSession({
+    required Bot bot,
+    required ModelRequest request,
+    required List<Map<String, dynamic>> formattedInput,
+    required Uri uri,
+    required Map<String, String> headers,
+    required http.Client client,
+    required bool closeClient,
+    required ProviderResponseDecoder decodeResponse,
+    String? reasoningEffort,
+  }) : _bot = bot,
+       _request = request,
+       _toolNames = _ProviderToolNameCodec(request.tools),
+       _input =
+           formattedInput
+               .map((item) => Map<String, Object?>.from(item))
+               .toList(),
+       _uri = uri,
+       _headers = headers,
+       _client = client,
+       _closeClient = closeClient,
+       _decodeResponse = decodeResponse,
+       _reasoningEffort = reasoningEffort;
+
+  final Bot _bot;
+  final ModelRequest _request;
+  final _ProviderToolNameCodec _toolNames;
+  final List<Map<String, Object?>> _input;
+  final Uri _uri;
+  final Map<String, String> _headers;
+  final http.Client _client;
+  final bool _closeClient;
+  final ProviderResponseDecoder _decodeResponse;
+  final String? _reasoningEffort;
+  bool _started = false;
+  bool _closed = false;
+
+  @override
+  Stream<ModelEvent> start() {
+    if (_started) throw StateError('Agent model session already started.');
+    _started = true;
+    return _send();
+  }
+
+  @override
+  Stream<ModelEvent> continueWith(List<ToolResult> results) {
+    if (!_started) {
+      throw StateError('Agent model session has not started.');
+    }
+    for (final result in results) {
+      _input.add({
+        'type': 'function_call_output',
+        'call_id': result.callId,
+        'output': result.content,
+      });
+    }
+    return _send();
+  }
+
+  Stream<ModelEvent> _send() async* {
+    final tools = _openAiResponsesTools(_request.tools, _toolNames);
+    if (_request.options.webSearch) tools.add({'type': 'web_search'});
+    final response = await _client
+        .post(
+          _uri,
+          headers: _headers,
+          body: jsonEncode({
+            'model': _bot.model,
+            'input': _input,
+            if (tools.isNotEmpty) ...{
+              'tools': tools,
+              'tool_choice': 'auto',
+              'parallel_tool_calls': _request.options.allowParallelToolCalls,
+            },
+            if (_request.options.deepThinking && _reasoningEffort != null)
+              'reasoning': {'effort': _reasoningEffort, 'summary': 'auto'},
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      yield ModelTurnFailed(
+        error: 'Model request failed: ${response.statusCode} ${response.body}',
+        code: 'provider_http_error',
+      );
+      return;
+    }
+
+    final root = _objectMap(_decodeResponse(utf8.decode(response.bodyBytes)));
+    final output = _objectList(root['output']);
+    if (output.isEmpty) {
+      yield const ModelTurnFailed(
+        error: 'Model response has no output items.',
+        code: 'invalid_provider_response',
+      );
+      return;
+    }
+    _input.addAll(output.map(_objectMap));
+
+    var hasToolCalls = false;
+    for (final rawItem in output) {
+      final item = _objectMap(rawItem);
+      switch (item['type']) {
+        case 'reasoning':
+          for (final rawSummary in _objectList(item['summary'])) {
+            final summary = _objectMap(rawSummary);
+            final text = summary['text']?.toString() ?? '';
+            if (text.isNotEmpty) yield ReasoningDelta(text);
+          }
+        case 'message':
+          for (final rawContent in _objectList(item['content'])) {
+            final content = _objectMap(rawContent);
+            if (content['type'] != 'output_text') continue;
+            final text = content['text']?.toString() ?? '';
+            if (text.isNotEmpty) yield TextDelta(text);
+          }
+        case 'function_call':
+          hasToolCalls = true;
+          final callId = item['call_id']?.toString() ?? '';
+          final name = _toolNames.canonical(item['name']?.toString() ?? '');
+          final rawArguments = item['arguments'];
+          yield ToolCallStarted(callId: callId, name: name);
+          if (rawArguments is String && rawArguments.isNotEmpty) {
+            yield ToolCallArgumentsDelta(
+              callId: callId,
+              argumentsDelta: rawArguments,
+            );
+          }
+          yield ToolCallRequested(
+            callId: callId,
+            name: name,
+            arguments: _decodeArguments(rawArguments),
+          );
+      }
+    }
+
+    final usage = _openAiResponsesUsage(root, _bot.model);
+    if (usage.hasData) yield UsageReported(usage);
+    yield ModelTurnCompleted(
+      stopReason:
+          hasToolCalls ? 'tool_calls' : root['status']?.toString() ?? '',
     );
   }
 
@@ -564,6 +834,15 @@ List<Map<String, Object?>> _openAiSkillTools(List<SkillCatalogEntry> catalog) {
   ];
 }
 
+List<Map<String, Object?>> _openAiResponsesSkillTools(
+  List<SkillCatalogEntry> catalog,
+) {
+  return [
+    for (final tool in _openAiSkillTools(catalog))
+      {'type': 'function', ..._objectMap(tool['function'])},
+  ];
+}
+
 List<Map<String, Object?>> _openAiTools(
   List<ToolDefinition> definitions,
   _ProviderToolNameCodec names,
@@ -577,6 +856,21 @@ List<Map<String, Object?>> _openAiTools(
           'description': definition.description,
           'parameters': definition.inputSchema,
         },
+      },
+  ];
+}
+
+List<Map<String, Object?>> _openAiResponsesTools(
+  List<ToolDefinition> definitions,
+  _ProviderToolNameCodec names,
+) {
+  return [
+    for (final definition in definitions)
+      {
+        'type': 'function',
+        'name': names.wire(definition.name),
+        'description': definition.description,
+        'parameters': definition.inputSchema,
       },
   ];
 }
@@ -685,6 +979,16 @@ ModelTokenUsage _openAiUsage(Map<String, Object?> root, String model) {
     model: model,
     inputTokens: _integer(usage['prompt_tokens']),
     outputTokens: _integer(usage['completion_tokens']),
+    totalTokens: _integer(usage['total_tokens']),
+  );
+}
+
+ModelTokenUsage _openAiResponsesUsage(Map<String, Object?> root, String model) {
+  final usage = _objectMap(root['usage']);
+  return ModelTokenUsage(
+    model: model,
+    inputTokens: _integer(usage['input_tokens']),
+    outputTokens: _integer(usage['output_tokens']),
     totalTokens: _integer(usage['total_tokens']),
   );
 }

@@ -128,10 +128,21 @@ void main() {
       tester.getSize(firstDailyBar).width,
       greaterThan(tester.getSize(firstDailyBar).height),
     );
-
-    await tester.tap(
-      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-24')),
+    final firstDailyBucket = find.byKey(
+      const ValueKey<String>('token-usage-bucket-day-2026-07-24'),
     );
+    final firstDailyValue = find.descendant(
+      of: firstDailyBucket,
+      matching: find.text('200'),
+    );
+    expect(firstDailyValue, findsOneWidget);
+    expect(
+      tester.getRect(firstDailyBucket).right -
+          tester.getRect(firstDailyValue).right,
+      12,
+    );
+
+    await tester.tap(firstDailyBucket);
     await tester.pump();
 
     expect(find.text('小时用量'), findsOneWidget);
@@ -150,6 +161,19 @@ void main() {
     expect(
       tester.getSize(firstHourlyBar).width,
       greaterThan(tester.getSize(firstHourlyBar).height),
+    );
+    final firstHourlyBucket = find.byKey(
+      const ValueKey<String>('token-usage-bucket-hour-10'),
+    );
+    final firstHourlyValue = find.descendant(
+      of: firstHourlyBucket,
+      matching: find.text('150'),
+    );
+    expect(firstHourlyValue, findsOneWidget);
+    expect(
+      tester.getRect(firstHourlyBucket).right -
+          tester.getRect(firstHourlyValue).right,
+      12,
     );
     expect(
       find.byKey(const ValueKey<String>('token-usage-back-to-daily')),

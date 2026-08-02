@@ -800,14 +800,16 @@ class _MessageInputState extends State<MessageInput> {
             : widget.requestInProgress
             ? S.of(context).stop
             : S.of(context).send;
-    final icon = Icon(
-      widget.requestInProgress && widget.canCancel
-          ? Icons.stop_rounded
-          : widget.requestInProgress
-          ? LucideIcons.loaderCircle
-          : LucideIcons.send,
-      size: 17,
-    );
+    const actionIconSize = 17.0;
+    final icon =
+        widget.requestInProgress && widget.canCancel
+            ? const _DesktopStopIcon(size: actionIconSize)
+            : Icon(
+              widget.requestInProgress
+                  ? LucideIcons.loaderCircle
+                  : LucideIcons.send,
+              size: actionIconSize,
+            );
     final button =
         widget.requestInProgress
             ? ShadButton.secondary(
@@ -1186,6 +1188,34 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
           ),
         );
       },
+    );
+  }
+}
+
+class _DesktopStopIcon extends StatelessWidget {
+  const _DesktopStopIcon({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      key: const ValueKey('desktop-stop-icon'),
+      dimension: size,
+      child: Center(
+        child: SizedBox.square(
+          key: const ValueKey('desktop-stop-glyph'),
+          dimension: 15,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color:
+                  IconTheme.of(context).color ??
+                  DefaultTextStyle.of(context).style.color,
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -776,10 +776,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                           : Matrix4.identity(),
                   child: ShadCard(
                     key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 15,
-                    ),
+                    padding: const EdgeInsets.all(18),
                     backgroundColor: _hovered ? theme.colorScheme.accent : null,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,6 +850,9 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                         ),
                         const Spacer(),
                         Row(
+                          key: ValueKey<String>(
+                            'desktop-bot-card-footer-${widget.bot.id}',
+                          ),
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(

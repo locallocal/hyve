@@ -430,24 +430,66 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   Future<void> _confirmDelete(McpServer server) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(S.of(context).deleteMcpServer),
-            content: Text(S.of(context).confirmDeleteMcpServer(server.name)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: Text(S.of(context).cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: Text(S.of(context).delete),
-              ),
-            ],
-          ),
-    );
+    final desktop = isDesktopOrTabletPlatform(context);
+    final confirmed =
+        desktop
+            ? await showChatShadDialog<bool>(
+              context: context,
+              variant: ShadDialogVariant.alert,
+              builder:
+                  (dialogContext) => ShadDialog.alert(
+                    title: Text(S.of(dialogContext).deleteMcpServer),
+                    description: Text(
+                      S.of(dialogContext).confirmDeleteMcpServer(server.name),
+                    ),
+                    actions: [
+                      ShadButton.outline(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: Text(S.of(dialogContext).cancel),
+                      ),
+                      ShadButton.destructive(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: Text(S.of(dialogContext).delete),
+                      ),
+                    ],
+                  ),
+            )
+            : await showDialog<bool>(
+              context: context,
+              builder:
+                  (dialogContext) => AlertDialog(
+                    title: Center(
+                      child: Text(
+                        S.of(dialogContext).deleteMcpServer,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize:
+                              Theme.of(
+                                dialogContext,
+                              ).textTheme.bodyLarge?.fontSize,
+                        ),
+                      ),
+                    ),
+                    content: Text(
+                      S.of(dialogContext).confirmDeleteMcpServer(server.name),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: Text(S.of(dialogContext).cancel),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: Text(
+                          S.of(dialogContext).delete,
+                          style: TextStyle(
+                            color: DesktopThemeTokens.error(dialogContext),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+            );
     if (confirmed == true) await _viewModel.deleteServer(server);
   }
 }

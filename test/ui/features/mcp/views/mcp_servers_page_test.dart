@@ -382,6 +382,92 @@ void main() {
     }
   });
 
+  testWidgets('desktop MCP delete dialog matches delete chat styling', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final now = DateTime.utc(2026, 7, 30);
+    final server = McpServer(
+      id: 'github',
+      name: 'GitHub',
+      namespace: 'github',
+      endpoint: Uri.parse('https://example.com/github/mcp'),
+      status: McpConnectionStatus.connected,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final repository = _FakeMcpServerRepository(servers: [server]);
+    final viewModel = McpServersViewModel(
+      repository: repository,
+      credentialStore: const _UnusedCredentialStore(),
+      catalogService: McpCatalogService(
+        repository: repository,
+        client: const _UnusedMcpClient(),
+        toolRegistry: DynamicToolRegistry(const []),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-actions-github')),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-delete-github')),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('删除 MCP 服务器'), findsOneWidget);
+      expect(find.text('确定删除“GitHub”？缓存的工具目录和安全凭据也会一并移除。'), findsOneWidget);
+
+      final cancelButtonFinder = find.ancestor(
+        of: find.text('取消'),
+        matching: find.byType(ShadButton),
+      );
+      final deleteButtonFinder = find.ancestor(
+        of: find.text('删除'),
+        matching: find.byType(ShadButton),
+      );
+      expect(cancelButtonFinder, findsOneWidget);
+      expect(deleteButtonFinder, findsOneWidget);
+      expect(
+        tester.widget<ShadButton>(cancelButtonFinder).variant,
+        ShadButtonVariant.outline,
+      );
+      expect(
+        tester.widget<ShadButton>(deleteButtonFinder).variant,
+        ShadButtonVariant.destructive,
+      );
+      expect(
+        tester.getCenter(cancelButtonFinder).dx,
+        lessThan(tester.getCenter(deleteButtonFinder).dx),
+      );
+
+      await tester.tap(cancelButtonFinder);
+      await tester.pumpAndSettle();
+      expect(find.byType(ShadDialog), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-github')),
+        findsOneWidget,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop MCP editor matches the Add Bot form dialog', (
     tester,
   ) async {

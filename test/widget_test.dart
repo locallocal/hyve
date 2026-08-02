@@ -1496,7 +1496,7 @@ void main() {
     });
   });
 
-  testWidgets('desktop sidebar selections match the empty composer action', (
+  testWidgets('desktop sidebar keeps Skill and MCP entries under My', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -1507,12 +1507,7 @@ void main() {
       await tester.pumpWidget(_desktopHarness(currentIndex: selectedPage));
       await tester.pumpAndSettle();
 
-      final label = switch (selectedPage) {
-        1 => '智能体',
-        2 => '技能',
-        3 => 'MCP 服务器',
-        _ => '我的',
-      };
+      final label = selectedPage == 1 ? '智能体' : '我的';
       final selectedButtonFinder =
           find
               .ancestor(of: find.text(label), matching: find.byType(ShadButton))
@@ -1590,34 +1585,33 @@ void main() {
         expect(newChatButton.leading, isNull);
         expect(selectedButton.expands, isTrue);
         expect(agentIcon.size, newChatIcon.size);
-      } else if (selectedPage == 2) {
-        expect(
-          find.descendant(
-            of: selectedButtonFinder,
-            matching: find.byIcon(LucideIcons.wrench),
-          ),
-          findsOneWidget,
-        );
-      } else if (selectedPage == 3) {
-        expect(
-          find.descendant(
-            of: selectedButtonFinder,
-            matching: find.byIcon(LucideIcons.server),
-          ),
-          findsOneWidget,
-        );
-        final skillButtonFinder =
-            find
-                .ancestor(
-                  of: find.text('技能'),
-                  matching: find.byType(ShadButton),
-                )
-                .first;
-        expect(
-          tester.getRect(selectedButtonFinder).top,
-          greaterThan(tester.getRect(skillButtonFinder).bottom),
-        );
       }
+
+      final primaryNavigation = find.byKey(
+        const ValueKey<String>('desktop-primary-navigation'),
+      );
+      expect(
+        find.descendant(of: primaryNavigation, matching: find.text('技能')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: primaryNavigation, matching: find.text('MCP 服务器')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: primaryNavigation,
+          matching: find.byIcon(LucideIcons.wrench),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: primaryNavigation,
+          matching: find.byIcon(LucideIcons.server),
+        ),
+        findsNothing,
+      );
     }
   });
 
@@ -1669,12 +1663,7 @@ void main() {
 
       final conversationIconLeft =
           tester.getTopLeft(find.byType(ShadAvatar)).dx;
-      for (final icon in [
-        LucideIcons.squarePen,
-        LucideIcons.bot,
-        LucideIcons.wrench,
-        LucideIcons.server,
-      ]) {
+      for (final icon in [LucideIcons.squarePen, LucideIcons.bot]) {
         final iconFinder = find.byIcon(icon).first;
         final buttonFinder =
             find

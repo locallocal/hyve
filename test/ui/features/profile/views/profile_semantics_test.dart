@@ -162,6 +162,92 @@ void main() {
     }
   });
 
+  testWidgets('desktop general section opens Skill and MCP pages', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    var skillOpenCount = 0;
+    var mcpOpenCount = 0;
+    try {
+      await tester.pumpWidget(
+        _profileHarness(
+          onOpenSkillLibrary: () => skillOpenCount += 1,
+          onOpenMcpServers: () => mcpOpenCount += 1,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final skillEntry = find.byKey(
+        const ValueKey<String>('profile-skill-library'),
+      );
+      final mcpEntry = find.byKey(
+        const ValueKey<String>('profile-mcp-servers'),
+      );
+      await tester.scrollUntilVisible(
+        skillEntry,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(skillEntry, findsOneWidget);
+      expect(mcpEntry, findsOneWidget);
+
+      await tester.ensureVisible(skillEntry);
+      await tester.tap(skillEntry);
+      await Scrollable.ensureVisible(tester.element(mcpEntry), alignment: 0.5);
+      await tester.pumpAndSettle();
+      await tester.tap(mcpEntry);
+
+      expect(skillOpenCount, 1);
+      expect(mcpOpenCount, 1);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('mobile general section opens Skill and MCP pages', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    var skillOpenCount = 0;
+    var mcpOpenCount = 0;
+    try {
+      await tester.pumpWidget(
+        _profileHarness(
+          onOpenSkillLibrary: () => skillOpenCount += 1,
+          onOpenMcpServers: () => mcpOpenCount += 1,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final skillEntry = find.byKey(
+        const ValueKey<String>('profile-skill-library'),
+      );
+      final mcpEntry = find.byKey(
+        const ValueKey<String>('profile-mcp-servers'),
+      );
+      await tester.scrollUntilVisible(
+        skillEntry,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(skillEntry, findsOneWidget);
+      expect(mcpEntry, findsOneWidget);
+
+      await tester.ensureVisible(skillEntry);
+      await tester.tap(skillEntry);
+      await Scrollable.ensureVisible(tester.element(mcpEntry), alignment: 0.5);
+      await tester.pumpAndSettle();
+      await tester.tap(mcpEntry);
+
+      expect(skillOpenCount, 1);
+      expect(mcpOpenCount, 1);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('desktop theme row opens provider-style option dialog', (
     tester,
   ) async {
@@ -336,6 +422,8 @@ void main() {
 
 Widget _profileHarness({
   Future<void> Function(Profile profile)? onProfileSaved,
+  VoidCallback? onOpenSkillLibrary,
+  VoidCallback? onOpenMcpServers,
 }) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -374,6 +462,8 @@ Widget _profileHarness({
                 modifyTimestamp: DateTime(2026),
               ),
               onProfileSaved: onProfileSaved ?? (_) async {},
+              onOpenSkillLibrary: onOpenSkillLibrary ?? () {},
+              onOpenMcpServers: onOpenMcpServers ?? () {},
             ),
           ),
         ),

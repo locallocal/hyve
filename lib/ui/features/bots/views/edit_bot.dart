@@ -12,6 +12,7 @@ import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:stars/ui/features/bots/views/bot_mcp_server_picker.dart';
 import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -23,6 +24,7 @@ class EditBotPage extends StatefulWidget {
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
   final BotSkillViewModel? skillViewModel;
+  final Future<List<McpServer>> Function()? mcpServerLoader;
 
   const EditBotPage({
     super.key,
@@ -32,6 +34,7 @@ class EditBotPage extends StatefulWidget {
     this.avatarPicker,
     this.embedded = false,
     this.skillViewModel,
+    this.mcpServerLoader,
   });
 
   @override
@@ -59,6 +62,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
   BotTokenUsageViewModel? _tokenUsageViewModel;
   BotSkillViewModel? _skillViewModel;
   bool _ownsSkillViewModel = false;
+  List<McpServer> _mcpServers = const [];
+  late Set<String> _selectedMcpServerIds;
+  late bool _modelSupportsMcp;
+  late bool _initialModelSupportsMcp;
+  late bool _modelSupportsAutomaticSkillActivation;
+  late bool _initialModelSupportsAutomaticSkillActivation;
+  bool _isLoadingMcpServers = false;
+  bool _startedLoadingMcpServers = false;
+  bool _resolvedInitialMcpCapability = false;
 
   @override
   void initState() {
@@ -74,6 +86,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
     selectedProvider = widget.bot.provider;
     selectedModel = widget.bot.model;
+    _selectedMcpServerIds = widget.bot.mcpServerIds;
+    _modelSupportsMcp = widget.bot.configuredSupportsMcp ?? false;
+    _initialModelSupportsMcp = _modelSupportsMcp;
+    _modelSupportsAutomaticSkillActivation =
+        widget.bot.configuredSupportsAutomaticSkillActivation ?? false;
+    _initialModelSupportsAutomaticSkillActivation =
+        _modelSupportsAutomaticSkillActivation;
     if (widget.bot.avatar.isNotEmpty) {
       avatarImage = File(widget.bot.avatar);
     }
@@ -81,6 +100,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
     if (injectedSkillViewModel != null) {
       _skillViewModel =
           injectedSkillViewModel..addListener(_handleSkillChanged);
+      _modelSupportsAutomaticSkillActivation =
+          injectedSkillViewModel.supportsAutoActivation;
+      _initialModelSupportsAutomaticSkillActivation =
+          _modelSupportsAutomaticSkillActivation;
       unawaited(injectedSkillViewModel.load());
     }
   }
@@ -89,7 +112,46 @@ class _EditAIBotPageState extends State<EditBotPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final dependencies = AppScope.maybeOf(context);
+    if (!_startedLoadingMcpServers) {
+      final loader =
+          widget.mcpServerLoader ??
+          (dependencies == null
+              ? null
+              : () => dependencies.mcpServerRepository.getServers());
+      if (loader != null) {
+        _startedLoadingMcpServers = true;
+        unawaited(_loadMcpServers(loader));
+      }
+    }
     if (dependencies == null) return;
+    if (!_resolvedInitialMcpCapability) {
+      _resolvedInitialMcpCapability = true;
+      final supportsMcp =
+          dependencies.aiProviderRepository.create(widget.bot).supportMcp();
+      final supportsAutomaticSkillActivation =
+          widget.bot.configuredSupportsAutomaticSkillActivation ??
+          dependencies.aiProviderRepository
+              .create(widget.bot)
+              .capabilities
+              .supportsAutomaticSkillActivation;
+      _initialModelSupportsMcp = supportsMcp;
+      _initialModelSupportsAutomaticSkillActivation =
+          supportsAutomaticSkillActivation;
+      if (supportsMcp != _modelSupportsMcp) {
+        _modelSupportsMcp = supportsMcp;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      }
+      if (supportsAutomaticSkillActivation !=
+          _modelSupportsAutomaticSkillActivation) {
+        _modelSupportsAutomaticSkillActivation =
+            supportsAutomaticSkillActivation;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      }
+    }
     if (_tokenUsageViewModel == null) {
       _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
         widget.bot.id,
@@ -102,6 +164,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
         ..addListener(_handleSkillChanged);
       unawaited(_skillViewModel!.load());
     }
+    _skillViewModel?.updateSupportsAutoActivation(
+      _modelSupportsAutomaticSkillActivation,
+    );
   }
 
   void _handleTokenUsageChanged() {
@@ -110,6 +175,26 @@ class _EditAIBotPageState extends State<EditBotPage> {
 
   void _handleSkillChanged() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadMcpServers(
+    Future<List<McpServer>> Function() loader,
+  ) async {
+    setState(() => _isLoadingMcpServers = true);
+    try {
+      final servers = await loader();
+      if (!mounted) return;
+      setState(() {
+        _mcpServers = List<McpServer>.unmodifiable(
+          List<McpServer>.of(servers)
+            ..sort((left, right) => left.name.compareTo(right.name)),
+        );
+      });
+    } on Object {
+      if (mounted) setState(() => _mcpServers = const []);
+    } finally {
+      if (mounted) setState(() => _isLoadingMcpServers = false);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -322,15 +407,28 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     'desktop-bot-model-section',
                   ),
                 ),
-                SizedBox(height: widget.embedded ? 20 : 16),
-                _buildFormSection(
-                  context,
-                  S.of(context).botSkills,
-                  [_buildBotSkills()],
-                  sectionKey: const ValueKey<String>(
-                    'desktop-bot-skills-section',
+                if (_modelSupportsMcp) ...[
+                  SizedBox(height: widget.embedded ? 20 : 16),
+                  _buildFormSection(
+                    context,
+                    S.of(context).mcpServers,
+                    [_buildMcpServerPicker()],
+                    sectionKey: const ValueKey<String>(
+                      'desktop-bot-mcp-section',
+                    ),
                   ),
-                ),
+                ],
+                if (_modelSupportsAutomaticSkillActivation) ...[
+                  SizedBox(height: widget.embedded ? 20 : 16),
+                  _buildFormSection(
+                    context,
+                    S.of(context).botSkills,
+                    [_buildBotSkills()],
+                    sectionKey: const ValueKey<String>(
+                      'desktop-bot-skills-section',
+                    ),
+                  ),
+                ],
                 SizedBox(height: widget.embedded ? 20 : 16),
                 _buildFormSection(
                   context,
@@ -578,7 +676,6 @@ class _EditAIBotPageState extends State<EditBotPage> {
     final strings = S.of(context);
     final binding = viewModel.bindingFor(skill.id);
     final enabled = binding?.enabled ?? false;
-    final mode = binding?.activationMode ?? SkillActivationMode.manual;
     final switchWidget =
         widget.embedded
             ? ShadSwitch(
@@ -654,58 +751,33 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 ),
               ),
               const SizedBox(width: 12),
+              Text(
+                strings.autoActivation,
+                key: ValueKey<String>('bot-skill-auto-${skill.id}'),
+                style:
+                    widget.embedded
+                        ? DesktopThemeTokens.metaStyle(context)
+                        : Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(width: 12),
               switchWidget,
               const SizedBox(width: 8),
               removeButton,
             ],
           ),
-          if (enabled) ...[
+          if (enabled && viewModel.supportsAutoActivation) ...[
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildSkillModeChoice(
-                  label: strings.manualActivation,
-                  description: strings.manualActivationDescription,
-                  selected: mode == SkillActivationMode.manual,
-                  onPressed:
-                      () => _setSkillMode(skill.id, SkillActivationMode.manual),
-                ),
-                _buildSkillModeChoice(
-                  label: strings.alwaysActivation,
-                  description: strings.alwaysActivationDescription,
-                  selected: mode == SkillActivationMode.always,
-                  onPressed:
-                      () => _setSkillMode(skill.id, SkillActivationMode.always),
-                ),
-                if (viewModel.supportsAutoActivation)
-                  _buildSkillModeChoice(
-                    label: strings.autoActivation,
-                    description: strings.autoActivationDescription,
-                    selected: mode == SkillActivationMode.auto,
-                    onPressed:
-                        () => _setSkillMode(skill.id, SkillActivationMode.auto),
-                  ),
-                if (viewModel.supportsAutoActivation)
-                  ShadButton.ghost(
-                    key: ValueKey<String>('test-skill-description-${skill.id}'),
-                    size: ShadButtonSize.sm,
-                    width: 0,
-                    onPressed: () => _showSkillDescriptionTest(skill),
-                    leading: const Icon(LucideIcons.flaskConical, size: 14),
-                    child: Text(strings.testSkillDescription),
-                  ),
-              ],
-            ),
-            if (mode == SkillActivationMode.auto &&
-                !viewModel.supportsAutoActivation) ...[
-              const SizedBox(height: 8),
-              Text(
-                strings.autoActivationUnavailable,
-                style: DesktopThemeTokens.metaStyle(context),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: ShadButton.ghost(
+                key: ValueKey<String>('test-skill-description-${skill.id}'),
+                size: ShadButtonSize.sm,
+                width: 0,
+                onPressed: () => _showSkillDescriptionTest(skill),
+                leading: const Icon(LucideIcons.flaskConical, size: 14),
+                child: Text(strings.testSkillDescription),
               ),
-            ],
+            ),
           ],
         ],
       ),
@@ -1000,42 +1072,6 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
   }
 
-  Widget _buildSkillModeChoice({
-    required String label,
-    required String description,
-    required bool selected,
-    required VoidCallback onPressed,
-  }) {
-    if (!widget.embedded) {
-      return Tooltip(
-        message: description,
-        child: ChoiceChip(
-          label: Text(label),
-          selected: selected,
-          onSelected: (_) => onPressed(),
-        ),
-      );
-    }
-    return ShadTooltip(
-      builder: (context) => Text(description),
-      child:
-          selected
-              ? ShadButton.secondary(
-                size: ShadButtonSize.sm,
-                width: 0,
-                onPressed: onPressed,
-                leading: const Icon(LucideIcons.check, size: 14),
-                child: Text(label),
-              )
-              : ShadButton.outline(
-                size: ShadButtonSize.sm,
-                width: 0,
-                onPressed: onPressed,
-                child: Text(label),
-              ),
-    );
-  }
-
   Future<void> _setSkillEnabled(String skillId, bool enabled) async {
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
@@ -1059,14 +1095,6 @@ class _EditAIBotPageState extends State<EditBotPage> {
   Future<void> _removeBotSkill(String skillId) async {
     try {
       await _skillViewModel?.removeSkill(skillId);
-    } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
-    }
-  }
-
-  Future<void> _setSkillMode(String skillId, SkillActivationMode mode) async {
-    try {
-      await _skillViewModel?.setActivationMode(skillId, mode);
     } catch (error) {
       if (mounted) showSnackBar(context, error.toString());
     }
@@ -1224,7 +1252,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
               ? widget.bot.model
               : selectedModelController.text.trim(),
       systemPrompt: systemPromptController.text.trim(),
-      parameters: widget.bot.parameters,
+      parameters: {
+        ...?widget.bot.parameters,
+        Bot.parameterSupportsMcp: _modelSupportsMcp,
+        Bot.parameterSupportsAutomaticSkillActivation:
+            _modelSupportsAutomaticSkillActivation,
+        Bot.parameterMcpServerIds:
+            _modelSupportsMcp
+                ? (_selectedMcpServerIds.toList()..sort())
+                : const <String>[],
+      },
       createTimestamp: widget.bot.createTimestamp,
       modifyTimestamp: DateTime.now(),
     );
@@ -1664,10 +1701,40 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     return TextField(
       controller: selectedModelController,
+      onChanged: (value) {
+        final stillSelectedModel = value.trim() == widget.bot.model;
+        setState(() {
+          _modelSupportsMcp = stillSelectedModel && _initialModelSupportsMcp;
+          _modelSupportsAutomaticSkillActivation =
+              stillSelectedModel &&
+              _initialModelSupportsAutomaticSkillActivation;
+          _skillViewModel?.updateSupportsAutoActivation(
+            _modelSupportsAutomaticSkillActivation,
+          );
+          _editRevision += 1;
+          _isSaved = false;
+        });
+      },
       decoration: _fieldDecoration(
         label: S.of(context).model,
         icon: Icons.memory_outlined,
       ),
+    );
+  }
+
+  Widget _buildMcpServerPicker() {
+    return BotMcpServerPicker(
+      servers: _mcpServers,
+      selectedServerIds: _selectedMcpServerIds,
+      isLoading: _isLoadingMcpServers,
+      embedded: widget.embedded,
+      onChanged: (serverIds) {
+        setState(() {
+          _selectedMcpServerIds = serverIds;
+          _editRevision += 1;
+          _isSaved = false;
+        });
+      },
     );
   }
 

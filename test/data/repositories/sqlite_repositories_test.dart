@@ -273,7 +273,6 @@ void main() {
     final binding = BotSkillBinding(
       botId: bot.id,
       skillId: 'user:release-notes',
-      activationMode: SkillActivationMode.always,
       priority: 12,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -284,7 +283,7 @@ void main() {
     final restored = await bindingRepository.getForBot(bot.id);
     expect(restored, hasLength(1));
     expect(restored.single.skillId, binding.skillId);
-    expect(restored.single.activationMode, SkillActivationMode.always);
+    expect(restored.single.activationMode, SkillActivationMode.auto);
     expect(restored.single.priority, 12);
 
     await botRepository.deleteBot(bot.id);
@@ -304,7 +303,7 @@ void main() {
         skillId: 'user:release-notes',
         skillName: 'release-notes',
         contentDigest: 'abc123',
-        trigger: SkillActivationTrigger.manual,
+        trigger: SkillActivationTrigger.model,
         status: SkillActivationStatus.activated,
         startedAt: startedAt,
         completedAt: completedAt,
@@ -317,7 +316,7 @@ void main() {
     expect(restored, hasLength(1));
     expect(restored.single.skillName, 'release-notes');
     expect(restored.single.contentDigest, 'abc123');
-    expect(restored.single.trigger, SkillActivationTrigger.manual);
+    expect(restored.single.trigger, SkillActivationTrigger.model);
     expect(restored.single.status, SkillActivationStatus.activated);
     expect(restored.single.durationMs, 8);
     expect(restored.single.completedAt, completedAt);

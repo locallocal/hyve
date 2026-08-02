@@ -166,6 +166,7 @@ class AppDependencies {
     final composeChatTurn = ComposeChatTurn(
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
+      mcpServerRepository: mcpServerRepository,
     );
     final toolRegistry = DynamicToolRegistry(createBuiltInTools());
     final mcpCatalogService = McpCatalogService(
@@ -336,18 +337,25 @@ class AppDependencies {
         chatRepository: chatRepository,
       );
 
-  BotSkillViewModel createBotSkillViewModel(Bot bot) => BotSkillViewModel(
-    botId: bot.id,
-    skillRepository: skillRepository,
-    bindingRepository: botSkillBindingRepository,
-    skillToolProvider: aiProviderRepository.create(bot),
-  );
+  BotSkillViewModel createBotSkillViewModel(Bot bot) {
+    final provider = aiProviderRepository.create(bot);
+    return BotSkillViewModel(
+      botId: bot.id,
+      skillRepository: skillRepository,
+      bindingRepository: botSkillBindingRepository,
+      skillToolProvider: provider,
+      supportsAutoActivation:
+          bot.configuredSupportsAutomaticSkillActivation ??
+          provider.capabilities.supportsAutomaticSkillActivation,
+    );
+  }
 
   BotSkillViewModel createDraftBotSkillViewModel(String botId) =>
       BotSkillViewModel(
         botId: botId,
         skillRepository: skillRepository,
         bindingRepository: DraftBotSkillBindingRepository(),
+        supportsAutoActivation: false,
       );
 
   SkillLibraryViewModel createSkillLibraryViewModel() => SkillLibraryViewModel(
@@ -366,12 +374,11 @@ class AppDependencies {
 
   ChatSkillViewModel createChatSkillViewModel(String chatId, Bot bot) =>
       ChatSkillViewModel(
-        chatId: chatId,
         botId: bot.id,
         skillRepository: skillRepository,
         bindingRepository: botSkillBindingRepository,
-        pinRepository: conversationSkillPinRepository,
         supportsAutoActivation:
+            bot.configuredSupportsAutomaticSkillActivation ??
             aiProviderRepository
                 .create(bot)
                 .capabilities

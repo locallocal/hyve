@@ -11,7 +11,6 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:stars/ui/features/chat/views/attachments.dart';
 import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
@@ -56,7 +55,6 @@ class ChatPageState extends State<ChatPage> {
 
   late final ChatGenerationViewModel _generationViewModel;
   late final ChatViewModel _chatViewModel;
-  late final ChatSkillViewModel _skillViewModel;
   bool _dependenciesInitialized = false;
   AiProvider get _provider => _generationViewModel.capabilityProvider;
   final String _currentUserId = 'me';
@@ -119,11 +117,6 @@ class ChatPageState extends State<ChatPage> {
     _generationViewModel =
         _chatViewModel.generationViewModel
           ..addListener(_handleGenerationChanged);
-    _skillViewModel = AppScope.of(context).createChatSkillViewModel(
-      widget.id,
-      widget.bot,
-    )..addListener(_handleSkillChanged);
-    unawaited(_skillViewModel.load());
     _handleGenerationChanged();
     _loadMessages();
   }
@@ -134,10 +127,6 @@ class ChatPageState extends State<ChatPage> {
     if (_dependenciesInitialized && oldWidget.bot != widget.bot) {
       _generationViewModel.updateBot(widget.bot);
     }
-  }
-
-  void _handleSkillChanged() {
-    if (mounted) setState(() {});
   }
 
   void _handleGenerationChanged() {
@@ -254,8 +243,6 @@ class ChatPageState extends State<ChatPage> {
     _persistAttachmentDrafts();
     if (_dependenciesInitialized) {
       _generationViewModel.removeListener(_handleGenerationChanged);
-      _skillViewModel.removeListener(_handleSkillChanged);
-      _skillViewModel.dispose();
       _chatViewModel.dispose();
     }
     _scrollController.removeListener(_handleScrollPositionChanged);
@@ -455,8 +442,6 @@ class ChatPageState extends State<ChatPage> {
         history: _messages.sublist(0, _messages.length - 1),
         userMessage: userMessage,
         currentUserId: _currentUserId,
-        manuallySelectedSkillIds: _skillViewModel.manuallySelectedSkillIds,
-        pinnedSkillIds: _skillViewModel.pinnedSkillIds,
       );
       final preparedUserMessage = userMessage.copyWith(
         processInfo: MessageProcessInfo(
@@ -491,7 +476,7 @@ class ChatPageState extends State<ChatPage> {
         widget.id,
         false,
       );
-      final started = await _generationViewModel.startText(
+      await _generationViewModel.startText(
         userMessage: preparedUserMessage,
         messages: preparedTurn.messages,
         activatedSkills: preparedTurn.activatedSkills,
@@ -499,7 +484,6 @@ class ChatPageState extends State<ChatPage> {
         preflightTokenUsage: preparedTurn.preflightTokenUsage,
         requestedToolNames: preparedTurn.requestedToolNames,
       );
-      if (started) _skillViewModel.clearManualSelection();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -593,22 +577,6 @@ class ChatPageState extends State<ChatPage> {
                 },
                 onSend: _sendMessage,
                 onCancelRequest: _cancelRequest,
-                availableSkills: _skillViewModel.availableSkills,
-                selectedSkillIds: {
-                  for (final skill in _skillViewModel.availableSkills)
-                    if (_skillViewModel.isSelected(skill.id)) skill.id,
-                },
-                isSkillAlways: _skillViewModel.isAlways,
-                onSkillToggled: _skillViewModel.toggleManual,
-                pinnedSkillIds: _skillViewModel.pinnedSkillIds,
-                canPinSelectedSkills:
-                    _skillViewModel.manuallySelectedSkillIds.isNotEmpty,
-                autoActivationUnavailable:
-                    _skillViewModel.hasUnsupportedAutoSkills,
-                onPinSelectedSkills:
-                    () => unawaited(_skillViewModel.pinManualSelection()),
-                onClearPinnedSkills:
-                    () => unawaited(_skillViewModel.clearPins()),
               ),
               const SizedBox(height: 16),
             ],
@@ -716,22 +684,6 @@ class ChatPageState extends State<ChatPage> {
                 },
                 onSend: _sendMessage,
                 onCancelRequest: _cancelRequest,
-                availableSkills: _skillViewModel.availableSkills,
-                selectedSkillIds: {
-                  for (final skill in _skillViewModel.availableSkills)
-                    if (_skillViewModel.isSelected(skill.id)) skill.id,
-                },
-                isSkillAlways: _skillViewModel.isAlways,
-                onSkillToggled: _skillViewModel.toggleManual,
-                pinnedSkillIds: _skillViewModel.pinnedSkillIds,
-                canPinSelectedSkills:
-                    _skillViewModel.manuallySelectedSkillIds.isNotEmpty,
-                autoActivationUnavailable:
-                    _skillViewModel.hasUnsupportedAutoSkills,
-                onPinSelectedSkills:
-                    () => unawaited(_skillViewModel.pinManualSelection()),
-                onClearPinnedSkills:
-                    () => unawaited(_skillViewModel.clearPins()),
               ),
             ],
           ),

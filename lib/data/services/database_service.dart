@@ -381,7 +381,7 @@ class DatabaseService {
         bot_id TEXT NOT NULL,
         skill_id TEXT NOT NULL,
         enabled INTEGER NOT NULL DEFAULT 1,
-        activation_mode TEXT NOT NULL DEFAULT 'manual',
+        activation_mode TEXT NOT NULL DEFAULT 'auto',
         priority INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,

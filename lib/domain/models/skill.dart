@@ -14,9 +14,9 @@ enum SkillValidationStatus { valid, validWithWarnings, invalid }
 
 enum SkillDiagnosticSeverity { warning, error }
 
-enum SkillActivationMode { manual, auto, always }
+enum SkillActivationMode { auto }
 
-enum SkillActivationTrigger { manual, always, model, pinned }
+enum SkillActivationTrigger { model }
 
 enum SkillActivationStatus { activated, failed, skipped }
 
@@ -191,7 +191,7 @@ final class BotSkillBinding {
     required this.botId,
     required this.skillId,
     this.enabled = true,
-    this.activationMode = SkillActivationMode.manual,
+    this.activationMode = SkillActivationMode.auto,
     this.priority = 0,
     required this.createdAt,
     required this.updatedAt,

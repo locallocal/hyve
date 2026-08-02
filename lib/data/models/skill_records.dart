@@ -124,7 +124,7 @@ final class BotSkillBindingRecord {
       activationMode: _enumValue(
         SkillActivationMode.values,
         values['activation_mode']?.toString() ?? '',
-        SkillActivationMode.manual,
+        SkillActivationMode.auto,
       ),
       priority: _integer(values['priority']),
       createdAt: DateTime.fromMillisecondsSinceEpoch(
@@ -173,7 +173,7 @@ final class SkillActivationDbRecord {
       trigger: _enumValue(
         SkillActivationTrigger.values,
         values['trigger_type']?.toString() ?? '',
-        SkillActivationTrigger.manual,
+        SkillActivationTrigger.model,
       ),
       status: _enumValue(
         SkillActivationStatus.values,

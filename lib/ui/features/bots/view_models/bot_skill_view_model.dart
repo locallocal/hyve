@@ -15,11 +15,16 @@ final class BotSkillViewModel extends ChangeNotifier {
     required SkillRepository skillRepository,
     required BotSkillBindingRepository bindingRepository,
     AiProvider? skillToolProvider,
+    bool? supportsAutoActivation,
     TestSkillDescription testSkillDescription = const TestSkillDescription(),
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
        _skillToolProvider = skillToolProvider,
+       _supportsAutoActivation =
+           supportsAutoActivation ??
+           skillToolProvider?.capabilities.supportsAutomaticSkillActivation ??
+           false,
        _testSkillDescription = testSkillDescription,
        assert(pageSize > 0) {
     _skillChanges = _skillRepository.changes.listen((_) => _reload());
@@ -30,6 +35,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
   final AiProvider? _skillToolProvider;
+  bool _supportsAutoActivation;
   final TestSkillDescription _testSkillDescription;
   final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _skillChanges;
@@ -43,13 +49,14 @@ final class BotSkillViewModel extends ChangeNotifier {
   bool _isLoading = false;
   Object? _error;
 
-  List<SkillDescriptor> get skills => _skills;
+  List<SkillDescriptor> get skills =>
+      _supportsAutoActivation ? _skills : const [];
   List<SkillDescriptor> get addedSkills => List<SkillDescriptor>.unmodifiable(
-    _skills.where((skill) => _bindings.containsKey(skill.id)),
+    skills.where((skill) => _bindings.containsKey(skill.id)),
   );
   List<SkillDescriptor> get availableSkills =>
       List<SkillDescriptor>.unmodifiable(
-        _skills.where(
+        skills.where(
           (skill) => skill.isUsable && !_bindings.containsKey(skill.id),
         ),
       );
@@ -67,7 +74,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   List<BotSkillBinding> get bindings => List<BotSkillBinding>.unmodifiable(
-    _skills
+    skills
         .where((skill) => _bindings.containsKey(skill.id))
         .map((skill) => _bindings[skill.id]!),
   );
@@ -88,9 +95,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _availablePageIndex + 1 < totalAvailablePages;
   bool get isLoading => _isLoading;
   Object? get error => _error;
-  bool get supportsAutoActivation =>
-      _skillToolProvider?.capabilities.supportsAutomaticSkillActivation ??
-      false;
+  bool get supportsAutoActivation => _supportsAutoActivation;
 
   BotSkillBinding? bindingFor(String skillId) => _bindings[skillId];
 
@@ -104,6 +109,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   Future<void> addSkill(String skillId) async {
+    if (!supportsAutoActivation) return;
     if (_bindings.containsKey(skillId)) return;
     final now = DateTime.now();
     await _saveBinding(
@@ -143,18 +149,11 @@ final class BotSkillViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> setActivationMode(
-    String skillId,
-    SkillActivationMode mode,
-  ) async {
-    if (mode == SkillActivationMode.auto && !supportsAutoActivation) {
-      throw UnsupportedError('当前 Provider 不支持结构化 Skill 自动激活。');
-    }
-    final existing = _bindings[skillId];
-    if (existing == null) return;
-    await _saveBinding(
-      existing.copyWith(activationMode: mode, updatedAt: DateTime.now()),
-    );
+  void updateSupportsAutoActivation(bool supported) {
+    if (_supportsAutoActivation == supported) return;
+    _supportsAutoActivation = supported;
+    _normalizePages();
+    notifyListeners();
   }
 
   Future<SkillDescriptionTestReport> testDescription({

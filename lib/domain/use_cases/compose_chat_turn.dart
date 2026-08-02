@@ -2,6 +2,7 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/skill_catalog.dart';
 
@@ -63,15 +64,18 @@ final class ComposeChatTurn {
   const ComposeChatTurn({
     required SkillRepository skillRepository,
     required BotSkillBindingRepository bindingRepository,
+    McpServerRepository? mcpServerRepository,
     SkillCatalog skillCatalog = const SkillCatalog(),
     SkillContextBudget budget = const SkillContextBudget(),
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
+       _mcpServerRepository = mcpServerRepository,
        _skillCatalog = skillCatalog,
        _budget = budget;
 
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
+  final McpServerRepository? _mcpServerRepository;
   final SkillCatalog _skillCatalog;
   final SkillContextBudget _budget;
 
@@ -80,8 +84,6 @@ final class ComposeChatTurn {
     required List<Message> history,
     required Message userMessage,
     required String currentUserId,
-    Set<String> manuallySelectedSkillIds = const {},
-    Set<String> pinnedSkillIds = const {},
     AiProvider? skillToolProvider,
   }) async {
     final bindings = await _bindingRepository.getForBot(bot.id);
@@ -97,22 +99,9 @@ final class ComposeChatTurn {
     }
 
     final state = _TurnSkillState();
-    for (final binding in enabledBindings) {
-      final descriptor = descriptors[binding.skillId];
-      if (descriptor == null) continue;
-      final trigger = _explicitTrigger(
-        binding: binding,
-        manuallySelectedSkillIds: manuallySelectedSkillIds,
-        pinnedSkillIds: pinnedSkillIds,
-      );
-      if (trigger == null) continue;
-      await _activate(state: state, descriptor: descriptor, trigger: trigger);
-    }
-
     final provider = skillToolProvider;
     final autoBindings = enabledBindings.where(
       (binding) =>
-          binding.activationMode == SkillActivationMode.auto &&
           descriptors.containsKey(binding.skillId) &&
           !state.contents.containsKey(binding.skillId),
     );
@@ -130,8 +119,12 @@ final class ComposeChatTurn {
       ],
     );
 
+    final supportsAutomaticSkillActivation =
+        bot.configuredSupportsAutomaticSkillActivation ??
+        provider?.capabilities.supportsAutomaticSkillActivation ??
+        false;
     if (provider != null &&
-        provider.capabilities.supportsAutomaticSkillActivation &&
+        supportsAutomaticSkillActivation &&
         catalog.isNotEmpty &&
         state.contents.length < _budget.maxActivatedSkills) {
       try {
@@ -173,6 +166,11 @@ final class ComposeChatTurn {
       ),
     );
 
+    final mcpToolNames = await _resolveMcpToolNames(
+      bot: bot,
+      provider: provider,
+    );
+
     return PreparedChatTurn(
       messages: messages,
       activatedSkills: [
@@ -189,10 +187,35 @@ final class ComposeChatTurn {
       requestedToolNames: {
         for (final entry in state.contents.values)
           ...entry.content.descriptor.requestedToolNames,
+        ...mcpToolNames,
       },
       estimatedSkillContextTokens: state.skillTokens + state.resourceTokens,
       preflightTokenUsage: state.preflightTokenUsage,
     );
+  }
+
+  Future<Set<String>> _resolveMcpToolNames({
+    required Bot bot,
+    required AiProvider? provider,
+  }) async {
+    final repository = _mcpServerRepository;
+    if (repository == null ||
+        provider?.supportMcp() != true ||
+        bot.mcpServerIds.isEmpty) {
+      return const {};
+    }
+
+    final names = <String>{};
+    final serverIds = bot.mcpServerIds.toList()..sort();
+    for (final serverId in serverIds) {
+      final server = await repository.getServer(serverId);
+      if (server == null || !server.enabled) continue;
+      final tools = await repository.getTools(serverId, enabledOnly: true);
+      for (final tool in tools) {
+        if (tool.hasCompatibleSchema) names.add(tool.canonicalName);
+      }
+    }
+    return Set<String>.unmodifiable(names);
   }
 
   Future<void> _resolveAutomaticSkills({
@@ -512,23 +535,6 @@ ${references.isEmpty ? '' : '<available_references>\n$references\n</available_re
       ),
     );
     return activated;
-  }
-
-  SkillActivationTrigger? _explicitTrigger({
-    required BotSkillBinding binding,
-    required Set<String> manuallySelectedSkillIds,
-    required Set<String> pinnedSkillIds,
-  }) {
-    if (manuallySelectedSkillIds.contains(binding.skillId)) {
-      return SkillActivationTrigger.manual;
-    }
-    if (pinnedSkillIds.contains(binding.skillId)) {
-      return SkillActivationTrigger.pinned;
-    }
-    if (binding.activationMode == SkillActivationMode.always) {
-      return SkillActivationTrigger.always;
-    }
-    return null;
   }
 
   int _compareBindings(BotSkillBinding left, BotSkillBinding right) {

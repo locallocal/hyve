@@ -18,7 +18,15 @@ final class BuiltInModelCatalog {
         thinking: true,
         mcp: true,
         context: 1050000,
+        maxInput: 922000,
         output: 128000,
+        lifecycle: AiModelLifecycle.recommended,
+        currentSnapshot: 'gpt-5.6-sol',
+        knowledgeCutoff: DateTime.utc(2026, 2, 16),
+        endpoints: _openAiTextEndpoints,
+        reasoningEfforts: _gpt56ReasoningEfforts,
+        features: _openAiFrontierFeatures,
+        nativeTools: _openAiFrontierTools,
       ),
       _model(
         providerId: Bot.apiTypeOpenAI,
@@ -28,7 +36,15 @@ final class BuiltInModelCatalog {
         thinking: true,
         mcp: true,
         context: 1050000,
+        maxInput: 922000,
         output: 128000,
+        lifecycle: AiModelLifecycle.recommended,
+        currentSnapshot: 'gpt-5.6-sol',
+        knowledgeCutoff: DateTime.utc(2026, 2, 16),
+        endpoints: _openAiTextEndpoints,
+        reasoningEfforts: _gpt56ReasoningEfforts,
+        features: _openAiFrontierFeatures,
+        nativeTools: _openAiFrontierTools,
       ),
       _model(
         providerId: Bot.apiTypeOpenAI,
@@ -38,7 +54,14 @@ final class BuiltInModelCatalog {
         thinking: true,
         mcp: true,
         context: 1050000,
+        maxInput: 922000,
         output: 128000,
+        lifecycle: AiModelLifecycle.recommended,
+        knowledgeCutoff: DateTime.utc(2026, 2, 16),
+        endpoints: _openAiTextEndpoints,
+        reasoningEfforts: _gpt56ReasoningEfforts,
+        features: _openAiFrontierFeatures,
+        nativeTools: _openAiFrontierTools,
       ),
       _model(
         providerId: Bot.apiTypeOpenAI,
@@ -48,7 +71,14 @@ final class BuiltInModelCatalog {
         thinking: true,
         mcp: true,
         context: 1050000,
+        maxInput: 922000,
         output: 128000,
+        lifecycle: AiModelLifecycle.recommended,
+        knowledgeCutoff: DateTime.utc(2026, 2, 16),
+        endpoints: _openAiTextEndpoints,
+        reasoningEfforts: _gpt56ReasoningEfforts,
+        features: _openAiFrontierFeatures,
+        nativeTools: _openAiFrontierTools,
       ),
     ],
     Bot.apiTypeAnthropic: [
@@ -297,10 +327,29 @@ final class BuiltInModelCatalog {
           builtIn.supportsAutomaticSkillActivation,
       supportsHostedSkills:
           live.supportsHostedSkills ?? builtIn.supportsHostedSkills,
+      taskType: live.taskType ?? builtIn.taskType,
+      lifecycle: live.lifecycle ?? builtIn.lifecycle,
+      currentSnapshot: live.currentSnapshot ?? builtIn.currentSnapshot,
       contextWindowTokens:
           live.contextWindowTokens ?? builtIn.contextWindowTokens,
+      maxInputTokens: live.maxInputTokens ?? builtIn.maxInputTokens,
       maxOutputTokens: live.maxOutputTokens ?? builtIn.maxOutputTokens,
+      knowledgeCutoff: live.knowledgeCutoff ?? builtIn.knowledgeCutoff,
       releaseDate: live.releaseDate ?? builtIn.releaseDate,
+      supportedEndpoints:
+          live.supportedEndpoints.isEmpty
+              ? builtIn.supportedEndpoints
+              : live.supportedEndpoints,
+      reasoningEfforts:
+          live.reasoningEfforts.isEmpty
+              ? builtIn.reasoningEfforts
+              : live.reasoningEfforts,
+      supportedFeatures:
+          live.supportedFeatures.isEmpty
+              ? builtIn.supportedFeatures
+              : live.supportedFeatures,
+      nativeTools:
+          live.nativeTools.isEmpty ? builtIn.nativeTools : live.nativeTools,
     );
   }
 
@@ -320,8 +369,16 @@ final class BuiltInModelCatalog {
     bool? research,
     bool? mcp = false,
     int? context,
+    int? maxInput,
     int? output,
     DateTime? releaseDate,
+    AiModelLifecycle? lifecycle,
+    String? currentSnapshot,
+    DateTime? knowledgeCutoff,
+    List<AiModelEndpoint> endpoints = const [],
+    List<String> reasoningEfforts = const [],
+    Set<String> features = const {},
+    Set<String> nativeTools = const {},
   }) => AiModelInfo(
     modelId: modelId,
     providerId: providerId,
@@ -333,9 +390,18 @@ final class BuiltInModelCatalog {
     supportsMcp: mcp,
     supportsSkills: true,
     supportsAutomaticSkillActivation: true,
+    taskType: AiModelTaskType.chat,
+    lifecycle: lifecycle,
+    currentSnapshot: currentSnapshot,
     contextWindowTokens: context,
+    maxInputTokens: maxInput,
     maxOutputTokens: output,
+    knowledgeCutoff: knowledgeCutoff,
     releaseDate: releaseDate,
+    supportedEndpoints: endpoints,
+    reasoningEfforts: reasoningEfforts,
+    supportedFeatures: features,
+    nativeTools: nativeTools,
   );
 
   static const _textImage = [InputModality.text, InputModality.image];
@@ -346,4 +412,37 @@ final class BuiltInModelCatalog {
     InputModality.audio,
     InputModality.file,
   ];
+  static const _openAiTextEndpoints = [
+    AiModelEndpoint.responses,
+    AiModelEndpoint.chatCompletions,
+    AiModelEndpoint.batch,
+  ];
+  static const _gpt56ReasoningEfforts = [
+    'none',
+    'low',
+    'medium',
+    'high',
+    'xhigh',
+  ];
+  static const _openAiFrontierFeatures = {
+    'streaming',
+    'structured_outputs',
+    'function_calling',
+    'file_search',
+    'image_input',
+    'web_search',
+    'prompt_caching',
+  };
+  static const _openAiFrontierTools = {
+    'web_search',
+    'file_search',
+    'image_generation',
+    'code_interpreter',
+    'hosted_shell',
+    'apply_patch',
+    'skills',
+    'computer_use',
+    'mcp',
+    'tool_search',
+  };
 }

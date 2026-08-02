@@ -85,6 +85,77 @@ void main() {
     expect(toolMessage['tool_call_id'], 'call-1');
   });
 
+  test('OpenAI Responses Skill session round-trips function outputs', () async {
+    final requests = <Map<String, Object?>>[];
+    final client = MockClient((request) async {
+      requests.add(
+        (jsonDecode(request.body) as Map<Object?, Object?>).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+      if (requests.length == 1) {
+        return http.Response(
+          jsonEncode({
+            'output': [
+              {
+                'type': 'function_call',
+                'id': 'fc-1',
+                'call_id': 'call-1',
+                'name': 'activate_skill',
+                'arguments': '{"name":"release-notes"}',
+              },
+            ],
+            'usage': {
+              'input_tokens': 9,
+              'output_tokens': 2,
+              'total_tokens': 11,
+            },
+          }),
+          200,
+        );
+      }
+      return http.Response(
+        jsonEncode({
+          'output': [
+            {
+              'type': 'message',
+              'role': 'assistant',
+              'content': [
+                {'type': 'output_text', 'text': 'done'},
+              ],
+            },
+          ],
+        }),
+        200,
+      );
+    });
+    final provider = OpenAI(_firstPartyBot, skillToolClient: client);
+    final session = provider.openSkillToolSession(_request);
+    addTearDown(session.close);
+
+    final first = await session.start();
+    final second = await session.continueWith(const [
+      SkillToolResult(
+        callId: 'call-1',
+        name: 'activate_skill',
+        content: 'activated',
+      ),
+    ]);
+
+    expect(first.calls.single.name, 'activate_skill');
+    expect(first.calls.single.arguments, {'name': 'release-notes'});
+    expect(first.tokenUsage.totalTokens, 11);
+    expect(second.isComplete, isTrue);
+    final tools = requests.first['tools']! as List<Object?>;
+    expect((tools.first as Map<Object?, Object?>)['name'], 'activate_skill');
+    expect(tools.first as Map<Object?, Object?>, isNot(contains('function')));
+    final continuedInput = requests.last['input']! as List<Object?>;
+    expect(
+      (continuedInput.last as Map<Object?, Object?>)['type'],
+      'function_call_output',
+    );
+  });
+
   test('Anthropic parses tool_use blocks and reports usage', () async {
     final client = MockClient(
       (request) async => http.Response(
@@ -289,6 +360,20 @@ final _bot = Bot(
   apiKey: 'secret',
   apiType: Bot.apiTypeOpenAI,
   model: 'test-model',
+  systemPrompt: '',
+  createTimestamp: DateTime(2026),
+  modifyTimestamp: DateTime(2026),
+);
+
+final _firstPartyBot = Bot(
+  id: 'bot-openai',
+  name: 'OpenAI',
+  avatar: '',
+  provider: 'OpenAI',
+  baseURL: 'https://example.test/v1/',
+  apiKey: 'secret',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'gpt-5.6-sol',
   systemPrompt: '',
   createTimestamp: DateTime(2026),
   modifyTimestamp: DateTime(2026),

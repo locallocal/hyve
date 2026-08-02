@@ -21,6 +21,8 @@ class ProfilePage extends StatefulWidget {
     this.onProfileSaved,
     this.viewModel,
     this.avatarPicker,
+    required this.onOpenSkillLibrary,
+    required this.onOpenMcpServers,
   });
 
   final int selectedSection;
@@ -28,6 +30,8 @@ class ProfilePage extends StatefulWidget {
   final Future<void> Function(Profile profile)? onProfileSaved;
   final ProfileViewModel? viewModel;
   final Future<String?> Function()? avatarPicker;
+  final VoidCallback onOpenSkillLibrary;
+  final VoidCallback onOpenMcpServers;
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -321,6 +325,29 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             _buildSettingsSection(
               context,
+              title: S.of(context).desktopGeneral,
+              children: [
+                _buildSettingItem(
+                  context,
+                  Icons.build_rounded,
+                  S.of(context).skillLibrary,
+                  S.of(context).skillLibraryDescription,
+                  widget.onOpenSkillLibrary,
+                  key: const ValueKey<String>('profile-skill-library'),
+                ),
+                const SizedBox(height: 8),
+                _buildSettingItem(
+                  context,
+                  Icons.hub_outlined,
+                  S.of(context).mcpServers,
+                  S.of(context).mcpServersDescription,
+                  widget.onOpenMcpServers,
+                  key: const ValueKey<String>('profile-mcp-servers'),
+                ),
+              ],
+            ),
+            _buildSettingsSection(
+              context,
               title: S.of(context).desktopHelpAndSupport,
               children: [
                 _buildSettingItem(
@@ -408,7 +435,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   sectionKey: _desktopSectionKeys[2],
                   title: S.of(context).desktopGeneral,
                   description: S.of(context).desktopSavedImmediatelyDescription,
-                  children: [_buildDesktopExecutionStatusControl(context)],
+                  children: [
+                    _buildDesktopSettingRow(
+                      context,
+                      key: const ValueKey<String>('profile-skill-library'),
+                      icon: LucideIcons.wrench,
+                      title: S.of(context).skillLibrary,
+                      subtitle: S.of(context).skillLibraryDescription,
+                      onTap: widget.onOpenSkillLibrary,
+                    ),
+                    _buildDesktopSettingRow(
+                      context,
+                      key: const ValueKey<String>('profile-mcp-servers'),
+                      icon: LucideIcons.server,
+                      title: S.of(context).mcpServers,
+                      subtitle: S.of(context).mcpServersDescription,
+                      onTap: widget.onOpenMcpServers,
+                    ),
+                    _buildDesktopExecutionStatusControl(context),
+                  ],
                 ),
                 const SizedBox(height: 32),
                 _buildDesktopSettingsSection(
@@ -552,6 +597,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildDesktopSettingRow(
     BuildContext context, {
+    Key? key,
     required IconData icon,
     required String title,
     String? subtitle,
@@ -563,6 +609,7 @@ class _ProfilePageState extends State<ProfilePage> {
       label: title,
       value: value ?? subtitle,
       child: ShadButton.ghost(
+        key: key,
         width: double.infinity,
         height: 0,
         expands: true,
@@ -1604,10 +1651,12 @@ class _ProfilePageState extends State<ProfilePage> {
     String title,
     String subtitle,
     VoidCallback onTap, {
+    Key? key,
     bool showSlider = false,
   }) {
     final isDesktop = isDesktopPlatform(context);
     return InkWell(
+      key: key,
       onTap: onTap,
       borderRadius: BorderRadius.circular(isDesktop ? 14.0 : 16.0),
       child: Padding(

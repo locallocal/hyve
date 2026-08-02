@@ -476,6 +476,8 @@ class _MainPageState extends State<MainPage> {
         viewModel: _profileViewModel,
         avatarPicker: _profileViewModel.pickAvatar,
         selectedSection: _viewModel.selectedProfileSection,
+        onOpenSkillLibrary: () => _onPageChanged(2),
+        onOpenMcpServers: () => _onPageChanged(3),
       ),
     ];
 
@@ -518,13 +520,14 @@ class _MainPageState extends State<MainPage> {
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 animationDuration: const Duration(milliseconds: 200), // 缩短动画时间
                 animationCurve: Curves.easeInOut, // 使用更平滑的动画曲线
-                selectedIndex: _viewModel.currentIndex,
+                selectedIndex:
+                    _viewModel.currentIndex < 2 ? _viewModel.currentIndex : 2,
                 borderRadius: 24,
                 height: 70,
                 onTap: (index) {
                   // 添加震动反馈
                   HapticFeedback.lightImpact();
-                  _viewModel.selectPage(index);
+                  _viewModel.selectPage(index == 2 ? 4 : index);
                 },
                 items: [
                   Icon(
@@ -542,23 +545,9 @@ class _MainPageState extends State<MainPage> {
                             : Theme.of(context).colorScheme.onSurface,
                   ),
                   Icon(
-                    Icons.build_rounded,
-                    color:
-                        _viewModel.currentIndex == 2
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  Icon(
-                    Icons.hub_outlined,
-                    color:
-                        _viewModel.currentIndex == 3
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  Icon(
                     Icons.person_rounded,
                     color:
-                        _viewModel.currentIndex == 4
+                        _viewModel.currentIndex >= 2
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).colorScheme.onSurface,
                   ),

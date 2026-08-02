@@ -847,6 +847,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             ),
           ),
           Padding(
+            key: const ValueKey<String>('desktop-primary-navigation'),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
               children: [
@@ -874,20 +875,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   selected: widget.currentIndex == 1,
                   onTap: () => _selectPage(1),
                 ),
-                const SizedBox(height: 4),
-                _SidebarDestination(
-                  label: S.of(context).skillLibrary,
-                  icon: LucideIcons.wrench,
-                  selected: widget.currentIndex == 2,
-                  onTap: () => _selectPage(2),
-                ),
-                const SizedBox(height: 4),
-                _SidebarDestination(
-                  label: S.of(context).mcpServers,
-                  icon: LucideIcons.server,
-                  selected: widget.currentIndex == 3,
-                  onTap: () => _selectPage(3),
-                ),
               ],
             ),
           ),
@@ -903,7 +890,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
             child: _AccountButton(
-              selected: widget.currentIndex == 4,
+              selected: widget.currentIndex >= 2,
               useLucideIcon: widget.currentIndex == 0,
               onTap: () => _selectPage(4),
             ),

@@ -496,6 +496,22 @@ void main() {
     );
 
     expect(result.requestedToolNames, {'mcp.docs.search'});
+
+    final disabledResult = await compose(
+      bot: _bot(
+        parameters: const {
+          Bot.parameterSupportsMcp: true,
+          Bot.parameterMcpServerIds: ['server-1'],
+          Bot.parameterDisabledMcpServerIds: ['server-1'],
+        },
+      ),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Search the docs'),
+      currentUserId: 'user-1',
+      skillToolProvider: _McpProvider(),
+    );
+
+    expect(disabledResult.requestedToolNames, isEmpty);
   });
 }
 

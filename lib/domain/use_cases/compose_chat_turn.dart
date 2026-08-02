@@ -201,12 +201,12 @@ final class ComposeChatTurn {
     final repository = _mcpServerRepository;
     if (repository == null ||
         provider?.supportMcp() != true ||
-        bot.mcpServerIds.isEmpty) {
+        bot.enabledMcpServerIds.isEmpty) {
       return const {};
     }
 
     final names = <String>{};
-    final serverIds = bot.mcpServerIds.toList()..sort();
+    final serverIds = bot.enabledMcpServerIds.toList()..sort();
     for (final serverId in serverIds) {
       final server = await repository.getServer(serverId);
       if (server == null || !server.enabled) continue;

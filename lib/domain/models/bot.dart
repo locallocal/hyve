@@ -1,6 +1,7 @@
 class Bot {
   static const parameterSupportsMcp = 'supports_mcp';
   static const parameterMcpServerIds = 'mcp_server_ids';
+  static const parameterDisabledMcpServerIds = 'disabled_mcp_server_ids';
   static const parameterSupportsAutomaticSkillActivation =
       'supports_automatic_skill_activation';
 
@@ -84,7 +85,21 @@ class Bot {
   }
 
   Set<String> get mcpServerIds {
-    final value = parameters?[parameterMcpServerIds];
+    return _stringSetParameter(parameterMcpServerIds);
+  }
+
+  Set<String> get disabledMcpServerIds {
+    return _stringSetParameter(parameterDisabledMcpServerIds);
+  }
+
+  Set<String> get enabledMcpServerIds {
+    return Set<String>.unmodifiable(
+      mcpServerIds.difference(disabledMcpServerIds),
+    );
+  }
+
+  Set<String> _stringSetParameter(String key) {
+    final value = parameters?[key];
     if (value is! List) return const {};
     return Set<String>.unmodifiable(
       value

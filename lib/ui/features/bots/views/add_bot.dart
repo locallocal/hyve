@@ -133,6 +133,7 @@ class _AddBotPageState extends State<AddBotPage> {
   List<AiModelInfo> providerModels = [];
   List<McpServer> _mcpServers = const [];
   Set<String> _selectedMcpServerIds = const {};
+  Set<String> _disabledMcpServerIds = const {};
   bool _isLoadingMcpServers = false;
   bool _startedLoadingMcpServers = false;
 
@@ -391,6 +392,10 @@ class _AddBotPageState extends State<AddBotPage> {
         Bot.parameterMcpServerIds:
             _selectedModelSupportsMcp
                 ? (_selectedMcpServerIds.toList()..sort())
+                : const <String>[],
+        Bot.parameterDisabledMcpServerIds:
+            _selectedModelSupportsMcp
+                ? (_disabledMcpServerIds.toList()..sort())
                 : const <String>[],
       },
       createTimestamp: DateTime.now(),
@@ -1723,10 +1728,14 @@ class _AddBotPageState extends State<AddBotPage> {
     return BotMcpServerPicker(
       servers: _mcpServers,
       selectedServerIds: _selectedMcpServerIds,
+      disabledServerIds: _disabledMcpServerIds,
       isLoading: _isLoadingMcpServers,
       embedded: widget.embedded,
-      onChanged: (serverIds) {
-        setState(() => _selectedMcpServerIds = serverIds);
+      onChanged: (serverIds, disabledServerIds) {
+        setState(() {
+          _selectedMcpServerIds = serverIds;
+          _disabledMcpServerIds = disabledServerIds;
+        });
       },
     );
   }

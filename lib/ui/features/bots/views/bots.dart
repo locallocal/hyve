@@ -478,7 +478,7 @@ class ContactsPageState extends State<ContactsPage> {
                 ? Icons.search_off_rounded
                 : Icons.smart_toy_outlined,
         imageAsset:
-            searchQuery.isEmpty ? 'assets/images/profile/no_bots.png' : null,
+            searchQuery.isEmpty ? 'assets/images/profile/no_bots_v2.png' : null,
         title:
             searchQuery.isNotEmpty
                 ? S.of(context).noMatchingBots
@@ -502,7 +502,7 @@ class ContactsPageState extends State<ContactsPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/profile/no_bots.png',
+                'assets/images/profile/no_bots_v2.png',
                 width: 256,
                 height: 256,
                 fit: BoxFit.cover,

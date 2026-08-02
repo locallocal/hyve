@@ -238,7 +238,9 @@ class ChatListPageState extends State<ChatListPage> {
                 ? LucideIcons.searchX
                 : LucideIcons.messageCircle,
         imageAsset:
-            searchQuery.isEmpty ? 'assets/images/profile/no_chats.png' : null,
+            searchQuery.isEmpty
+                ? 'assets/images/profile/no_chats_v2.png'
+                : null,
         title: desktopConversationText(
           context,
           searchQuery.isNotEmpty
@@ -290,7 +292,7 @@ class ChatListPageState extends State<ChatListPage> {
                 )
               else
                 Image.asset(
-                  'assets/images/profile/no_chats.png',
+                  'assets/images/profile/no_chats_v2.png',
                   width: 256,
                   height: 256,
                   fit: BoxFit.cover,

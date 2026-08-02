@@ -227,6 +227,7 @@ class ContactsPageState extends State<ContactsPage> {
               final bot = filteredBots[index];
               return _DesktopBotCard(
                 bot: bot,
+                metrics: widget.viewModel.metricsFor(bot.id),
                 subtitle:
                     bot.model.isEmpty
                         ? bot.provider
@@ -285,6 +286,7 @@ class ContactsPageState extends State<ContactsPage> {
                 },
                 child: _BotListItem(
                   bot: bot,
+                  metrics: widget.viewModel.metricsFor(bot.id),
                   timestamp: formatTimestamp(context, bot.createTimestamp),
                   subtitle:
                       bot.model.isEmpty
@@ -432,6 +434,7 @@ class ContactsPageState extends State<ContactsPage> {
           ),
           child: _BotListItem(
             bot: bot,
+            metrics: widget.viewModel.metricsFor(bot.id),
             timestamp: formatTimestamp(context, bot.createTimestamp),
             subtitle:
                 bot.model.isEmpty
@@ -598,6 +601,7 @@ class ContactsPageState extends State<ContactsPage> {
 class _DesktopBotCard extends StatefulWidget {
   const _DesktopBotCard({
     required this.bot,
+    required this.metrics,
     required this.subtitle,
     required this.onOpen,
     required this.onStartChat,
@@ -605,6 +609,7 @@ class _DesktopBotCard extends StatefulWidget {
   });
 
   final Bot bot;
+  final BotCardMetrics metrics;
   final String subtitle;
   final VoidCallback onOpen;
   final VoidCallback onStartChat;
@@ -719,6 +724,10 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final numberFormat = NumberFormat.compact(
+      locale: Localizations.localeOf(context).toString(),
+    );
+    final mcpServerNames = widget.metrics.mcpServerNames;
     return Semantics(
       button: true,
       label: widget.bot.name,
@@ -767,46 +776,89 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                           : Matrix4.identity(),
                   child: ShadCard(
                     key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 15,
+                    ),
                     backgroundColor: _hovered ? theme.colorScheme.accent : null,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: getFrostedProviderColor(
-                            widget.bot.provider,
-                            Theme.of(context).colorScheme.primary,
-                          ),
-                          backgroundImage:
-                              widget.bot.avatar.isNotEmpty
-                                  ? FileImage(File(widget.bot.avatar))
-                                  : null,
-                          child:
-                              widget.bot.avatar.isEmpty
-                                  ? buildProviderLogo(
-                                    context,
-                                    '',
-                                    widget.bot.provider,
-                                    22,
-                                  )
-                                  : null,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: getFrostedProviderColor(
+                                widget.bot.provider,
+                                Theme.of(context).colorScheme.primary,
+                              ),
+                              backgroundImage:
+                                  widget.bot.avatar.isNotEmpty
+                                      ? FileImage(File(widget.bot.avatar))
+                                      : null,
+                              child:
+                                  widget.bot.avatar.isEmpty
+                                      ? buildProviderLogo(
+                                        context,
+                                        '',
+                                        widget.bot.provider,
+                                        22,
+                                      )
+                                      : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                widget.bot.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.h4,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 8,
+                          children: [
+                            _BotCardMetric(
+                              key: ValueKey<String>(
+                                'bot-card-token-total-${widget.bot.id}',
+                              ),
+                              icon: LucideIcons.chartNoAxesColumnIncreasing,
+                              name: S.of(context).totalTokens,
+                              value: numberFormat.format(
+                                widget.metrics.tokenUsage.effectiveTotalTokens,
+                              ),
+                            ),
+                            _BotCardMetric(
+                              key: ValueKey<String>(
+                                'bot-card-skill-count-${widget.bot.id}',
+                              ),
+                              icon: LucideIcons.wrench,
+                              name: S.of(context).botSkills,
+                              value: '${widget.metrics.skillCount}',
+                            ),
+                            _BotCardMetric(
+                              key: ValueKey<String>(
+                                'bot-card-mcp-count-${widget.bot.id}',
+                              ),
+                              icon: LucideIcons.server,
+                              name: S.of(context).mcpServers,
+                              value: '${mcpServerNames.length}',
+                            ),
+                          ],
                         ),
                         const Spacer(),
-                        Text(
-                          widget.bot.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.h4,
-                        ),
-                        const SizedBox(height: 6),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
                               child: Text(
                                 widget.subtitle,
-                                maxLines: 2,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.muted,
                               ),
@@ -828,6 +880,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
 
 class _BotListItem extends StatefulWidget {
   final Bot bot;
+  final BotCardMetrics metrics;
   final String subtitle;
   final String timestamp;
   final bool isSelected;
@@ -837,6 +890,7 @@ class _BotListItem extends StatefulWidget {
 
   const _BotListItem({
     required this.bot,
+    required this.metrics,
     required this.subtitle,
     required this.timestamp,
     required this.isSelected,
@@ -852,6 +906,9 @@ class _BotListItem extends StatefulWidget {
 class _BotListItemState extends State<_BotListItem> {
   @override
   Widget build(BuildContext context) {
+    final numberFormat = NumberFormat.compact(
+      locale: Localizations.localeOf(context).toString(),
+    );
     final selectedTextColor = widget.isSelected ? Colors.white : null;
     final titleStyle = DesktopThemeTokens.bodyStyle(context)?.copyWith(
       fontWeight: FontWeight.w700,
@@ -917,6 +974,20 @@ class _BotListItemState extends State<_BotListItem> {
                             : DesktopThemeTokens.mutedText(context),
                   ),
                 ),
+                const SizedBox(height: 3),
+                Text(
+                  '${S.of(context).totalTokens} ${numberFormat.format(widget.metrics.tokenUsage.effectiveTotalTokens)} · '
+                  '${S.of(context).botSkills} ${widget.metrics.skillCount} · '
+                  '${S.of(context).mcpServers} ${widget.metrics.mcpServerNames.length}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: metaStyle?.copyWith(
+                    color:
+                        widget.isSelected
+                            ? Colors.white
+                            : DesktopThemeTokens.mutedText(context),
+                  ),
+                ),
               ],
             ),
           ),
@@ -924,6 +995,41 @@ class _BotListItemState extends State<_BotListItem> {
             const SizedBox(width: 6),
             widget.trailing!,
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BotCardMetric extends StatelessWidget {
+  const _BotCardMetric({
+    super.key,
+    required this.icon,
+    required this.name,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String name;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '$name $value',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Tooltip(
+            message: name,
+            child: Icon(
+              icon,
+              size: 14,
+              color: DesktopThemeTokens.mutedText(context),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(value, style: DesktopThemeTokens.metaStyle(context)),
         ],
       ),
     );

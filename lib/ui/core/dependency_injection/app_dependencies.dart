@@ -328,6 +328,8 @@ class AppDependencies {
     aiProviderRepository: aiProviderRepository,
     attachmentRepository: attachmentRepository,
     botSkillBindingRepository: botSkillBindingRepository,
+    messageRepository: messageRepository,
+    mcpServerRepository: mcpServerRepository,
   );
 
   BotTokenUsageViewModel createBotTokenUsageViewModel(String botId) =>

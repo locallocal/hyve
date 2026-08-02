@@ -13,6 +13,8 @@ import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
 import 'package:stars/generated/l10n.dart';
@@ -480,13 +482,14 @@ void main() {
     expect(searchTop - panelTop, DesktopThemeTokens.panelPadding.top);
   });
 
-  testWidgets('desktop bot cards use a compact height without corner arrows', (
+  testWidgets('desktop bot cards show token, MCP, and Skill metrics', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 800);
     addTearDown(tester.view.reset);
 
+    final timestamp = DateTime(2026);
     final bot = Bot(
       id: 'bot-1',
       name: '测试智能体',
@@ -497,14 +500,42 @@ void main() {
       apiType: Bot.apiTypeOpenAI,
       model: 'gpt-test',
       systemPrompt: '',
-      createTimestamp: DateTime(2026),
-      modifyTimestamp: DateTime(2026),
+      parameters: const {
+        Bot.parameterMcpServerIds: ['mcp-search', 'mcp-docs'],
+      },
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    final bindingRepository = _BotCardTestBindingRepository();
+    await bindingRepository.save(
+      BotSkillBinding(
+        botId: bot.id,
+        skillId: 'user:writer',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    );
+    await bindingRepository.save(
+      BotSkillBinding(
+        botId: bot.id,
+        skillId: 'user:reviewer',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
     );
     final viewModel = BotListViewModel(
       botRepository: _BotCardTestBotRepository([bot]),
       createChat: CreateChat(chatRepository: _BotCardTestChatRepository()),
       aiProviderRepository: _UnusedAiProviderRepository(),
       attachmentRepository: _UnusedAttachmentRepository(),
+      botSkillBindingRepository: bindingRepository,
+      messageRepository: _BotCardTestMessageRepository({
+        bot.id: const ModelTokenUsage(totalTokens: 1500),
+      }),
+      mcpServerRepository: _BotCardTestMcpRepository([
+        _botCardMcpServer('mcp-search', 'Search'),
+        _botCardMcpServer('mcp-docs', 'Docs'),
+      ]),
     );
     addTearDown(viewModel.dispose);
     await viewModel.load();
@@ -522,9 +553,150 @@ void main() {
       await tester.pumpAndSettle();
 
       final card = find.byKey(const ValueKey<String>('desktop-bot-card-bot-1'));
+      final tokenMetric = find.byKey(
+        const ValueKey<String>('bot-card-token-total-bot-1'),
+      );
+      final skillMetric = find.byKey(
+        const ValueKey<String>('bot-card-skill-count-bot-1'),
+      );
+      final mcpMetric = find.byKey(
+        const ValueKey<String>('bot-card-mcp-count-bot-1'),
+      );
+      final avatar = find.descendant(
+        of: card,
+        matching: find.byType(CircleAvatar),
+      );
+      final botName = find.descendant(of: card, matching: find.text('测试智能体'));
+      final providerAndModel = find.descendant(
+        of: card,
+        matching: find.text('OpenAI · gpt-test'),
+      );
+      final menuButton = find.byKey(
+        const ValueKey<String>('desktop-bot-menu-button-bot-1'),
+      );
       expect(card, findsOneWidget);
       expect(tester.getSize(card).height, 180);
+      expect(tokenMetric, findsOneWidget);
+      expect(skillMetric, findsOneWidget);
+      expect(mcpMetric, findsOneWidget);
+      expect(avatar, findsOneWidget);
+      expect(botName, findsOneWidget);
+      expect(providerAndModel, findsOneWidget);
+      expect(menuButton, findsOneWidget);
+      expect(
+        tester.getTopRight(avatar).dx,
+        lessThan(tester.getTopLeft(botName).dx),
+      );
+      expect(
+        tester.getCenter(avatar).dy,
+        closeTo(tester.getCenter(botName).dy, 0.5),
+      );
+      expect(
+        tester.getTopLeft(tokenMetric).dy - tester.getBottomLeft(avatar).dy,
+        closeTo(10, 0.5),
+      );
+      expect(
+        tester.getTopLeft(avatar).dx,
+        closeTo(tester.getTopLeft(tokenMetric).dx, 0.5),
+      );
+      expect(
+        tester.getCenter(tokenMetric).dy,
+        closeTo(tester.getCenter(skillMetric).dy, 0.5),
+      );
+      expect(
+        tester.getCenter(skillMetric).dy,
+        closeTo(tester.getCenter(mcpMetric).dy, 0.5),
+      );
+      expect(
+        tester.getTopLeft(tokenMetric).dx,
+        lessThan(tester.getTopLeft(skillMetric).dx),
+      );
+      expect(
+        tester.getTopLeft(skillMetric).dx,
+        lessThan(tester.getTopLeft(mcpMetric).dx),
+      );
+      expect(
+        tester.getCenter(providerAndModel).dy,
+        closeTo(tester.getCenter(menuButton).dy, 0.5),
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(of: tokenMetric, matching: find.byType(Text)),
+            )
+            .data,
+        isNot(contains('Token 总量')),
+      );
+      expect(
+        find.descendant(of: skillMetric, matching: find.text('2')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: mcpMetric, matching: find.text('2')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.descendant(of: tokenMetric, matching: find.byType(Tooltip)),
+            )
+            .message,
+        'Token 总量',
+      );
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.descendant(of: skillMetric, matching: find.byType(Tooltip)),
+            )
+            .message,
+        '技能',
+      );
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.descendant(of: mcpMetric, matching: find.byType(Tooltip)),
+            )
+            .message,
+        'MCP 服务器',
+      );
+      expect(
+        find.descendant(of: tokenMetric, matching: find.byType(Container)),
+        findsNothing,
+      );
+      final tokenIcon = find.descendant(
+        of: tokenMetric,
+        matching: find.byIcon(LucideIcons.chartNoAxesColumnIncreasing),
+      );
+      final skillIcon = find.descendant(
+        of: skillMetric,
+        matching: find.byIcon(LucideIcons.wrench),
+      );
+      final mcpIcon = find.descendant(
+        of: mcpMetric,
+        matching: find.byIcon(LucideIcons.server),
+      );
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+
+      Future<void> expectTooltip(Finder icon, String name) async {
+        await mouse.moveTo(tester.getCenter(icon));
+        await tester.pump(const Duration(milliseconds: 600));
+        expect(find.text(name), findsOneWidget);
+        await mouse.moveTo(Offset.zero);
+        await tester.pumpAndSettle();
+      }
+
+      await expectTooltip(tokenIcon, 'Token 总量');
+      await expectTooltip(skillIcon, '技能');
+      await expectTooltip(mcpIcon, 'MCP 服务器');
       expect(find.byIcon(LucideIcons.arrowUpRight), findsNothing);
+      expect(
+        viewModel.metricsFor(bot.id).tokenUsage.effectiveTotalTokens,
+        1500,
+      );
+      expect(viewModel.metricsFor(bot.id).skillCount, 2);
+      expect(viewModel.metricsFor(bot.id).mcpServerNames, ['Docs', 'Search']);
       final addBotButton =
           find
               .ancestor(
@@ -2752,6 +2924,51 @@ class _BotCardTestBindingRepository implements BotSkillBindingRepository {
       ..add(binding);
   }
 }
+
+class _BotCardTestMessageRepository implements MessageRepository {
+  const _BotCardTestMessageRepository(this.usageByBot);
+
+  final Map<String, ModelTokenUsage> usageByBot;
+
+  @override
+  Stream<void> get changes => const Stream<void>.empty();
+
+  @override
+  Future<ModelTokenUsage> getTokenUsageForBot(String botId) async =>
+      usageByBot[botId] ?? ModelTokenUsage.empty;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Message operation is not used by this test.');
+}
+
+class _BotCardTestMcpRepository implements McpServerRepository {
+  const _BotCardTestMcpRepository(this.servers);
+
+  final List<McpServer> servers;
+
+  @override
+  Stream<List<McpServer>> get changes => const Stream<List<McpServer>>.empty();
+
+  @override
+  Future<List<McpServer>> getServers({bool forceRefresh = false}) async =>
+      List<McpServer>.unmodifiable(servers);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('MCP operation is not used by this test.');
+}
+
+McpServer _botCardMcpServer(String id, String name) => McpServer(
+  id: id,
+  name: name,
+  namespace: id.replaceAll('-', '_'),
+  endpoint: Uri.parse('https://mcp.example.test/$id'),
+  enabled: true,
+  status: McpConnectionStatus.connected,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 class _BotCardTestChatRepository implements ChatRepository {
   @override

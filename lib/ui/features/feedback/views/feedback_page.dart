@@ -177,7 +177,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 key: const ValueKey<String>(
                                   'feedback-submit-button',
                                 ),
-                                height: DesktopThemeTokens.botFormFieldHeight,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 enabled: !_isSubmitting,
                                 onPressed: _isSubmitting ? null : _handleSubmit,

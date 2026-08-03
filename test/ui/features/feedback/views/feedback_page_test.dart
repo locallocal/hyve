@@ -53,10 +53,9 @@ void main() {
           const ValueKey<String>('feedback-submit-button'),
         );
         expect(submitButton, findsOneWidget);
-        expect(
-          tester.getSize(submitButton).height,
-          DesktopThemeTokens.botFormFieldHeight,
-        );
+        final submitButtonWidget = tester.widget<ShadButton>(submitButton);
+        expect(submitButtonWidget.height, isNull);
+        expect(tester.getSize(submitButton).height, 40);
 
         final submitText = find.descendant(
           of: submitButton,

@@ -19,6 +19,7 @@ import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/app/views/desktop_layout.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
@@ -1336,7 +1337,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(LucideIcons.ellipsis));
+      final menuAction = tester.widget<StarsDesktopIconAction>(
+        find.byType(StarsDesktopIconAction),
+      );
+      await tester.tap(
+        find.byIcon(LucideIcons.ellipsis),
+        kind: PointerDeviceKind.mouse,
+      );
       await tester.pumpAndSettle();
 
       final row = find.byType(DesktopInteractiveListItem);
@@ -1382,14 +1389,14 @@ void main() {
         Colors.white,
       );
 
-      await tester.tap(find.byIcon(LucideIcons.messageCircle));
+      await tester.tap(
+        find.byIcon(LucideIcons.messageCircle),
+        kind: PointerDeviceKind.mouse,
+      );
       await tester.pumpAndSettle();
 
       expect(openCount, 1);
-      expect(
-        FocusManager.instance.primaryFocus?.debugLabel,
-        isNot('chat-row-actions'),
-      );
+      expect(menuAction.focusNode!.hasFocus, isFalse);
     });
   });
 

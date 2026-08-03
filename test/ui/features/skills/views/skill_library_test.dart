@@ -129,6 +129,41 @@ void main() {
     }
   });
 
+  testWidgets('desktop Skill library right-aligns import actions', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: const _FakeSkillRepository([]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final zipButton = find.byKey(const ValueKey<String>('import-skill-zip'));
+      final searchField = find.byKey(
+        const ValueKey<String>('skill-search-field'),
+      );
+
+      expect(zipButton, findsOneWidget);
+      expect(
+        tester.getRect(zipButton).right,
+        closeTo(tester.getRect(searchField).right, 1),
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop Skill card operation error can be dismissed', (
     tester,
   ) async {

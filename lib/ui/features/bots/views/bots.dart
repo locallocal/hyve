@@ -188,10 +188,7 @@ class ContactsPageState extends State<ContactsPage> {
       padding: DesktopThemeTokens.formPagePadding,
       backgroundColor: DesktopThemeTokens.workspaceSurface(context),
       action: ShadButton(
-        size: ShadButtonSize.sm,
         onPressed: _openAddBotPage,
-        height: DesktopThemeTokens.botFormFieldHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
         leading: const Icon(LucideIcons.plus, size: 16),
         child: Text(S.of(context).addBot),
       ),

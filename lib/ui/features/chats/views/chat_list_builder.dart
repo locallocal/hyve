@@ -373,6 +373,7 @@ class _ChatRowActions extends StatefulWidget {
 class _ChatRowActionsState extends State<_ChatRowActions> {
   final ShadPopoverController _controller = ShadPopoverController();
   final FocusNode _focusNode = FocusNode(debugLabel: 'chat-row-actions');
+  bool _menuItemPressedWithPointer = false;
 
   @override
   void dispose() {
@@ -382,17 +383,27 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
   }
 
   void _invoke(VoidCallback action) {
+    final shouldRestoreFocus =
+        !_menuItemPressedWithPointer &&
+        FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+    _menuItemPressedWithPointer = false;
     _controller.hide();
     action();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (FocusManager.instance.highlightMode ==
-          FocusHighlightMode.traditional) {
+      if (shouldRestoreFocus) {
         _focusNode.requestFocus();
       } else {
         _focusNode.unfocus();
       }
     });
+  }
+
+  void _toggleMenu() {
+    if (!_controller.isOpen) {
+      _menuItemPressedWithPointer = false;
+    }
+    _controller.toggle();
   }
 
   @override
@@ -403,40 +414,43 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
       popover:
           (context) => SizedBox(
             width: 184,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ShadButton.ghost(
-                  size: ShadButtonSize.sm,
-                  enabled: widget.canOpen,
-                  onPressed: () => _invoke(widget.onOpen),
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  leading: const Icon(LucideIcons.messageCircle, size: 16),
-                  child: Text(
-                    desktopConversationText(
-                      context,
-                      S.of(context).startChatting,
+            child: Listener(
+              onPointerDown: (_) => _menuItemPressedWithPointer = true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShadButton.ghost(
+                    size: ShadButtonSize.sm,
+                    enabled: widget.canOpen,
+                    onPressed: () => _invoke(widget.onOpen),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.messageCircle, size: 16),
+                    child: Text(
+                      desktopConversationText(
+                        context,
+                        S.of(context).startChatting,
+                      ),
                     ),
                   ),
-                ),
-                ShadButton.raw(
-                  variant: ShadButtonVariant.ghost,
-                  size: ShadButtonSize.sm,
-                  foregroundColor: colors.destructive,
-                  onPressed: () => _invoke(widget.onDelete),
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  leading: const Icon(LucideIcons.trash2, size: 16),
-                  child: Text(S.of(context).delete),
-                ),
-              ],
+                  ShadButton.raw(
+                    variant: ShadButtonVariant.ghost,
+                    size: ShadButtonSize.sm,
+                    foregroundColor: colors.destructive,
+                    onPressed: () => _invoke(widget.onDelete),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.trash2, size: 16),
+                    child: Text(S.of(context).delete),
+                  ),
+                ],
+              ),
             ),
           ),
       child: StarsDesktopIconAction(
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
         focusNode: _focusNode,
-        onPressed: _controller.toggle,
+        onPressed: _toggleMenu,
         hoverBackgroundColor: Colors.transparent,
       ),
     );

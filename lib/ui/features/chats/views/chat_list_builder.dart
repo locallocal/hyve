@@ -5,6 +5,7 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
+import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chats/views/chat_item.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/utils/utils.dart';
@@ -178,34 +179,10 @@ class ChatListBuilder extends StatelessWidget {
               );
               return;
             }
-            final shouldStop = await showChatShadDialog<bool>(
-              context: context,
-              variant: ShadDialogVariant.alert,
-              builder:
-                  (dialogContext) => ShadDialog.alert(
-                    title: Text(
-                      S.of(dialogContext).stopGenerationBeforeLeaving,
-                    ),
-                    description: Text(
-                      S
-                          .of(dialogContext)
-                          .stopGenerationBeforeLeavingDescription,
-                    ),
-                    actions: [
-                      ShadButton.outline(
-                        autofocus: true,
-                        onPressed: () => Navigator.of(dialogContext).pop(false),
-                        child: Text(S.of(dialogContext).cancel),
-                      ),
-                      ShadButton.secondary(
-                        onPressed: () => Navigator.of(dialogContext).pop(true),
-                        leading: const Icon(LucideIcons.square, size: 16),
-                        child: Text(S.of(dialogContext).stopAndContinue),
-                      ),
-                    ],
-                  ),
+            final shouldStop = await showStopGenerationBeforeLeavingDialog(
+              context,
             );
-            if (shouldStop != true || !context.mounted) return;
+            if (!shouldStop || !context.mounted) return;
             final stopped = await registry.stopForNavigation(chat.id);
             if (!stopped || !context.mounted) {
               if (context.mounted) {

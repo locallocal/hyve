@@ -1774,11 +1774,17 @@ String _formatDuration(int durationMs) {
   return '${seconds.toStringAsFixed(seconds >= 10 ? 0 : 1)}s';
 }
 
-class _ReasoningSectionState extends State<ReasoningSection> {
+class _ReasoningSectionState extends State<ReasoningSection>
+    with SingleTickerProviderStateMixin {
   static const _itemValue = 'reasoning';
 
   late bool _mobileExpanded;
   late final ShadAccordionController<String> _desktopController;
+  late final AnimationController _rotationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+  bool? _shouldRotate;
 
   @override
   void initState() {
@@ -1790,8 +1796,18 @@ class _ReasoningSectionState extends State<ReasoningSection> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateRotation();
+  }
+
+  @override
   void didUpdateWidget(covariant ReasoningSection oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isDesktop != widget.isDesktop ||
+        oldWidget.isStreaming != widget.isStreaming) {
+      _updateRotation();
+    }
     if (!widget.isDesktop || oldWidget.isStreaming == widget.isStreaming) {
       return;
     }
@@ -1801,8 +1817,25 @@ class _ReasoningSectionState extends State<ReasoningSection> {
     }
   }
 
+  void _updateRotation() {
+    final shouldRotate =
+        widget.isDesktop &&
+        widget.isStreaming &&
+        !MediaQuery.disableAnimationsOf(context);
+    if (_shouldRotate == shouldRotate) return;
+    _shouldRotate = shouldRotate;
+    if (shouldRotate) {
+      _rotationController.repeat();
+    } else {
+      _rotationController
+        ..stop()
+        ..value = 0;
+    }
+  }
+
   @override
   void dispose() {
+    _rotationController.dispose();
     _desktopController.dispose();
     super.dispose();
   }
@@ -1853,13 +1886,24 @@ class _ReasoningSectionState extends State<ReasoningSection> {
                 child: Row(
                   children: [
                     ExcludeSemantics(
-                      child: Icon(
-                        widget.isStreaming
-                            ? LucideIcons.loaderCircle
-                            : LucideIcons.brain,
-                        size: 16,
-                        color: StarsDesktopTheme.mutedText(context),
-                      ),
+                      child:
+                          widget.isStreaming
+                              ? RotationTransition(
+                                key: const ValueKey<String>(
+                                  'reasoning-streaming-spinner',
+                                ),
+                                turns: _rotationController,
+                                child: Icon(
+                                  LucideIcons.loaderCircle,
+                                  size: 16,
+                                  color: StarsDesktopTheme.mutedText(context),
+                                ),
+                              )
+                              : Icon(
+                                LucideIcons.brain,
+                                size: 16,
+                                color: StarsDesktopTheme.mutedText(context),
+                              ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(

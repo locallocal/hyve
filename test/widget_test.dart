@@ -1763,6 +1763,59 @@ void main() {
     });
   });
 
+  testWidgets('desktop stop generation dialog matches clear chat styling', (
+    tester,
+  ) async {
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: ShadButton(
+                  onPressed:
+                      () => unawaited(
+                        showStopGenerationBeforeLeavingDialog(context),
+                      ),
+                  child: const Text('打开停止生成弹窗'),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('打开停止生成弹窗'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('离开前停止生成？'), findsOneWidget);
+      expect(find.text('已生成的部分回复会被保留。'), findsOneWidget);
+
+      final cancelButtonFinder =
+          find
+              .ancestor(of: find.text('取消'), matching: find.byType(ShadButton))
+              .first;
+      final stopButtonFinder =
+          find
+              .ancestor(
+                of: find.text('停止并继续'),
+                matching: find.byType(ShadButton),
+              )
+              .first;
+      final cancelButton = tester.widget<ShadButton>(cancelButtonFinder);
+      final stopButton = tester.widget<ShadButton>(stopButtonFinder);
+
+      expect(cancelButton.variant, ShadButtonVariant.outline);
+      expect(cancelButton.autofocus, isFalse);
+      expect(stopButton.variant, ShadButtonVariant.destructive);
+      expect(stopButton.leading, isNull);
+
+      await tester.tap(cancelButtonFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('离开前停止生成？'), findsNothing);
+    });
+  });
+
   testWidgets('desktop sidebar keeps Skill and MCP entries under My', (
     tester,
   ) async {
@@ -2479,6 +2532,9 @@ void main() {
                   providerId: 'openai',
                   inputModalities: const [InputModality.text],
                   outputModalities: const [OutputModality.text],
+                  supportsWebSearch: true,
+                  supportsDeepThinking: true,
+                  supportsMcp: false,
                   supportsAutomaticSkillActivation: true,
                 ),
               ],
@@ -2492,7 +2548,7 @@ void main() {
 
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.byType(ShadForm), findsOneWidget);
-      expect(find.byType(MenuAnchor), findsNWidgets(3));
+      expect(find.byType(MenuAnchor), findsNWidgets(2));
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
       expect(find.byIcon(Icons.add_rounded), findsOneWidget);
       expect(find.text('取消'), findsOneWidget);
@@ -2523,6 +2579,42 @@ void main() {
 
       expect(find.text('技能'), findsOneWidget);
       expect(find.byType(ShadCard), findsNWidgets(4));
+
+      final modelMenu = find.byKey(
+        const ValueKey<String>('add-bot-model-menu'),
+      );
+      final modelMenuButton = find.descendant(
+        of: modelMenu,
+        matching: find.byType(ShadIconButton),
+      );
+      final modelDropdownIcon = find.descendant(
+        of: modelMenu,
+        matching: find.byIcon(Icons.expand_more_rounded),
+      );
+      expect(modelMenu, findsOneWidget);
+      expect(modelMenuButton, findsOneWidget);
+      expect(
+        tester.getRect(modelMenu).right,
+        closeTo(tester.getRect(modelMenuButton).right, 0.1),
+      );
+
+      await tester.tap(modelMenuButton);
+      await tester.pumpAndSettle();
+
+      final modelOption = find.widgetWithText(MenuItemButton, 'gpt-test');
+      expect(modelOption, findsOneWidget);
+      final modelMenuSurface =
+          find.ancestor(of: modelOption, matching: find.byType(Material)).first;
+      expect(
+        tester.getRect(modelMenuSurface).right,
+        closeTo(tester.getRect(modelDropdownIcon).right, 1),
+      );
+      expect(find.textContaining('联网搜索'), findsNothing);
+      expect(find.textContaining('深度思考'), findsNothing);
+      expect(find.textContaining('MCP —'), findsNothing);
+
+      await tester.tap(modelOption);
+      await tester.pumpAndSettle();
 
       final basicSection = find.byKey(
         const ValueKey<String>('add-bot-basic-section'),
@@ -2759,7 +2851,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
-      expect(find.byType(MenuAnchor), findsNWidgets(4));
+      expect(find.byType(MenuAnchor), findsNWidgets(3));
       expect(controllerFor('add-bot-sub-provider').text, 'HF-Inference');
       expect(
         controllerFor('add-bot-base-url').text,

@@ -100,6 +100,7 @@ class _AddBotPageState extends State<AddBotPage> {
       DesktopThemeTokens.addBotFormFieldWidth;
   static const double _desktopDropdownButtonSize = 30;
   static const double _desktopProviderMenuWidth = 256;
+  static const double _desktopModelMenuWidth = 320;
   static const double _desktopSectionPadding =
       DesktopThemeTokens.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
@@ -886,6 +887,7 @@ class _AddBotPageState extends State<AddBotPage> {
   }
 
   Widget _desktopMenuAnchor<T>({
+    Key? key,
     required List<T> options,
     required T? selectedValue,
     required Widget Function(MenuController controller) fieldBuilder,
@@ -894,10 +896,13 @@ class _AddBotPageState extends State<AddBotPage> {
     Widget Function(T value)? leadingBuilder,
     double? menuWidth,
     bool alignEnd = false,
+    bool constrainMenuWidth = false,
   }) {
     assert(!alignEnd || menuWidth != null);
     final tokens = StarsDesktopTokens.of(context);
     return MenuAnchor(
+      key: key,
+      crossAxisUnconstrained: !constrainMenuWidth,
       alignmentOffset: Offset(
         alignEnd ? _desktopDropdownButtonSize - menuWidth! : 0,
         4,
@@ -1096,46 +1101,50 @@ class _AddBotPageState extends State<AddBotPage> {
   }
 
   Widget _buildDesktopModelsInput() {
-    return _desktopMenuAnchor<AiModelInfo>(
-      options: providerModels,
-      selectedValue: _modelInfoById(selectedModelController.text),
-      labelBuilder: _modelLabel,
-      onSelected: (value) {
-        setState(() => selectedModelController.text = value.modelId);
-      },
-      fieldBuilder:
-          (menuController) => ShadInputFormField(
-            key: const ValueKey<String>('add-bot-model'),
-            id: 'model',
-            controller: selectedModelController,
-            textInputAction: TextInputAction.next,
-            label: Text(S.of(context).model),
-            placeholder: Text(S.of(context).selectModel),
-            leading: _desktopInputLeading(Icons.memory_outlined),
-            constraints: _desktopInputConstraints,
-            trailing:
-                providerModels.isEmpty
-                    ? _isLoadingModels
-                        ? const SizedBox.square(
-                          dimension: 30,
-                          child: Center(
-                            child: SizedBox.square(
-                              dimension: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                        )
-                        : _desktopIconButton(
-                          tooltip: S.of(context).fetchModelList,
-                          icon: Icons.refresh_rounded,
-                          onPressed: _fetchModels,
-                        )
-                    : _desktopIconButton(
+    return ShadInputFormField(
+      key: const ValueKey<String>('add-bot-model'),
+      id: 'model',
+      controller: selectedModelController,
+      textInputAction: TextInputAction.next,
+      label: Text(S.of(context).model),
+      placeholder: Text(S.of(context).selectModel),
+      leading: _desktopInputLeading(Icons.memory_outlined),
+      constraints: _desktopInputConstraints,
+      trailing:
+          providerModels.isEmpty
+              ? _isLoadingModels
+                  ? const SizedBox.square(
+                    dimension: 30,
+                    child: Center(
+                      child: SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  )
+                  : _desktopIconButton(
+                    tooltip: S.of(context).fetchModelList,
+                    icon: Icons.refresh_rounded,
+                    onPressed: _fetchModels,
+                  )
+              : _desktopMenuAnchor<AiModelInfo>(
+                key: const ValueKey<String>('add-bot-model-menu'),
+                options: providerModels,
+                selectedValue: _modelInfoById(selectedModelController.text),
+                labelBuilder: (model) => model.modelId,
+                menuWidth: _desktopModelMenuWidth,
+                alignEnd: true,
+                constrainMenuWidth: true,
+                onSelected: (value) {
+                  setState(() => selectedModelController.text = value.modelId);
+                },
+                fieldBuilder:
+                    (menuController) => _desktopIconButton(
                       tooltip: S.of(context).selectModel,
                       icon: Icons.expand_more_rounded,
                       onPressed: () => _toggleMenu(menuController),
                     ),
-          ),
+              ),
     );
   }
 
@@ -1656,7 +1665,7 @@ class _AddBotPageState extends State<AddBotPage> {
                                       ]
                                       : providerModels.map((model) {
                                         return RadioListTile<AiModelInfo>(
-                                          title: Text(_modelLabel(model)),
+                                          title: Text(model.modelId),
                                           activeColor:
                                               Theme.of(
                                                 context,
@@ -1738,20 +1747,6 @@ class _AddBotPageState extends State<AddBotPage> {
         });
       },
     );
-  }
-
-  String _modelLabel(AiModelInfo model) {
-    final features = <String>[
-      if (model.supportsWebSearch case final supported?)
-        '${S.of(context).webSearch} ${supported ? '✓' : '—'}',
-      if (model.supportsDeepThinking case final supported?)
-        '${S.of(context).deepThinking} ${supported ? '✓' : '—'}',
-      if (model.supportsMcp case final supported?)
-        'MCP ${supported ? '✓' : '—'}',
-    ];
-    return features.isEmpty
-        ? model.modelId
-        : '${model.modelId} · ${features.join(' · ')}';
   }
 
   Widget _buildSystemPromptInput(double? fontSize) {

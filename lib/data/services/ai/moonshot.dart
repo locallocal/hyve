@@ -1,30 +1,36 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'package:stars/domain/models/models.dart';
 import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:stars/domain/models/models.dart';
 
 class Moonshot extends Provider {
   static const String defaultApiModelsUrl = 'https://api.moonshot.cn/v1/models';
   static const String defaultApiChatUrl =
       'https://api.moonshot.cn/v1/chat/completions';
-  Moonshot(super.bot);
+  static const int _maxWebSearchRounds = 8;
+  static const String _webSearchToolName = r'$web_search';
+  Moonshot(super.bot, {http.Client? client}) : _client = client;
+
+  final http.Client? _client;
 
   @override
   bool supportWebSearch() {
-    return false;
+    return builtInModelInfo()?.supportsWebSearch ?? false;
   }
 
   @override
   bool supportDeepThinking() {
-    if (bot.model.toLowerCase().contains('thinking')) {
-      return true;
-    }
-    return false;
+    final documented = builtInModelInfo()?.supportsDeepThinking;
+    if (documented != null) return documented;
+    return bot.model.toLowerCase().contains('thinking');
   }
 
   @override
   List<InputModality> getInputModalites() {
+    final documented = builtInModelInfo();
+    if (documented != null) return documented.inputModalities;
     if (bot.model.toLowerCase().contains('vision')) {
       return [InputModality.text, InputModality.image];
     }
@@ -42,17 +48,18 @@ class Moonshot extends Provider {
         bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
 
     try {
-      final response = await http
-          .get(
-            Uri.parse(url),
-            headers: {'Authorization': 'Bearer ${bot.apiKey}'},
-          )
+      final response = await (_client?.get(
+                Uri.parse(url),
+                headers: {'Authorization': 'Bearer ${bot.apiKey}'},
+              ) ??
+              http.get(
+                Uri.parse(url),
+                headers: {'Authorization': 'Bearer ${bot.apiKey}'},
+              ))
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
-        final models = providerModelInfos(data['data']);
-        models.sort((left, right) => left.modelId.compareTo(right.modelId));
-        return models;
+        return providerModelInfos(data['data']);
       } else {
         throw Exception(
           'List models failed: ${response.statusCode}- ${response.body}',
@@ -68,80 +75,58 @@ class Moonshot extends Provider {
   @override
   Future<void> generateText(List<ChatMessage> messages) async {
     try {
-      // 重置取消状态
       resetCancelState();
       final url =
           bot.baseURL.isNotEmpty
               ? '${bot.baseURL}chat/completions'
               : defaultApiChatUrl;
+      final requestMessages = List<Map<String, dynamic>>.from(
+        processMessagesWithImages(messages),
+      );
+      final useWebSearch = webSearch && supportWebSearch();
 
-      final request =
-          http.Request('POST', Uri.parse(url))
-            ..headers.addAll({
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ${bot.apiKey}',
-            })
-            ..body = jsonEncode({
-              'model': bot.model,
-              'messages': processMessagesWithImages(messages),
-              'response_format': {'type': 'text'},
-              'stream': true,
-            });
-
-      final streamedResponse = await request.send();
-      final stream = streamedResponse.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
       cancelController?.stream.listen((_) {
         cancelController?.close();
       });
 
-      var responseContent = '';
-      await for (final line in stream) {
-        // 检查是否已取消
+      for (var round = 0; round < _maxWebSearchRounds; round++) {
+        final result = await _streamCompletionRound(
+          url: url,
+          messages: requestMessages,
+          useWebSearch: useWebSearch,
+        );
         if (isCancelled) break;
-        responseContent += line;
 
-        if (line.startsWith('data: ')) {
-          final jsonStr = line.substring(6);
-          if (jsonStr == '[DONE]') {
-            // 当收到[DONE]标记时，确保调用onComplete
-            if (!isCancelled && onComplete != null) {
-              onComplete!();
-            }
-            return;
-          }
+        if (!useWebSearch || result.toolCalls.isEmpty) {
+          onComplete?.call();
+          return;
+        }
+        if (result.finishReason != 'tool_calls') {
+          throw StateError(
+            'Moonshot returned web search calls without finish_reason=tool_calls.',
+          );
+        }
 
-          try {
-            final data = decodeProviderResponse(jsonStr);
-            if (deepThinking) {
-              // 处理深度思考的情况
-              final reasonContent =
-                  data['choices'][0]['delta']['reasoning_content'] ?? '';
-              if (reasonContent.isNotEmpty && onReasoningResponse != null) {
-                onReasoningResponse!(reasonContent);
-              }
-            }
-            final content = data['choices'][0]['delta']['content'] ?? '';
-            if (content.isEmpty) continue;
-            onResponse(content);
-          } catch (e) {
-            // 忽略解析错误
-          }
+        requestMessages.add(result.assistantMessage());
+        for (final toolCall in result.toolCalls) {
+          requestMessages.add({
+            'role': 'tool',
+            'tool_call_id': toolCall.id,
+            'name': toolCall.name,
+            'content':
+                toolCall.name == _webSearchToolName
+                    ? toolCall.arguments
+                    : jsonEncode({
+                      'error': 'Unsupported Moonshot tool: ${toolCall.name}',
+                    }),
+          });
         }
       }
-      if (responseContent.contains('error')) {
-        final errorData = decodeProviderResponse(responseContent);
-        final errorMessage = errorData['error']['message'];
-        final errorCode = errorData['error']['code'];
-        final errorType = errorData['error']['type'];
-        throw Exception(
-          'Send message failed: ($errorCode, $errorType) $errorMessage',
-        );
-      }
 
-      if (!isCancelled && onComplete != null) {
-        onComplete!();
+      if (!isCancelled) {
+        throw StateError(
+          'Moonshot web search exceeded $_maxWebSearchRounds rounds.',
+        );
       } else if (isCancelled && onError != null) {
         onError!('Request cancelled');
       }
@@ -155,4 +140,185 @@ class Moonshot extends Provider {
       cancelController = null;
     }
   }
+
+  Future<_MoonshotCompletionRound> _streamCompletionRound({
+    required String url,
+    required List<Map<String, dynamic>> messages,
+    required bool useWebSearch,
+  }) async {
+    final request =
+        http.Request('POST', Uri.parse(url))
+          ..headers.addAll({
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${bot.apiKey}',
+          })
+          ..body = jsonEncode({
+            'model': bot.model,
+            'messages': messages,
+            'response_format': {'type': 'text'},
+            'stream': true,
+            if (useWebSearch)
+              'tools': [
+                {
+                  'type': 'builtin_function',
+                  'function': {'name': _webSearchToolName},
+                },
+              ],
+            ..._reasoningConfiguration(),
+          });
+
+    final streamedResponse = await (_client?.send(request) ?? request.send());
+    if (streamedResponse.statusCode < 200 ||
+        streamedResponse.statusCode >= 300) {
+      final body = await streamedResponse.stream.bytesToString();
+      throw Exception(
+        'Send message failed: ${streamedResponse.statusCode} - $body',
+      );
+    }
+
+    final content = StringBuffer();
+    final reasoningContent = StringBuffer();
+    final toolCalls = <int, _MoonshotToolCallBuilder>{};
+    String finishReason = '';
+    final stream = streamedResponse.stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+
+    await for (final line in stream) {
+      if (isCancelled) break;
+      if (!line.startsWith('data: ')) continue;
+
+      final jsonSource = line.substring(6).trim();
+      if (jsonSource.isEmpty || jsonSource == '[DONE]') continue;
+
+      final data = decodeProviderResponse(jsonSource);
+      if (data['error'] case final Map error) {
+        throw Exception(
+          'Send message failed: (${error['code']}, ${error['type']}) '
+          '${error['message']}',
+        );
+      }
+      final choices = data['choices'];
+      if (choices is! List || choices.isEmpty || choices.first is! Map) {
+        continue;
+      }
+      final choice = choices.first as Map;
+      final nextFinishReason = choice['finish_reason']?.toString() ?? '';
+      if (nextFinishReason.isNotEmpty) finishReason = nextFinishReason;
+      final delta = choice['delta'];
+      if (delta is! Map) continue;
+
+      final reasoningDelta = delta['reasoning_content']?.toString() ?? '';
+      if (reasoningDelta.isNotEmpty) {
+        reasoningContent.write(reasoningDelta);
+        if (deepThinking) onReasoningResponse?.call(reasoningDelta);
+      }
+
+      final contentDelta = delta['content']?.toString() ?? '';
+      if (contentDelta.isNotEmpty) {
+        content.write(contentDelta);
+        onResponse(contentDelta);
+      }
+
+      final deltaToolCalls = delta['tool_calls'];
+      if (deltaToolCalls is! List) continue;
+      for (var position = 0; position < deltaToolCalls.length; position++) {
+        final rawCall = deltaToolCalls[position];
+        if (rawCall is! Map) continue;
+        final index = (rawCall['index'] as num?)?.toInt() ?? position;
+        toolCalls
+            .putIfAbsent(index, _MoonshotToolCallBuilder.new)
+            .append(rawCall);
+      }
+    }
+
+    return _MoonshotCompletionRound(
+      content: content.toString(),
+      reasoningContent: reasoningContent.toString(),
+      finishReason: finishReason,
+      toolCalls: [
+        for (final entry
+            in toolCalls.entries.toList()
+              ..sort((left, right) => left.key.compareTo(right.key)))
+          entry.value.build(),
+      ],
+    );
+  }
+
+  Map<String, Object> _reasoningConfiguration() {
+    return switch (bot.model.toLowerCase()) {
+      'kimi-k3' => {'reasoning_effort': deepThinking ? 'max' : 'low'},
+      'kimi-k2.6' || 'kimi-k2.5' => {
+        'thinking': {'type': deepThinking ? 'enabled' : 'disabled'},
+      },
+      _ => const {},
+    };
+  }
+}
+
+final class _MoonshotCompletionRound {
+  const _MoonshotCompletionRound({
+    required this.content,
+    required this.reasoningContent,
+    required this.finishReason,
+    required this.toolCalls,
+  });
+
+  final String content;
+  final String reasoningContent;
+  final String finishReason;
+  final List<_MoonshotToolCall> toolCalls;
+
+  Map<String, dynamic> assistantMessage() => {
+    'role': 'assistant',
+    'content': content.isEmpty ? null : content,
+    if (reasoningContent.isNotEmpty) 'reasoning_content': reasoningContent,
+    'tool_calls': [for (final toolCall in toolCalls) toolCall.toJson()],
+  };
+}
+
+final class _MoonshotToolCall {
+  const _MoonshotToolCall({
+    required this.id,
+    required this.type,
+    required this.name,
+    required this.arguments,
+  });
+
+  final String id;
+  final String type;
+  final String name;
+  final String arguments;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'function': {'name': name, 'arguments': arguments},
+  };
+}
+
+final class _MoonshotToolCallBuilder {
+  String id = '';
+  String type = '';
+  final name = StringBuffer();
+  final arguments = StringBuffer();
+
+  void append(Map rawCall) {
+    final idDelta = rawCall['id']?.toString() ?? '';
+    if (idDelta.isNotEmpty) id = idDelta;
+    final typeDelta = rawCall['type']?.toString() ?? '';
+    if (typeDelta.isNotEmpty) type = typeDelta;
+
+    final function = rawCall['function'];
+    if (function is! Map) return;
+    name.write(function['name']?.toString() ?? '');
+    arguments.write(function['arguments']?.toString() ?? '');
+  }
+
+  _MoonshotToolCall build() => _MoonshotToolCall(
+    id: id,
+    type: type.isEmpty ? 'function' : type,
+    name: name.toString(),
+    arguments: arguments.isEmpty ? '{}' : arguments.toString(),
+  );
 }

@@ -4,7 +4,7 @@ import 'package:stars/domain/models/models.dart';
 ///
 /// Keep this list limited to first-party, currently documented model IDs. The
 /// live provider response still wins whenever it includes an explicit value.
-/// Last verified against the providers' official documentation: 2026-08-02.
+/// Last verified against the providers' official documentation: 2026-08-04.
 final class BuiltInModelCatalog {
   BuiltInModelCatalog._();
 
@@ -262,6 +262,160 @@ final class BuiltInModelCatalog {
         context: 128000,
       ),
     ],
+    Bot.apiTypeMoonshot: [
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'kimi-k3',
+        input: _kimiMultimodalInput,
+        web: true,
+        thinking: true,
+        context: 1048576,
+        output: 1048576,
+        lifecycle: AiModelLifecycle.recommended,
+        endpoints: _chatCompletionsEndpoint,
+        reasoningEfforts: const ['low', 'high', 'max'],
+        nativeTools: _kimiWebSearchTools,
+        features: const {
+          ..._kimiAgentFeatures,
+          'always_thinking',
+          'structured_outputs',
+          'partial_mode',
+          'dynamic_tools',
+          'prompt_caching',
+        },
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'kimi-k2.7-code',
+        input: _kimiMultimodalInput,
+        web: true,
+        thinking: true,
+        context: 262144,
+        lifecycle: AiModelLifecycle.current,
+        endpoints: _chatCompletionsEndpoint,
+        nativeTools: _kimiWebSearchTools,
+        features: const {
+          ..._kimiAgentFeatures,
+          'always_thinking',
+          'preserved_thinking',
+        },
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'kimi-k2.7-code-highspeed',
+        input: _kimiMultimodalInput,
+        web: true,
+        thinking: true,
+        context: 262144,
+        lifecycle: AiModelLifecycle.current,
+        endpoints: _chatCompletionsEndpoint,
+        nativeTools: _kimiWebSearchTools,
+        features: const {
+          ..._kimiAgentFeatures,
+          'always_thinking',
+          'preserved_thinking',
+          'high_speed_output',
+        },
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'kimi-k2.6',
+        input: _kimiMultimodalInput,
+        web: true,
+        thinking: true,
+        context: 262144,
+        lifecycle: AiModelLifecycle.current,
+        endpoints: _chatCompletionsEndpoint,
+        nativeTools: _kimiWebSearchTools,
+        features: const {
+          ..._kimiAgentFeatures,
+          'configurable_thinking',
+          'preserved_thinking',
+        },
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'kimi-k2.5',
+        input: _textImage,
+        web: true,
+        thinking: true,
+        context: 262144,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        nativeTools: _kimiWebSearchTools,
+        features: const {
+          'streaming',
+          'function_calling',
+          'image_input',
+          'reasoning',
+          'configurable_thinking',
+          'web_search',
+        },
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-8k',
+        web: false,
+        thinking: false,
+        context: 8192,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming'},
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-32k',
+        web: false,
+        thinking: false,
+        context: 32768,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming'},
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-128k',
+        web: false,
+        thinking: false,
+        context: 131072,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming'},
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-8k-vision-preview',
+        input: _textImage,
+        web: false,
+        thinking: false,
+        context: 8192,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming', 'image_input'},
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-32k-vision-preview',
+        input: _textImage,
+        web: false,
+        thinking: false,
+        context: 32768,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming', 'image_input'},
+      ),
+      _model(
+        providerId: Bot.apiTypeMoonshot,
+        modelId: 'moonshot-v1-128k-vision-preview',
+        input: _textImage,
+        web: false,
+        thinking: false,
+        context: 131072,
+        lifecycle: AiModelLifecycle.deprecated,
+        endpoints: _chatCompletionsEndpoint,
+        features: const {'streaming', 'image_input'},
+      ),
+    ],
   };
 
   static List<AiModelInfo> modelsFor(String providerId) =>
@@ -405,6 +559,11 @@ final class BuiltInModelCatalog {
   );
 
   static const _textImage = [InputModality.text, InputModality.image];
+  static const _kimiMultimodalInput = [
+    InputModality.text,
+    InputModality.image,
+    InputModality.video,
+  ];
   static const _geminiInput = [
     InputModality.text,
     InputModality.image,
@@ -417,6 +576,7 @@ final class BuiltInModelCatalog {
     AiModelEndpoint.chatCompletions,
     AiModelEndpoint.batch,
   ];
+  static const _chatCompletionsEndpoint = [AiModelEndpoint.chatCompletions];
   static const _gpt56ReasoningEfforts = [
     'none',
     'low',
@@ -445,4 +605,13 @@ final class BuiltInModelCatalog {
     'mcp',
     'tool_search',
   };
+  static const _kimiAgentFeatures = {
+    'streaming',
+    'function_calling',
+    'image_input',
+    'video_input',
+    'reasoning',
+    'web_search',
+  };
+  static const _kimiWebSearchTools = {r'$web_search'};
 }

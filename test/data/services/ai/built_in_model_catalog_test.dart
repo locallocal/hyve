@@ -61,6 +61,93 @@ void main() {
       expect(models.first.contextWindowTokens, 256000);
     });
 
+    test(
+      'contains the current documented Moonshot models and capabilities',
+      () {
+        final models = BuiltInModelCatalog.modelsFor(Bot.apiTypeMoonshot);
+        final ids = models.map((model) => model.modelId).toList();
+
+        expect(ids, [
+          'kimi-k3',
+          'kimi-k2.7-code',
+          'kimi-k2.7-code-highspeed',
+          'kimi-k2.6',
+          'kimi-k2.5',
+          'moonshot-v1-8k',
+          'moonshot-v1-32k',
+          'moonshot-v1-128k',
+          'moonshot-v1-8k-vision-preview',
+          'moonshot-v1-32k-vision-preview',
+          'moonshot-v1-128k-vision-preview',
+        ]);
+        expect(ids, isNot(contains('kimi-latest')));
+        expect(ids, isNot(contains('kimi-k2-thinking')));
+
+        final k3 = models.first;
+        expect(k3.inputModalities, [
+          InputModality.text,
+          InputModality.image,
+          InputModality.video,
+        ]);
+        expect(k3.supportsWebSearch, isTrue);
+        expect(k3.supportsDeepThinking, isTrue);
+        expect(k3.supportsMcp, isFalse);
+        expect(k3.contextWindowTokens, 1048576);
+        expect(k3.maxOutputTokens, 1048576);
+        expect(k3.lifecycle, AiModelLifecycle.recommended);
+        expect(k3.supportedEndpoints, [AiModelEndpoint.chatCompletions]);
+        expect(k3.reasoningEfforts, ['low', 'high', 'max']);
+        expect(
+          k3.supportedFeatures,
+          containsAll([
+            'always_thinking',
+            'structured_outputs',
+            'function_calling',
+            'prompt_caching',
+            'web_search',
+          ]),
+        );
+        expect(k3.nativeTools, contains(r'$web_search'));
+
+        for (final model in models.take(5)) {
+          expect(
+            model.supportsWebSearch,
+            isTrue,
+            reason: '${model.modelId} supports Kimi built-in web search',
+          );
+          expect(model.nativeTools, contains(r'$web_search'));
+        }
+
+        final highSpeed = models.singleWhere(
+          (model) => model.modelId == 'kimi-k2.7-code-highspeed',
+        );
+        expect(highSpeed.contextWindowTokens, 262144);
+        expect(highSpeed.inputModalities, contains(InputModality.video));
+        expect(highSpeed.supportedFeatures, contains('high_speed_output'));
+
+        final k25 = models.singleWhere((model) => model.modelId == 'kimi-k2.5');
+        expect(k25.lifecycle, AiModelLifecycle.deprecated);
+        expect(k25.supportedFeatures, contains('configurable_thinking'));
+
+        final text128k = models.singleWhere(
+          (model) => model.modelId == 'moonshot-v1-128k',
+        );
+        final vision128k = models.singleWhere(
+          (model) => model.modelId == 'moonshot-v1-128k-vision-preview',
+        );
+        expect(text128k.contextWindowTokens, 131072);
+        expect(text128k.inputModalities, [InputModality.text]);
+        expect(text128k.supportsDeepThinking, isFalse);
+        expect(text128k.supportsWebSearch, isFalse);
+        expect(text128k.lifecycle, AiModelLifecycle.deprecated);
+        expect(vision128k.contextWindowTokens, 131072);
+        expect(vision128k.inputModalities, [
+          InputModality.text,
+          InputModality.image,
+        ]);
+      },
+    );
+
     test('live explicit values win while missing metadata is filled', () {
       final live = AiModelInfo(
         modelId: 'gpt-5.6-sol',

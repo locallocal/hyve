@@ -902,30 +902,8 @@ class ChatPageState extends State<ChatPage> {
       return false;
     }
 
-    final shouldStop = await showChatShadDialog<bool>(
-      context: context,
-      variant: ShadDialogVariant.alert,
-      builder:
-          (dialogContext) => ShadDialog.alert(
-            title: Text(S.of(dialogContext).stopGenerationBeforeLeaving),
-            description: Text(
-              S.of(dialogContext).stopGenerationBeforeLeavingDescription,
-            ),
-            actions: [
-              ShadButton.outline(
-                autofocus: true,
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: Text(S.of(dialogContext).cancel),
-              ),
-              ShadButton.secondary(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                leading: const Icon(LucideIcons.square, size: 16),
-                child: Text(S.of(dialogContext).stopAndContinue),
-              ),
-            ],
-          ),
-    );
-    if (shouldStop != true || !mounted) return false;
+    final shouldStop = await showStopGenerationBeforeLeavingDialog(context);
+    if (!shouldStop || !mounted) return false;
 
     final stopped = await registry.stopForNavigation(widget.id);
     if (!stopped && mounted) {

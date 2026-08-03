@@ -9,13 +9,13 @@ import 'package:stars/utils/utils.dart';
 import 'package:stars/utils/dot_curved_bottom_nav.dart';
 import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
 import 'package:stars/ui/features/app/views/desktop_layout.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:stars/ui/features/bots/views/bots.dart';
+import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/views/chats.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
@@ -617,31 +617,8 @@ class _MainPageState extends State<MainPage> {
       return false;
     }
 
-    final shouldStop = await showChatShadDialog<bool>(
-      context: context,
-      variant: ShadDialogVariant.alert,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      builder:
-          (dialogContext) => ShadDialog.alert(
-            title: Text(S.of(dialogContext).stopGenerationBeforeLeaving),
-            description: Text(
-              S.of(dialogContext).stopGenerationBeforeLeavingDescription,
-            ),
-            actions: [
-              ShadButton.outline(
-                autofocus: true,
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: Text(S.of(dialogContext).cancel),
-              ),
-              ShadButton.secondary(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                leading: const Icon(LucideIcons.square, size: 16),
-                child: Text(S.of(dialogContext).stopAndContinue),
-              ),
-            ],
-          ),
-    );
-    if (shouldStop != true || !mounted) return false;
+    final shouldStop = await showStopGenerationBeforeLeavingDialog(context);
+    if (!shouldStop || !mounted) return false;
 
     final canContinue = await registry.stopForNavigation(
       _viewModel.selectedChatId,

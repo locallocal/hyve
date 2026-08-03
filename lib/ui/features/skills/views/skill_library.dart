@@ -101,7 +101,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Flexible(
+                    Expanded(
                       child: Wrap(
                         alignment: WrapAlignment.end,
                         spacing: 8,

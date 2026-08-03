@@ -717,10 +717,10 @@ void main() {
                 matching: find.byType(ShadButton),
               )
               .first;
-      expect(
-        tester.getSize(addBotButton).height,
-        tester.getSize(find.byType(StarsSearchField)).height,
-      );
+      final addBotButtonWidget = tester.widget<ShadButton>(addBotButton);
+      expect(addBotButtonWidget.size, isNull);
+      expect(addBotButtonWidget.height, isNull);
+      expect(tester.getSize(addBotButton).height, 40);
     });
   });
 

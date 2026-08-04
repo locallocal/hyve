@@ -79,6 +79,45 @@ class ChatViewModel extends ChangeNotifier {
     skillToolProvider: _aiProviderRepository.create(bot),
   );
 
+  Future<PreparedTextGeneration> prepareTextGeneration({
+    required List<Message> history,
+    required Message userMessage,
+    required String currentUserId,
+  }) async {
+    final preparedTurn = await prepareTextTurn(
+      history: history,
+      userMessage: userMessage,
+      currentUserId: currentUserId,
+    );
+    return PreparedTextGeneration(
+      userMessage: userMessage.copyWith(
+        processInfo: MessageProcessInfo(
+          reasoningStatus: userMessage.processInfo.reasoningStatus,
+          durationMs: userMessage.processInfo.durationMs,
+          toolCalls: [
+            ...userMessage.processInfo.toolCalls,
+            ...preparedTurn.skillToolCalls,
+          ],
+          commandExecutions: userMessage.processInfo.commandExecutions,
+          fileEdits: userMessage.processInfo.fileEdits,
+          skillActivations: [
+            for (final skill in preparedTurn.activatedSkills)
+              MessageSkillActivation(
+                name: skill.name,
+                contentDigest: skill.contentDigest,
+                trigger: skill.trigger.name,
+              ),
+          ],
+        ),
+      ),
+      messages: preparedTurn.messages,
+      activatedSkills: preparedTurn.activatedSkills,
+      activationAttempts: preparedTurn.activationAttempts,
+      preflightTokenUsage: preparedTurn.preflightTokenUsage,
+      requestedToolNames: preparedTurn.requestedToolNames,
+    );
+  }
+
   Future<String?> captureImage() => _attachmentRepository.captureImage();
 
   Future<String?> selectImage() => _attachmentRepository.selectImage();

@@ -137,6 +137,23 @@ class ChatPageState extends State<ChatPage> {
         snapshot.lifecycle.isTerminal &&
         snapshot.runId != null &&
         _handledTerminalRunId != snapshot.runId;
+    final submittedUserMessage = snapshot.submittedUserMessage;
+    var addedSubmittedUser = false;
+
+    if (snapshot.userPersisted && submittedUserMessage != null) {
+      final index = _messages.indexWhere(
+        (message) => message.messageId == submittedUserMessage.messageId,
+      );
+      if (index < 0) {
+        _messages.add(submittedUserMessage);
+        _messages.sort(
+          (left, right) => left.timestamp.compareTo(right.timestamp),
+        );
+        addedSubmittedUser = true;
+      } else {
+        _messages[index] = submittedUserMessage;
+      }
+    }
 
     if (isNewTerminal) {
       _handledTerminalRunId = snapshot.runId;
@@ -192,6 +209,8 @@ class ChatPageState extends State<ChatPage> {
           _generationViewModel.acknowledgeTerminal();
         }
       });
+    } else if (addedSubmittedUser) {
+      _scheduleScrollToLatest(animate: true);
     }
   }
 
@@ -224,14 +243,29 @@ class ChatPageState extends State<ChatPage> {
   }
 
   List<Message> _mergeLoadedMessages(List<Message> loaded) {
-    final merged = List<Message>.of(loaded);
-    final knownIds = <String>{
+    final snapshot = _generationViewModel.snapshot;
+    final activeAssistantMessageId =
+        snapshot.lifecycle.isRunning && snapshot.runId != null
+            ? '${snapshot.runId}:assistant'
+            : null;
+    final merged = <Message>[
       for (final message in loaded)
-        if (message.messageId.isNotEmpty) message.messageId,
+        if (message.messageId != activeAssistantMessageId) message,
+    ];
+    final indexesById = <String, int>{
+      for (var index = 0; index < merged.length; index++)
+        if (merged[index].messageId.isNotEmpty) merged[index].messageId: index,
     };
     for (final message in _messages) {
-      if (message.messageId.isNotEmpty && knownIds.add(message.messageId)) {
+      final messageId = message.messageId;
+      final existingIndex = indexesById[messageId];
+      if (messageId.isEmpty || existingIndex == null) {
+        if (messageId.isNotEmpty) indexesById[messageId] = merged.length;
         merged.add(message);
+      } else {
+        // The in-memory snapshot may have reached a newer terminal state while
+        // the database query was in flight, so it wins for the same message.
+        merged[existingIndex] = message;
       }
     }
     merged.sort((left, right) => left.timestamp.compareTo(right.timestamp));
@@ -381,6 +415,7 @@ class ChatPageState extends State<ChatPage> {
     if (!hasText && !hasImages && !hasFiles) return;
 
     final messageText = _messageController.text;
+    final history = List<Message>.of(_messages);
     _pendingDraftText = messageText;
     _pendingDraftImages = List<File>.of(_selectedImages);
     _pendingDraftFiles = List<File>.of(_selectedFiles);
@@ -389,22 +424,10 @@ class ChatPageState extends State<ChatPage> {
       images: _pendingDraftImages,
       files: _pendingDraftFiles,
     );
-    _chatViewModel.generationRegistry.setNonCancellableRunActive(
-      widget.id,
-      true,
-    );
-    setState(() {
-      _isTyping = true;
-      _isStreaming = false;
-      _isCancellable = false;
-      _isStopping = false;
-    });
-
     String? optimisticMessageId;
     try {
       final imagePaths = await _getSelectedImagePaths();
       final filePahts = await _getSelectedFilePaths();
-      if (!mounted) return;
 
       final turnId = _chatViewModel.createId('turn');
       final userMessage = Message(
@@ -425,81 +448,45 @@ class ChatPageState extends State<ChatPage> {
       );
       optimisticMessageId = userMessage.messageId;
 
-      setState(() {
-        _messages.add(userMessage);
-        _messageController.clear();
-        _generationError = null;
-        _streamingResponse = '';
-        _selectedImages.clear();
-        _selectedFiles.clear();
-        _followLatest = true;
-        _showJumpToLatest = false;
-      });
-
-      _scheduleScrollToLatest(force: true, animate: true);
-
-      final preparedTurn = await _chatViewModel.prepareTextTurn(
-        history: _messages.sublist(0, _messages.length - 1),
-        userMessage: userMessage,
-        currentUserId: _currentUserId,
-      );
-      final preparedUserMessage = userMessage.copyWith(
-        processInfo: MessageProcessInfo(
-          reasoningStatus: userMessage.processInfo.reasoningStatus,
-          durationMs: userMessage.processInfo.durationMs,
-          toolCalls: [
-            ...userMessage.processInfo.toolCalls,
-            ...preparedTurn.skillToolCalls,
-          ],
-          commandExecutions: userMessage.processInfo.commandExecutions,
-          fileEdits: userMessage.processInfo.fileEdits,
-          skillActivations: [
-            for (final skill in preparedTurn.activatedSkills)
-              MessageSkillActivation(
-                name: skill.name,
-                contentDigest: skill.contentDigest,
-                trigger: skill.trigger.name,
-              ),
-          ],
-        ),
-      );
       if (mounted) {
         setState(() {
-          final index = _messages.indexWhere(
-            (message) => message.messageId == preparedUserMessage.messageId,
-          );
-          if (index >= 0) _messages[index] = preparedUserMessage;
+          _messages.add(userMessage);
+          _messageController.clear();
+          _generationError = null;
+          _streamingResponse = '';
+          _selectedImages.clear();
+          _selectedFiles.clear();
+          _followLatest = true;
+          _showJumpToLatest = false;
         });
+        _scheduleScrollToLatest(force: true, animate: true);
       }
 
-      _chatViewModel.generationRegistry.setNonCancellableRunActive(
-        widget.id,
-        false,
+      final started = await _generationViewModel.startTextWithPreparation(
+        userMessage: userMessage,
+        prepare:
+            (identifiedUserMessage) => _chatViewModel.prepareTextGeneration(
+              history: history,
+              userMessage: identifiedUserMessage,
+              currentUserId: _currentUserId,
+            ),
       );
-      await _generationViewModel.startText(
-        userMessage: preparedUserMessage,
-        messages: preparedTurn.messages,
-        activatedSkills: preparedTurn.activatedSkills,
-        activationAttempts: preparedTurn.activationAttempts,
-        preflightTokenUsage: preparedTurn.preflightTokenUsage,
-        requestedToolNames: preparedTurn.requestedToolNames,
-      );
+      if (started || _generationViewModel.snapshot.userPersisted) {
+        _clearPendingDraft();
+      }
     } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        if (optimisticMessageId != null) {
-          _messages.removeWhere(
-            (message) => message.messageId == optimisticMessageId,
-          );
-        }
-        _restorePendingDraft();
-        _generationError = error.toString();
-      });
+      if (mounted) {
+        setState(() {
+          if (optimisticMessageId != null) {
+            _messages.removeWhere(
+              (message) => message.messageId == optimisticMessageId,
+            );
+          }
+          _restorePendingDraft();
+          _generationError = error.toString();
+        });
+      }
     } finally {
-      _chatViewModel.generationRegistry.setNonCancellableRunActive(
-        widget.id,
-        false,
-      );
       if (mounted && !_generationViewModel.snapshot.lifecycle.isRunning) {
         setState(() {
           _isTyping = false;
@@ -1018,7 +1005,6 @@ class ChatPageState extends State<ChatPage> {
     try {
       _startProcessTracking();
       final imagePaths = await _getSelectedImagePaths();
-      if (!mounted) return;
       final userMessage = Message(
         messageId: '$runId:user',
         turnId: turnId,
@@ -1035,11 +1021,13 @@ class ChatPageState extends State<ChatPage> {
         ),
         timestamp: DateTime.now(),
       );
-      setState(() {
-        _messages.add(userMessage);
-        _selectedImages.clear();
-        _messageController.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _messages.add(userMessage);
+          _selectedImages.clear();
+          _messageController.clear();
+        });
+      }
       await _chatViewModel.upsertMessage(userMessage);
       userPersisted = true;
       try {
@@ -1265,7 +1253,6 @@ class ChatPageState extends State<ChatPage> {
     try {
       _startProcessTracking();
       final filePahts = await _getSelectedFilePaths();
-      if (!mounted) return;
       var referMusicPath = '';
       if (filePahts.isNotEmpty) {
         referMusicPath = filePahts.first;
@@ -1287,11 +1274,13 @@ class ChatPageState extends State<ChatPage> {
         ),
         timestamp: DateTime.now(),
       );
-      setState(() {
-        _messages.add(userMessage);
-        _messageController.clear();
-        _selectedFiles.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _messages.add(userMessage);
+          _messageController.clear();
+          _selectedFiles.clear();
+        });
+      }
       await _chatViewModel.upsertMessage(userMessage);
       userPersisted = true;
       try {
@@ -1393,7 +1382,6 @@ class ChatPageState extends State<ChatPage> {
     try {
       _startProcessTracking();
       final imagePaths = await _getSelectedImagePaths();
-      if (!mounted) return;
       final userMessage = Message(
         messageId: '$runId:user',
         turnId: turnId,
@@ -1410,11 +1398,13 @@ class ChatPageState extends State<ChatPage> {
         ),
         timestamp: DateTime.now(),
       );
-      setState(() {
-        _messages.add(userMessage);
-        _messageController.clear();
-        _selectedImages.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _messages.add(userMessage);
+          _messageController.clear();
+          _selectedImages.clear();
+        });
+      }
       await _chatViewModel.upsertMessage(userMessage);
       userPersisted = true;
       try {

@@ -46,6 +46,7 @@ class ChatGenerationSnapshot {
     this.tokenUsage = ModelTokenUsage.empty,
     this.supportsCancellation = false,
     this.userPersisted = false,
+    this.submittedUserMessage,
     this.error,
     this.terminalMessage,
   });
@@ -62,6 +63,7 @@ class ChatGenerationSnapshot {
   final ModelTokenUsage tokenUsage;
   final bool supportsCancellation;
   final bool userPersisted;
+  final Message? submittedUserMessage;
   final String? error;
   final Message? terminalMessage;
 
@@ -91,6 +93,8 @@ class ChatGenerationSnapshot {
     ModelTokenUsage? tokenUsage,
     bool? supportsCancellation,
     bool? userPersisted,
+    Message? submittedUserMessage,
+    bool clearSubmittedUserMessage = false,
     String? error,
     bool clearError = false,
     Message? terminalMessage,
@@ -112,6 +116,10 @@ class ChatGenerationSnapshot {
       tokenUsage: tokenUsage ?? this.tokenUsage,
       supportsCancellation: supportsCancellation ?? this.supportsCancellation,
       userPersisted: userPersisted ?? this.userPersisted,
+      submittedUserMessage:
+          clearSubmittedUserMessage
+              ? null
+              : submittedUserMessage ?? this.submittedUserMessage,
       error: clearError ? null : error ?? this.error,
       terminalMessage:
           clearTerminalMessage ? null : terminalMessage ?? this.terminalMessage,
@@ -133,6 +141,27 @@ typedef ToolInvocationPersister =
       String botId,
       MessageToolCall audit,
     );
+typedef TextGenerationPreparer =
+    Future<PreparedTextGeneration> Function(Message identifiedUserMessage);
+
+@immutable
+class PreparedTextGeneration {
+  const PreparedTextGeneration({
+    required this.userMessage,
+    required this.messages,
+    this.activatedSkills = const [],
+    this.activationAttempts = const [],
+    this.preflightTokenUsage = ModelTokenUsage.empty,
+    this.requestedToolNames = const {},
+  });
+
+  final Message userMessage;
+  final List<ChatMessage> messages;
+  final List<ActivatedSkill> activatedSkills;
+  final List<SkillActivationAttempt> activationAttempts;
+  final ModelTokenUsage preflightTokenUsage;
+  final Set<String> requestedToolNames;
+}
 
 int _identitySequence = 0;
 
@@ -149,6 +178,10 @@ String _defaultMessageIdFactory(String prefix) {
 /// newer run even if the user stops and sends again quickly.
 class ChatGenerationViewModel extends ChangeNotifier
     implements ToolApprovalHandler {
+  static const Duration defaultPartialPersistenceInterval = Duration(
+    milliseconds: 250,
+  );
+
   ChatGenerationViewModel({
     required this.chatId,
     required Bot bot,
@@ -161,6 +194,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
+    Duration partialPersistenceInterval = defaultPartialPersistenceInterval,
   }) : _bot = bot,
        _providerFactory = providerFactory,
        _messagePersister = messagePersister,
@@ -171,6 +205,7 @@ class ChatGenerationViewModel extends ChangeNotifier
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
        _agentRunLimits = agentRunLimits,
+       _partialPersistenceInterval = partialPersistenceInterval,
        _capabilityProvider = providerFactory(bot),
        _snapshot = ChatGenerationSnapshot(chatId: chatId);
 
@@ -184,6 +219,7 @@ class ChatGenerationViewModel extends ChangeNotifier
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
+  final Duration _partialPersistenceInterval;
 
   Bot _bot;
   Bot? _pendingBot;
@@ -194,10 +230,13 @@ class ChatGenerationViewModel extends ChangeNotifier
   DateTime? _startedAt;
   ModelTokenUsage _preflightTokenUsage = ModelTokenUsage.empty;
   final Set<String> _finalizingRuns = <String>{};
+  final Set<String> _preparingRuns = <String>{};
   final Set<String> _preflightCancellationRuns = <String>{};
   AgentCancellationToken? _agentCancellationToken;
   Completer<ToolApprovalDecision>? _toolApprovalCompleter;
   ModelTokenUsage _agentTokenUsage = ModelTokenUsage.empty;
+  Timer? _partialPersistenceTimer;
+  Future<void> _partialPersistenceQueue = Future<void>.value();
 
   ChatGenerationSnapshot get snapshot => _snapshot;
   AiProvider get capabilityProvider => _capabilityProvider;
@@ -219,6 +258,22 @@ class ChatGenerationViewModel extends ChangeNotifier
     List<SkillActivationAttempt> activationAttempts = const [],
     ModelTokenUsage preflightTokenUsage = ModelTokenUsage.empty,
     Set<String> requestedToolNames = const {},
+  }) => startTextWithPreparation(
+    userMessage: userMessage,
+    prepare:
+        (identifiedUserMessage) async => PreparedTextGeneration(
+          userMessage: identifiedUserMessage,
+          messages: messages,
+          activatedSkills: activatedSkills,
+          activationAttempts: activationAttempts,
+          preflightTokenUsage: preflightTokenUsage,
+          requestedToolNames: requestedToolNames,
+        ),
+  );
+
+  Future<bool> startTextWithPreparation({
+    required Message userMessage,
+    required TextGenerationPreparer prepare,
   }) async {
     if (hasBlockingRun) return false;
 
@@ -242,21 +297,56 @@ class ChatGenerationViewModel extends ChangeNotifier
           ..setDeepThinking(_capabilityProvider.getDeepThinking());
     _runProvider = provider;
     _startedAt = DateTime.now();
-    _preflightTokenUsage = preflightTokenUsage;
+    _preflightTokenUsage = ModelTokenUsage.empty;
     _agentTokenUsage = ModelTokenUsage.empty;
     _terminalCompleter = Completer<ChatRunLifecycle>();
+    _preparingRuns.add(runId);
     _snapshot = ChatGenerationSnapshot(
       chatId: chatId,
       runId: runId,
       turnId: turnId,
       lifecycle: ChatRunLifecycle.submitting,
+      // Preparation can always be abandoned, even when the provider itself
+      // cannot cancel an in-flight generation request.
+      supportsCancellation: true,
+      submittedUserMessage: identifiedUser,
+    );
+    notifyListeners();
+
+    late final PreparedTextGeneration prepared;
+    try {
+      prepared = await prepare(identifiedUser);
+    } catch (error) {
+      _preparingRuns.remove(runId);
+      if (_isActiveRun(runId) && !_snapshot.lifecycle.isTerminal) {
+        await _finalizeRun(
+          runId,
+          ProviderTerminalType.failed,
+          error: error.toString(),
+        );
+      }
+      return false;
+    }
+    _preparingRuns.remove(runId);
+
+    if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) return false;
+    final preparedUser = prepared.userMessage.copyWith(
+      messageId: identifiedUser.messageId,
+      turnId: turnId,
+      runId: runId,
+      clearTerminalOutcome: true,
+      hasPartialContent: false,
+    );
+    _preflightTokenUsage = prepared.preflightTokenUsage;
+    _snapshot = _snapshot.copyWith(
       supportsCancellation: provider.supportsCancellation,
-      tokenUsage: preflightTokenUsage,
+      tokenUsage: prepared.preflightTokenUsage,
+      submittedUserMessage: preparedUser,
     );
     notifyListeners();
 
     try {
-      await _messagePersister(identifiedUser);
+      await _messagePersister(preparedUser);
     } catch (error) {
       if (_isActiveRun(runId)) {
         _preflightCancellationRuns.remove(runId);
@@ -276,12 +366,12 @@ class ChatGenerationViewModel extends ChangeNotifier
     notifyListeners();
     await _persistSkillActivationsSafely(
       runId: runId,
-      messageId: identifiedUser.messageId,
-      activatedSkills: activatedSkills,
-      activationAttempts: activationAttempts,
+      messageId: preparedUser.messageId,
+      activatedSkills: prepared.activatedSkills,
+      activationAttempts: prepared.activationAttempts,
     );
 
-    unawaited(_updateLastMessageSafely(identifiedUser.content));
+    unawaited(_updateLastMessageSafely(preparedUser.content));
 
     if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) return false;
     if (_preflightCancellationRuns.remove(runId)) {
@@ -299,13 +389,15 @@ class ChatGenerationViewModel extends ChangeNotifier
       return false;
     }
 
-    final agentTools = _toolRegistry.list(allowedNames: requestedToolNames);
+    final agentTools = _toolRegistry.list(
+      allowedNames: prepared.requestedToolNames,
+    );
     if (provider.capabilities.supportsAgentLoop && agentTools.isNotEmpty) {
       return _startAgentRun(
         runId: runId,
         provider: provider,
-        messages: messages,
-        requestedToolNames: requestedToolNames,
+        messages: prepared.messages,
+        requestedToolNames: prepared.requestedToolNames,
       );
     }
 
@@ -325,7 +417,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     // so an input event cannot be erased by that reset.
     late final Future<void> generation;
     try {
-      generation = provider.generateText(messages);
+      generation = provider.generateText(prepared.messages);
     } catch (error) {
       await _finalizeRun(
         runId,
@@ -372,7 +464,21 @@ class ChatGenerationViewModel extends ChangeNotifier
     if (runId == null || provider == null || !hasBlockingRun) {
       return _snapshot.lifecycle;
     }
-    if (!provider.supportsCancellation) return _snapshot.lifecycle;
+    final isPreparing = _preparingRuns.contains(runId);
+    if (!isPreparing && !provider.supportsCancellation) {
+      return _snapshot.lifecycle;
+    }
+
+    if (isPreparing) {
+      _preparingRuns.remove(runId);
+      _snapshot = _snapshot.copyWith(
+        lifecycle: ChatRunLifecycle.stopping,
+        clearError: true,
+      );
+      notifyListeners();
+      await _finalizeRun(runId, ProviderTerminalType.cancelled);
+      return _snapshot.lifecycle;
+    }
 
     final isPreflight =
         _snapshot.lifecycle == ChatRunLifecycle.submitting ||
@@ -443,6 +549,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       tokenUsage: ModelTokenUsage.empty,
       supportsCancellation: false,
       userPersisted: false,
+      clearSubmittedUserMessage: true,
       clearError: true,
       clearTerminalMessage: true,
     );
@@ -459,6 +566,7 @@ class ChatGenerationViewModel extends ChangeNotifier
               : _snapshot.lifecycle,
     );
     notifyListeners();
+    _schedulePartialPersistence(runId);
   }
 
   void _onReasoning(String runId, String text) {
@@ -467,6 +575,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       reasoningResponse: '${_snapshot.reasoningResponse}$text',
     );
     notifyListeners();
+    _schedulePartialPersistence(runId);
   }
 
   void _onToolCall(String runId, MessageToolCall toolCall) {
@@ -475,6 +584,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       toolCalls: [..._snapshot.toolCalls, toolCall],
     );
     notifyListeners();
+    _schedulePartialPersistence(runId);
   }
 
   void _onCommandExecution(String runId, MessageCommandExecution execution) {
@@ -483,6 +593,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       commandExecutions: [..._snapshot.commandExecutions, execution],
     );
     notifyListeners();
+    _schedulePartialPersistence(runId);
   }
 
   void _onTokenUsage(String runId, ModelTokenUsage usage) {
@@ -498,6 +609,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       ),
     );
     notifyListeners();
+    _schedulePartialPersistence(runId);
   }
 
   Future<bool> _startAgentRun({
@@ -621,6 +733,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     }
     _snapshot = _snapshot.copyWith(toolCalls: calls);
     notifyListeners();
+    _schedulePartialPersistence(runId);
     final persister = _toolInvocationPersister;
     if (persister != null) {
       unawaited(
@@ -724,6 +837,10 @@ class ChatGenerationViewModel extends ChangeNotifier
         !_finalizingRuns.add(runId)) {
       return;
     }
+
+    _partialPersistenceTimer?.cancel();
+    _partialPersistenceTimer = null;
+    await _partialPersistenceQueue;
 
     var lifecycle = switch (providerTerminal) {
       ProviderTerminalType.completed => ChatRunLifecycle.completed,
@@ -832,6 +949,63 @@ class ChatGenerationViewModel extends ChangeNotifier
       !_snapshot.lifecycle.isTerminal &&
       !_finalizingRuns.contains(runId);
 
+  void _schedulePartialPersistence(String runId) {
+    if (!_canReduceProviderEvent(runId) || !_hasGeneratedContent) return;
+    if (_partialPersistenceTimer != null) return;
+    _partialPersistenceTimer = Timer(_partialPersistenceInterval, () {
+      _partialPersistenceTimer = null;
+      if (!_canReduceProviderEvent(runId) || !_hasGeneratedContent) return;
+      final draft = _buildPartialAssistantMessage(runId);
+      _partialPersistenceQueue = _partialPersistenceQueue.then(
+        (_) => _persistPartialSafely(draft),
+      );
+    });
+  }
+
+  bool get _hasGeneratedContent =>
+      _snapshot.streamingResponse.isNotEmpty ||
+      _snapshot.reasoningResponse.isNotEmpty ||
+      _snapshot.toolCalls.isNotEmpty ||
+      _snapshot.commandExecutions.isNotEmpty;
+
+  Message _buildPartialAssistantMessage(String runId) {
+    final duration =
+        _startedAt == null
+            ? null
+            : DateTime.now().difference(_startedAt!).inMilliseconds;
+    return Message(
+      messageId: '$runId:assistant',
+      turnId: _snapshot.turnId ?? runId,
+      runId: runId,
+      chatId: chatId,
+      botId: _bot.id,
+      senderId: _bot.id,
+      content: _snapshot.streamingResponse,
+      reasoning: _snapshot.reasoningResponse,
+      processInfo: MessageProcessInfo(
+        reasoningStatus: _snapshot.reasoningResponse.isEmpty ? '' : 'streaming',
+        durationMs: duration,
+        toolCalls: List<MessageToolCall>.of(_snapshot.toolCalls),
+        commandExecutions: List<MessageCommandExecution>.of(
+          _snapshot.commandExecutions,
+        ),
+      ),
+      tokenUsage: _snapshot.tokenUsage,
+      hasPartialContent: true,
+      timestamp: _startedAt ?? DateTime.now(),
+    );
+  }
+
+  Future<void> _persistPartialSafely(Message draft) async {
+    try {
+      await _messagePersister(draft);
+    } catch (error) {
+      debugPrint(
+        'Failed to persist incremental response for ${draft.runId}: $error',
+      );
+    }
+  }
+
   Future<void> _updateLastMessageSafely(String content) async {
     try {
       await _lastMessageUpdater(chatId, content);
@@ -909,6 +1083,13 @@ class ChatGenerationViewModel extends ChangeNotifier
     _bot = bot;
     _capabilityProvider = _providerFactory(bot);
   }
+
+  @override
+  void dispose() {
+    _partialPersistenceTimer?.cancel();
+    _partialPersistenceTimer = null;
+    super.dispose();
+  }
 }
 
 class ChatGenerationRegistry {
@@ -922,6 +1103,8 @@ class ChatGenerationRegistry {
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
+    Duration partialPersistenceInterval =
+        ChatGenerationViewModel.defaultPartialPersistenceInterval,
   }) : _messagePersister = messagePersister,
        _lastMessageUpdater = lastMessageUpdater,
        _providerFactory = providerFactory,
@@ -930,7 +1113,8 @@ class ChatGenerationRegistry {
        _toolInvocationPersister = toolInvocationPersister,
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
-       _agentRunLimits = agentRunLimits;
+       _agentRunLimits = agentRunLimits,
+       _partialPersistenceInterval = partialPersistenceInterval;
 
   final Map<String, ChatGenerationViewModel> _viewModels = {};
   final Set<String> _nonCancellableRuns = {};
@@ -943,6 +1127,7 @@ class ChatGenerationRegistry {
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
+  final Duration _partialPersistenceInterval;
 
   ChatGenerationViewModel viewModelFor(String chatId, Bot bot) {
     final viewModel = _viewModels.putIfAbsent(
@@ -959,6 +1144,7 @@ class ChatGenerationRegistry {
         toolRegistry: _toolRegistry,
         toolPolicy: _toolPolicy,
         agentRunLimits: _agentRunLimits,
+        partialPersistenceInterval: _partialPersistenceInterval,
       ),
     );
     viewModel.updateBot(bot);

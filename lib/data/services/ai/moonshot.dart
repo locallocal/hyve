@@ -50,7 +50,10 @@ class Moonshot extends Provider {
       client: client,
       closeClient: _client == null,
       decodeResponse: decodeProviderResponse,
-      reasoningEffort: bot.model.toLowerCase() == 'kimi-k3' ? 'max' : null,
+      streamResponses: true,
+      additionalBody: _reasoningConfiguration(
+        enabled: request.options.deepThinking,
+      ),
     );
   }
 
@@ -299,11 +302,12 @@ class Moonshot extends Provider {
     );
   }
 
-  Map<String, Object> _reasoningConfiguration() {
+  Map<String, Object> _reasoningConfiguration({bool? enabled}) {
+    final thinkingEnabled = enabled ?? deepThinking;
     return switch (bot.model.toLowerCase()) {
-      'kimi-k3' => {'reasoning_effort': deepThinking ? 'max' : 'low'},
+      'kimi-k3' => {'reasoning_effort': thinkingEnabled ? 'max' : 'low'},
       'kimi-k2.6' || 'kimi-k2.5' => {
-        'thinking': {'type': deepThinking ? 'enabled' : 'disabled'},
+        'thinking': {'type': thinkingEnabled ? 'enabled' : 'disabled'},
       },
       _ => const {},
     };

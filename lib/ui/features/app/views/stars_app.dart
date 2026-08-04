@@ -410,8 +410,6 @@ class _MainPageState extends State<MainPage> {
   late final SkillLibraryViewModel _skillLibraryViewModel;
   late final McpServersViewModel _mcpServersViewModel;
   bool _initialized = false;
-  Future<bool>? _activeRunGuardFuture;
-  int _navigationIntent = 0;
 
   @override
   void didChangeDependencies() {
@@ -557,48 +555,28 @@ class _MainPageState extends State<MainPage> {
   }
 
   // 新增：处理聊天选择的回调
-  Future<void> _onChatSelected(String chatId, Bot bot) async {
-    if (_viewModel.selectedChatId != chatId && !await _guardActiveChatRun()) {
-      return;
-    }
+  void _onChatSelected(String chatId, Bot bot) {
     if (!mounted) return;
     _viewModel.selectChat(chatId, bot);
   }
 
-  Future<void> _onBotSelected(Bot bot) async {
-    if (!await _guardActiveChatRun()) return;
+  void _onBotSelected(Bot bot) {
     if (!mounted) return;
     _viewModel.selectBot(bot);
   }
 
-  Future<void> _onPageChanged(int index) async {
-    if (index != 0 && !await _guardActiveChatRun()) return;
+  void _onPageChanged(int index) {
     if (!mounted) return;
     _viewModel.selectPage(index);
   }
 
-  Future<void> _requestCreateChat() async {
-    if (!await _guardActiveChatRun()) return;
+  void _requestCreateChat() {
     _chatListKey.currentState?.openNewChatDialog();
   }
 
   Future<bool> _guardActiveChatRun() async {
     if (!isDesktopOrTabletPlatform(context)) return true;
-    final intent = ++_navigationIntent;
-    final pending = _activeRunGuardFuture;
-    final Future<bool> guard;
-    if (pending != null) {
-      guard = pending;
-    } else {
-      guard = _performActiveRunGuard();
-      _activeRunGuardFuture = guard;
-    }
-
-    final canContinue = await guard;
-    if (identical(_activeRunGuardFuture, guard)) {
-      _activeRunGuardFuture = null;
-    }
-    return canContinue && intent == _navigationIntent;
+    return _performActiveRunGuard();
   }
 
   Future<bool> _performActiveRunGuard() async {

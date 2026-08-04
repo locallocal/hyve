@@ -42,6 +42,83 @@ void main() {
     });
 
     test(
+      'registry keeps generating and persists incremental drafts after detach',
+      () async {
+        final factory = _FakeProviderFactory(cancellable: true);
+        final stored = <String, Message>{};
+        final lastMessages = <String>[];
+        final registry = ChatGenerationRegistry(
+          messagePersister: (message) async {
+            stored[message.messageId] = message;
+            return message;
+          },
+          lastMessageUpdater: (_, content) async {
+            lastMessages.add(content);
+          },
+          providerFactory: factory.create,
+          messageIdFactory: (prefix) => '$prefix-fixed',
+          partialPersistenceInterval: Duration.zero,
+        );
+        addTearDown(registry.clear);
+        final controller = registry.viewModelFor('chat-1', _bot);
+        void pageListener() {}
+        controller.addListener(pageListener);
+
+        expect(
+          await controller.startText(
+            userMessage: _userMessage(),
+            messages: <ChatMessage>[
+              ChatMessage(role: 'user', content: 'Hello'),
+            ],
+          ),
+          isTrue,
+        );
+        controller.removeListener(pageListener);
+
+        final provider = factory.instances.last;
+        provider.emitToken('incremental');
+        await _waitFor(
+          () => stored['run-fixed:assistant']?.content == 'incremental',
+        );
+
+        final partial = stored['run-fixed:assistant'];
+        expect(partial, isNotNull);
+        expect(partial!.terminalOutcome, isNull);
+        expect(partial.hasPartialContent, isTrue);
+        expect(controller.snapshot.lifecycle, ChatRunLifecycle.active);
+
+        provider.emitToken(' response');
+        await _waitFor(
+          () =>
+              stored['run-fixed:assistant']?.content == 'incremental response',
+        );
+
+        final returnedController = registry.viewModelFor('chat-1', _bot);
+        expect(returnedController, same(controller));
+        expect(returnedController.snapshot.userPersisted, isTrue);
+        expect(
+          returnedController.snapshot.submittedUserMessage?.messageId,
+          'run-fixed:user',
+        );
+        expect(
+          returnedController.snapshot.streamingResponse,
+          'incremental response',
+        );
+
+        provider.emitTerminal(ProviderTerminalType.completed);
+        await _waitFor(
+          () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+        );
+
+        final completed = stored['run-fixed:assistant'];
+        expect(completed?.content, 'incremental response');
+        expect(completed?.terminalOutcome, MessageTerminalOutcome.completed);
+        expect(completed?.hasPartialContent, isFalse);
+        expect(lastMessages, <String>['Hello', 'incremental response']);
+      },
+    );
+
+    test(
       'provider token usage is attached once to the terminal message',
       () async {
         final harness = _ControllerHarness(cancellable: true);
@@ -216,6 +293,41 @@ void main() {
       expect(terminal.hasPartialContent, isTrue);
       expect(harness.lastMessages, <String>['Hello', 'partial']);
     });
+
+    test(
+      'slow turn preparation is immediately cancellable and never starts provider',
+      () async {
+        final harness = _ControllerHarness(cancellable: false);
+        final controller = harness.controller;
+        final preparation = Completer<PreparedTextGeneration>();
+        addTearDown(controller.dispose);
+
+        final start = controller.startTextWithPreparation(
+          userMessage: _userMessage(),
+          prepare: (_) => preparation.future,
+        );
+        await _flushAsyncWork();
+
+        expect(controller.snapshot.lifecycle, ChatRunLifecycle.submitting);
+        expect(controller.snapshot.canCancel, isTrue);
+        expect(await controller.cancel(), ChatRunLifecycle.cancelled);
+        expect(controller.snapshot.userPersisted, isFalse);
+        expect(harness.persisted, isEmpty);
+        expect(harness.runProvider.generateCalls, 0);
+
+        preparation.complete(
+          PreparedTextGeneration(
+            userMessage: _userMessage(),
+            messages: <ChatMessage>[
+              ChatMessage(role: 'user', content: 'Hello'),
+            ],
+          ),
+        );
+        expect(await start, isFalse);
+        expect(harness.runProvider.generateCalls, 0);
+        expect(harness.persisted, isEmpty);
+      },
+    );
 
     test('cancellation during submit never starts the provider', () async {
       final factory = _FakeProviderFactory(cancellable: true);

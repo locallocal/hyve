@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:stars/data/services/ai/skill_tool_sessions.dart';
 import 'package:stars/domain/models/models.dart';
 
 class Moonshot extends Provider {
@@ -14,6 +15,59 @@ class Moonshot extends Provider {
   Moonshot(super.bot, {http.Client? client}) : _client = client;
 
   final http.Client? _client;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  AiModelInfo providerModelInfo(Map<String, dynamic> model, {String? modelId}) {
+    return super.providerModelInfo({
+      ...model,
+      'supports_mcp': true,
+      'supports_skills': true,
+      'supports_automatic_skill_activation': true,
+    }, modelId: modelId);
+  }
+
+  @override
+  bool supportMcp() {
+    return (bot.configuredSupportsMcp ?? true) &&
+        capabilities.supportsAgentLoop;
+  }
+
+  @override
+  AgentModelSession openModelSession(ModelRequest request) {
+    final client = _client ?? http.Client();
+    return OpenAiAgentModelSession(
+      bot: bot,
+      request: request,
+      formattedMessages: processMessagesWithImages(request.messages),
+      uri: _chatCompletionsUri,
+      headers: _headers,
+      client: client,
+      closeClient: _client == null,
+      decodeResponse: decodeProviderResponse,
+      reasoningEffort: bot.model.toLowerCase() == 'kimi-k3' ? 'max' : null,
+    );
+  }
+
+  @override
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    final client = _client ?? http.Client();
+    return OpenAiSkillToolSession(
+      bot: bot,
+      request: request,
+      formattedMessages: processMessagesWithImages(request.messages),
+      uri: _chatCompletionsUri,
+      headers: _headers,
+      client: client,
+      closeClient: _client == null,
+      decodeResponse: decodeProviderResponse,
+    );
+  }
 
   @override
   bool supportWebSearch() {
@@ -254,6 +308,17 @@ class Moonshot extends Provider {
       _ => const {},
     };
   }
+
+  Uri get _chatCompletionsUri => Uri.parse(
+    bot.baseURL.isNotEmpty
+        ? '${bot.baseURL}chat/completions'
+        : defaultApiChatUrl,
+  );
+
+  Map<String, String> get _headers => {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${bot.apiKey}',
+  };
 }
 
 final class _MoonshotCompletionRound {

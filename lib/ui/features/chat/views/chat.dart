@@ -84,6 +84,8 @@ class ChatPageState extends State<ChatPage> {
   final List<MessageCommandExecution> _commandExecutions = [];
   bool _followLatest = true;
   bool _showJumpToLatest = false;
+  bool _isPositioningInitialMessages = false;
+  int _initialPositionRequest = 0;
   String? _generationError;
   String? _handledTerminalRunId;
   String? _pendingDraftText;
@@ -215,8 +217,10 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _loadMessages() async {
+    _initialPositionRequest++;
     setState(() {
       _isLoading = true;
+      _isPositioningInitialMessages = false;
       _historyError = null;
     });
 
@@ -226,19 +230,28 @@ class ChatPageState extends State<ChatPage> {
       final historyError = _chatViewModel.historyError;
       if (historyError != null) throw historyError;
       if (!mounted) return;
+      final mergedMessages = _mergeLoadedMessages(messages);
+      final shouldPositionAtLatest = mergedMessages.isNotEmpty;
       setState(() {
-        _messages = _mergeLoadedMessages(messages);
+        _messages = mergedMessages;
         _isLoading = false;
+        _isPositioningInitialMessages = shouldPositionAtLatest;
         _followLatest = true;
         _showJumpToLatest = false;
       });
-      _scheduleScrollToLatest(force: true);
+      if (shouldPositionAtLatest) {
+        _positionInitialMessagesAtLatest();
+      } else {
+        _initialPositionRequest++;
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
+        _isPositioningInitialMessages = false;
         _historyError = error.toString();
       });
+      _initialPositionRequest++;
     }
   }
 
@@ -341,6 +354,33 @@ class ChatPageState extends State<ChatPage> {
       } else {
         _scrollController.jumpTo(target);
       }
+    });
+  }
+
+  void _positionInitialMessagesAtLatest() {
+    final request = ++_initialPositionRequest;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || request != _initialPositionRequest) return;
+      if (!_scrollController.hasClients) {
+        setState(() => _isPositioningInitialMessages = false);
+        return;
+      }
+
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      // The first jump causes the lazily built tail to be laid out. Correct
+      // once more before revealing it so variable-height messages cannot
+      // briefly expose the start of the conversation.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || request != _initialPositionRequest) return;
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+        setState(() {
+          _isPositioningInitialMessages = false;
+          _followLatest = true;
+          _showJumpToLatest = false;
+        });
+      });
     });
   }
 
@@ -749,10 +789,31 @@ class ChatPageState extends State<ChatPage> {
               ],
             );
 
+    final isPositioningInitialMessages = _isPositioningInitialMessages;
     return Stack(
       children: [
-        Positioned.fill(child: conversation),
-        if (_showJumpToLatest && _messages.isNotEmpty)
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: isPositioningInitialMessages,
+            child: Opacity(
+              opacity: isPositioningInitialMessages ? 0 : 1,
+              child: conversation,
+            ),
+          ),
+        ),
+        if (isPositioningInitialMessages)
+          Positioned.fill(
+            child: Center(
+              key: const ValueKey<String>('chat-initial-scroll-positioning'),
+              child:
+                  isDesktop
+                      ? const SizedBox(width: 120, child: ShadProgress())
+                      : const CircularProgressIndicator(),
+            ),
+          ),
+        if (!isPositioningInitialMessages &&
+            _showJumpToLatest &&
+            _messages.isNotEmpty)
           Positioned(
             right: isDesktop ? 20 : 12,
             bottom: _isTyping ? 60 : 12,

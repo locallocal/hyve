@@ -9,6 +9,24 @@ import 'package:stars/domain/models/models.dart';
 
 void main() {
   group('Moonshot documented model catalog', () {
+    test('enables automatic Skills and MCP for every selected model', () {
+      for (final model in [
+        'kimi-k3',
+        'kimi-k2.6',
+        'moonshot-v1-128k',
+        'custom-model',
+      ]) {
+        final provider = Moonshot(_bot(model: model));
+
+        expect(
+          provider.capabilities.supportsAutomaticSkillActivation,
+          isTrue,
+          reason: model,
+        );
+        expect(provider.supportMcp(), isTrue, reason: model);
+      }
+    });
+
     test('drives selected-model reasoning and input capabilities', () {
       final k3 = Moonshot(_bot(model: 'kimi-k3'));
       final k26 = Moonshot(_bot(model: 'kimi-k2.6'));
@@ -62,6 +80,136 @@ void main() {
       expect(ids.last, 'custom-model');
       expect(models.first.contextWindowTokens, 1048576);
       expect(models.first.supportsDeepThinking, isTrue);
+      expect(models.every((model) => model.supportsMcp == true), isTrue);
+      expect(models.every((model) => model.supportsSkills == true), isTrue);
+      expect(
+        models.every((model) => model.supportsAutomaticSkillActivation == true),
+        isTrue,
+      );
+    });
+  });
+
+  group('Moonshot agent tools', () {
+    test('runs automatic Skill activation through chat completions', () async {
+      Map<String, dynamic>? requestBody;
+      final client = MockClient((request) async {
+        requestBody = Map<String, dynamic>.from(
+          jsonDecode(request.body) as Map,
+        );
+        return http.Response(
+          jsonEncode({
+            'choices': [
+              {
+                'message': {
+                  'content': null,
+                  'tool_calls': [
+                    {
+                      'id': 'skill-1',
+                      'type': 'function',
+                      'function': {
+                        'name': 'activate_skill',
+                        'arguments': '{"name":"release-notes"}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+          200,
+        );
+      });
+      final provider = Moonshot(
+        _bot(model: 'moonshot-v1-128k'),
+        client: client,
+      );
+      final session = provider.openSkillToolSession(
+        SkillToolSessionRequest(
+          messages: [ChatMessage(role: 'user', content: 'Write release notes')],
+          catalog: const [
+            SkillCatalogEntry(
+              id: 'user:release-notes',
+              name: 'release-notes',
+              description: 'Prepare release notes.',
+              contentDigest: 'digest',
+              priority: 0,
+            ),
+          ],
+        ),
+      );
+      addTearDown(session.close);
+
+      final turn = await session.start();
+
+      expect(turn.calls.single.name, 'activate_skill');
+      expect(turn.calls.single.arguments, {'name': 'release-notes'});
+      expect(requestBody?['tool_choice'], 'auto');
+      expect(requestBody?['parallel_tool_calls'], isFalse);
+    });
+
+    test('round-trips MCP tool calls through chat completions', () async {
+      Map<String, dynamic>? requestBody;
+      final client = MockClient((request) async {
+        requestBody = Map<String, dynamic>.from(
+          jsonDecode(request.body) as Map,
+        );
+        final tools = requestBody!['tools'] as List;
+        final function = (tools.single as Map)['function'] as Map;
+        return http.Response(
+          jsonEncode({
+            'choices': [
+              {
+                'message': {
+                  'content': null,
+                  'tool_calls': [
+                    {
+                      'id': 'mcp-1',
+                      'type': 'function',
+                      'function': {
+                        'name': function['name'],
+                        'arguments': '{"query":"Moonshot"}',
+                      },
+                    },
+                  ],
+                },
+                'finish_reason': 'tool_calls',
+              },
+            ],
+          }),
+          200,
+        );
+      });
+      final provider = Moonshot(_bot(model: 'custom-model'), client: client);
+      final session = provider.openModelSession(
+        ModelRequest(
+          messages: [ChatMessage(role: 'user', content: 'Search docs')],
+          tools: [
+            ToolDefinition(
+              name: 'mcp.docs.search',
+              description: 'Search documents.',
+              inputSchema: const {
+                'type': 'object',
+                'properties': {
+                  'query': {'type': 'string'},
+                },
+                'required': ['query'],
+              },
+              source: ToolSource.mcp,
+              riskLevel: ToolRiskLevel.readOnly,
+              capabilities: const {ToolCapability.network},
+            ),
+          ],
+        ),
+      );
+      addTearDown(session.close);
+
+      final events = await session.start().toList();
+
+      final call = events.whereType<ToolCallRequested>().single;
+      expect(call.name, 'mcp.docs.search');
+      expect(call.arguments, {'query': 'Moonshot'});
+      expect(requestBody?['tool_choice'], 'auto');
+      expect(requestBody?['parallel_tool_calls'], isFalse);
     });
   });
 

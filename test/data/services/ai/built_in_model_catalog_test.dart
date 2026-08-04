@@ -91,7 +91,7 @@ void main() {
         ]);
         expect(k3.supportsWebSearch, isTrue);
         expect(k3.supportsDeepThinking, isTrue);
-        expect(k3.supportsMcp, isFalse);
+        expect(k3.supportsMcp, isTrue);
         expect(k3.contextWindowTokens, 1048576);
         expect(k3.maxOutputTokens, 1048576);
         expect(k3.lifecycle, AiModelLifecycle.recommended);
@@ -117,6 +117,15 @@ void main() {
           );
           expect(model.nativeTools, contains(r'$web_search'));
         }
+
+        expect(models.every((model) => model.supportsMcp == true), isTrue);
+        expect(models.every((model) => model.supportsSkills == true), isTrue);
+        expect(
+          models.every(
+            (model) => model.supportsAutomaticSkillActivation == true,
+          ),
+          isTrue,
+        );
 
         final highSpeed = models.singleWhere(
           (model) => model.modelId == 'kimi-k2.7-code-highspeed',

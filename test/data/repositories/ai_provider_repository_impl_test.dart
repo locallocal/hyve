@@ -91,6 +91,13 @@ void main() {
       );
       expect(
         repository
+            .create(_bot(Bot.apiTypeMoonshot))
+            .capabilities
+            .supportsAutomaticSkillActivation,
+        isTrue,
+      );
+      expect(
+        repository
             .create(_bot(Bot.apiTypeGemini))
             .capabilities
             .supportsAutomaticSkillActivation,

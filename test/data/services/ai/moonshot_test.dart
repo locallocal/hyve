@@ -156,27 +156,26 @@ void main() {
         final tools = requestBody!['tools'] as List;
         final function = (tools.single as Map)['function'] as Map;
         return http.Response(
-          jsonEncode({
+          '${_sse({
             'choices': [
               {
-                'message': {
-                  'content': null,
+                'delta': {
                   'tool_calls': [
                     {
+                      'index': 0,
                       'id': 'mcp-1',
                       'type': 'function',
-                      'function': {
-                        'name': function['name'],
-                        'arguments': '{"query":"Moonshot"}',
-                      },
+                      'function': {'name': function['name'], 'arguments': '{"query":"Moonshot"}'},
                     },
                   ],
                 },
                 'finish_reason': 'tool_calls',
               },
             ],
-          }),
+          })}'
+          'data: [DONE]\n\n',
           200,
+          headers: {'content-type': 'text/event-stream'},
         );
       });
       final provider = Moonshot(_bot(model: 'custom-model'), client: client);
@@ -210,6 +209,74 @@ void main() {
       expect(call.arguments, {'query': 'Moonshot'});
       expect(requestBody?['tool_choice'], 'auto');
       expect(requestBody?['parallel_tool_calls'], isFalse);
+      expect(requestBody?['stream'], isTrue);
+      expect(requestBody?['stream_options'], {'include_usage': true});
+    });
+
+    test('streams MCP model text as incremental agent events', () async {
+      Map<String, dynamic>? requestBody;
+      final client = MockClient((request) async {
+        requestBody = Map<String, dynamic>.from(
+          jsonDecode(request.body) as Map,
+        );
+        return http.Response(
+          '${_sse({
+            'choices': [
+              {
+                'delta': {'content': 'Hello'},
+              },
+            ],
+          })}'
+          '${_sse({
+            'choices': [
+              {
+                'delta': {'content': ' Moonshot'},
+              },
+            ],
+          })}'
+          '${_sse({
+            'choices': [
+              {
+                'delta': <String, Object?>{},
+                'finish_reason': 'stop',
+                'usage': {'prompt_tokens': 12, 'completion_tokens': 2, 'total_tokens': 14},
+              },
+            ],
+          })}'
+          'data: [DONE]\n\n',
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+      final provider = Moonshot(_bot(model: 'kimi-k2.6'), client: client);
+      final session = provider.openModelSession(
+        ModelRequest(
+          messages: [ChatMessage(role: 'user', content: 'Say hello')],
+          tools: [
+            ToolDefinition(
+              name: 'mcp.docs.search',
+              description: 'Search documents.',
+              inputSchema: const {'type': 'object'},
+              source: ToolSource.mcp,
+              riskLevel: ToolRiskLevel.readOnly,
+            ),
+          ],
+          options: const ModelGenerationOptions(deepThinking: true),
+        ),
+      );
+      addTearDown(session.close);
+
+      final events = await session.start().toList();
+
+      expect(events.whereType<TextDelta>().map((event) => event.text), [
+        'Hello',
+        ' Moonshot',
+      ]);
+      expect(events.whereType<UsageReported>().single.usage.totalTokens, 14);
+      expect(events.whereType<ModelTurnCompleted>().single.stopReason, 'stop');
+      expect(requestBody?['stream'], isTrue);
+      expect(requestBody?['stream_options'], {'include_usage': true});
+      expect(requestBody?['thinking'], {'type': 'enabled'});
     });
   });
 

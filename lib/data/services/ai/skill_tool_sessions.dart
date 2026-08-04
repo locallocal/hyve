@@ -348,6 +348,8 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     required bool closeClient,
     required ProviderResponseDecoder decodeResponse,
     String? reasoningEffort,
+    bool streamResponses = false,
+    Map<String, Object?> additionalBody = const {},
   }) : _bot = bot,
        _request = request,
        _toolNames = _ProviderToolNameCodec(request.tools),
@@ -360,7 +362,9 @@ final class OpenAiAgentModelSession implements AgentModelSession {
        _client = client,
        _closeClient = closeClient,
        _decodeResponse = decodeResponse,
-       _reasoningEffort = reasoningEffort;
+       _reasoningEffort = reasoningEffort,
+       _streamResponses = streamResponses,
+       _additionalBody = Map<String, Object?>.unmodifiable(additionalBody);
 
   final Bot _bot;
   final ModelRequest _request;
@@ -372,6 +376,8 @@ final class OpenAiAgentModelSession implements AgentModelSession {
   final bool _closeClient;
   final ProviderResponseDecoder _decodeResponse;
   final String? _reasoningEffort;
+  final bool _streamResponses;
+  final Map<String, Object?> _additionalBody;
   bool _started = false;
   bool _closed = false;
 
@@ -400,22 +406,16 @@ final class OpenAiAgentModelSession implements AgentModelSession {
   }
 
   Stream<ModelEvent> _send() async* {
+    if (_streamResponses && _request.options.stream) {
+      yield* _sendStreaming();
+      return;
+    }
+
     final response = await _client
         .post(
           _uri,
           headers: _headers,
-          body: jsonEncode({
-            'model': _bot.model,
-            'messages': _messages,
-            if (_request.tools.isNotEmpty) ...{
-              'tools': _openAiTools(_request.tools, _toolNames),
-              'tool_choice': 'auto',
-              'parallel_tool_calls': _request.options.allowParallelToolCalls,
-            },
-            if (_request.options.deepThinking && _reasoningEffort != null)
-              'reasoning_effort': _reasoningEffort,
-            'stream': false,
-          }),
+          body: jsonEncode(_requestBody(stream: false)),
         )
         .timeout(const Duration(seconds: 60));
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -476,6 +476,132 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     );
   }
 
+  Stream<ModelEvent> _sendStreaming() async* {
+    final request =
+        http.Request('POST', _uri)
+          ..headers.addAll(_headers)
+          ..body = jsonEncode(_requestBody(stream: true));
+    final response = await _client
+        .send(request)
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final body = await response.stream.bytesToString();
+      yield ModelTurnFailed(
+        error: 'Model request failed: ${response.statusCode} $body',
+        code: 'provider_http_error',
+      );
+      return;
+    }
+
+    final content = StringBuffer();
+    final reasoning = StringBuffer();
+    final toolCalls = <int, _OpenAiStreamedToolCallBuilder>{};
+    var usage = ModelTokenUsage.empty;
+    var finishReason = '';
+    var receivedDone = false;
+
+    await for (final source in _sseData(response.stream)) {
+      if (source == '[DONE]') {
+        receivedDone = true;
+        break;
+      }
+
+      final root = _objectMap(_decodeResponse(source));
+      if (root['error'] != null) {
+        yield ModelTurnFailed(
+          error: 'Model request failed: ${root['error']}',
+          code: 'provider_stream_error',
+        );
+        return;
+      }
+      usage = usage.merge(_openAiUsage(root, _bot.model));
+
+      final choices = _objectList(root['choices']);
+      if (choices.isEmpty) continue;
+      final choice = _objectMap(choices.first);
+      usage = usage.merge(_openAiUsage(choice, _bot.model));
+      final nextFinishReason = choice['finish_reason']?.toString() ?? '';
+      if (nextFinishReason.isNotEmpty) finishReason = nextFinishReason;
+
+      final delta = _objectMap(choice['delta']);
+      final reasoningDelta = _streamedText(
+        delta['reasoning_content'] ?? delta['reasoning'],
+      );
+      if (reasoningDelta.isNotEmpty) {
+        reasoning.write(reasoningDelta);
+        yield ReasoningDelta(reasoningDelta);
+      }
+      final contentDelta = _streamedText(delta['content']);
+      if (contentDelta.isNotEmpty) {
+        content.write(contentDelta);
+        yield TextDelta(contentDelta);
+      }
+
+      final rawCalls = _objectList(delta['tool_calls']);
+      for (var position = 0; position < rawCalls.length; position++) {
+        final rawCall = _objectMap(rawCalls[position]);
+        final index = _integer(rawCall['index'], fallback: position);
+        toolCalls
+            .putIfAbsent(index, _OpenAiStreamedToolCallBuilder.new)
+            .append(rawCall);
+      }
+    }
+
+    if (!receivedDone) {
+      yield const ModelTurnFailed(
+        error: 'Model response stream ended before data: [DONE].',
+        code: 'incomplete_provider_stream',
+      );
+      return;
+    }
+
+    final orderedCalls =
+        toolCalls.entries.toList()
+          ..sort((left, right) => left.key.compareTo(right.key));
+    final rawCalls = [for (final entry in orderedCalls) entry.value.toJson()];
+    _messages.add({
+      'role': 'assistant',
+      'content': content.toString(),
+      if (reasoning.isNotEmpty) 'reasoning_content': reasoning.toString(),
+      if (rawCalls.isNotEmpty) 'tool_calls': rawCalls,
+    });
+
+    for (final entry in orderedCalls) {
+      final call = entry.value;
+      final name = _toolNames.canonical(call.name.toString());
+      yield ToolCallStarted(callId: call.id, name: name);
+      final arguments = call.arguments.toString();
+      if (arguments.isNotEmpty) {
+        yield ToolCallArgumentsDelta(
+          callId: call.id,
+          argumentsDelta: arguments,
+        );
+      }
+      yield ToolCallRequested(
+        callId: call.id,
+        name: name,
+        arguments: _decodeArguments(arguments),
+      );
+    }
+    if (usage.hasData) yield UsageReported(usage);
+    yield ModelTurnCompleted(stopReason: finishReason);
+  }
+
+  Map<String, Object?> _requestBody({required bool stream}) => {
+    'model': _bot.model,
+    'messages': _messages,
+    if (_request.tools.isNotEmpty) ...{
+      'tools': _openAiTools(_request.tools, _toolNames),
+      'tool_choice': 'auto',
+      'parallel_tool_calls': _request.options.allowParallelToolCalls,
+    },
+    if (_request.options.deepThinking && _reasoningEffort != null)
+      'reasoning_effort': _reasoningEffort,
+    ..._additionalBody,
+    'stream': stream,
+    if (stream) 'stream_options': const {'include_usage': true},
+  };
+
   @override
   Future<void> cancel() async {
     if (_closed) return;
@@ -489,6 +615,33 @@ final class OpenAiAgentModelSession implements AgentModelSession {
     _closed = true;
     if (_closeClient) _client.close();
   }
+}
+
+final class _OpenAiStreamedToolCallBuilder {
+  String id = '';
+  String type = '';
+  final StringBuffer name = StringBuffer();
+  final StringBuffer arguments = StringBuffer();
+
+  void append(Map<String, Object?> rawCall) {
+    final idDelta = rawCall['id']?.toString() ?? '';
+    if (idDelta.isNotEmpty) id = idDelta;
+    final typeDelta = rawCall['type']?.toString() ?? '';
+    if (typeDelta.isNotEmpty) type = typeDelta;
+
+    final function = _objectMap(rawCall['function']);
+    name.write(function['name']?.toString() ?? '');
+    arguments.write(function['arguments']?.toString() ?? '');
+  }
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'type': type.isEmpty ? 'function' : type,
+    'function': {
+      'name': name.toString(),
+      'arguments': arguments.isEmpty ? '{}' : arguments.toString(),
+    },
+  };
 }
 
 final class OpenAiResponsesAgentModelSession implements AgentModelSession {
@@ -1005,10 +1158,50 @@ ModelTokenUsage _anthropicUsage(Map<String, Object?> root, String model) {
   );
 }
 
-int _integer(Object? value) {
+int _integer(Object? value, {int fallback = 0}) {
   return switch (value) {
     final int number => number,
     final num number => number.toInt(),
-    _ => int.tryParse(value?.toString() ?? '') ?? 0,
+    _ => int.tryParse(value?.toString() ?? '') ?? fallback,
   };
+}
+
+String _streamedText(Object? value) {
+  if (value is String) return value;
+  if (value is! List) return '';
+  final text = StringBuffer();
+  for (final item in value) {
+    final part = _objectMap(item);
+    final value = part['text'] ?? part['content'];
+    if (value != null) text.write(value);
+  }
+  return text.toString();
+}
+
+Stream<String> _sseData(Stream<List<int>> bytes) async* {
+  var data = StringBuffer();
+  var hasData = false;
+  final lines = bytes.transform(utf8.decoder).transform(const LineSplitter());
+  await for (final rawLine in lines) {
+    final line = rawLine.trim();
+    if (line.isEmpty) {
+      if (hasData) yield data.toString();
+      data = StringBuffer();
+      hasData = false;
+      continue;
+    }
+    if (line.startsWith(':')) continue;
+    if (line.startsWith('data:')) {
+      if (hasData) data.write('\n');
+      data.write(line.substring(5).trimLeft());
+      hasData = true;
+      continue;
+    }
+    if (hasData) {
+      data
+        ..write('\n')
+        ..write(line);
+    }
+  }
+  if (hasData) yield data.toString();
 }

@@ -82,7 +82,7 @@ void main() {
     expect(result.content, isNot(contains('sensitive detail')));
   });
 
-  test('rechecks Tool enablement immediately before execution', () async {
+  test('rechecks Tool availability immediately before execution', () async {
     final client = _FakeMcpClient();
     final adapter = McpToolAdapter(
       server: _server(),
@@ -96,7 +96,7 @@ void main() {
       AgentCancellationToken(),
     );
 
-    expect(result.errorCode, 'mcp_tool_disabled');
+    expect(result.errorCode, 'mcp_tool_unavailable');
     expect(client.callCount, 0);
   });
 
@@ -158,7 +158,6 @@ McpToolDescriptor _tool({
     inputSchema: const {'type': 'object'},
     outputSchema: outputSchema,
     annotations: annotations,
-    enabled: true,
     updatedAt: DateTime(2026, 7, 29),
   );
 }

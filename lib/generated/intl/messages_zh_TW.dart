@@ -102,6 +102,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "按工具啟用目前智慧代理可使用的 MCP 能力；預設每次呼叫都需要確認。",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("機器人名稱"),
     "botSkills": MessageLookupByLibrary.simpleMessage("技能"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -264,19 +267,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
       "使用 1–32 個小寫字母、數字、底線或連字號。",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage("免確認"),
     "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("無"),
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
       "已封鎖私有、本機及鏈路本地 MCP 端點。",
     ),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars 會儲存工具目錄，但僅在已啟用技能要求某個已開啟工具時，才提供完整 Schema 給模型。",
+      "Stars 會儲存已探索的工具目錄。請在編輯智慧代理時逐一啟用工具，只有該智慧代理會將其提供給模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 請求逾時。"),
     "mcpServerDetails": MessageLookupByLibrary.simpleMessage("伺服器詳情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("伺服器名稱"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 伺服器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "連接本機或遠端 MCP 工具，並控制智慧代理可使用哪些工具。",
+      "連接 MCP 伺服器並探索工具目錄；建立智慧代理後再按工具設定。",
     ),
     "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
       "無法啟動 stdio MCP 命令。",
@@ -286,7 +290,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "權杖會儲存在作業系統的安全憑證儲存區。",
     ),
     "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
-      "此工具的輸入 Schema 不受支援，無法啟用。",
+      "此工具的輸入 Schema 不受支援，無法選取。",
     ),
     "mcpTools": MessageLookupByLibrary.simpleMessage("工具"),
     "mcpTransport": MessageLookupByLibrary.simpleMessage("傳輸方式"),
@@ -305,6 +309,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("名稱"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("名稱已更新"),
     "newChat": MessageLookupByLibrary.simpleMessage("新建聊天"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "目前沒有已連線且可用的 MCP 工具。",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("尚未加入技能"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
       "依需求加入這個智慧體要使用的已安裝技能。",

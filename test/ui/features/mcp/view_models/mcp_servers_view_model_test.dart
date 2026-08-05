@@ -54,40 +54,26 @@ void main() {
     await database.close();
   });
 
-  test(
-    'persists a new server disabled before enabling and connecting',
-    () async {
-      final enabledSnapshots = <bool>[];
-      final subscription = repository.changes.listen((servers) {
-        if (servers.isNotEmpty) enabledSnapshots.add(servers.single.enabled);
-      });
+  test('persists and connects a new server', () async {
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Example',
+        namespace: 'example',
+        endpoint: 'https://example.com/mcp',
+        authType: McpAuthType.oauthAccessToken,
+        accessToken: 'secret-token',
+      ),
+    );
 
-      final saved = await viewModel.saveAndConnect(
-        const McpServerDraft(
-          name: 'Example',
-          namespace: 'example',
-          endpoint: 'https://example.com/mcp',
-          authType: McpAuthType.oauthAccessToken,
-          accessToken: 'secret-token',
-        ),
-      );
-      await subscription.cancel();
+    expect(saved, isTrue);
+    expect(viewModel.servers, hasLength(1));
+    final server = viewModel.servers.single;
+    expect(server.status, McpConnectionStatus.connected);
+    expect(credentials.values[server.id]?.accessToken, 'secret-token');
+    expect(viewModel.toolsFor(server.id), hasLength(1));
+  });
 
-      expect(saved, isTrue);
-      expect(enabledSnapshots, isNotEmpty);
-      expect(enabledSnapshots.first, isFalse);
-      expect(enabledSnapshots.skip(1), contains(isTrue));
-      expect(viewModel.servers, hasLength(1));
-      final server = viewModel.servers.single;
-      expect(server.enabled, isTrue);
-      expect(server.status, McpConnectionStatus.connected);
-      expect(credentials.values[server.id]?.accessToken, 'secret-token');
-      expect(viewModel.toolsFor(server.id), hasLength(1));
-      expect(viewModel.toolsFor(server.id).single.enabled, isFalse);
-    },
-  );
-
-  test('enabling a discovered Tool updates the runtime registry', () async {
+  test('a discovered Tool is available in the runtime registry', () async {
     await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Example',
@@ -98,12 +84,10 @@ void main() {
     );
     final tool = viewModel.toolsFor(viewModel.servers.single.id).single;
 
-    await viewModel.setToolEnabled(tool, true);
-
     expect(registry.find(tool.canonicalName), isNotNull);
   });
 
-  test('a new server returns to disabled when startup fails', () async {
+  test('a new server records an error when startup fails', () async {
     client.initializeError = const McpException('mcp_stdio_start_failed');
 
     final saved = await viewModel.saveAndConnect(
@@ -117,7 +101,6 @@ void main() {
 
     expect(saved, isFalse);
     expect(viewModel.servers, hasLength(1));
-    expect(viewModel.servers.single.enabled, isFalse);
     expect(viewModel.servers.single.status, McpConnectionStatus.error);
   });
 

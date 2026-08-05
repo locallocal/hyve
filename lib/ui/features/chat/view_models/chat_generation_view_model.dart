@@ -153,6 +153,7 @@ class PreparedTextGeneration {
     this.activationAttempts = const [],
     this.preflightTokenUsage = ModelTokenUsage.empty,
     this.requestedToolNames = const {},
+    this.approvalExemptToolNames = const {},
   });
 
   final Message userMessage;
@@ -161,6 +162,7 @@ class PreparedTextGeneration {
   final List<SkillActivationAttempt> activationAttempts;
   final ModelTokenUsage preflightTokenUsage;
   final Set<String> requestedToolNames;
+  final Set<String> approvalExemptToolNames;
 }
 
 int _identitySequence = 0;
@@ -258,6 +260,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     List<SkillActivationAttempt> activationAttempts = const [],
     ModelTokenUsage preflightTokenUsage = ModelTokenUsage.empty,
     Set<String> requestedToolNames = const {},
+    Set<String> approvalExemptToolNames = const {},
   }) => startTextWithPreparation(
     userMessage: userMessage,
     prepare:
@@ -268,6 +271,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           activationAttempts: activationAttempts,
           preflightTokenUsage: preflightTokenUsage,
           requestedToolNames: requestedToolNames,
+          approvalExemptToolNames: approvalExemptToolNames,
         ),
   );
 
@@ -398,6 +402,7 @@ class ChatGenerationViewModel extends ChangeNotifier
         provider: provider,
         messages: prepared.messages,
         requestedToolNames: prepared.requestedToolNames,
+        approvalExemptToolNames: prepared.approvalExemptToolNames,
       );
     }
 
@@ -617,6 +622,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     required AiProvider provider,
     required List<ChatMessage> messages,
     required Set<String> requestedToolNames,
+    required Set<String> approvalExemptToolNames,
   }) async {
     final cancellationToken = AgentCancellationToken();
     _agentCancellationToken = cancellationToken;
@@ -636,6 +642,7 @@ class ChatGenerationViewModel extends ChangeNotifier
         botId: _bot.id,
         messages: messages,
         requestedToolNames: requestedToolNames,
+        approvalExemptToolNames: approvalExemptToolNames,
         cancellationToken: cancellationToken,
       ),
       onModelEvent: (event) => _onAgentModelEvent(runId, event),

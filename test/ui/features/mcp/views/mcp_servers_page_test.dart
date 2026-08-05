@@ -177,7 +177,6 @@ void main() {
               'type': 'object',
               'properties': <String, Object?>{},
             },
-            enabled: true,
             updatedAt: now,
           ),
         ],
@@ -339,7 +338,7 @@ void main() {
             'desktop-mcp-tool-toggle-github-search_issues',
           ),
         ),
-        findsOneWidget,
+        findsNothing,
       );
 
       await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
@@ -741,15 +740,8 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   }
 
   @override
-  Future<List<McpToolDescriptor>> getTools(
-    String serverId, {
-    bool enabledOnly = false,
-  }) async {
-    final tools = toolsByServer[serverId] ?? const [];
-    return enabledOnly
-        ? tools.where((tool) => tool.enabled).toList(growable: false)
-        : tools;
-  }
+  Future<List<McpToolDescriptor>> getTools(String serverId) async =>
+      toolsByServer[serverId] ?? const [];
 
   @override
   Future<void> replaceCatalog(
@@ -758,17 +750,7 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   ) async {}
 
   @override
-  Future<bool> isToolEnabled(String serverId, String remoteName) async => false;
-
-  @override
   Future<void> saveServer(McpServer server) async {}
-
-  @override
-  Future<void> setToolEnabled(
-    String serverId,
-    String remoteName, {
-    required bool enabled,
-  }) async {}
 }
 
 final class _UnusedCredentialStore implements McpCredentialStore {

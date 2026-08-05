@@ -477,7 +477,7 @@ void main() {
     },
   );
 
-  test('exposes enabled tools from MCP servers selected by the bot', () async {
+  test('exposes only MCP Tools configured for the bot', () async {
     final now = DateTime(2026, 8, 2);
     final server = McpServer(
       id: 'server-1',
@@ -486,7 +486,6 @@ void main() {
       transport: McpStreamableHttpServerTransport(
         endpoint: Uri.parse('https://mcp.example.test'),
       ),
-      enabled: true,
       status: McpConnectionStatus.connected,
       createdAt: now,
       updatedAt: now,
@@ -498,7 +497,6 @@ void main() {
       title: 'Search',
       description: 'Search documentation',
       inputSchema: const {'type': 'object', 'properties': <String, Object?>{}},
-      enabled: true,
       updatedAt: now,
     );
     final compose = ComposeChatTurn(
@@ -511,7 +509,13 @@ void main() {
       bot: _bot(
         parameters: const {
           Bot.parameterSupportsMcp: true,
-          Bot.parameterMcpServerIds: ['server-1'],
+          Bot.parameterMcpTools: [
+            {
+              'server_id': 'server-1',
+              'remote_name': 'search',
+              'requires_approval': false,
+            },
+          ],
         },
       ),
       history: const [],
@@ -521,22 +525,18 @@ void main() {
     );
 
     expect(result.requestedToolNames, {'mcp.docs.search'});
+    expect(result.approvalExemptToolNames, {'mcp.docs.search'});
 
-    final disabledResult = await compose(
-      bot: _bot(
-        parameters: const {
-          Bot.parameterSupportsMcp: true,
-          Bot.parameterMcpServerIds: ['server-1'],
-          Bot.parameterDisabledMcpServerIds: ['server-1'],
-        },
-      ),
+    final unconfiguredResult = await compose(
+      bot: _bot(parameters: const {Bot.parameterSupportsMcp: true}),
       history: const [],
       userMessage: _message(senderId: 'user-1', content: 'Search the docs'),
       currentUserId: 'user-1',
       skillToolProvider: _McpProvider(),
     );
 
-    expect(disabledResult.requestedToolNames, isEmpty);
+    expect(unconfiguredResult.requestedToolNames, isEmpty);
+    expect(unconfiguredResult.approvalExemptToolNames, isEmpty);
   });
 }
 
@@ -733,13 +733,8 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   Future<List<McpServer>> getServers() async => [server];
 
   @override
-  Future<List<McpToolDescriptor>> getTools(
-    String serverId, {
-    bool enabledOnly = false,
-  }) async =>
-      serverId == server.id
-          ? tools.where((tool) => !enabledOnly || tool.enabled).toList()
-          : const [];
+  Future<List<McpToolDescriptor>> getTools(String serverId) async =>
+      serverId == server.id ? tools : const [];
 
   @override
   Future<void> replaceCatalog(
@@ -748,23 +743,7 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   ) => throw UnimplementedError();
 
   @override
-  Future<bool> isToolEnabled(String serverId, String remoteName) async =>
-      tools.any(
-        (tool) =>
-            tool.serverId == serverId &&
-            tool.remoteName == remoteName &&
-            tool.enabled,
-      );
-
-  @override
   Future<void> saveServer(McpServer server) => throw UnimplementedError();
-
-  @override
-  Future<void> setToolEnabled(
-    String serverId,
-    String remoteName, {
-    required bool enabled,
-  }) => throw UnimplementedError();
 }
 
 final class _FakeSkillSession implements SkillToolSession {

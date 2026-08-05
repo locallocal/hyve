@@ -23,22 +23,26 @@ final class McpCatalogService {
     final servers = await _repository.getServers();
     final tools = <ExecutableTool>[];
     for (final server in servers) {
-      if (!server.enabled || server.status != McpConnectionStatus.connected) {
+      if (server.status != McpConnectionStatus.connected) {
         continue;
       }
-      for (final descriptor in await _repository.getTools(
-        server.id,
-        enabledOnly: true,
-      )) {
+      for (final descriptor in await _repository.getTools(server.id)) {
         if (!descriptor.isSupportedByClient) continue;
         tools.add(
           McpToolAdapter(
             server: server,
             descriptor: descriptor,
             client: _client,
-            availabilityCheck:
-                () =>
-                    _repository.isToolEnabled(server.id, descriptor.remoteName),
+            availabilityCheck: () async {
+              final current = await _repository.getServer(server.id);
+              if (current?.status != McpConnectionStatus.connected) {
+                return false;
+              }
+              final catalog = await _repository.getTools(server.id);
+              return catalog.any(
+                (candidate) => candidate.remoteName == descriptor.remoteName,
+              );
+            },
           ),
         );
       }
@@ -86,7 +90,6 @@ final class McpCatalogService {
     } on McpException catch (error) {
       final requiresAuthorization = error.code == 'mcp_authorization_required';
       final failed = server.copyWith(
-        enabled: requiresAuthorization ? server.enabled : false,
         status:
             requiresAuthorization
                 ? McpConnectionStatus.authorizationRequired
@@ -100,7 +103,6 @@ final class McpCatalogService {
     } on Object {
       await _repository.saveServer(
         server.copyWith(
-          enabled: false,
           status: McpConnectionStatus.error,
           lastErrorCode: 'mcp_catalog_refresh_failed',
           updatedAt: _now(),

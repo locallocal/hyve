@@ -115,6 +115,7 @@ class ChatViewModel extends ChangeNotifier {
       activationAttempts: preparedTurn.activationAttempts,
       preflightTokenUsage: preparedTurn.preflightTokenUsage,
       requestedToolNames: preparedTurn.requestedToolNames,
+      approvalExemptToolNames: preparedTurn.approvalExemptToolNames,
     );
   }
 

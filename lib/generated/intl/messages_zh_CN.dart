@@ -135,6 +135,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botGreeting": m2,
     "botInformation": MessageLookupByLibrary.simpleMessage("智能体信息"),
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "按工具开启当前智能体可使用的 MCP 能力；默认每次调用都需要确认。",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("智能体名称"),
     "botSearchScope": MessageLookupByLibrary.simpleMessage("搜索会按智能体名称过滤列表。"),
     "botSkills": MessageLookupByLibrary.simpleMessage("技能"),
@@ -342,19 +345,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
       "使用 1–32 位小写字母、数字、下划线或连字符。",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage("免确认"),
     "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("无"),
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
       "已阻止私网、本机和链路本地 MCP 端点。",
     ),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars 会保存工具目录，但仅在已激活技能请求某个已启用工具时，才向模型提供完整 Schema。",
+      "Stars 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 请求超时。"),
     "mcpServerDetails": MessageLookupByLibrary.simpleMessage("服务器详情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 服务器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "连接本地或远程 MCP 工具，并控制智能体可以使用哪些工具。",
+      "连接 MCP 服务器并发现工具目录；创建智能体后再按工具配置。",
     ),
     "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
       "无法启动 stdio MCP 命令。",
@@ -364,7 +368,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "令牌保存在操作系统的安全凭据存储中。",
     ),
     "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
-      "此工具的输入 Schema 不受支持，无法启用。",
+      "此工具的输入 Schema 不受支持，无法选择。",
     ),
     "mcpTools": MessageLookupByLibrary.simpleMessage("工具"),
     "mcpTransport": MessageLookupByLibrary.simpleMessage("传输方式"),
@@ -393,14 +397,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
       "新建聊天后会直接在工作区打开会话。",
     ),
-    "noAvailableMcpServers": MessageLookupByLibrary.simpleMessage(
-      "没有可添加的正常 MCP 服务器。",
-    ),
-    "noBotMcpServersAdded": MessageLookupByLibrary.simpleMessage(
-      "尚未添加 MCP 服务器",
-    ),
-    "noBotMcpServersAddedDescription": MessageLookupByLibrary.simpleMessage(
-      "按需添加这个智能体要使用的正常 MCP 服务器。",
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "暂无已连接且可用的 MCP 工具。",
     ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("尚未添加技能"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(

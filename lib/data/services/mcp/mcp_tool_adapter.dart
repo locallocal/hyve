@@ -58,15 +58,13 @@ final class McpToolAdapter implements ExecutableTool {
       cancellationToken.throwIfCancelled();
       final currentlyAvailable = await _availabilityCheck?.call();
       cancellationToken.throwIfCancelled();
-      if (!_server.enabled ||
-          !_descriptor.enabled ||
-          currentlyAvailable == false) {
+      if (currentlyAvailable == false) {
         return ToolResult(
           callId: call.callId,
           name: call.name,
-          content: 'The MCP Tool is disabled.',
+          content: 'The MCP Tool is unavailable.',
           isError: true,
-          errorCode: 'mcp_tool_disabled',
+          errorCode: 'mcp_tool_unavailable',
         );
       }
       final result = await _client.callTool(

@@ -109,6 +109,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "इस एजेंट के लिए MCP टूल चालू करें। डिफ़ॉल्ट रूप से टूल कॉल की पुष्टि आवश्यक है।",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("बॉट का नाम"),
     "botSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -292,9 +295,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
+      "पुष्टि के बिना",
+    ),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP सर्वर"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "रिमोट MCP टूल कनेक्ट करें और नियंत्रित करें कि एजेंट किन टूल का उपयोग कर सकते हैं।",
+      "MCP सर्वर कनेक्ट करें और उनके टूल कैटलॉग खोजें। एजेंट बनाने के बाद टूल कॉन्फ़िगर करें।",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
@@ -304,6 +310,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "कोई कनेक्टेड MCP टूल उपलब्ध नहीं है।",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "कोई कौशल नहीं जोड़ा गया",
     ),

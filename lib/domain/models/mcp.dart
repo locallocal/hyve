@@ -108,7 +108,6 @@ final class McpServer {
     required this.name,
     required this.namespace,
     required this.transport,
-    this.enabled = true,
     this.remoteServerName = '',
     this.remoteServerVersion = '',
     this.capabilities = const McpServerCapabilities(),
@@ -141,7 +140,6 @@ final class McpServer {
   final String name;
   final String namespace;
   final McpServerTransport transport;
-  final bool enabled;
   final String remoteServerName;
   final String remoteServerVersion;
   final McpServerCapabilities capabilities;
@@ -155,7 +153,6 @@ final class McpServer {
     String? name,
     String? namespace,
     McpServerTransport? transport,
-    bool? enabled,
     String? remoteServerName,
     String? remoteServerVersion,
     McpServerCapabilities? capabilities,
@@ -171,7 +168,6 @@ final class McpServer {
       name: name ?? this.name,
       namespace: namespace ?? this.namespace,
       transport: transport ?? this.transport,
-      enabled: enabled ?? this.enabled,
       remoteServerName: remoteServerName ?? this.remoteServerName,
       remoteServerVersion: remoteServerVersion ?? this.remoteServerVersion,
       capabilities: capabilities ?? this.capabilities,
@@ -229,7 +225,6 @@ final class McpToolDescriptor {
     Map<String, Object?>? outputSchema,
     this.annotations = const McpToolAnnotations(),
     this.taskSupport = McpToolTaskSupport.forbidden,
-    this.enabled = false,
     required this.updatedAt,
   }) : inputSchema = Map<String, Object?>.unmodifiable(inputSchema),
        outputSchema =
@@ -250,7 +245,6 @@ final class McpToolDescriptor {
   final Map<String, Object?>? outputSchema;
   final McpToolAnnotations annotations;
   final McpToolTaskSupport taskSupport;
-  final bool enabled;
   final DateTime updatedAt;
 
   String get canonicalName =>
@@ -264,7 +258,7 @@ final class McpToolDescriptor {
         (outputSchema == null || validator.supports(outputSchema!));
   }
 
-  McpToolDescriptor copyWith({bool? enabled, DateTime? updatedAt}) {
+  McpToolDescriptor copyWith({DateTime? updatedAt}) {
     return McpToolDescriptor(
       serverId: serverId,
       namespace: namespace,
@@ -275,7 +269,6 @@ final class McpToolDescriptor {
       outputSchema: outputSchema,
       annotations: annotations,
       taskSupport: taskSupport,
-      enabled: enabled ?? this.enabled,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -294,6 +287,68 @@ final class McpToolDescriptor {
     return 'mcp.$namespace.${safeSlug.substring(0, slugEnd)}'
         '_${_stableHash(trimmed)}';
   }
+}
+
+final class McpToolConfiguration {
+  McpToolConfiguration({
+    required this.serverId,
+    required this.remoteName,
+    this.requiresApproval = true,
+  }) {
+    if (serverId.trim().isEmpty || remoteName.trim().isEmpty) {
+      throw ArgumentError(
+        'MCP Tool configuration requires a server and remote Tool name.',
+      );
+    }
+  }
+
+  factory McpToolConfiguration.fromMap(Map<String, Object?> values) {
+    final serverId = values['server_id'];
+    final remoteName = values['remote_name'];
+    final requiresApproval = values['requires_approval'];
+    if (serverId is! String ||
+        remoteName is! String ||
+        requiresApproval is! bool) {
+      throw const FormatException('Invalid MCP Tool configuration.');
+    }
+    return McpToolConfiguration(
+      serverId: serverId,
+      remoteName: remoteName,
+      requiresApproval: requiresApproval,
+    );
+  }
+
+  final String serverId;
+  final String remoteName;
+  final bool requiresApproval;
+
+  String get key => keyFor(serverId, remoteName);
+
+  static String keyFor(String serverId, String remoteName) =>
+      '$serverId\u0000$remoteName';
+
+  Map<String, Object?> toMap() => {
+    'server_id': serverId,
+    'remote_name': remoteName,
+    'requires_approval': requiresApproval,
+  };
+
+  McpToolConfiguration copyWith({bool? requiresApproval}) =>
+      McpToolConfiguration(
+        serverId: serverId,
+        remoteName: remoteName,
+        requiresApproval: requiresApproval ?? this.requiresApproval,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is McpToolConfiguration &&
+      serverId == other.serverId &&
+      remoteName == other.remoteName &&
+      requiresApproval == other.requiresApproval;
+
+  @override
+  int get hashCode => Object.hash(serverId, remoteName, requiresApproval);
 }
 
 final class McpCredential {

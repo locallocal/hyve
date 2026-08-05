@@ -112,6 +112,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "MCP-Tools für diesen Agenten aktivieren. Tool-Aufrufe müssen standardmäßig bestätigt werden.",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("Bot-Name"),
     "botSkills": MessageLookupByLibrary.simpleMessage("Fähigkeiten"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -299,9 +302,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Wählen Sie die Fähigkeit bei Bedarf im Nachrichtenfeld aus.",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
+      "Ohne Bestätigung",
+    ),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP-Server"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "Remote-MCP-Tools verbinden und steuern, welche Tools Agents verwenden dürfen.",
+      "MCP-Server verbinden und ihre Tool-Kataloge entdecken. Tools werden nach dem Erstellen eines Agenten konfiguriert.",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
       "Nachricht eingeben...",
@@ -313,6 +319,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("Name"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Name aktualisiert"),
     "newChat": MessageLookupByLibrary.simpleMessage("Neuer Chat"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Keine verbundenen MCP-Tools verfügbar.",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "Keine Fähigkeiten hinzugefügt",
     ),

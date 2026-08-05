@@ -1,7 +1,8 @@
+import 'package:stars/domain/models/mcp.dart';
+
 class Bot {
   static const parameterSupportsMcp = 'supports_mcp';
-  static const parameterMcpServerIds = 'mcp_server_ids';
-  static const parameterDisabledMcpServerIds = 'disabled_mcp_server_ids';
+  static const parameterMcpTools = 'mcp_tools';
   static const parameterSupportsAutomaticSkillActivation =
       'supports_automatic_skill_activation';
 
@@ -84,28 +85,23 @@ class Bot {
     return value is bool ? value : null;
   }
 
-  Set<String> get mcpServerIds {
-    return _stringSetParameter(parameterMcpServerIds);
-  }
-
-  Set<String> get disabledMcpServerIds {
-    return _stringSetParameter(parameterDisabledMcpServerIds);
-  }
-
-  Set<String> get enabledMcpServerIds {
-    return Set<String>.unmodifiable(
-      mcpServerIds.difference(disabledMcpServerIds),
-    );
-  }
-
-  Set<String> _stringSetParameter(String key) {
-    final value = parameters?[key];
-    if (value is! List) return const {};
-    return Set<String>.unmodifiable(
-      value
-          .whereType<String>()
-          .map((id) => id.trim())
-          .where((id) => id.isNotEmpty),
+  Set<McpToolConfiguration> get mcpTools {
+    final value = parameters?[parameterMcpTools];
+    if (value == null) return const {};
+    if (value is! List) {
+      throw const FormatException('Bot MCP Tools must be a list.');
+    }
+    return Set<McpToolConfiguration>.unmodifiable(
+      value.map((item) {
+        if (item is! Map) {
+          throw const FormatException('Bot MCP Tool must be an object.');
+        }
+        return McpToolConfiguration.fromMap(
+          item.map(
+            (key, mapValue) => MapEntry(key.toString(), mapValue as Object?),
+          ),
+        );
+      }),
     );
   }
 

@@ -35,9 +35,13 @@ final class AgentRunRequest {
     required this.botId,
     required List<ChatMessage> messages,
     required Set<String> requestedToolNames,
+    Set<String> approvalExemptToolNames = const {},
     AgentCancellationToken? cancellationToken,
   }) : messages = List<ChatMessage>.unmodifiable(messages),
        requestedToolNames = Set<String>.unmodifiable(requestedToolNames),
+       approvalExemptToolNames = Set<String>.unmodifiable(
+         approvalExemptToolNames,
+       ),
        cancellationToken = cancellationToken ?? AgentCancellationToken();
 
   final String runId;
@@ -45,6 +49,7 @@ final class AgentRunRequest {
   final String botId;
   final List<ChatMessage> messages;
   final Set<String> requestedToolNames;
+  final Set<String> approvalExemptToolNames;
   final AgentCancellationToken cancellationToken;
 }
 
@@ -108,6 +113,7 @@ final class AgentRunCoordinator {
       chatId: request.chatId,
       botId: request.botId,
       requestedToolNames: request.requestedToolNames,
+      approvalExemptToolNames: request.approvalExemptToolNames,
     );
     final supportsParallelToolCalls =
         provider.capabilities.supportsParallelToolCalls;

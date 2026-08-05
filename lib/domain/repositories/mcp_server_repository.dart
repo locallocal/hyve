@@ -11,18 +11,7 @@ abstract interface class McpServerRepository {
 
   Future<void> deleteServer(String id);
 
-  Future<List<McpToolDescriptor>> getTools(
-    String serverId, {
-    bool enabledOnly = false,
-  });
+  Future<List<McpToolDescriptor>> getTools(String serverId);
 
   Future<void> replaceCatalog(McpServer server, List<McpToolDescriptor> tools);
-
-  Future<bool> isToolEnabled(String serverId, String remoteName);
-
-  Future<void> setToolEnabled(
-    String serverId,
-    String remoteName, {
-    required bool enabled,
-  });
 }

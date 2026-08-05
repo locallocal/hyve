@@ -44,52 +44,35 @@ void main() {
     await database.close();
   });
 
-  test('hydrates only enabled cached Tools into the Agent registry', () async {
-    final enabled = _tool('search');
-    final disabled = _tool('write');
-    await repository.replaceCatalog(_server(), [enabled, disabled]);
-    await repository.setToolEnabled(
-      'server-1',
-      enabled.remoteName,
-      enabled: true,
-    );
+  test('hydrates every supported cached Tool into the registry', () async {
+    final search = _tool('search');
+    final write = _tool('write');
+    await repository.replaceCatalog(_server(), [search, write]);
 
     await service.hydrateFromCache();
 
-    expect(registry.find(enabled.canonicalName), isNotNull);
-    expect(registry.find(disabled.canonicalName), isNull);
+    expect(registry.find(search.canonicalName), isNotNull);
+    expect(registry.find(write.canonicalName), isNotNull);
   });
 
-  test(
-    'refresh negotiates capabilities and preserves Tool enablement',
-    () async {
-      final existing = _tool('search');
-      await repository.replaceCatalog(_server(), [existing]);
-      await repository.setToolEnabled(
-        'server-1',
-        existing.remoteName,
-        enabled: true,
-      );
-      client.tools = [existing, _tool('new_tool')];
+  test('refresh negotiates capabilities and replaces Tool catalog', () async {
+    final existing = _tool('search');
+    await repository.replaceCatalog(_server(), [existing]);
+    client.tools = [existing, _tool('new_tool')];
 
-      final connected = await service.refreshServer('server-1');
+    final connected = await service.refreshServer('server-1');
 
-      expect(connected.status, McpConnectionStatus.connected);
-      expect(connected.capabilities.toolListChanged, isTrue);
-      final tools = await repository.getTools('server-1');
-      expect(
-        tools.singleWhere((tool) => tool.remoteName == 'search').enabled,
-        isTrue,
-      );
-      expect(
-        tools.singleWhere((tool) => tool.remoteName == 'new_tool').enabled,
-        isFalse,
-      );
-      expect(registry.find(existing.canonicalName), isNotNull);
-    },
-  );
+    expect(connected.status, McpConnectionStatus.connected);
+    expect(connected.capabilities.toolListChanged, isTrue);
+    final tools = await repository.getTools('server-1');
+    expect(
+      tools.map((tool) => tool.remoteName),
+      containsAll(['search', 'new_tool']),
+    );
+    expect(registry.find(existing.canonicalName), isNotNull);
+  });
 
-  test('refresh keeps the server disabled when startup fails', () async {
+  test('refresh records an error when startup fails', () async {
     client.initializeError = const McpException('mcp_stdio_start_failed');
 
     await expectLater(
@@ -105,12 +88,11 @@ void main() {
 
     final failed = await repository.getServer('server-1');
     expect(failed, isNotNull);
-    expect(failed!.enabled, isFalse);
-    expect(failed.status, McpConnectionStatus.error);
+    expect(failed!.status, McpConnectionStatus.error);
     expect(failed.lastErrorCode, 'mcp_stdio_start_failed');
   });
 
-  test('refresh keeps the server disabled after an unknown failure', () async {
+  test('refresh records an unknown failure', () async {
     client.initializeError = StateError('process exited');
 
     await expectLater(
@@ -120,8 +102,7 @@ void main() {
 
     final failed = await repository.getServer('server-1');
     expect(failed, isNotNull);
-    expect(failed!.enabled, isFalse);
-    expect(failed.status, McpConnectionStatus.error);
+    expect(failed!.status, McpConnectionStatus.error);
     expect(failed.lastErrorCode, 'mcp_catalog_refresh_failed');
   });
 }

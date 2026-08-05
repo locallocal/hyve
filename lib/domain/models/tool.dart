@@ -126,12 +126,17 @@ final class ToolPolicyContext {
     required this.chatId,
     required this.botId,
     Set<String> requestedToolNames = const {},
-  }) : requestedToolNames = Set<String>.unmodifiable(requestedToolNames);
+    Set<String> approvalExemptToolNames = const {},
+  }) : requestedToolNames = Set<String>.unmodifiable(requestedToolNames),
+       approvalExemptToolNames = Set<String>.unmodifiable(
+         approvalExemptToolNames,
+       );
 
   final String runId;
   final String chatId;
   final String botId;
   final Set<String> requestedToolNames;
+  final Set<String> approvalExemptToolNames;
 }
 
 abstract interface class ToolPolicy {
@@ -166,6 +171,12 @@ final class DefaultToolPolicy implements ToolPolicy {
     if (!context.requestedToolNames.contains(definition.name)) {
       return const ToolPolicyDecision.deny(
         reason: 'tool_not_requested_by_active_skill',
+      );
+    }
+    if (definition.source == ToolSource.mcp &&
+        context.approvalExemptToolNames.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'bot_mcp_tool_approval_exempt',
       );
     }
     if (definition.source == ToolSource.skillScript ||

@@ -111,6 +111,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "Включите инструменты MCP для этого агента. По умолчанию вызовы требуют подтверждения.",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("Имя бота"),
     "botSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -294,9 +297,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "При необходимости выберите навык в поле сообщения.",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
+      "Без подтверждения",
+    ),
     "mcpServers": MessageLookupByLibrary.simpleMessage("Серверы MCP"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "Подключайте удалённые инструменты MCP и управляйте доступом агентов к ним.",
+      "Подключайте серверы MCP и находите их каталоги инструментов. Настройте инструменты после создания агента.",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
@@ -306,6 +312,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("Имя"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Имя обновлено"),
     "newChat": MessageLookupByLibrary.simpleMessage("Новый чат"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Нет доступных подключённых инструментов MCP.",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "Навыки не добавлены",
     ),

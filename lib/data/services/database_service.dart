@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 12;
+  static const int databaseVersion = 13;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -298,7 +298,7 @@ class DatabaseService {
       );
       await _createSkillEcosystemSchema(db);
     }
-    if (oldVersion < 12 && newVersion >= 12) {
+    if (oldVersion < 13 && newVersion >= 13) {
       await _resetMcpSchema(db);
     }
   }
@@ -490,7 +490,6 @@ class DatabaseService {
         transport_type TEXT NOT NULL
           CHECK (transport_type IN ('streamableHttp', 'stdio')),
         transport_config_json TEXT NOT NULL,
-        enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
         remote_server_name TEXT NOT NULL DEFAULT '',
         remote_server_version TEXT NOT NULL DEFAULT '',
         capabilities_json TEXT NOT NULL DEFAULT '{}',
@@ -519,7 +518,6 @@ class DatabaseService {
         annotations_json TEXT NOT NULL DEFAULT '{}',
         task_support TEXT NOT NULL
           CHECK (task_support IN ('forbidden', 'optional', 'required')),
-        enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
         updated_at INTEGER NOT NULL,
         PRIMARY KEY (server_id, remote_name),
         FOREIGN KEY (server_id) REFERENCES mcp_servers(id) ON DELETE CASCADE

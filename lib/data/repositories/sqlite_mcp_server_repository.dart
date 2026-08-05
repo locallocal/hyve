@@ -50,14 +50,8 @@ final class SqliteMcpServerRepository implements McpServerRepository {
   }
 
   @override
-  Future<List<McpToolDescriptor>> getTools(
-    String serverId, {
-    bool enabledOnly = false,
-  }) async {
-    final records = await _localDatabase.loadMcpTools(
-      serverId,
-      enabledOnly: enabledOnly,
-    );
+  Future<List<McpToolDescriptor>> getTools(String serverId) async {
+    final records = await _localDatabase.loadMcpTools(serverId);
     return List<McpToolDescriptor>.unmodifiable(
       records.map(
         (record) => McpToolRecord(
@@ -80,32 +74,10 @@ final class SqliteMcpServerRepository implements McpServerRepository {
     await _emitServers();
   }
 
-  @override
-  Future<bool> isToolEnabled(String serverId, String remoteName) =>
-      _localDatabase.isMcpToolEnabled(serverId, remoteName);
-
-  @override
-  Future<void> setToolEnabled(
-    String serverId,
-    String remoteName, {
-    required bool enabled,
-  }) {
-    return _localDatabase.setMcpToolEnabled(
-      serverId,
-      remoteName,
-      enabled: enabled,
-      updatedAt: DateTime.now(),
-    );
-  }
-
   Future<List<Map<String, Object?>>> _catalogRecords(
     McpServer server,
     List<McpToolDescriptor> tools,
   ) async {
-    final previous = {
-      for (final tool in await getTools(server.id))
-        tool.remoteName: tool.enabled,
-    };
     return [
       for (final tool in tools)
         if (tool.serverId != server.id || tool.namespace != server.namespace)
@@ -115,9 +87,7 @@ final class SqliteMcpServerRepository implements McpServerRepository {
             'MCP Tool ownership does not match its server.',
           )
         else
-          McpToolRecord.fromDomain(
-            tool.copyWith(enabled: previous[tool.remoteName] ?? false),
-          ).values,
+          McpToolRecord.fromDomain(tool).values,
     ];
   }
 

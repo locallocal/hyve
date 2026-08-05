@@ -154,6 +154,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botGreeting": m2,
     "botInformation": MessageLookupByLibrary.simpleMessage("Bot Information"),
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "Enable MCP Tools for this agent. Tool calls require confirmation by default.",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("Bot Name"),
     "botSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search filters the list by bot name.",
@@ -443,12 +446,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
       "1–32 lowercase letters, digits, underscores, or hyphens.",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
+      "No confirmation",
+    ),
     "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("None"),
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
       "Private, local, and link-local MCP endpoints are blocked.",
     ),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.",
+      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
@@ -457,7 +463,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP Servers"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "Connect local or remote MCP Tools and control which ones agents may use.",
+      "Connect MCP Servers and discover their Tool catalogs. Configure Tools after creating an agent.",
     ),
     "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
       "The stdio MCP command could not be started.",
@@ -469,7 +475,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stored in the operating system\'s secure credential store.",
     ),
     "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
-      "This Tool has an unsupported input schema and cannot be enabled.",
+      "This Tool has an unsupported input schema and cannot be selected.",
     ),
     "mcpTools": MessageLookupByLibrary.simpleMessage("Tools"),
     "mcpTransport": MessageLookupByLibrary.simpleMessage("Transport"),
@@ -504,14 +510,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
       "A new chat opens directly in the workspace.",
     ),
-    "noAvailableMcpServers": MessageLookupByLibrary.simpleMessage(
-      "No healthy MCP Servers are available to add.",
-    ),
-    "noBotMcpServersAdded": MessageLookupByLibrary.simpleMessage(
-      "No MCP Servers added",
-    ),
-    "noBotMcpServersAddedDescription": MessageLookupByLibrary.simpleMessage(
-      "Add the healthy MCP Servers this agent needs.",
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "No connected MCP Tools are available.",
     ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("No Skills added"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(

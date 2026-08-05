@@ -15,6 +15,7 @@ final class PreparedChatTurn {
     List<SkillActivationAttempt> activationAttempts = const [],
     List<MessageToolCall> skillToolCalls = const [],
     Set<String> requestedToolNames = const {},
+    Set<String> approvalExemptToolNames = const {},
     this.estimatedSkillContextTokens = 0,
     this.preflightTokenUsage = ModelTokenUsage.empty,
   }) : messages = List<ChatMessage>.unmodifiable(messages),
@@ -23,13 +24,17 @@ final class PreparedChatTurn {
          activationAttempts,
        ),
        skillToolCalls = List<MessageToolCall>.unmodifiable(skillToolCalls),
-       requestedToolNames = Set<String>.unmodifiable(requestedToolNames);
+       requestedToolNames = Set<String>.unmodifiable(requestedToolNames),
+       approvalExemptToolNames = Set<String>.unmodifiable(
+         approvalExemptToolNames,
+       );
 
   final List<ChatMessage> messages;
   final List<ActivatedSkill> activatedSkills;
   final List<SkillActivationAttempt> activationAttempts;
   final List<MessageToolCall> skillToolCalls;
   final Set<String> requestedToolNames;
+  final Set<String> approvalExemptToolNames;
   final int estimatedSkillContextTokens;
   final ModelTokenUsage preflightTokenUsage;
 }
@@ -178,10 +183,7 @@ final class ComposeChatTurn {
       ),
     );
 
-    final mcpToolNames = await _resolveMcpToolNames(
-      bot: bot,
-      provider: provider,
-    );
+    final mcpTools = await _resolveMcpTools(bot: bot, provider: provider);
 
     return PreparedChatTurn(
       messages: messages,
@@ -199,39 +201,58 @@ final class ComposeChatTurn {
       requestedToolNames: {
         for (final entry in state.contents.values)
           ...entry.content.descriptor.requestedToolNames,
-        ...mcpToolNames,
+        ...mcpTools.requestedNames,
       },
+      approvalExemptToolNames: mcpTools.approvalExemptNames,
       estimatedSkillContextTokens: state.skillTokens + state.resourceTokens,
       preflightTokenUsage: state.preflightTokenUsage,
     );
   }
 
-  Future<Set<String>> _resolveMcpToolNames({
+  Future<_ResolvedMcpTools> _resolveMcpTools({
     required Bot bot,
     required AiProvider? provider,
   }) async {
     final repository = _mcpServerRepository;
     if (repository == null ||
         provider?.supportMcp() != true ||
-        bot.enabledMcpServerIds.isEmpty) {
-      return const {};
+        bot.mcpTools.isEmpty) {
+      return const _ResolvedMcpTools();
     }
 
-    final names = <String>{};
-    final serverIds = bot.enabledMcpServerIds.toList()..sort();
-    for (final serverId in serverIds) {
+    final requestedNames = <String>{};
+    final approvalExemptNames = <String>{};
+    final configurations =
+        bot.mcpTools.toList()
+          ..sort((left, right) => left.key.compareTo(right.key));
+    final byServer = <String, List<McpToolConfiguration>>{};
+    for (final configuration in configurations) {
+      byServer.putIfAbsent(configuration.serverId, () => []).add(configuration);
+    }
+    for (final entry in byServer.entries) {
+      final serverId = entry.key;
       final server = await repository.getServer(serverId);
-      if (server == null ||
-          !server.enabled ||
-          server.status != McpConnectionStatus.connected) {
+      if (server == null || server.status != McpConnectionStatus.connected) {
         continue;
       }
-      final tools = await repository.getTools(serverId, enabledOnly: true);
+      final tools = await repository.getTools(serverId);
+      final configurationsByName = {
+        for (final configuration in entry.value)
+          configuration.remoteName: configuration,
+      };
       for (final tool in tools) {
-        if (tool.isSupportedByClient) names.add(tool.canonicalName);
+        final configuration = configurationsByName[tool.remoteName];
+        if (configuration == null || !tool.isSupportedByClient) continue;
+        requestedNames.add(tool.canonicalName);
+        if (!configuration.requiresApproval) {
+          approvalExemptNames.add(tool.canonicalName);
+        }
       }
     }
-    return Set<String>.unmodifiable(names);
+    return _ResolvedMcpTools(
+      requestedNames: requestedNames,
+      approvalExemptNames: approvalExemptNames,
+    );
   }
 
   Future<void> _resolveAutomaticSkills({
@@ -665,6 +686,16 @@ ${resource.content.trim()}
 
   String _escapeAttribute(String value) =>
       _escapeText(value).replaceAll('"', '&quot;');
+}
+
+final class _ResolvedMcpTools {
+  const _ResolvedMcpTools({
+    this.requestedNames = const {},
+    this.approvalExemptNames = const {},
+  });
+
+  final Set<String> requestedNames;
+  final Set<String> approvalExemptNames;
 }
 
 final class _TurnSkillState {

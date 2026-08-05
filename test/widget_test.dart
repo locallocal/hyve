@@ -505,7 +505,18 @@ void main() {
       model: 'gpt-test',
       systemPrompt: '',
       parameters: const {
-        Bot.parameterMcpServerIds: ['mcp-search', 'mcp-docs'],
+        Bot.parameterMcpTools: [
+          {
+            'server_id': 'mcp-search',
+            'remote_name': 'search',
+            'requires_approval': true,
+          },
+          {
+            'server_id': 'mcp-docs',
+            'remote_name': 'read',
+            'requires_approval': true,
+          },
+        ],
       },
       createTimestamp: timestamp,
       modifyTimestamp: timestamp,
@@ -3301,7 +3312,6 @@ McpServer _botCardMcpServer(String id, String name) => McpServer(
   transport: McpStreamableHttpServerTransport(
     endpoint: Uri.parse('https://mcp.example.test/$id'),
   ),
-  enabled: true,
   status: McpConnectionStatus.connected,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),

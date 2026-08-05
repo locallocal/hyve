@@ -12,10 +12,16 @@ import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/bots/views/bot_mcp_server_picker.dart';
+import 'package:stars/ui/features/bots/views/bot_mcp_tool_picker.dart';
 import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
+
+typedef BotMcpCatalog =
+    ({
+      List<McpServer> servers,
+      Map<String, List<McpToolDescriptor>> toolsByServer,
+    });
 
 class EditBotPage extends StatefulWidget {
   final Bot bot;
@@ -24,7 +30,7 @@ class EditBotPage extends StatefulWidget {
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
   final BotSkillViewModel? skillViewModel;
-  final Future<List<McpServer>> Function()? mcpServerLoader;
+  final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
 
   const EditBotPage({
     super.key,
@@ -34,7 +40,7 @@ class EditBotPage extends StatefulWidget {
     this.avatarPicker,
     this.embedded = false,
     this.skillViewModel,
-    this.mcpServerLoader,
+    this.mcpCatalogLoader,
   });
 
   @override
@@ -63,8 +69,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
   BotSkillViewModel? _skillViewModel;
   bool _ownsSkillViewModel = false;
   List<McpServer> _mcpServers = const [];
-  late Set<String> _selectedMcpServerIds;
-  late Set<String> _disabledMcpServerIds;
+  Map<String, List<McpToolDescriptor>> _mcpToolsByServer = const {};
+  late Set<McpToolConfiguration> _mcpToolConfigurations;
   late bool _modelSupportsMcp;
   late bool _initialModelSupportsMcp;
   late bool _modelSupportsAutomaticSkillActivation;
@@ -87,8 +93,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
     selectedProvider = widget.bot.provider;
     selectedModel = widget.bot.model;
-    _selectedMcpServerIds = widget.bot.mcpServerIds;
-    _disabledMcpServerIds = widget.bot.disabledMcpServerIds;
+    _mcpToolConfigurations = widget.bot.mcpTools;
     _modelSupportsMcp = widget.bot.configuredSupportsMcp ?? false;
     _initialModelSupportsMcp = _modelSupportsMcp;
     _modelSupportsAutomaticSkillActivation =
@@ -116,13 +121,32 @@ class _EditAIBotPageState extends State<EditBotPage> {
     final dependencies = AppScope.maybeOf(context);
     if (!_startedLoadingMcpServers) {
       final loader =
-          widget.mcpServerLoader ??
+          widget.mcpCatalogLoader ??
           (dependencies == null
               ? null
-              : () => dependencies.mcpServerRepository.getServers());
+              : () async {
+                final servers =
+                    await dependencies.mcpServerRepository.getServers();
+                final tools = await Future.wait(
+                  servers.map(
+                    (server) async => (
+                      server.id,
+                      await dependencies.mcpServerRepository.getTools(
+                        server.id,
+                      ),
+                    ),
+                  ),
+                );
+                return (
+                  servers: servers,
+                  toolsByServer: {
+                    for (final entry in tools) entry.$1: entry.$2,
+                  },
+                );
+              });
       if (loader != null) {
         _startedLoadingMcpServers = true;
-        unawaited(_loadMcpServers(loader));
+        unawaited(_loadMcpCatalog(loader));
       }
     }
     if (dependencies == null) return;
@@ -179,21 +203,28 @@ class _EditAIBotPageState extends State<EditBotPage> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _loadMcpServers(
-    Future<List<McpServer>> Function() loader,
-  ) async {
+  Future<void> _loadMcpCatalog(Future<BotMcpCatalog> Function() loader) async {
     setState(() => _isLoadingMcpServers = true);
     try {
-      final servers = await loader();
+      final catalog = await loader();
       if (!mounted) return;
       setState(() {
         _mcpServers = List<McpServer>.unmodifiable(
-          List<McpServer>.of(servers)
+          List<McpServer>.of(catalog.servers)
             ..sort((left, right) => left.name.compareTo(right.name)),
         );
+        _mcpToolsByServer = Map<String, List<McpToolDescriptor>>.unmodifiable({
+          for (final entry in catalog.toolsByServer.entries)
+            entry.key: List<McpToolDescriptor>.unmodifiable(entry.value),
+        });
       });
     } on Object {
-      if (mounted) setState(() => _mcpServers = const []);
+      if (mounted) {
+        setState(() {
+          _mcpServers = const [];
+          _mcpToolsByServer = const {};
+        });
+      }
     } finally {
       if (mounted) setState(() => _isLoadingMcpServers = false);
     }
@@ -413,8 +444,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   SizedBox(height: widget.embedded ? 20 : 16),
                   _buildFormSection(
                     context,
-                    S.of(context).mcpServers,
-                    [_buildMcpServerPicker()],
+                    S.of(context).mcpTools,
+                    [_buildMcpToolPicker()],
                     sectionKey: const ValueKey<String>(
                       'desktop-bot-mcp-section',
                     ),
@@ -1255,18 +1286,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
               : selectedModelController.text.trim(),
       systemPrompt: systemPromptController.text.trim(),
       parameters: {
-        ...?widget.bot.parameters,
         Bot.parameterSupportsMcp: _modelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _modelSupportsAutomaticSkillActivation,
-        Bot.parameterMcpServerIds:
+        Bot.parameterMcpTools:
             _modelSupportsMcp
-                ? (_selectedMcpServerIds.toList()..sort())
-                : const <String>[],
-        Bot.parameterDisabledMcpServerIds:
-            _modelSupportsMcp
-                ? (_disabledMcpServerIds.toList()..sort())
-                : const <String>[],
+                ? ((_mcpToolConfigurations.toList()
+                      ..sort((left, right) => left.key.compareTo(right.key)))
+                    .map((configuration) => configuration.toMap())
+                    .toList(growable: false))
+                : const <Map<String, Object?>>[],
       },
       createTimestamp: widget.bot.createTimestamp,
       modifyTimestamp: DateTime.now(),
@@ -1728,17 +1757,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
   }
 
-  Widget _buildMcpServerPicker() {
-    return BotMcpServerPicker(
+  Widget _buildMcpToolPicker() {
+    return BotMcpToolPicker(
       servers: _mcpServers,
-      selectedServerIds: _selectedMcpServerIds,
-      disabledServerIds: _disabledMcpServerIds,
+      toolsByServer: _mcpToolsByServer,
+      configurations: _mcpToolConfigurations,
       isLoading: _isLoadingMcpServers,
       embedded: widget.embedded,
-      onChanged: (serverIds, disabledServerIds) {
+      onChanged: (configurations) {
         setState(() {
-          _selectedMcpServerIds = serverIds;
-          _disabledMcpServerIds = disabledServerIds;
+          _mcpToolConfigurations = configurations;
           _editRevision += 1;
           _isSaved = false;
         });

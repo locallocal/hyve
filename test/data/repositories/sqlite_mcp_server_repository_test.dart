@@ -72,29 +72,19 @@ void main() {
     expect(transport.arguments, ['-y', '@example/mcp']);
   });
 
-  test(
-    'refresh preserves per-Tool enablement and delete clears catalog',
-    () async {
-      final server = _server();
-      await repository.saveServer(server);
-      final tool = _tool();
+  test('refresh replaces the catalog and delete clears it', () async {
+    final server = _server();
+    await repository.saveServer(server);
 
-      await repository.replaceCatalog(server, [tool]);
-      expect((await repository.getTools(server.id)).single.enabled, isFalse);
-      await repository.setToolEnabled(
-        server.id,
-        tool.remoteName,
-        enabled: true,
-      );
-      await repository.replaceCatalog(server, [tool]);
+    await repository.replaceCatalog(server, [_tool()]);
+    expect(await repository.getTools(server.id), hasLength(1));
+    await repository.replaceCatalog(server, [_tool(remoteName: 'write')]);
+    expect((await repository.getTools(server.id)).single.remoteName, 'write');
 
-      expect((await repository.getTools(server.id)).single.enabled, isTrue);
-
-      await repository.deleteServer(server.id);
-      expect(await repository.getServer(server.id), isNull);
-      expect(await repository.getTools(server.id), isEmpty);
-    },
-  );
+    await repository.deleteServer(server.id);
+    expect(await repository.getServer(server.id), isNull);
+    expect(await repository.getTools(server.id), isEmpty);
+  });
 
   test('a duplicate namespace never replaces another server', () async {
     final original = _server();
@@ -154,11 +144,11 @@ McpServer _server() {
   );
 }
 
-McpToolDescriptor _tool() {
+McpToolDescriptor _tool({String remoteName = 'search'}) {
   return McpToolDescriptor(
     serverId: 'server-1',
     namespace: 'example',
-    remoteName: 'search',
+    remoteName: remoteName,
     title: 'Search',
     description: 'Search remote data.',
     inputSchema: const {'type': 'object'},

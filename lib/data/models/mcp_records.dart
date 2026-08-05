@@ -12,7 +12,6 @@ final class McpServerRecord {
       'namespace': server.namespace,
       'transport_type': server.transport.type.name,
       'transport_config_json': jsonEncode(_transportToMap(server.transport)),
-      'enabled': server.enabled ? 1 : 0,
       'remote_server_name': server.remoteServerName,
       'remote_server_version': server.remoteServerVersion,
       'capabilities_json': jsonEncode(server.capabilities.toMap()),
@@ -45,7 +44,6 @@ final class McpServerRecord {
       name: _string('name'),
       namespace: _string('namespace'),
       transport: _transportFromMap(transportType, transportConfig),
-      enabled: _booleanInteger('enabled'),
       remoteServerName: _string('remote_server_name'),
       remoteServerVersion: _string('remote_server_version'),
       capabilities: McpServerCapabilities.fromMap(
@@ -77,13 +75,6 @@ final class McpServerRecord {
     if (value is int) return value;
     throw FormatException('MCP record field "$key" must be an integer.');
   }
-
-  bool _booleanInteger(String key) {
-    final value = _integer(key);
-    if (value == 0) return false;
-    if (value == 1) return true;
-    throw FormatException('MCP record field "$key" must be 0 or 1.');
-  }
 }
 
 final class McpToolRecord {
@@ -100,7 +91,6 @@ final class McpToolRecord {
           tool.outputSchema == null ? null : jsonEncode(tool.outputSchema),
       'annotations_json': jsonEncode(tool.annotations.toMap()),
       'task_support': tool.taskSupport.name,
-      'enabled': tool.enabled ? 1 : 0,
       'updated_at': tool.updatedAt.millisecondsSinceEpoch,
     });
   }
@@ -142,7 +132,6 @@ final class McpToolRecord {
         _requiredString(values, 'task_support'),
         field: 'task_support',
       ),
-      enabled: _requiredBooleanInteger(values, 'enabled'),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(
         _requiredInteger(values, 'updated_at'),
       ),
@@ -226,13 +215,6 @@ int _requiredInteger(Map<String, Object?> values, String key) {
   final value = values[key];
   if (value is int) return value;
   throw FormatException('MCP record field "$key" must be an integer.');
-}
-
-bool _requiredBooleanInteger(Map<String, Object?> values, String key) {
-  final value = _requiredInteger(values, key);
-  if (value == 0) return false;
-  if (value == 1) return true;
-  throw FormatException('MCP record field "$key" must be 0 or 1.');
 }
 
 int? _nullableInteger(Object? value, {required String field}) {

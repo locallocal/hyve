@@ -104,6 +104,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "이 에이전트에서 MCP 도구를 활성화합니다. 도구 호출에는 기본적으로 확인이 필요합니다.",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("봇 이름"),
     "botSkills": MessageLookupByLibrary.simpleMessage("스킬"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -233,9 +236,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "필요할 때 메시지 입력창에서 스킬을 선택하세요.",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage("확인 없이 실행"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 서버"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "원격 MCP 도구를 연결하고 에이전트가 사용할 수 있는 도구를 관리합니다.",
+      "MCP 서버를 연결하고 도구 카탈로그를 검색합니다. 에이전트를 만든 후 도구를 구성하세요.",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("메시지 입력..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("스킬"),
@@ -245,6 +249,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("이름"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("이름이 업데이트되었습니다"),
     "newChat": MessageLookupByLibrary.simpleMessage("새 채팅"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "연결되어 사용 가능한 MCP 도구가 없습니다.",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("추가된 스킬 없음"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
       "이 봇에 필요한 설치된 스킬을 추가하세요.",

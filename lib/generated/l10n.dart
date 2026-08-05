@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1470,7 +1469,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2951,11 +2951,41 @@ class S {
     return Intl.message('MCP Servers', name: 'mcpServers', desc: '', args: []);
   }
 
-  /// `Connect local or remote MCP Tools and control which ones agents may use.`
+  /// `Connect MCP Servers and discover their Tool catalogs. Configure Tools after creating an agent.`
   String get mcpServersDescription {
     return Intl.message(
-      'Connect local or remote MCP Tools and control which ones agents may use.',
+      'Connect MCP Servers and discover their Tool catalogs. Configure Tools after creating an agent.',
       name: 'mcpServersDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable MCP Tools for this agent. Tool calls require confirmation by default.`
+  String get botMcpToolsDescription {
+    return Intl.message(
+      'Enable MCP Tools for this agent. Tool calls require confirmation by default.',
+      name: 'botMcpToolsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No connected MCP Tools are available.`
+  String get noBotMcpToolsAvailable {
+    return Intl.message(
+      'No connected MCP Tools are available.',
+      name: 'noBotMcpToolsAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No confirmation`
+  String get mcpNoApprovalRequired {
+    return Intl.message(
+      'No confirmation',
+      name: 'mcpNoApprovalRequired',
       desc: '',
       args: [],
     );
@@ -3001,36 +3031,6 @@ class S {
     );
   }
 
-  /// `No MCP Servers added`
-  String get noBotMcpServersAdded {
-    return Intl.message(
-      'No MCP Servers added',
-      name: 'noBotMcpServersAdded',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Add the healthy MCP Servers this agent needs.`
-  String get noBotMcpServersAddedDescription {
-    return Intl.message(
-      'Add the healthy MCP Servers this agent needs.',
-      name: 'noBotMcpServersAddedDescription',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `No healthy MCP Servers are available to add.`
-  String get noAvailableMcpServers {
-    return Intl.message(
-      'No healthy MCP Servers are available to add.',
-      name: 'noAvailableMcpServers',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Remote MCP only`
   String get remoteMcpOnly {
     return Intl.message(
@@ -3071,10 +3071,10 @@ class S {
     );
   }
 
-  /// `Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.`
+  /// `Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.`
   String get mcpProgressiveDiscoveryDescription {
     return Intl.message(
-      'Stars stores the Tool catalog, but only exposes full schemas when an active Skill requests an enabled Tool.',
+      'Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.',
       name: 'mcpProgressiveDiscoveryDescription',
       desc: '',
       args: [],
@@ -3226,10 +3226,10 @@ class S {
     );
   }
 
-  /// `This Tool has an unsupported input schema and cannot be enabled.`
+  /// `This Tool has an unsupported input schema and cannot be selected.`
   String get mcpToolSchemaUnsupported {
     return Intl.message(
-      'This Tool has an unsupported input schema and cannot be enabled.',
+      'This Tool has an unsupported input schema and cannot be selected.',
       name: 'mcpToolSchemaUnsupported',
       desc: '',
       args: [],

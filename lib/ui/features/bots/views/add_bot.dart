@@ -11,7 +11,6 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/add_bot_skills.dart';
-import 'package:stars/ui/features/bots/views/bot_mcp_server_picker.dart';
 import 'package:stars/utils/theme.dart';
 
 class AddBotDialog extends StatelessWidget {
@@ -22,7 +21,6 @@ class AddBotDialog extends StatelessWidget {
     this.avatarPicker,
     this.botId,
     this.skillViewModel,
-    this.mcpServerLoader,
   });
 
   final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
@@ -30,7 +28,6 @@ class AddBotDialog extends StatelessWidget {
   final Future<String?> Function()? avatarPicker;
   final String? botId;
   final BotSkillViewModel? skillViewModel;
-  final Future<List<McpServer>> Function()? mcpServerLoader;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +61,6 @@ class AddBotDialog extends StatelessWidget {
           avatarPicker: avatarPicker,
           botId: botId,
           skillViewModel: skillViewModel,
-          mcpServerLoader: mcpServerLoader,
         ),
       ),
     );
@@ -78,7 +74,6 @@ class AddBotPage extends StatefulWidget {
   final bool embedded;
   final String? botId;
   final BotSkillViewModel? skillViewModel;
-  final Future<List<McpServer>> Function()? mcpServerLoader;
 
   const AddBotPage({
     super.key,
@@ -88,7 +83,6 @@ class AddBotPage extends StatefulWidget {
     this.embedded = false,
     this.botId,
     this.skillViewModel,
-    this.mcpServerLoader,
   });
 
   @override
@@ -132,11 +126,6 @@ class _AddBotPageState extends State<AddBotPage> {
   bool _isPasswordVisible = false;
   File? avatarImage;
   List<AiModelInfo> providerModels = [];
-  List<McpServer> _mcpServers = const [];
-  Set<String> _selectedMcpServerIds = const {};
-  Set<String> _disabledMcpServerIds = const {};
-  bool _isLoadingMcpServers = false;
-  bool _startedLoadingMcpServers = false;
 
   Future<void> _pickImage() async {
     final imagePath = await widget.avatarPicker?.call();
@@ -230,37 +219,6 @@ class _AddBotPageState extends State<AddBotPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _syncSelectedModelSkillSupport();
-    if (_startedLoadingMcpServers) return;
-    final injectedLoader = widget.mcpServerLoader;
-    final dependencies = AppScope.maybeOf(context);
-    final loader =
-        injectedLoader ??
-        (dependencies == null
-            ? null
-            : () => dependencies.mcpServerRepository.getServers());
-    if (loader == null) return;
-    _startedLoadingMcpServers = true;
-    unawaited(_loadMcpServers(loader));
-  }
-
-  Future<void> _loadMcpServers(
-    Future<List<McpServer>> Function() loader,
-  ) async {
-    setState(() => _isLoadingMcpServers = true);
-    try {
-      final servers = await loader();
-      if (!mounted) return;
-      setState(() {
-        _mcpServers = List<McpServer>.unmodifiable(
-          List<McpServer>.of(servers)
-            ..sort((left, right) => left.name.compareTo(right.name)),
-        );
-      });
-    } on Object {
-      if (mounted) setState(() => _mcpServers = const []);
-    } finally {
-      if (mounted) setState(() => _isLoadingMcpServers = false);
-    }
   }
 
   @override
@@ -390,14 +348,7 @@ class _AddBotPageState extends State<AddBotPage> {
         Bot.parameterSupportsMcp: _selectedModelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _selectedModelSupportsAutomaticSkillActivation,
-        Bot.parameterMcpServerIds:
-            _selectedModelSupportsMcp
-                ? (_selectedMcpServerIds.toList()..sort())
-                : const <String>[],
-        Bot.parameterDisabledMcpServerIds:
-            _selectedModelSupportsMcp
-                ? (_disabledMcpServerIds.toList()..sort())
-                : const <String>[],
+        Bot.parameterMcpTools: const <Map<String, Object?>>[],
       },
       createTimestamp: DateTime.now(),
       modifyTimestamp: DateTime.now(),
@@ -508,12 +459,6 @@ class _AddBotPageState extends State<AddBotPage> {
                     _buildSystemPromptInput(fontSize),
                   ],
                 ),
-                if (_selectedModelSupportsMcp) ...[
-                  const SizedBox(height: 16),
-                  buildSectionContainer(context, S.of(context).mcpServers, [
-                    _buildMcpServerPicker(),
-                  ]),
-                ],
               ],
             ),
           ),
@@ -615,17 +560,6 @@ class _AddBotPageState extends State<AddBotPage> {
                                 'add-bot-model-section',
                               ),
                             ),
-                            if (_selectedModelSupportsMcp) ...[
-                              const SizedBox(height: 20),
-                              _buildDesktopSection(
-                                context,
-                                S.of(context).mcpServers,
-                                [_buildMcpServerPicker()],
-                                sectionKey: const ValueKey<String>(
-                                  'add-bot-mcp-section',
-                                ),
-                              ),
-                            ],
                             if (widget.skillViewModel?.supportsAutoActivation ??
                                 false) ...[
                               const SizedBox(height: 20),
@@ -1730,22 +1664,6 @@ class _AddBotPageState extends State<AddBotPage> {
   void _syncSelectedModelSkillSupport() {
     widget.skillViewModel?.updateSupportsAutoActivation(
       _selectedModelSupportsAutomaticSkillActivation,
-    );
-  }
-
-  Widget _buildMcpServerPicker() {
-    return BotMcpServerPicker(
-      servers: _mcpServers,
-      selectedServerIds: _selectedMcpServerIds,
-      disabledServerIds: _disabledMcpServerIds,
-      isLoading: _isLoadingMcpServers,
-      embedded: widget.embedded,
-      onChanged: (serverIds, disabledServerIds) {
-        setState(() {
-          _selectedMcpServerIds = serverIds;
-          _disabledMcpServerIds = disabledServerIds;
-        });
-      },
     );
   }
 

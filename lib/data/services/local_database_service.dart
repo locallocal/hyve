@@ -281,40 +281,18 @@ class LocalDatabaseService {
     });
   }
 
-  Future<List<Map<String, Object?>>> loadMcpTools(
-    String serverId, {
-    bool enabledOnly = false,
-  }) async {
+  Future<List<Map<String, Object?>>> loadMcpTools(String serverId) async {
     final database = await _databaseProvider();
     return database.rawQuery(
       '''
       SELECT tools.*, servers.namespace AS server_namespace
       FROM mcp_tools AS tools
       INNER JOIN mcp_servers AS servers ON servers.id = tools.server_id
-      WHERE tools.server_id = ?${enabledOnly ? ' AND tools.enabled = 1' : ''}
+      WHERE tools.server_id = ?
       ORDER BY tools.remote_name ASC
       ''',
       [serverId],
     );
-  }
-
-  Future<bool> isMcpToolEnabled(String serverId, String remoteName) async {
-    final database = await _databaseProvider();
-    final rows = await database.rawQuery(
-      '''
-      SELECT 1
-      FROM mcp_tools AS tools
-      INNER JOIN mcp_servers AS servers ON servers.id = tools.server_id
-      WHERE tools.server_id = ?
-        AND tools.remote_name = ?
-        AND tools.enabled = 1
-        AND servers.enabled = 1
-        AND servers.connection_status = 'connected'
-      LIMIT 1
-      ''',
-      [serverId, remoteName],
-    );
-    return rows.isNotEmpty;
   }
 
   Future<void> replaceMcpCatalog(
@@ -333,27 +311,6 @@ class LocalDatabaseService {
         await transaction.insert('mcp_tools', values);
       }
     });
-  }
-
-  Future<void> setMcpToolEnabled(
-    String serverId,
-    String remoteName, {
-    required bool enabled,
-    required DateTime updatedAt,
-  }) async {
-    final database = await _databaseProvider();
-    final updated = await database.update(
-      'mcp_tools',
-      {
-        'enabled': enabled ? 1 : 0,
-        'updated_at': updatedAt.millisecondsSinceEpoch,
-      },
-      where: 'server_id = ? AND remote_name = ?',
-      whereArgs: [serverId, remoteName],
-    );
-    if (updated != 1) {
-      throw StateError('The MCP Tool no longer exists.');
-    }
   }
 
   Future<void> _upsertMcpServer(

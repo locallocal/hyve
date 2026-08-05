@@ -145,7 +145,6 @@ final class McpServersViewModel extends ChangeNotifier {
         name: draft.name.trim(),
         namespace: draft.namespace.trim().toLowerCase(),
         transport: transport,
-        enabled: existing?.enabled ?? false,
         remoteServerName: existing?.remoteServerName ?? '',
         remoteServerVersion: existing?.remoteServerVersion ?? '',
         capabilities: existing?.capabilities ?? const McpServerCapabilities(),
@@ -160,18 +159,6 @@ final class McpServersViewModel extends ChangeNotifier {
         draft: draft,
         environment: environment,
       );
-      if (existing == null) {
-        final persisted = await _repository.getServer(id);
-        if (persisted == null) {
-          throw const McpException(
-            'mcp_server_not_found',
-            message: 'The saved MCP server could not be loaded.',
-          );
-        }
-        await _repository.saveServer(
-          persisted.copyWith(enabled: true, updatedAt: _now()),
-        );
-      }
       await _runForServer(id, () => _catalogService.refreshServer(id));
       return _error == null;
     } on Object catch (error) {
@@ -188,45 +175,6 @@ final class McpServersViewModel extends ChangeNotifier {
       () => _catalogService.refreshServer(serverId),
     );
     return _error == null;
-  }
-
-  Future<void> setServerEnabled(McpServer server, bool enabled) async {
-    _error = null;
-    try {
-      final updated = server.copyWith(
-        enabled: enabled,
-        updatedAt: _now(),
-        status: McpConnectionStatus.disconnected,
-      );
-      await _repository.saveServer(updated);
-      if (enabled) {
-        await _runForServer(
-          server.id,
-          () => _catalogService.refreshServer(server.id),
-        );
-      } else {
-        await _catalogService.disconnect(updated);
-        await load();
-      }
-    } on Object catch (error) {
-      _error = error;
-      await _reloadPreservingError();
-    }
-  }
-
-  Future<void> setToolEnabled(McpToolDescriptor tool, bool enabled) async {
-    _error = null;
-    try {
-      await _repository.setToolEnabled(
-        tool.serverId,
-        tool.remoteName,
-        enabled: enabled,
-      );
-      await _catalogService.hydrateFromCache();
-    } on Object catch (error) {
-      _error = error;
-    }
-    await _reloadPreservingError();
   }
 
   Future<void> deleteServer(McpServer server) async {

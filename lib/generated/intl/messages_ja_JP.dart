@@ -106,6 +106,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "botDeleted": m1,
     "botGreeting": m2,
     "botIsTyping": m3,
+    "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
+      "このエージェントで MCP ツールを有効にします。ツール呼び出しには既定で確認が必要です。",
+    ),
     "botName": MessageLookupByLibrary.simpleMessage("ボット名"),
     "botSkills": MessageLookupByLibrary.simpleMessage("スキル"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
@@ -241,9 +244,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "必要なときにメッセージ入力欄からスキルを選択します。",
     ),
+    "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage("確認不要"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP サーバー"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
-      "リモート MCP ツールに接続し、エージェントが使用できるツールを管理します。",
+      "MCP サーバーに接続してツールカタログを検出します。ツールはエージェント作成後に設定します。",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("メッセージを入力..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("スキル"),
@@ -253,6 +257,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "name": MessageLookupByLibrary.simpleMessage("名前"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("名前が更新されました"),
     "newChat": MessageLookupByLibrary.simpleMessage("新しいチャット"),
+    "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
+      "接続済みの利用可能な MCP ツールはありません。",
+    ),
     "noBotSkillsAdded": MessageLookupByLibrary.simpleMessage("スキルが追加されていません"),
     "noBotSkillsAddedDescription": MessageLookupByLibrary.simpleMessage(
       "このボットに必要なインストール済みスキルを追加します。",

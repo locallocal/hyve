@@ -98,11 +98,27 @@ void main() {
       description: 'Requires the MCP task protocol.',
       inputSchema: const {'type': 'object'},
       taskSupport: McpToolTaskSupport.required,
-      enabled: true,
       updatedAt: DateTime(2026),
     );
 
     expect(descriptor.isSupportedByClient, isFalse);
+  });
+
+  test('MCP Tool configuration is strict and round-trips approval policy', () {
+    final configuration = McpToolConfiguration(
+      serverId: 'server-1',
+      remoteName: 'search',
+      requiresApproval: false,
+    );
+
+    expect(McpToolConfiguration.fromMap(configuration.toMap()), configuration);
+    expect(
+      () => McpToolConfiguration.fromMap(const {
+        'server_id': 'server-1',
+        'remote_name': 'search',
+      }),
+      throwsFormatException,
+    );
   });
 
   test('Dynamic Tool registry atomically replaces remote Tools', () {
@@ -165,6 +181,34 @@ void main() {
     ).evaluate(definition, call, context);
     expect(enabled.outcome, ToolPolicyOutcome.requireApproval);
     expect(enabled.reason, 'skill_script_requires_approval');
+  });
+
+  test('an explicitly exempt MCP Tool bypasses approval', () {
+    final definition = ToolDefinition(
+      name: 'mcp.example.write',
+      description: 'Write remotely.',
+      inputSchema: const {'type': 'object'},
+      source: ToolSource.mcp,
+      riskLevel: ToolRiskLevel.destructive,
+      capabilities: const {
+        ToolCapability.network,
+        ToolCapability.externalWrite,
+      },
+    );
+    final decision = const DefaultToolPolicy().evaluate(
+      definition,
+      ToolCallRequest(callId: 'call-1', name: definition.name),
+      ToolPolicyContext(
+        runId: 'run-1',
+        chatId: 'chat-1',
+        botId: 'bot-1',
+        requestedToolNames: {definition.name},
+        approvalExemptToolNames: {definition.name},
+      ),
+    );
+
+    expect(decision.outcome, ToolPolicyOutcome.allow);
+    expect(decision.reason, 'bot_mcp_tool_approval_exempt');
   });
 }
 

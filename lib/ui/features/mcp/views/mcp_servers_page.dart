@@ -266,8 +266,6 @@ class _McpServersPageState extends State<McpServersPage> {
                   onEdit: () => _showEditor(server),
                   onRefresh: () => _viewModel.refresh(server.id),
                   onDelete: () => _confirmDelete(server),
-                  onEnabledChanged:
-                      (enabled) => _viewModel.setServerEnabled(server, enabled),
                 ),
               ),
           ],
@@ -354,9 +352,6 @@ class _McpServersPageState extends State<McpServersPage> {
                 onEdit: () => _showEditor(server),
                 onRefresh: () => _viewModel.refresh(server.id),
                 onDelete: () => _confirmDelete(server),
-                onEnabledChanged:
-                    (enabled) => _viewModel.setServerEnabled(server, enabled),
-                onToolEnabledChanged: _viewModel.setToolEnabled,
               ),
               const SizedBox(height: 12),
             ],
@@ -400,8 +395,6 @@ class _McpServersPageState extends State<McpServersPage> {
               return _McpServerDetailsDialog(
                 server: currentServer,
                 tools: _viewModel.toolsFor(server.id),
-                busy: _viewModel.busyServerId == server.id,
-                onToolEnabledChanged: _viewModel.setToolEnabled,
               );
             },
           ),
@@ -532,7 +525,6 @@ class _DesktopServerCard extends StatefulWidget {
     required this.onEdit,
     required this.onRefresh,
     required this.onDelete,
-    required this.onEnabledChanged,
   });
 
   final McpServer server;
@@ -542,7 +534,6 @@ class _DesktopServerCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onRefresh;
   final VoidCallback onDelete;
-  final ValueChanged<bool> onEnabledChanged;
 
   @override
   State<_DesktopServerCard> createState() => _DesktopServerCardState();
@@ -725,15 +716,6 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
-          ShadSwitch(
-            key: ValueKey<String>(
-              'desktop-mcp-server-toggle-${widget.server.id}',
-            ),
-            value: widget.server.enabled,
-            enabled: !widget.busy,
-            onChanged: widget.onEnabledChanged,
-          ),
         ],
       ),
       description: Text(
@@ -785,17 +767,10 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
 }
 
 class _McpServerDetailsDialog extends StatelessWidget {
-  const _McpServerDetailsDialog({
-    required this.server,
-    required this.tools,
-    required this.busy,
-    required this.onToolEnabledChanged,
-  });
+  const _McpServerDetailsDialog({required this.server, required this.tools});
 
   final McpServer server;
   final List<McpToolDescriptor> tools;
-  final bool busy;
-  final Future<void> Function(McpToolDescriptor, bool) onToolEnabledChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -870,9 +845,7 @@ class _McpServerDetailsDialog extends StatelessWidget {
                     key: ValueKey<String>(
                       'desktop-mcp-tool-${server.id}-${tools[index].remoteName}',
                     ),
-                    serverEnabled: server.enabled && !busy,
                     tool: tools[index],
-                    onEnabledChanged: onToolEnabledChanged,
                   ),
                   if (index != tools.length - 1) const SizedBox(height: 8),
                 ],
@@ -885,16 +858,9 @@ class _McpServerDetailsDialog extends StatelessWidget {
 }
 
 class _DesktopMcpToolCard extends StatelessWidget {
-  const _DesktopMcpToolCard({
-    super.key,
-    required this.serverEnabled,
-    required this.tool,
-    required this.onEnabledChanged,
-  });
+  const _DesktopMcpToolCard({super.key, required this.tool});
 
-  final bool serverEnabled;
   final McpToolDescriptor tool;
-  final Future<void> Function(McpToolDescriptor, bool) onEnabledChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -961,15 +927,6 @@ class _DesktopMcpToolCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          ShadSwitch(
-            key: ValueKey<String>(
-              'desktop-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
-            ),
-            value: tool.enabled,
-            enabled: serverEnabled && supported,
-            onChanged: (enabled) => onEnabledChanged(tool, enabled),
-          ),
         ],
       ),
     );
@@ -984,8 +941,6 @@ class _ServerCard extends StatelessWidget {
     required this.onEdit,
     required this.onRefresh,
     required this.onDelete,
-    required this.onEnabledChanged,
-    required this.onToolEnabledChanged,
   });
 
   final McpServer server;
@@ -994,8 +949,6 @@ class _ServerCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onRefresh;
   final VoidCallback onDelete;
-  final ValueChanged<bool> onEnabledChanged;
-  final Future<void> Function(McpToolDescriptor, bool) onToolEnabledChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1032,10 +985,7 @@ class _ServerCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Switch(
-          value: server.enabled,
-          onChanged: busy ? null : onEnabledChanged,
-        ),
+        trailing: Icon(_mcpStatusIcon(server.status)),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -1070,12 +1020,7 @@ class _ServerCard extends StatelessWidget {
             )
           else
             for (final tool in tools)
-              SwitchListTile(
-                value: tool.enabled,
-                onChanged:
-                    !server.enabled || !tool.isSupportedByClient
-                        ? null
-                        : (enabled) => onToolEnabledChanged(tool, enabled),
+              ListTile(
                 title: Text(tool.title.isEmpty ? tool.remoteName : tool.title),
                 subtitle: Text(
                   tool.isSupportedByClient
@@ -1084,7 +1029,7 @@ class _ServerCard extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
-                secondary: Icon(
+                trailing: Icon(
                   tool.annotations.destructiveHint
                       ? Icons.warning_amber_rounded
                       : tool.annotations.readOnlyHint

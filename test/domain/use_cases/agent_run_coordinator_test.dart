@@ -247,6 +247,46 @@ void main() {
       );
     });
 
+    test('runs an approval-exempt MCP Tool without prompting', () async {
+      final tool = _FakeTool(
+        name: 'mcp.notes.save',
+        source: ToolSource.mcp,
+        riskLevel: ToolRiskLevel.write,
+        capabilities: const {ToolCapability.externalWrite},
+      );
+      final session = _FakeModelSession([
+        [
+          ToolCallRequested(
+            callId: 'write-1',
+            name: tool.definition.name,
+            arguments: const {'value': 2},
+          ),
+          const ModelTurnCompleted(stopReason: 'tool_calls'),
+        ],
+        [
+          const TextDelta('Saved.'),
+          const ModelTurnCompleted(stopReason: 'stop'),
+        ],
+      ]);
+      final coordinator = AgentRunCoordinator(
+        toolRegistry: StaticToolRegistry([tool]),
+        toolPolicy: const DefaultToolPolicy(),
+        approvalHandler: const _FixedApprovalHandler(ToolApprovalDecision.deny),
+      );
+
+      final result = await coordinator.run(
+        provider: _FakeProvider(session),
+        request: _request(
+          toolNames: {tool.definition.name},
+          approvalExemptToolNames: {tool.definition.name},
+        ),
+      );
+
+      expect(result.status, AgentRunStatus.completed);
+      expect(tool.executions, 1);
+      expect(result.toolInvocations.single.approvalDecision, isEmpty);
+    });
+
     test('cancels approval wait and provider session', () async {
       final tool = _FakeTool(name: 'save_note', riskLevel: ToolRiskLevel.write);
       final session = _FakeModelSession([
@@ -377,6 +417,7 @@ void main() {
 
 AgentRunRequest _request({
   required Set<String> toolNames,
+  Set<String> approvalExemptToolNames = const {},
   AgentCancellationToken? cancellationToken,
 }) {
   return AgentRunRequest(
@@ -385,6 +426,7 @@ AgentRunRequest _request({
     botId: 'bot-1',
     messages: [ChatMessage(role: 'user', content: 'help')],
     requestedToolNames: toolNames,
+    approvalExemptToolNames: approvalExemptToolNames,
     cancellationToken: cancellationToken,
   );
 }
@@ -392,6 +434,7 @@ AgentRunRequest _request({
 final class _FakeTool implements ExecutableTool {
   _FakeTool({
     required String name,
+    ToolSource source = ToolSource.builtIn,
     ToolRiskLevel riskLevel = ToolRiskLevel.readOnly,
     Set<ToolCapability> capabilities = const {ToolCapability.compute},
   }) : definition = ToolDefinition(
@@ -413,7 +456,7 @@ final class _FakeTool implements ExecutableTool {
            'required': ['result'],
            'additionalProperties': false,
          },
-         source: ToolSource.builtIn,
+         source: source,
          riskLevel: riskLevel,
          capabilities: capabilities,
        );

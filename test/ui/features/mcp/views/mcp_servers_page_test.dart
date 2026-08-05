@@ -144,7 +144,9 @@ void main() {
         id: 'github',
         name: 'GitHub',
         namespace: 'github',
-        endpoint: Uri.parse('https://example.com/github/mcp'),
+        transport: McpStreamableHttpServerTransport(
+          endpoint: Uri.parse('https://example.com/github/mcp'),
+        ),
         status: McpConnectionStatus.connected,
         createdAt: now,
         updatedAt: now,
@@ -153,9 +155,10 @@ void main() {
         id: 'filesystem',
         name: 'Filesystem',
         namespace: 'files',
-        transportType: McpTransportType.stdio,
-        command: 'npx',
-        arguments: const ['-y', '@example/filesystem-mcp'],
+        transport: McpStdioServerTransport(
+          command: 'npx',
+          arguments: const ['-y', '@example/filesystem-mcp'],
+        ),
         createdAt: now,
         updatedAt: now,
       ),
@@ -394,7 +397,9 @@ void main() {
       id: 'github',
       name: 'GitHub',
       namespace: 'github',
-      endpoint: Uri.parse('https://example.com/github/mcp'),
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://example.com/github/mcp'),
+      ),
       status: McpConnectionStatus.connected,
       createdAt: now,
       updatedAt: now,
@@ -730,7 +735,7 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   }
 
   @override
-  Future<List<McpServer>> getServers({bool forceRefresh = false}) async {
+  Future<List<McpServer>> getServers() async {
     if (getServersError case final error?) throw error;
     return servers;
   }
@@ -747,10 +752,13 @@ final class _FakeMcpServerRepository implements McpServerRepository {
   }
 
   @override
-  Future<void> replaceTools(
-    String serverId,
+  Future<void> replaceCatalog(
+    McpServer server,
     List<McpToolDescriptor> tools,
   ) async {}
+
+  @override
+  Future<bool> isToolEnabled(String serverId, String remoteName) async => false;
 
   @override
   Future<void> saveServer(McpServer server) async {}
@@ -792,13 +800,7 @@ final class _UnusedMcpClient implements McpClient {
   Future<void> disconnect(McpServer server) => throw UnimplementedError();
 
   @override
-  Future<McpInitializeResult> initialize(
-    McpServer server, {
-    AgentCancellationToken? cancellationToken,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<List<McpToolDescriptor>> listTools(
+  Future<McpServerCatalog> discoverTools(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) => throw UnimplementedError();

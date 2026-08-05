@@ -55,7 +55,7 @@ void main() {
                   'tools': [
                     {
                       'name': secondPage ? 'create_note' : 'search_notes',
-                      'title': secondPage ? 'Create note' : 'Search notes',
+                      if (secondPage) 'title': 'Create note',
                       'description': 'Example Tool',
                       'inputSchema': {
                         'type': 'object',
@@ -64,8 +64,12 @@ void main() {
                         },
                       },
                       'annotations': {
+                        if (!secondPage) 'title': 'Search notes',
                         'readOnlyHint': !secondPage,
                         'destructiveHint': secondPage,
+                      },
+                      'execution': {
+                        'taskSupport': secondPage ? 'required' : 'optional',
                       },
                     },
                   ],
@@ -77,6 +81,9 @@ void main() {
             );
           case 'tools/call':
             return http.Response(
+              'event: endpoint\n'
+              'id: prime-1\n'
+              'data:\n\n'
               'event: message\n'
               'data: ${jsonEncode({
                 'jsonrpc': '2.0',
@@ -104,26 +111,32 @@ void main() {
 
       final credentials =
           _MemoryCredentialStore()
-            ..value = const McpCredential(accessToken: 'secret-token');
+            ..value = McpCredential(accessToken: 'secret-token');
       final client = McpClientService(
-        transport: McpHttpTransport(
-          endpointPolicy: McpEndpointPolicy(
-            resolver: (_) async => [InternetAddress('8.8.8.8')],
+        transports: [
+          McpHttpTransport(
+            endpointPolicy: McpEndpointPolicy(
+              resolver: (_) async => [InternetAddress('8.8.8.8')],
+            ),
+            clientFactory: () => MockClient(handler),
           ),
-          clientFactory: () => MockClient(handler),
-        ),
+          McpStdioTransport(),
+        ],
         credentialStore: credentials,
       );
       final server = _server();
 
-      final tools = await client.listTools(server);
+      final tools = (await client.discoverTools(server)).tools;
 
       expect(tools.map((tool) => tool.remoteName), [
         'search_notes',
         'create_note',
       ]);
       expect(tools.first.annotations.readOnlyHint, isTrue);
+      expect(tools.first.title, 'Search notes');
       expect(tools.last.annotations.destructiveHint, isTrue);
+      expect(tools.last.taskSupport, McpToolTaskSupport.required);
+      expect(tools.last.isSupportedByClient, isFalse);
       expect(
         requests
             .skip(1)
@@ -155,33 +168,167 @@ void main() {
     },
   );
 
+  test('rejects protocol revisions other than the current contract', () async {
+    final client = McpClientService(
+      transports: [
+        McpHttpTransport(
+          endpointPolicy: McpEndpointPolicy(
+            resolver: (_) async => [InternetAddress('8.8.8.8')],
+          ),
+          clientFactory:
+              () => MockClient((request) async {
+                final payload =
+                    jsonDecode(request.body) as Map<String, dynamic>;
+                return http.Response(
+                  jsonEncode({
+                    'jsonrpc': '2.0',
+                    'id': payload['id'],
+                    'result': {
+                      'protocolVersion': '2025-06-18',
+                      'capabilities': <String, Object?>{},
+                      'serverInfo': {'name': 'Old MCP', 'version': '1.0.0'},
+                    },
+                  }),
+                  200,
+                  headers: {'content-type': 'application/json'},
+                );
+              }),
+        ),
+        McpStdioTransport(),
+      ],
+      credentialStore:
+          _MemoryCredentialStore()
+            ..value = McpCredential(accessToken: 'secret-token'),
+    );
+
+    await expectLater(
+      client.discoverTools(_server()),
+      throwsA(
+        isA<McpException>().having(
+          (error) => error.code,
+          'code',
+          'mcp_unsupported_protocol',
+        ),
+      ),
+    );
+  });
+
+  test('reinitializes once when an HTTP session expires', () async {
+    var initializeCount = 0;
+    var toolCallCount = 0;
+    Future<http.Response> handler(http.Request request) async {
+      if (request.method == 'DELETE') return http.Response('', 404);
+      final payload = jsonDecode(request.body) as Map<String, dynamic>;
+      switch (payload['method']) {
+        case 'initialize':
+          initializeCount += 1;
+          return http.Response(
+            jsonEncode({
+              'jsonrpc': '2.0',
+              'id': payload['id'],
+              'result': {
+                'protocolVersion': '2025-11-25',
+                'capabilities': {'tools': <String, Object?>{}},
+                'serverInfo': {'name': 'Session MCP', 'version': '1.0.0'},
+              },
+            }),
+            200,
+            headers: {
+              'content-type': 'application/json',
+              'mcp-session-id': 'session-$initializeCount',
+            },
+          );
+        case 'notifications/initialized':
+          return http.Response('', 202);
+        case 'tools/list':
+          return http.Response(
+            jsonEncode({
+              'jsonrpc': '2.0',
+              'id': payload['id'],
+              'result': {'tools': <Object?>[]},
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        case 'tools/call':
+          toolCallCount += 1;
+          if (toolCallCount == 1) return http.Response('', 404);
+          return http.Response(
+            jsonEncode({
+              'jsonrpc': '2.0',
+              'id': payload['id'],
+              'result': {
+                'content': [
+                  {'type': 'text', 'text': 'recovered'},
+                ],
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+      }
+      return http.Response('', 500);
+    }
+
+    final client = McpClientService(
+      transports: [
+        McpHttpTransport(
+          endpointPolicy: McpEndpointPolicy(
+            resolver: (_) async => [InternetAddress('8.8.8.8')],
+          ),
+          clientFactory: () => MockClient(handler),
+        ),
+        McpStdioTransport(),
+      ],
+      credentialStore:
+          _MemoryCredentialStore()
+            ..value = McpCredential(accessToken: 'secret-token'),
+    );
+    final server = _server();
+    await client.discoverTools(server);
+
+    final result = await client.callTool(
+      server: server,
+      remoteName: 'recover',
+      arguments: const {},
+      cancellationToken: AgentCancellationToken(),
+    );
+
+    expect(result.content, 'recovered');
+    expect(initializeCount, 2);
+    expect(toolCallCount, 2);
+  });
+
   test('surfaces OAuth metadata without including credential values', () async {
     final credentials =
         _MemoryCredentialStore()
-          ..value = const McpCredential(accessToken: 'do-not-leak');
+          ..value = McpCredential(accessToken: 'do-not-leak');
     final client = McpClientService(
-      transport: McpHttpTransport(
-        endpointPolicy: McpEndpointPolicy(
-          resolver: (_) async => [InternetAddress('8.8.8.8')],
-        ),
-        clientFactory:
-            () => MockClient(
-              (_) async => http.Response(
-                '',
-                401,
-                headers: {
-                  'www-authenticate':
-                      'Bearer resource_metadata="https://auth.example.com/.well-known/oauth-protected-resource"',
-                },
+      transports: [
+        McpHttpTransport(
+          endpointPolicy: McpEndpointPolicy(
+            resolver: (_) async => [InternetAddress('8.8.8.8')],
+          ),
+          clientFactory:
+              () => MockClient(
+                (_) async => http.Response(
+                  '',
+                  401,
+                  headers: {
+                    'www-authenticate':
+                        'Bearer resource_metadata="https://auth.example.com/.well-known/oauth-protected-resource"',
+                  },
+                ),
               ),
-            ),
-      ),
+        ),
+        McpStdioTransport(),
+      ],
       credentialStore: credentials,
     );
 
     Object? caught;
     try {
-      await client.initialize(_server());
+      await client.discoverTools(_server());
     } on Object catch (error) {
       caught = error;
     }
@@ -203,18 +350,18 @@ void main() {
     () async {
       final credentials =
           _MemoryCredentialStore()
-            ..value = const McpCredential(
+            ..value = McpCredential(
               environment: {'STARS_MCP_TEST_VALUE': 'secure-environment'},
             );
       final client = McpClientService(
-        transport: McpHttpTransport(
-          endpointPolicy: McpEndpointPolicy(
-            resolver: (_) async => [InternetAddress('8.8.8.8')],
+        transports: [
+          McpHttpTransport(
+            endpointPolicy: McpEndpointPolicy(
+              resolver: (_) async => [InternetAddress('8.8.8.8')],
+            ),
           ),
-        ),
-        stdioTransport: McpStdioTransport(
-          requestTimeout: const Duration(seconds: 10),
-        ),
+          McpStdioTransport(requestTimeout: const Duration(seconds: 10)),
+        ],
         credentialStore: credentials,
       );
       final timestamp = DateTime(2026, 7, 30);
@@ -222,18 +369,19 @@ void main() {
         id: 'stdio-server',
         name: 'Fixture',
         namespace: 'fixture',
-        transportType: McpTransportType.stdio,
-        command: 'dart',
-        arguments: const [
-          'test/fixtures/mcp_stdio_server.dart',
-          'fixture-argument',
-        ],
+        transport: McpStdioServerTransport(
+          command: 'dart',
+          arguments: const [
+            'test/fixtures/mcp_stdio_server.dart',
+            'fixture-argument',
+          ],
+        ),
         createdAt: timestamp,
         updatedAt: timestamp,
       );
       addTearDown(() => client.disconnect(server));
 
-      final tools = await client.listTools(server);
+      final tools = (await client.discoverTools(server)).tools;
       final result = await client.callTool(
         server: server,
         remoteName: 'echo',
@@ -254,8 +402,10 @@ McpServer _server() {
     id: 'server-1',
     name: 'Example',
     namespace: 'example',
-    endpoint: Uri.parse('https://mcp.example.com/mcp'),
-    authType: McpAuthType.oauthAccessToken,
+    transport: McpStreamableHttpServerTransport(
+      endpoint: Uri.parse('https://mcp.example.com/mcp'),
+      authType: McpAuthType.oauthAccessToken,
+    ),
     createdAt: timestamp,
     updatedAt: timestamp,
   );

@@ -2,26 +2,36 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:stars/data/services/mcp/mcp_http_transport.dart';
+import 'package:stars/data/services/mcp/mcp_transport.dart';
 import 'package:stars/domain/models/models.dart';
 
 /// Runs a local MCP server without invoking a shell and exchanges one JSON-RPC
 /// message per line over stdin/stdout.
-final class McpStdioTransport {
-  McpStdioTransport({this.requestTimeout = const Duration(seconds: 30)});
+final class McpStdioTransport implements McpTransport {
+  McpStdioTransport({
+    this.requestTimeout = const Duration(seconds: 30),
+    this.maxMessageCharacters = 4 * 1024 * 1024,
+  }) : assert(maxMessageCharacters > 0);
 
   final Duration requestTimeout;
+  final int maxMessageCharacters;
   final Map<String, _McpStdioSession> _sessions = {};
 
-  Future<McpTransportResponse> post({
+  @override
+  McpTransportType get type => McpTransportType.stdio;
+
+  @override
+  Future<McpTransportResponse> send({
     required McpServer server,
     required Map<String, Object?> payload,
     required McpCredential? credential,
     required AgentCancellationToken cancellationToken,
+    required String? protocolVersion,
+    required String? sessionId,
   }) async {
-    if (server.transportType != McpTransportType.stdio) {
+    if (server.transport is! McpStdioServerTransport) {
       throw ArgumentError.value(
-        server.transportType,
+        server.transport,
         'server',
         'A stdio MCP transport requires a stdio server.',
       );
@@ -38,10 +48,7 @@ final class McpStdioTransport {
         cancellationToken: cancellationToken,
         timeout: requestTimeout,
       );
-      return McpTransportResponse(
-        payload: response,
-        statusCode: response == null ? 202 : 200,
-      );
+      return McpTransportResponse(payload: response);
     } on TimeoutException catch (error, stackTrace) {
       await close(server.id);
       Error.throwWithStackTrace(
@@ -79,6 +86,14 @@ final class McpStdioTransport {
     await Future.wait(sessions.map((session) => session.close()));
   }
 
+  @override
+  Future<void> disconnect({
+    required McpServer server,
+    required McpCredential? credential,
+    required String? protocolVersion,
+    required String? sessionId,
+  }) => close(server.id);
+
   Future<_McpStdioSession> _sessionFor(
     McpServer server,
     McpCredential? credential, {
@@ -102,9 +117,10 @@ final class McpStdioTransport {
 
     final Process process;
     try {
+      final configuration = server.transport as McpStdioServerTransport;
       process = await Process.start(
-        server.command.trim(),
-        server.arguments,
+        configuration.command.trim(),
+        configuration.arguments,
         environment: environment,
         includeParentEnvironment: true,
         runInShell: false,
@@ -123,6 +139,7 @@ final class McpStdioTransport {
     session = _McpStdioSession(
       process: process,
       fingerprint: fingerprint,
+      maxMessageCharacters: maxMessageCharacters,
       onExited: () {
         if (identical(_sessions[server.id], session)) {
           _sessions.remove(server.id);
@@ -134,11 +151,12 @@ final class McpStdioTransport {
   }
 
   String _fingerprint(McpServer server, Map<String, String> environment) {
+    final configuration = server.transport as McpStdioServerTransport;
     final sortedEnvironment = environment.entries.toList(growable: false)
       ..sort((left, right) => left.key.compareTo(right.key));
     return jsonEncode({
-      'command': server.command.trim(),
-      'arguments': server.arguments,
+      'command': configuration.command.trim(),
+      'arguments': configuration.arguments,
       'environment': {
         for (final entry in sortedEnvironment) entry.key: entry.value,
       },
@@ -150,11 +168,13 @@ final class _McpStdioSession {
   _McpStdioSession({
     required this.process,
     required this.fingerprint,
+    required this.maxMessageCharacters,
     required this.onExited,
   });
 
   final Process process;
   final String fingerprint;
+  final int maxMessageCharacters;
   final void Function() onExited;
   final Map<String, Completer<Map<String, Object?>>> _pending = {};
   StreamSubscription<String>? _stdoutSubscription;
@@ -253,6 +273,9 @@ final class _McpStdioSession {
   void _handleLine(String line) {
     if (_closed || line.trim().isEmpty) return;
     try {
+      if (line.length > maxMessageCharacters) {
+        throw const FormatException('MCP stdio message exceeds the limit.');
+      }
       final decoded = jsonDecode(line);
       if (decoded is! Map) throw const FormatException();
       final response = decoded.map(

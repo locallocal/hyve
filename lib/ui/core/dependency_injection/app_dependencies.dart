@@ -159,8 +159,10 @@ class AppDependencies {
     );
     final mcpCredentialStore = SecureMcpCredentialStore();
     final mcpClient = McpClientService(
-      transport: McpHttpTransport(endpointPolicy: McpEndpointPolicy()),
-      stdioTransport: McpStdioTransport(),
+      transports: [
+        McpHttpTransport(endpointPolicy: McpEndpointPolicy()),
+        McpStdioTransport(),
+      ],
       credentialStore: mcpCredentialStore,
     );
     final composeChatTurn = ComposeChatTurn(

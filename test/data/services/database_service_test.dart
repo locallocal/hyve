@@ -129,46 +129,14 @@ void main() {
     ]);
   });
 
-  test('version 9 migration creates MCP server and Tool catalogs', () async {
-    final database = await databaseFactoryFfi.openDatabase(
-      inMemoryDatabasePath,
-    );
-    addTearDown(database.close);
-
-    await DatabaseService.migrateSchema(database, 8, 9);
-
-    final tables = await database.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type = 'table'",
-    );
-    expect(
-      tables.map((table) => table['name']),
-      containsAll(<String>['mcp_servers', 'mcp_tools']),
-    );
-    final serverColumns = await database.rawQuery(
-      'PRAGMA table_info(mcp_servers)',
-    );
-    expect(
-      serverColumns.map((column) => column['name']),
-      containsAll(<String>[
-        'namespace',
-        'endpoint_uri',
-        'auth_type',
-        'capabilities_json',
-        'connection_status',
-      ]),
-    );
-    expect(
-      serverColumns.map((column) => column['name']),
-      isNot(contains('access_token')),
-    );
-  });
-
-  test('version 10 migration adds stdio MCP process settings', () async {
-    final database = await databaseFactoryFfi.openDatabase(
-      inMemoryDatabasePath,
-    );
-    addTearDown(database.close);
-    await database.execute('''
+  test(
+    'version 12 replaces the MCP schema without migrating old data',
+    () async {
+      final database = await databaseFactoryFfi.openDatabase(
+        inMemoryDatabasePath,
+      );
+      addTearDown(database.close);
+      await database.execute('''
       CREATE TABLE mcp_servers (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -187,27 +155,46 @@ void main() {
         updated_at INTEGER NOT NULL
       )
     ''');
-    await database.insert('mcp_servers', <String, Object?>{
-      'id': 'legacy-http',
-      'name': 'Legacy',
-      'namespace': 'legacy',
-      'endpoint_uri': 'https://example.com/mcp',
-      'created_at': 0,
-      'updated_at': 0,
-    });
+      await database.execute('''
+      CREATE TABLE mcp_tools (
+        server_id TEXT NOT NULL,
+        remote_name TEXT NOT NULL,
+        PRIMARY KEY (server_id, remote_name)
+      )
+    ''');
+      await database.insert('mcp_servers', <String, Object?>{
+        'id': 'legacy-http',
+        'name': 'Legacy',
+        'namespace': 'legacy',
+        'endpoint_uri': 'https://example.com/mcp',
+        'created_at': 0,
+        'updated_at': 0,
+      });
+      await database.insert('mcp_tools', <String, Object?>{
+        'server_id': 'legacy-http',
+        'remote_name': 'legacy-tool',
+      });
 
-    await DatabaseService.migrateSchema(database, 9, 10);
+      await DatabaseService.migrateSchema(database, 11, 12);
 
-    final columns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
-    expect(
-      columns.map((column) => column['name']),
-      containsAll(<String>['transport_type', 'command', 'arguments_json']),
-    );
-    final row = (await database.query('mcp_servers')).single;
-    expect(row['transport_type'], 'streamableHttp');
-    expect(row['command'], '');
-    expect(row['arguments_json'], '[]');
-  });
+      final columns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
+      expect(
+        columns.map((column) => column['name']),
+        containsAll(<String>[
+          'transport_type',
+          'transport_config_json',
+          'capabilities_json',
+          'connection_status',
+        ]),
+      );
+      expect(
+        columns.map((column) => column['name']),
+        isNot(contains(anyOf('endpoint_uri', 'protocol_version', 'auth_type'))),
+      );
+      expect(await database.query('mcp_servers'), isEmpty);
+      expect(await database.query('mcp_tools'), isEmpty);
+    },
+  );
 
   test('version 11 migration creates the Skill ecosystem schema', () async {
     final database = await databaseFactoryFfi.openDatabase(

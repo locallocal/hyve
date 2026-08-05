@@ -493,11 +493,11 @@ class _BotMcpServerPickerState extends State<BotMcpServerPicker> {
       McpConnectionStatus.error => strings.mcpConnectionError,
       McpConnectionStatus.disconnected => strings.mcpDisconnected,
     };
-    final location = switch (server.transportType) {
-      McpTransportType.streamableHttp => server.endpoint.toString(),
-      McpTransportType.stdio => ([
-        server.command,
-        ...server.arguments,
+    final location = switch (server.transport) {
+      McpStreamableHttpServerTransport(:final endpoint) => endpoint.toString(),
+      McpStdioServerTransport(:final command, :final arguments) => ([
+        command,
+        ...arguments,
       ].where((item) => item.isNotEmpty)).join(' '),
     };
     return '$status · $location';

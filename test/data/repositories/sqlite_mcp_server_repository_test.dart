@@ -36,7 +36,7 @@ void main() {
     await repository.saveServer(server);
 
     final restored = await repository.getServer(server.id);
-    expect(restored?.endpoint, server.endpoint);
+    expect(restored?.transport, server.transport);
     expect(restored?.capabilities.toolListChanged, isTrue);
 
     final columns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
@@ -56,9 +56,10 @@ void main() {
       id: 'stdio-1',
       name: 'Local',
       namespace: 'local',
-      transportType: McpTransportType.stdio,
-      command: 'npx',
-      arguments: const ['-y', '@example/mcp'],
+      transport: McpStdioServerTransport(
+        command: 'npx',
+        arguments: const ['-y', '@example/mcp'],
+      ),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -66,10 +67,9 @@ void main() {
     await repository.saveServer(server);
     final restored = await repository.getServer(server.id);
 
-    expect(restored?.transportType, McpTransportType.stdio);
-    expect(restored?.command, 'npx');
-    expect(restored?.arguments, ['-y', '@example/mcp']);
-    expect(restored?.endpoint, Uri());
+    final transport = restored?.transport as McpStdioServerTransport;
+    expect(transport.command, 'npx');
+    expect(transport.arguments, ['-y', '@example/mcp']);
   });
 
   test(
@@ -79,14 +79,14 @@ void main() {
       await repository.saveServer(server);
       final tool = _tool();
 
-      await repository.replaceTools(server.id, [tool]);
+      await repository.replaceCatalog(server, [tool]);
       expect((await repository.getTools(server.id)).single.enabled, isFalse);
       await repository.setToolEnabled(
         server.id,
         tool.remoteName,
         enabled: true,
       );
-      await repository.replaceTools(server.id, [tool]);
+      await repository.replaceCatalog(server, [tool]);
 
       expect((await repository.getTools(server.id)).single.enabled, isTrue);
 
@@ -104,7 +104,9 @@ void main() {
       id: 'server-2',
       name: 'Duplicate',
       namespace: original.namespace,
-      endpoint: Uri.parse('https://second.example.com/mcp'),
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://second.example.com/mcp'),
+      ),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -115,6 +117,22 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.single['id'], original.id);
   });
+
+  test(
+    'invalid current MCP records fail instead of silently falling back',
+    () async {
+      final server = _server();
+      await repository.saveServer(server);
+      await database.update(
+        'mcp_servers',
+        {'transport_config_json': '{}'},
+        where: 'id = ?',
+        whereArgs: [server.id],
+      );
+
+      await expectLater(repository.getServer(server.id), throwsFormatException);
+    },
+  );
 }
 
 McpServer _server() {
@@ -123,8 +141,9 @@ McpServer _server() {
     id: 'server-1',
     name: 'Example',
     namespace: 'example',
-    endpoint: Uri.parse('https://example.com/mcp'),
-    protocolVersion: '2025-11-25',
+    transport: McpStreamableHttpServerTransport(
+      endpoint: Uri.parse('https://example.com/mcp'),
+    ),
     capabilities: const McpServerCapabilities(
       tools: true,
       toolListChanged: true,

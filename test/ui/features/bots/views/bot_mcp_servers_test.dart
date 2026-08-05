@@ -324,7 +324,9 @@ McpServer _server({
   id: id,
   name: name,
   namespace: id.replaceAll('-', '_'),
-  endpoint: Uri.parse('https://mcp.example.test/$id'),
+  transport: McpStreamableHttpServerTransport(
+    endpoint: Uri.parse('https://mcp.example.test/$id'),
+  ),
   enabled: enabled,
   status: status,
   createdAt: DateTime(2026),

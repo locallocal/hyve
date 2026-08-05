@@ -252,21 +252,18 @@ class LocalDatabaseService {
     );
   }
 
-  Future<void> upsertMcpServer(Map<String, Object?> values) async {
+  Future<void> upsertMcpServer(
+    Map<String, Object?> values, {
+    bool clearTools = false,
+  }) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
-      final updated = await transaction.update(
-        'mcp_servers',
-        values,
-        where: 'id = ?',
-        whereArgs: [values['id']],
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
-      if (updated == 0) {
-        await transaction.insert(
-          'mcp_servers',
-          values,
-          conflictAlgorithm: ConflictAlgorithm.abort,
+      await _upsertMcpServer(transaction, values);
+      if (clearTools) {
+        await transaction.delete(
+          'mcp_tools',
+          where: 'server_id = ?',
+          whereArgs: [values['id']],
         );
       }
     });
@@ -289,38 +286,53 @@ class LocalDatabaseService {
     bool enabledOnly = false,
   }) async {
     final database = await _databaseProvider();
-    return database.query(
-      'mcp_tools',
-      where: enabledOnly ? 'server_id = ? AND enabled = 1' : 'server_id = ?',
-      whereArgs: [serverId],
-      orderBy: 'remote_name ASC',
+    return database.rawQuery(
+      '''
+      SELECT tools.*, servers.namespace AS server_namespace
+      FROM mcp_tools AS tools
+      INNER JOIN mcp_servers AS servers ON servers.id = tools.server_id
+      WHERE tools.server_id = ?${enabledOnly ? ' AND tools.enabled = 1' : ''}
+      ORDER BY tools.remote_name ASC
+      ''',
+      [serverId],
     );
   }
 
-  Future<void> replaceMcpTools(
-    String serverId,
-    Iterable<Map<String, Object?>> records,
+  Future<bool> isMcpToolEnabled(String serverId, String remoteName) async {
+    final database = await _databaseProvider();
+    final rows = await database.rawQuery(
+      '''
+      SELECT 1
+      FROM mcp_tools AS tools
+      INNER JOIN mcp_servers AS servers ON servers.id = tools.server_id
+      WHERE tools.server_id = ?
+        AND tools.remote_name = ?
+        AND tools.enabled = 1
+        AND servers.enabled = 1
+        AND servers.connection_status = 'connected'
+      LIMIT 1
+      ''',
+      [serverId, remoteName],
+    );
+    return rows.isNotEmpty;
+  }
+
+  Future<void> replaceMcpCatalog(
+    Map<String, Object?> server,
+    Iterable<Map<String, Object?>> tools,
   ) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
+      await _upsertMcpServer(transaction, server);
       await transaction.delete(
         'mcp_tools',
         where: 'server_id = ?',
-        whereArgs: [serverId],
+        whereArgs: [server['id']],
       );
-      for (final values in records) {
+      for (final values in tools) {
         await transaction.insert('mcp_tools', values);
       }
     });
-  }
-
-  Future<void> clearMcpTools(String serverId) async {
-    final database = await _databaseProvider();
-    await database.delete(
-      'mcp_tools',
-      where: 'server_id = ?',
-      whereArgs: [serverId],
-    );
   }
 
   Future<void> setMcpToolEnabled(
@@ -330,7 +342,7 @@ class LocalDatabaseService {
     required DateTime updatedAt,
   }) async {
     final database = await _databaseProvider();
-    await database.update(
+    final updated = await database.update(
       'mcp_tools',
       {
         'enabled': enabled ? 1 : 0,
@@ -339,6 +351,29 @@ class LocalDatabaseService {
       where: 'server_id = ? AND remote_name = ?',
       whereArgs: [serverId, remoteName],
     );
+    if (updated != 1) {
+      throw StateError('The MCP Tool no longer exists.');
+    }
+  }
+
+  Future<void> _upsertMcpServer(
+    DatabaseExecutor database,
+    Map<String, Object?> values,
+  ) async {
+    final updated = await database.update(
+      'mcp_servers',
+      values,
+      where: 'id = ?',
+      whereArgs: [values['id']],
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+    if (updated == 0) {
+      await database.insert(
+        'mcp_servers',
+        values,
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    }
   }
 
   Future<List<Map<String, Object?>>> loadBotSkillBindings(String botId) async {

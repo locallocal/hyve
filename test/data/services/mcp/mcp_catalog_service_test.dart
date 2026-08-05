@@ -47,7 +47,7 @@ void main() {
   test('hydrates only enabled cached Tools into the Agent registry', () async {
     final enabled = _tool('search');
     final disabled = _tool('write');
-    await repository.replaceTools('server-1', [enabled, disabled]);
+    await repository.replaceCatalog(_server(), [enabled, disabled]);
     await repository.setToolEnabled(
       'server-1',
       enabled.remoteName,
@@ -64,7 +64,7 @@ void main() {
     'refresh negotiates capabilities and preserves Tool enablement',
     () async {
       final existing = _tool('search');
-      await repository.replaceTools('server-1', [existing]);
+      await repository.replaceCatalog(_server(), [existing]);
       await repository.setToolEnabled(
         'server-1',
         existing.remoteName,
@@ -75,7 +75,6 @@ void main() {
       final connected = await service.refreshServer('server-1');
 
       expect(connected.status, McpConnectionStatus.connected);
-      expect(connected.protocolVersion, '2025-11-25');
       expect(connected.capabilities.toolListChanged, isTrue);
       final tools = await repository.getTools('server-1');
       expect(
@@ -133,7 +132,10 @@ McpServer _server() {
     id: 'server-1',
     name: 'Example',
     namespace: 'example',
-    endpoint: Uri.parse('https://example.com/mcp'),
+    transport: McpStreamableHttpServerTransport(
+      endpoint: Uri.parse('https://example.com/mcp'),
+    ),
+    status: McpConnectionStatus.connected,
     createdAt: timestamp,
     updatedAt: timestamp,
   );
@@ -160,24 +162,21 @@ final class _FakeMcpClient implements McpClient {
   Object? initializeError;
 
   @override
-  Future<McpInitializeResult> initialize(
+  Future<McpServerCatalog> discoverTools(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) async {
     if (initializeError case final error?) throw error;
-    return const McpInitializeResult(
-      protocolVersion: '2025-11-25',
+    return McpServerCatalog(
       serverName: 'Remote Example',
       serverVersion: '1.0.0',
-      capabilities: McpServerCapabilities(tools: true, toolListChanged: true),
+      capabilities: const McpServerCapabilities(
+        tools: true,
+        toolListChanged: true,
+      ),
+      tools: tools,
     );
   }
-
-  @override
-  Future<List<McpToolDescriptor>> listTools(
-    McpServer server, {
-    AgentCancellationToken? cancellationToken,
-  }) async => tools;
 
   @override
   Future<McpToolCallResult> callTool({

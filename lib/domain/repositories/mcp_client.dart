@@ -1,12 +1,7 @@
 import 'package:stars/domain/models/models.dart';
 
 abstract interface class McpClient {
-  Future<McpInitializeResult> initialize(
-    McpServer server, {
-    AgentCancellationToken? cancellationToken,
-  });
-
-  Future<List<McpToolDescriptor>> listTools(
+  Future<McpServerCatalog> discoverTools(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   });

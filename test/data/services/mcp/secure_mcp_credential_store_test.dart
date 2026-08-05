@@ -38,7 +38,7 @@ void main() {
 
     await store.write(
       'stdio-1',
-      const McpCredential(
+      McpCredential(
         environment: {'API_KEY': 'stdio-secret', 'MCP_REGION': 'local'},
       ),
     );
@@ -51,4 +51,16 @@ void main() {
     });
     expect(restored.toString(), isNot(contains('stdio-secret')));
   });
+
+  test(
+    'rejects malformed credential records instead of accepting old shapes',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({
+        'stars.mcp.credential.server-1': '{"accessToken":"old-shape"}',
+      });
+      final store = SecureMcpCredentialStore();
+
+      await expectLater(store.read('server-1'), throwsFormatException);
+    },
+  );
 }

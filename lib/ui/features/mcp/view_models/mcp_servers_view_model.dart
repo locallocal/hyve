@@ -73,14 +73,17 @@ final class McpServersViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final servers = await _repository.getServers(forceRefresh: true);
-      final tools = <String, List<McpToolDescriptor>>{};
-      for (final server in servers) {
-        tools[server.id] = await _repository.getTools(server.id);
-      }
+      final servers = await _repository.getServers();
+      final catalogs = await Future.wait(
+        servers.map(
+          (server) async => (server.id, await _repository.getTools(server.id)),
+        ),
+      );
       if (generation != _loadGeneration) return;
       _servers = servers;
-      _toolsByServer = Map.unmodifiable(tools);
+      _toolsByServer = Map.unmodifiable({
+        for (final (serverId, tools) in catalogs) serverId: tools,
+      });
     } catch (error) {
       if (generation == _loadGeneration) _error = error;
     } finally {
@@ -99,7 +102,7 @@ final class McpServersViewModel extends ChangeNotifier {
     final id =
         existing?.id ??
         'mcp-${timestamp.microsecondsSinceEpoch.toRadixString(36)}';
-    final Uri endpoint;
+    final McpServerTransport transport;
     switch (draft.transportType) {
       case McpTransportType.streamableHttp:
         final parsedEndpoint = Uri.tryParse(draft.endpoint.trim());
@@ -110,14 +113,24 @@ final class McpServersViewModel extends ChangeNotifier {
           notifyListeners();
           return false;
         }
-        endpoint = parsedEndpoint;
+        transport = McpStreamableHttpServerTransport(
+          endpoint: parsedEndpoint,
+          authType: draft.authType,
+        );
       case McpTransportType.stdio:
         if (draft.command.trim().isEmpty) {
           _error = const McpException('mcp_invalid_stdio_command');
           notifyListeners();
           return false;
         }
-        endpoint = Uri();
+        transport = McpStdioServerTransport(
+          command: draft.command.trim(),
+          arguments: draft.arguments
+              .split(RegExp(r'\r?\n'))
+              .map((argument) => argument.trim())
+              .where((argument) => argument.isNotEmpty)
+              .toList(growable: false),
+        );
     }
     final environment = _parseEnvironment(draft.environment);
     if (environment == null) {
@@ -131,20 +144,8 @@ final class McpServersViewModel extends ChangeNotifier {
         id: id,
         name: draft.name.trim(),
         namespace: draft.namespace.trim().toLowerCase(),
-        transportType: draft.transportType,
-        endpoint: endpoint,
-        command: draft.command.trim(),
-        arguments: draft.arguments
-            .split(RegExp(r'\r?\n'))
-            .map((argument) => argument.trim())
-            .where((argument) => argument.isNotEmpty)
-            .toList(growable: false),
-        authType:
-            draft.transportType == McpTransportType.stdio
-                ? McpAuthType.none
-                : draft.authType,
+        transport: transport,
         enabled: existing?.enabled ?? false,
-        protocolVersion: existing?.protocolVersion ?? '',
         remoteServerName: existing?.remoteServerName ?? '',
         remoteServerVersion: existing?.remoteServerVersion ?? '',
         capabilities: existing?.capabilities ?? const McpServerCapabilities(),
@@ -279,7 +280,7 @@ final class McpServersViewModel extends ChangeNotifier {
           id,
           McpCredential(environment: environment),
         );
-      } else if (existing?.transportType != McpTransportType.stdio) {
+      } else if (existing?.transport is! McpStdioServerTransport) {
         await _credentialStore.delete(id);
       }
       return;
@@ -292,8 +293,11 @@ final class McpServersViewModel extends ChangeNotifier {
     final accessToken = draft.accessToken.trim();
     if (accessToken.isNotEmpty) {
       await _credentialStore.write(id, McpCredential(accessToken: accessToken));
-    } else if (existing?.transportType != McpTransportType.streamableHttp ||
-        existing?.authType != McpAuthType.oauthAccessToken) {
+    } else if (existing?.transport case McpStreamableHttpServerTransport(
+      authType: McpAuthType.oauthAccessToken,
+    )) {
+      return;
+    } else {
       await _credentialStore.delete(id);
     }
   }

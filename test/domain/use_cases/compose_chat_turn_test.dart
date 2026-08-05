@@ -304,6 +304,28 @@ void main() {
     expect(result.messages.single.content, 'Question');
   });
 
+  test('records automatic Skill provider timeouts explicitly', () async {
+    final skill = _skill('user:auto', 'auto', 'Auto instructions.');
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository({'user:auto': skill}),
+      bindingRepository: _FakeBindingRepository([_binding('user:auto')]),
+    );
+
+    final result = await compose(
+      bot: _bot(),
+      history: const [],
+      userMessage: _message(senderId: 'user-1', content: 'Use auto'),
+      currentUserId: 'user-1',
+      skillToolProvider: _FailingSkillProvider(
+        TimeoutException('Skill request timed out.'),
+      ),
+    );
+
+    expect(result.activatedSkills, isEmpty);
+    expect(result.skillToolCalls.single.detail, 'provider_timeout');
+    expect(result.skillToolCalls.single.errorCode, 'skill_provider_timeout');
+  });
+
   test('limits activation to three usable Skills', () async {
     final skills = <String, SkillContent>{
       for (var index = 0; index < 5; index++)
@@ -660,6 +682,27 @@ final class _LegacySkillProvider extends AiProvider {
   Future<void> generateText(List<ChatMessage> messages) async {}
 }
 
+final class _FailingSkillProvider extends AiProvider {
+  _FailingSkillProvider(Object error)
+    : session = _FailingSkillSession(error),
+      super(_bot());
+
+  final _FailingSkillSession session;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  SkillToolSession openSkillToolSession(SkillToolSessionRequest request) =>
+      session;
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
 final class _McpProvider extends AiProvider {
   _McpProvider() : super(_bot());
 
@@ -744,6 +787,22 @@ final class _FakeSkillSession implements SkillToolSession {
 
   @override
   void close() => closed = true;
+}
+
+final class _FailingSkillSession implements SkillToolSession {
+  const _FailingSkillSession(this.error);
+
+  final Object error;
+
+  @override
+  Future<SkillToolTurn> start() => Future.error(error);
+
+  @override
+  Future<SkillToolTurn> continueWith(List<SkillToolResult> results) =>
+      Future.error(error);
+
+  @override
+  void close() {}
 }
 
 final class _FakeBindingRepository implements BotSkillBindingRepository {

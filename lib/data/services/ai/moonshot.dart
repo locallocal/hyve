@@ -69,6 +69,7 @@ class Moonshot extends Provider {
       client: client,
       closeClient: _client == null,
       decodeResponse: decodeProviderResponse,
+      additionalBody: _reasoningConfiguration(enabled: false),
     );
   }
 

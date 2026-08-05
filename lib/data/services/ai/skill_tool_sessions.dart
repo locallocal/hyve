@@ -16,6 +16,8 @@ final class OpenAiSkillToolSession implements SkillToolSession {
     required http.Client client,
     required bool closeClient,
     required ProviderResponseDecoder decodeResponse,
+    Duration requestTimeout = const Duration(minutes: 2),
+    Map<String, Object?> additionalBody = const {},
   }) : _bot = bot,
        _request = request,
        _messages =
@@ -26,7 +28,9 @@ final class OpenAiSkillToolSession implements SkillToolSession {
        _headers = headers,
        _client = client,
        _closeClient = closeClient,
-       _decodeResponse = decodeResponse;
+       _decodeResponse = decodeResponse,
+       _requestTimeout = requestTimeout,
+       _additionalBody = Map<String, Object?>.unmodifiable(additionalBody);
 
   final Bot _bot;
   final SkillToolSessionRequest _request;
@@ -36,6 +40,8 @@ final class OpenAiSkillToolSession implements SkillToolSession {
   final http.Client _client;
   final bool _closeClient;
   final ProviderResponseDecoder _decodeResponse;
+  final Duration _requestTimeout;
+  final Map<String, Object?> _additionalBody;
   bool _started = false;
 
   @override
@@ -69,10 +75,11 @@ final class OpenAiSkillToolSession implements SkillToolSession {
             'tools': _openAiSkillTools(_request.catalog),
             'tool_choice': 'auto',
             'parallel_tool_calls': false,
+            ..._additionalBody,
             'stream': false,
           }),
         )
-        .timeout(const Duration(seconds: 30));
+        .timeout(_requestTimeout);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
         'Skill activation request failed: '
@@ -87,9 +94,13 @@ final class OpenAiSkillToolSession implements SkillToolSession {
     }
     final message = _objectMap(_objectMap(choices.first)['message']);
     final rawCalls = _objectList(message['tool_calls']);
+    final reasoningContent = message['reasoning_content'];
+    final reasoning = message['reasoning'];
     _messages.add({
       'role': 'assistant',
       'content': message['content']?.toString() ?? '',
+      if (reasoningContent != null) 'reasoning_content': reasoningContent,
+      if (reasoning != null) 'reasoning': reasoning,
       if (rawCalls.isNotEmpty) 'tool_calls': rawCalls,
     });
     final calls = <SkillToolCall>[];

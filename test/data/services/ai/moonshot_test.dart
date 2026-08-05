@@ -91,17 +91,30 @@ void main() {
 
   group('Moonshot agent tools', () {
     test('runs automatic Skill activation through chat completions', () async {
-      Map<String, dynamic>? requestBody;
+      final requestBodies = <Map<String, dynamic>>[];
       final client = MockClient((request) async {
-        requestBody = Map<String, dynamic>.from(
-          jsonDecode(request.body) as Map,
+        requestBodies.add(
+          Map<String, dynamic>.from(jsonDecode(request.body) as Map),
         );
+        if (requestBodies.length > 1) {
+          return http.Response(
+            jsonEncode({
+              'choices': [
+                {
+                  'message': {'content': 'done'},
+                },
+              ],
+            }),
+            200,
+          );
+        }
         return http.Response(
           jsonEncode({
             'choices': [
               {
                 'message': {
                   'content': null,
+                  'reasoning_content': 'The xlsx Skill is relevant.',
                   'tool_calls': [
                     {
                       'id': 'skill-1',
@@ -119,10 +132,7 @@ void main() {
           200,
         );
       });
-      final provider = Moonshot(
-        _bot(model: 'moonshot-v1-128k'),
-        client: client,
-      );
+      final provider = Moonshot(_bot(model: 'kimi-k3'), client: client);
       final session = provider.openSkillToolSession(
         SkillToolSessionRequest(
           messages: [ChatMessage(role: 'user', content: 'Write release notes')],
@@ -140,11 +150,24 @@ void main() {
       addTearDown(session.close);
 
       final turn = await session.start();
+      await session.continueWith([
+        SkillToolResult(
+          callId: turn.calls.single.callId,
+          name: turn.calls.single.name,
+          content: 'activated',
+        ),
+      ]);
 
       expect(turn.calls.single.name, 'activate_skill');
       expect(turn.calls.single.arguments, {'name': 'release-notes'});
-      expect(requestBody?['tool_choice'], 'auto');
-      expect(requestBody?['parallel_tool_calls'], isFalse);
+      expect(requestBodies.first['tool_choice'], 'auto');
+      expect(requestBodies.first['parallel_tool_calls'], isFalse);
+      expect(requestBodies.first['reasoning_effort'], 'low');
+      final continuedMessages = requestBodies.last['messages'] as List;
+      final assistant = continuedMessages[1] as Map;
+      expect(assistant['role'], 'assistant');
+      expect(assistant['reasoning_content'], 'The xlsx Skill is relevant.');
+      expect((continuedMessages.last as Map)['role'], 'tool');
     });
 
     test('round-trips MCP tool calls through chat completions', () async {

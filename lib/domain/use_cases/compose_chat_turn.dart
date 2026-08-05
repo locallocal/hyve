@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -138,12 +140,22 @@ final class ComposeChatTurn {
           descriptors: descriptors,
           state: state,
         );
+      } on TimeoutException {
+        state.toolCalls.add(
+          const MessageToolCall(
+            name: 'activate_skill',
+            status: 'failed',
+            detail: 'provider_timeout',
+            errorCode: 'skill_provider_timeout',
+          ),
+        );
       } catch (_) {
         state.toolCalls.add(
           const MessageToolCall(
             name: 'activate_skill',
             status: 'failed',
             detail: 'provider_error',
+            errorCode: 'skill_provider_error',
           ),
         );
       }

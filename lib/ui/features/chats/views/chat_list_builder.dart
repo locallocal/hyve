@@ -17,6 +17,7 @@ class ChatListBuilder extends StatelessWidget {
   final List<Chat> chatList;
   final List<Bot> bots;
   final String? selectedChatId;
+  final bool selectionVisible;
   final bool showExecutionStatus;
   final ValueChanged<String> onChatDeleted;
   final void Function(String chatId, Bot bot) onChatSelected;
@@ -28,6 +29,7 @@ class ChatListBuilder extends StatelessWidget {
     required this.chatList,
     required this.bots,
     this.selectedChatId,
+    this.selectionVisible = true,
     this.showExecutionStatus = true,
     required this.onChatDeleted,
     required this.onChatSelected,
@@ -241,7 +243,8 @@ class ChatListBuilder extends StatelessWidget {
         ChatListItem buildListItem({Widget? trailing}) {
           return ChatListItem(
             bot: bot,
-            isSelected: isDesktop && selectedChatId == chat.id,
+            isSelected:
+                isDesktop && selectionVisible && selectedChatId == chat.id,
             lastMessage:
                 chat.lastMessage.isEmpty
                     ? desktopConversationText(

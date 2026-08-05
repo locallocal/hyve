@@ -457,6 +457,7 @@ class _MainPageState extends State<MainPage> {
         showExecutionStatus: widget.showExecutionStatus,
         sidebarMode: isDesktopOrTablet,
         selectedChatId: _viewModel.selectedChatId,
+        selectionVisible: _viewModel.isChatSelectionVisible,
         onChatSelected: _onChatSelected,
         onSelectionCleared: _viewModel.clearSelectedChat,
       ),

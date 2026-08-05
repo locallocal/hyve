@@ -1,86 +1,99 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
+import 'package:stars/data/services/mcp/mcp_transport.dart';
 import 'package:stars/domain/models/models.dart';
 
 typedef McpHttpClientFactory = http.Client Function();
 
-final class McpTransportResponse {
-  const McpTransportResponse({
-    required this.payload,
-    this.sessionId,
-    required this.statusCode,
-  });
-
-  final Map<String, Object?>? payload;
-  final String? sessionId;
-  final int statusCode;
-}
-
-final class McpHttpTransport {
+final class McpHttpTransport implements McpTransport {
   McpHttpTransport({
     required McpEndpointPolicy endpointPolicy,
     McpHttpClientFactory? clientFactory,
     this.requestTimeout = const Duration(seconds: 30),
+    this.maxResponseBytes = 8 * 1024 * 1024,
   }) : _endpointPolicy = endpointPolicy,
-       _clientFactory = clientFactory ?? http.Client.new;
+       _clientFactory = clientFactory,
+       assert(maxResponseBytes > 0);
 
   final McpEndpointPolicy _endpointPolicy;
-  final McpHttpClientFactory _clientFactory;
+  final McpHttpClientFactory? _clientFactory;
   final Duration requestTimeout;
+  final int maxResponseBytes;
 
-  Future<McpTransportResponse> post({
+  @override
+  McpTransportType get type => McpTransportType.streamableHttp;
+
+  @override
+  Future<McpTransportResponse> send({
     required McpServer server,
     required Map<String, Object?> payload,
     required McpCredential? credential,
     required AgentCancellationToken cancellationToken,
+    required String? protocolVersion,
     String? sessionId,
   }) async {
-    await _endpointPolicy.validate(server.endpoint);
+    final transport = _configuration(server);
+    final addresses = await _endpointPolicy.validate(transport.endpoint);
     cancellationToken.throwIfCancelled();
-    final client = _clientFactory();
+    final client =
+        _clientFactory?.call() ?? _pinnedClient(transport.endpoint, addresses);
     try {
       final request =
-          http.Request('POST', server.endpoint)
+          http.Request('POST', transport.endpoint)
             ..followRedirects = false
             ..headers.addAll(
               _headers(
-                server: server,
+                transport: transport,
                 credential: credential,
+                protocolVersion: protocolVersion,
                 sessionId: sessionId,
               ),
             )
             ..body = jsonEncode(payload);
       final response = await _send(client, request, cancellationToken);
-      return _parseResponse(response, expectedId: payload['id']);
+      return _parseResponse(
+        response,
+        expectedId: payload['id'],
+        sentSessionId: sessionId,
+      );
     } finally {
       client.close();
     }
   }
 
-  Future<void> deleteSession({
+  @override
+  Future<void> disconnect({
     required McpServer server,
     required McpCredential? credential,
-    required String sessionId,
+    required String? protocolVersion,
+    required String? sessionId,
   }) async {
-    await _endpointPolicy.validate(server.endpoint);
-    final client = _clientFactory();
+    if (sessionId == null) return;
+    final transport = _configuration(server);
+    final addresses = await _endpointPolicy.validate(transport.endpoint);
+    final client =
+        _clientFactory?.call() ?? _pinnedClient(transport.endpoint, addresses);
     try {
       final request =
-          http.Request('DELETE', server.endpoint)
+          http.Request('DELETE', transport.endpoint)
             ..followRedirects = false
             ..headers.addAll(
               _headers(
-                server: server,
+                transport: transport,
                 credential: credential,
+                protocolVersion: protocolVersion,
                 sessionId: sessionId,
               ),
             );
       final response = await client
           .send(request)
-          .then(http.Response.fromStream)
+          .then(_readResponse)
           .timeout(requestTimeout);
       if (response.isRedirect) {
         throw const McpException(
@@ -103,8 +116,9 @@ final class McpHttpTransport {
   }
 
   Map<String, String> _headers({
-    required McpServer server,
+    required McpStreamableHttpServerTransport transport,
     required McpCredential? credential,
+    required String? protocolVersion,
     required String? sessionId,
   }) {
     final headers = <String, String>{
@@ -112,10 +126,9 @@ final class McpHttpTransport {
       'Content-Type': 'application/json',
       if (sessionId != null && sessionId.isNotEmpty)
         'Mcp-Session-Id': sessionId,
-      if (server.protocolVersion.isNotEmpty)
-        'MCP-Protocol-Version': server.protocolVersion,
+      if (protocolVersion != null) 'MCP-Protocol-Version': protocolVersion,
     };
-    if (server.authType == McpAuthType.oauthAccessToken) {
+    if (transport.authType == McpAuthType.oauthAccessToken) {
       if (credential == null || credential.isExpired) {
         throw const McpException(
           'mcp_authorization_required',
@@ -149,7 +162,7 @@ final class McpHttpTransport {
     unawaited(
       client
           .send(request)
-          .then(http.Response.fromStream)
+          .then(_readResponse)
           .timeout(requestTimeout)
           .then((response) {
             if (!completer.isCompleted) completer.complete(response);
@@ -164,6 +177,8 @@ final class McpHttpTransport {
                 ),
                 stackTrace,
               );
+            } else if (error is McpException) {
+              completer.completeError(error, stackTrace);
             } else {
               completer.completeError(
                 const McpException(
@@ -188,6 +203,7 @@ final class McpHttpTransport {
   McpTransportResponse _parseResponse(
     http.Response response, {
     Object? expectedId,
+    required String? sentSessionId,
   }) {
     if (response.isRedirect) {
       throw const McpException(
@@ -203,6 +219,13 @@ final class McpHttpTransport {
         authorizationMetadataUri: _authorizationMetadataUri(response.headers),
       );
     }
+    if (response.statusCode == 404 && sentSessionId != null) {
+      throw const McpException(
+        'mcp_session_expired',
+        message: 'The MCP session expired.',
+        statusCode: 404,
+      );
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw McpException(
         'mcp_http_error',
@@ -211,22 +234,36 @@ final class McpHttpTransport {
       );
     }
     final sessionId = _header(response.headers, 'mcp-session-id');
-    if (response.bodyBytes.isEmpty || response.statusCode == 202) {
-      return McpTransportResponse(
-        payload: null,
-        sessionId: sessionId,
-        statusCode: response.statusCode,
+    if (sessionId != null && !_isValidSessionId(sessionId)) {
+      throw const McpException(
+        'mcp_invalid_response',
+        message: 'The MCP server returned an invalid session id.',
       );
+    }
+    if (response.statusCode == 202) {
+      if (expectedId != null || response.bodyBytes.isNotEmpty) {
+        throw const McpException(
+          'mcp_invalid_response',
+          message: 'The MCP server returned an invalid accepted response.',
+        );
+      }
+      return McpTransportResponse(payload: null, sessionId: sessionId);
+    }
+    if (response.bodyBytes.isEmpty) {
+      return McpTransportResponse(payload: null, sessionId: sessionId);
     }
     final contentType =
         _header(response.headers, 'content-type')?.toLowerCase() ?? '';
-    final source = utf8.decode(response.bodyBytes);
     final Object? decoded;
     try {
-      decoded =
-          contentType.contains('text/event-stream')
-              ? _decodeServerSentEvent(source, expectedId: expectedId)
-              : jsonDecode(source);
+      final source = utf8.decode(response.bodyBytes);
+      if (contentType.contains('text/event-stream')) {
+        decoded = _decodeServerSentEvent(source, expectedId: expectedId);
+      } else if (contentType.contains('application/json')) {
+        decoded = jsonDecode(source);
+      } else {
+        throw const FormatException('Unsupported MCP response media type.');
+      }
     } on FormatException {
       throw const McpException(
         'mcp_invalid_response',
@@ -239,20 +276,20 @@ final class McpHttpTransport {
         message: 'The MCP response must be a JSON-RPC object.',
       );
     }
-    final payload = decoded.map(
-      (key, value) => MapEntry(key.toString(), value as Object?),
-    );
+    if (decoded.keys.any((key) => key is! String)) {
+      throw const McpException(
+        'mcp_invalid_response',
+        message: 'The MCP response contains an invalid object key.',
+      );
+    }
+    final payload = decoded.cast<String, Object?>();
     if (expectedId != null && payload['id'] != expectedId) {
       throw const McpException(
         'mcp_response_id_mismatch',
         message: 'The MCP response id did not match the request.',
       );
     }
-    return McpTransportResponse(
-      payload: payload,
-      sessionId: sessionId,
-      statusCode: response.statusCode,
-    );
+    return McpTransportResponse(payload: payload, sessionId: sessionId);
   }
 
   Object? _decodeServerSentEvent(String source, {Object? expectedId}) {
@@ -264,24 +301,27 @@ final class McpHttpTransport {
       } else if (line.isEmpty && dataLines.isNotEmpty) {
         final data = dataLines.join('\n');
         dataLines.clear();
-        if (data == '[DONE]') continue;
+        if (data.isEmpty) continue;
         final decoded = jsonDecode(data);
-        firstEvent ??= decoded;
         if (expectedId == null ||
             (decoded is Map && decoded['id'] == expectedId)) {
           return decoded;
         }
+        firstEvent ??= decoded;
       }
     }
     if (dataLines.isNotEmpty) {
-      final decoded = jsonDecode(dataLines.join('\n'));
-      firstEvent ??= decoded;
-      if (expectedId == null ||
-          (decoded is Map && decoded['id'] == expectedId)) {
-        return decoded;
+      final data = dataLines.join('\n');
+      if (data.isNotEmpty) {
+        final decoded = jsonDecode(data);
+        if (expectedId == null ||
+            (decoded is Map && decoded['id'] == expectedId)) {
+          return decoded;
+        }
+        firstEvent ??= decoded;
       }
     }
-    if (firstEvent != null) return firstEvent;
+    if (expectedId == null && firstEvent != null) return firstEvent;
     throw const FormatException('SSE response has no data event.');
   }
 
@@ -301,5 +341,74 @@ final class McpHttpTransport {
       if (entry.key.toLowerCase() == normalized) return entry.value;
     }
     return null;
+  }
+
+  McpStreamableHttpServerTransport _configuration(McpServer server) {
+    final transport = server.transport;
+    if (transport is McpStreamableHttpServerTransport) return transport;
+    throw ArgumentError.value(
+      transport,
+      'server',
+      'An HTTP MCP transport requires Streamable HTTP configuration.',
+    );
+  }
+
+  bool _isValidSessionId(String value) =>
+      value.isNotEmpty &&
+      value.codeUnits.every((unit) => unit >= 0x21 && unit <= 0x7e);
+
+  Future<http.Response> _readResponse(http.StreamedResponse streamed) async {
+    final bytes = BytesBuilder(copy: false);
+    var length = 0;
+    await for (final chunk in streamed.stream) {
+      length += chunk.length;
+      if (length > maxResponseBytes) {
+        throw const McpException(
+          'mcp_response_too_large',
+          message: 'The MCP response exceeds the safety limit.',
+        );
+      }
+      bytes.add(chunk);
+    }
+    return http.Response.bytes(
+      bytes.takeBytes(),
+      streamed.statusCode,
+      request: streamed.request,
+      headers: streamed.headers,
+      isRedirect: streamed.isRedirect,
+      persistentConnection: streamed.persistentConnection,
+      reasonPhrase: streamed.reasonPhrase,
+    );
+  }
+
+  http.Client _pinnedClient(Uri endpoint, List<InternetAddress> addresses) {
+    final address = addresses.first;
+    final ioClient = HttpClient();
+    ioClient.connectionTimeout = requestTimeout;
+    ioClient.findProxy = (_) => 'DIRECT';
+    ioClient.connectionFactory = (
+      Uri uri,
+      String? proxyHost,
+      int? proxyPort,
+    ) async {
+      if (proxyHost != null ||
+          proxyPort != null ||
+          uri.host.toLowerCase() != endpoint.host.toLowerCase()) {
+        throw const McpException(
+          'mcp_endpoint_changed',
+          message: 'The MCP connection target changed unexpectedly.',
+        );
+      }
+      final connection = await Socket.startConnect(address, uri.port);
+      final secureSocket = connection.socket.then(
+        (socket) => SecureSocket.secure(
+          socket,
+          host: uri.host,
+          supportedProtocols: const ['http/1.1'],
+        ),
+      );
+      return ConnectionTask.fromSocket(secureSocket, connection.cancel);
+    };
+    return IOClient(ioClient);
   }
 }

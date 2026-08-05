@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 11;
+  static const int databaseVersion = 12;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -259,29 +259,6 @@ class DatabaseService {
     if (oldVersion < 8 && newVersion >= 8) {
       await _createConversationSkillPinSchema(db);
     }
-    if (oldVersion < 9 && newVersion >= 9) {
-      await _createMcpSchema(db);
-    }
-    if (oldVersion < 10 && newVersion >= 10) {
-      await _addColumnIfMissing(
-        db,
-        'mcp_servers',
-        'transport_type',
-        "TEXT NOT NULL DEFAULT 'streamableHttp'",
-      );
-      await _addColumnIfMissing(
-        db,
-        'mcp_servers',
-        'command',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'mcp_servers',
-        'arguments_json',
-        "TEXT NOT NULL DEFAULT '[]'",
-      );
-    }
     if (oldVersion < 11 && newVersion >= 11) {
       await _addColumnIfMissing(
         db,
@@ -320,6 +297,9 @@ class DatabaseService {
         "TEXT NOT NULL DEFAULT 'manual'",
       );
       await _createSkillEcosystemSchema(db);
+    }
+    if (oldVersion < 12 && newVersion >= 12) {
+      await _resetMcpSchema(db);
     }
   }
 
@@ -507,17 +487,21 @@ class DatabaseService {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         namespace TEXT NOT NULL UNIQUE,
-        transport_type TEXT NOT NULL DEFAULT 'streamableHttp',
-        endpoint_uri TEXT NOT NULL,
-        command TEXT NOT NULL DEFAULT '',
-        arguments_json TEXT NOT NULL DEFAULT '[]',
-        auth_type TEXT NOT NULL DEFAULT 'none',
-        enabled INTEGER NOT NULL DEFAULT 1,
-        protocol_version TEXT NOT NULL DEFAULT '',
+        transport_type TEXT NOT NULL
+          CHECK (transport_type IN ('streamableHttp', 'stdio')),
+        transport_config_json TEXT NOT NULL,
+        enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
         remote_server_name TEXT NOT NULL DEFAULT '',
         remote_server_version TEXT NOT NULL DEFAULT '',
         capabilities_json TEXT NOT NULL DEFAULT '{}',
-        connection_status TEXT NOT NULL DEFAULT 'disconnected',
+        connection_status TEXT NOT NULL DEFAULT 'disconnected'
+          CHECK (connection_status IN (
+            'disconnected',
+            'connecting',
+            'connected',
+            'authorizationRequired',
+            'error'
+          )),
         last_error_code TEXT NOT NULL DEFAULT '',
         last_connected_at INTEGER,
         created_at INTEGER NOT NULL,
@@ -528,22 +512,29 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS mcp_tools (
         server_id TEXT NOT NULL,
         remote_name TEXT NOT NULL,
-        namespace TEXT NOT NULL,
-        canonical_name TEXT NOT NULL UNIQUE,
         title TEXT NOT NULL DEFAULT '',
         description TEXT NOT NULL DEFAULT '',
         input_schema_json TEXT NOT NULL,
         output_schema_json TEXT,
         annotations_json TEXT NOT NULL DEFAULT '{}',
-        enabled INTEGER NOT NULL DEFAULT 0,
+        task_support TEXT NOT NULL
+          CHECK (task_support IN ('forbidden', 'optional', 'required')),
+        enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
         updated_at INTEGER NOT NULL,
-        PRIMARY KEY (server_id, remote_name)
+        PRIMARY KEY (server_id, remote_name),
+        FOREIGN KEY (server_id) REFERENCES mcp_servers(id) ON DELETE CASCADE
       )
     ''');
     await db.execute(
       'CREATE INDEX IF NOT EXISTS mcp_tools_server_id_index '
       'ON mcp_tools(server_id)',
     );
+  }
+
+  static Future<void> _resetMcpSchema(DatabaseExecutor db) async {
+    await db.execute('DROP TABLE IF EXISTS mcp_tools');
+    await db.execute('DROP TABLE IF EXISTS mcp_servers');
+    await _createMcpSchema(db);
   }
 
   static Future<void> _addColumnIfMissing(

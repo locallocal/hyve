@@ -8,31 +8,37 @@ final class McpCatalogService {
     required McpServerRepository repository,
     required McpClient client,
     required DynamicToolRegistry toolRegistry,
+    DateTime Function()? now,
   }) : _repository = repository,
        _client = client,
-       _toolRegistry = toolRegistry;
+       _toolRegistry = toolRegistry,
+       _now = now ?? DateTime.now;
 
   final McpServerRepository _repository;
   final McpClient _client;
   final DynamicToolRegistry _toolRegistry;
+  final DateTime Function() _now;
 
   Future<void> hydrateFromCache() async {
-    final servers = await _repository.getServers(forceRefresh: true);
+    final servers = await _repository.getServers();
     final tools = <ExecutableTool>[];
     for (final server in servers) {
-      if (!server.enabled) continue;
+      if (!server.enabled || server.status != McpConnectionStatus.connected) {
+        continue;
+      }
       for (final descriptor in await _repository.getTools(
         server.id,
         enabledOnly: true,
       )) {
-        if (!descriptor.hasCompatibleSchema) continue;
+        if (!descriptor.isSupportedByClient) continue;
         tools.add(
           McpToolAdapter(
             server: server,
             descriptor: descriptor,
             client: _client,
             availabilityCheck:
-                () => _isToolStillEnabled(server.id, descriptor.remoteName),
+                () =>
+                    _repository.isToolEnabled(server.id, descriptor.remoteName),
           ),
         );
       }
@@ -55,32 +61,26 @@ final class McpCatalogService {
       server.copyWith(
         status: McpConnectionStatus.connecting,
         clearLastError: true,
-        updatedAt: DateTime.now(),
+        updatedAt: _now(),
       ),
     );
     try {
       // A manual refresh also rotates credentials and negotiated sessions.
       await _client.disconnect(server);
-      final initialized = await _client.initialize(
+      final catalog = await _client.discoverTools(
         server,
         cancellationToken: cancellationToken,
       );
-      final tools = await _client.listTools(
-        server,
-        cancellationToken: cancellationToken,
-      );
-      await _repository.replaceTools(server.id, tools);
       final connected = server.copyWith(
-        protocolVersion: initialized.protocolVersion,
-        remoteServerName: initialized.serverName,
-        remoteServerVersion: initialized.serverVersion,
-        capabilities: initialized.capabilities,
+        remoteServerName: catalog.serverName,
+        remoteServerVersion: catalog.serverVersion,
+        capabilities: catalog.capabilities,
         status: McpConnectionStatus.connected,
         clearLastError: true,
-        lastConnectedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        lastConnectedAt: _now(),
+        updatedAt: _now(),
       );
-      await _repository.saveServer(connected);
+      await _repository.replaceCatalog(connected, catalog.tools);
       await hydrateFromCache();
       return connected;
     } on McpException catch (error) {
@@ -92,7 +92,7 @@ final class McpCatalogService {
                 ? McpConnectionStatus.authorizationRequired
                 : McpConnectionStatus.error,
         lastErrorCode: error.code,
-        updatedAt: DateTime.now(),
+        updatedAt: _now(),
       );
       await _repository.saveServer(failed);
       await hydrateFromCache();
@@ -103,7 +103,7 @@ final class McpCatalogService {
           enabled: false,
           status: McpConnectionStatus.error,
           lastErrorCode: 'mcp_catalog_refresh_failed',
-          updatedAt: DateTime.now(),
+          updatedAt: _now(),
         ),
       );
       await hydrateFromCache();
@@ -117,16 +117,9 @@ final class McpCatalogService {
       server.copyWith(
         status: McpConnectionStatus.disconnected,
         clearLastError: true,
-        updatedAt: DateTime.now(),
+        updatedAt: _now(),
       ),
     );
     await hydrateFromCache();
-  }
-
-  Future<bool> _isToolStillEnabled(String serverId, String remoteName) async {
-    final server = await _repository.getServer(serverId);
-    if (server == null || !server.enabled) return false;
-    final tools = await _repository.getTools(serverId, enabledOnly: true);
-    return tools.any((tool) => tool.remoteName == remoteName);
   }
 }

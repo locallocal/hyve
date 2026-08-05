@@ -6,6 +6,72 @@ enum McpAuthType { none, oauthAccessToken }
 
 enum McpTransportType { streamableHttp, stdio }
 
+sealed class McpServerTransport {
+  const McpServerTransport();
+
+  McpTransportType get type;
+}
+
+final class McpStreamableHttpServerTransport extends McpServerTransport {
+  McpStreamableHttpServerTransport({
+    required this.endpoint,
+    this.authType = McpAuthType.none,
+  }) {
+    if (!endpoint.hasScheme || endpoint.host.isEmpty) {
+      throw ArgumentError.value(
+        endpoint,
+        'endpoint',
+        'MCP endpoint must be an absolute URI.',
+      );
+    }
+  }
+
+  final Uri endpoint;
+  final McpAuthType authType;
+
+  @override
+  McpTransportType get type => McpTransportType.streamableHttp;
+
+  @override
+  bool operator ==(Object other) =>
+      other is McpStreamableHttpServerTransport &&
+      endpoint == other.endpoint &&
+      authType == other.authType;
+
+  @override
+  int get hashCode => Object.hash(endpoint, authType);
+}
+
+final class McpStdioServerTransport extends McpServerTransport {
+  McpStdioServerTransport({
+    required this.command,
+    List<String> arguments = const [],
+  }) : arguments = List<String>.unmodifiable(arguments) {
+    if (command.trim().isEmpty) {
+      throw ArgumentError.value(
+        command,
+        'command',
+        'MCP stdio command cannot be empty.',
+      );
+    }
+  }
+
+  final String command;
+  final List<String> arguments;
+
+  @override
+  McpTransportType get type => McpTransportType.stdio;
+
+  @override
+  bool operator ==(Object other) =>
+      other is McpStdioServerTransport &&
+      command == other.command &&
+      _listsEqual(arguments, other.arguments);
+
+  @override
+  int get hashCode => Object.hash(command, Object.hashAll(arguments));
+}
+
 enum McpConnectionStatus {
   disconnected,
   connecting,
@@ -30,8 +96,8 @@ final class McpServerCapabilities {
 
   factory McpServerCapabilities.fromMap(Map<String, Object?> map) {
     return McpServerCapabilities(
-      tools: map['tools'] == true,
-      toolListChanged: map['toolListChanged'] == true,
+      tools: _requiredBoolean(map, 'tools'),
+      toolListChanged: _requiredBoolean(map, 'toolListChanged'),
     );
   }
 }
@@ -41,13 +107,8 @@ final class McpServer {
     required this.id,
     required this.name,
     required this.namespace,
-    this.transportType = McpTransportType.streamableHttp,
-    Uri? endpoint,
-    this.command = '',
-    List<String> arguments = const [],
-    this.authType = McpAuthType.none,
+    required this.transport,
     this.enabled = true,
-    this.protocolVersion = '',
     this.remoteServerName = '',
     this.remoteServerVersion = '',
     this.capabilities = const McpServerCapabilities(),
@@ -56,10 +117,9 @@ final class McpServer {
     this.lastConnectedAt,
     required this.createdAt,
     required this.updatedAt,
-  }) : endpoint = endpoint ?? Uri(),
-       arguments = List<String>.unmodifiable(arguments) {
-    if (id.trim().isEmpty) {
-      throw ArgumentError.value(id, 'id', 'MCP server id cannot be empty.');
+  }) {
+    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$').hasMatch(id)) {
+      throw ArgumentError.value(id, 'id', 'MCP server id is invalid.');
     }
     if (name.trim().isEmpty) {
       throw ArgumentError.value(
@@ -75,43 +135,13 @@ final class McpServer {
         'Use 1-32 lowercase letters, digits, underscores, or hyphens.',
       );
     }
-    switch (transportType) {
-      case McpTransportType.streamableHttp:
-        if (!this.endpoint.hasScheme || this.endpoint.host.isEmpty) {
-          throw ArgumentError.value(
-            this.endpoint,
-            'endpoint',
-            'MCP endpoint must be an absolute URI.',
-          );
-        }
-      case McpTransportType.stdio:
-        if (command.trim().isEmpty) {
-          throw ArgumentError.value(
-            command,
-            'command',
-            'MCP stdio command cannot be empty.',
-          );
-        }
-        if (authType != McpAuthType.none) {
-          throw ArgumentError.value(
-            authType,
-            'authType',
-            'MCP stdio servers do not use HTTP authentication.',
-          );
-        }
-    }
   }
 
   final String id;
   final String name;
   final String namespace;
-  final McpTransportType transportType;
-  final Uri endpoint;
-  final String command;
-  final List<String> arguments;
-  final McpAuthType authType;
+  final McpServerTransport transport;
   final bool enabled;
-  final String protocolVersion;
   final String remoteServerName;
   final String remoteServerVersion;
   final McpServerCapabilities capabilities;
@@ -124,13 +154,8 @@ final class McpServer {
   McpServer copyWith({
     String? name,
     String? namespace,
-    McpTransportType? transportType,
-    Uri? endpoint,
-    String? command,
-    List<String>? arguments,
-    McpAuthType? authType,
+    McpServerTransport? transport,
     bool? enabled,
-    String? protocolVersion,
     String? remoteServerName,
     String? remoteServerVersion,
     McpServerCapabilities? capabilities,
@@ -145,13 +170,8 @@ final class McpServer {
       id: id,
       name: name ?? this.name,
       namespace: namespace ?? this.namespace,
-      transportType: transportType ?? this.transportType,
-      endpoint: endpoint ?? this.endpoint,
-      command: command ?? this.command,
-      arguments: arguments ?? this.arguments,
-      authType: authType ?? this.authType,
+      transport: transport ?? this.transport,
       enabled: enabled ?? this.enabled,
-      protocolVersion: protocolVersion ?? this.protocolVersion,
       remoteServerName: remoteServerName ?? this.remoteServerName,
       remoteServerVersion: remoteServerVersion ?? this.remoteServerVersion,
       capabilities: capabilities ?? this.capabilities,
@@ -188,13 +208,15 @@ final class McpToolAnnotations {
 
   factory McpToolAnnotations.fromMap(Map<String, Object?> map) {
     return McpToolAnnotations(
-      readOnlyHint: map['readOnlyHint'] == true,
-      destructiveHint: map['destructiveHint'] != false,
-      idempotentHint: map['idempotentHint'] == true,
-      openWorldHint: map['openWorldHint'] != false,
+      readOnlyHint: _optionalBoolean(map, 'readOnlyHint', false),
+      destructiveHint: _optionalBoolean(map, 'destructiveHint', true),
+      idempotentHint: _optionalBoolean(map, 'idempotentHint', false),
+      openWorldHint: _optionalBoolean(map, 'openWorldHint', true),
     );
   }
 }
+
+enum McpToolTaskSupport { forbidden, optional, required }
 
 final class McpToolDescriptor {
   McpToolDescriptor({
@@ -206,6 +228,7 @@ final class McpToolDescriptor {
     required Map<String, Object?> inputSchema,
     Map<String, Object?>? outputSchema,
     this.annotations = const McpToolAnnotations(),
+    this.taskSupport = McpToolTaskSupport.forbidden,
     this.enabled = false,
     required this.updatedAt,
   }) : inputSchema = Map<String, Object?>.unmodifiable(inputSchema),
@@ -226,15 +249,17 @@ final class McpToolDescriptor {
   final Map<String, Object?> inputSchema;
   final Map<String, Object?>? outputSchema;
   final McpToolAnnotations annotations;
+  final McpToolTaskSupport taskSupport;
   final bool enabled;
   final DateTime updatedAt;
 
   String get canonicalName =>
       McpToolDescriptor.canonicalNameFor(namespace, remoteName);
 
-  bool get hasCompatibleSchema {
+  bool get isSupportedByClient {
     const validator = JsonSchemaValidator();
-    return inputSchema['type'] == 'object' &&
+    return taskSupport != McpToolTaskSupport.required &&
+        inputSchema['type'] == 'object' &&
         validator.supports(inputSchema) &&
         (outputSchema == null || validator.supports(outputSchema!));
   }
@@ -249,6 +274,7 @@ final class McpToolDescriptor {
       inputSchema: inputSchema,
       outputSchema: outputSchema,
       annotations: annotations,
+      taskSupport: taskSupport,
       enabled: enabled ?? this.enabled,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -271,13 +297,13 @@ final class McpToolDescriptor {
 }
 
 final class McpCredential {
-  const McpCredential({
+  McpCredential({
     this.accessToken = '',
-    this.environment = const {},
+    Map<String, String> environment = const {},
     this.tokenType = 'Bearer',
     this.scope = '',
     this.expiresAt,
-  });
+  }) : environment = Map<String, String>.unmodifiable(environment);
 
   final String accessToken;
   final Map<String, String> environment;
@@ -295,19 +321,19 @@ final class McpCredential {
   String toString() => 'McpCredential(<redacted>)';
 }
 
-final class McpInitializeResult {
-  const McpInitializeResult({
-    required this.protocolVersion,
+final class McpServerCatalog {
+  McpServerCatalog({
     required this.serverName,
     required this.serverVersion,
     required this.capabilities,
+    required List<McpToolDescriptor> tools,
     this.instructions = '',
-  });
+  }) : tools = List<McpToolDescriptor>.unmodifiable(tools);
 
-  final String protocolVersion;
   final String serverName;
   final String serverVersion;
   final McpServerCapabilities capabilities;
+  final List<McpToolDescriptor> tools;
   final String instructions;
 }
 
@@ -319,8 +345,31 @@ final class McpToolCallResult {
   });
 
   final String content;
-  final Object? structuredContent;
+  final Map<String, Object?>? structuredContent;
   final bool isError;
+}
+
+bool _listsEqual<T>(List<T> left, List<T> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index += 1) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}
+
+bool _requiredBoolean(Map<String, Object?> values, String key) {
+  final value = values[key];
+  if (value is bool) return value;
+  throw FormatException('MCP field "$key" must be a boolean.');
+}
+
+bool _optionalBoolean(
+  Map<String, Object?> values,
+  String key,
+  bool defaultValue,
+) {
+  if (!values.containsKey(key)) return defaultValue;
+  return _requiredBoolean(values, key);
 }
 
 final class McpException implements Exception {

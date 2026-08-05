@@ -3172,7 +3172,7 @@ class _BotCardTestMcpRepository implements McpServerRepository {
   Stream<List<McpServer>> get changes => const Stream<List<McpServer>>.empty();
 
   @override
-  Future<List<McpServer>> getServers({bool forceRefresh = false}) async =>
+  Future<List<McpServer>> getServers() async =>
       List<McpServer>.unmodifiable(servers);
 
   @override
@@ -3184,7 +3184,9 @@ McpServer _botCardMcpServer(String id, String name) => McpServer(
   id: id,
   name: name,
   namespace: id.replaceAll('-', '_'),
-  endpoint: Uri.parse('https://mcp.example.test/$id'),
+  transport: McpStreamableHttpServerTransport(
+    endpoint: Uri.parse('https://mcp.example.test/$id'),
+  ),
   enabled: true,
   status: McpConnectionStatus.connected,
   createdAt: DateTime(2026),

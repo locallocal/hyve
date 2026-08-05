@@ -125,7 +125,7 @@ Skill 的 Provider 做优化，默认实现仍应在 Stars 本地完成目录、
 
 ### 3.3 MCP
 
-[MCP Tools 规范](https://modelcontextprotocol.io/specification/2025-06-18/server/tools)
+[MCP Tools 规范](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
 为 Tool 定义了名称、说明、JSON Schema 输入、可选输出 Schema 和结构化结果，并要求
 客户端明确展示暴露给模型的工具、显示调用状态、允许用户拒绝调用。
 
@@ -923,16 +923,22 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
 - 本地 Server 在逐平台安全评审后灰度；
 - Server、Tool 和 Skill 的能力关联。
 
-实现状态（2026-07-30）：
+实现状态（2026-08-05）：
 
 - 已实现 Streamable HTTP 和桌面端 stdio MCP Host，覆盖 `initialize`、协议版本
   协商、`notifications/initialized`、会话 ID、分页 `tools/list`、`tools/call`、
   JSON 与 SSE 响应、换行分隔的 stdio JSON-RPC、取消、超时和进程生命周期管理；
-- 已兼容 MCP `2025-11-25`、`2025-06-18` 和 `2025-03-26`，拒绝响应 ID 不匹配、
-  非法 JSON-RPC、跨端点重定向和不受支持的版本；
+- 仅实现当前稳定 MCP `2025-11-25` 契约，不保留旧协议协商分支；严格拒绝响应 ID
+  不匹配、非法 JSON-RPC、跨端点重定向、非当前协议版本和不符合当前 Schema 的字段；
+- 已将 HTTP/stdio 收敛为统一可插拔 Transport 契约；HTTP 会话失效后只重建并重试一次，
+  SSE 支持空 priming event，远程响应和 stdio 单条消息均设有大小上限；远程连接使用
+  预校验并固定的公网 IP 建立 TLS，避免校验后再次 DNS 解析；
 - 已实现 `McpServerRepository`、SQLite Server/Tool Catalog、`McpClientService`、
   `McpToolAdapter`、动态 Tool Registry 和系统安全凭据存储；访问令牌不进入 SQLite、
   Skill 文件、模型上下文、调用结果或错误日志；
+- MCP Server 使用互斥的 Streamable HTTP/stdio 配置模型，协议协商结果只存在于活动会话；
+  Server 状态与 Tool Catalog 通过单一事务原子替换。数据库 v12 直接重建 MCP 表，不迁移
+  旧 Server 或 Tool 数据，也不保留旧字段解析回退；
 - 已实现远程端点安全策略：仅 HTTPS，禁止 URI 用户信息，阻止 localhost、私网、
   链路本地、保留地址及 DNS 解析到非公网地址的主机；
 - 已支持桌面端配置 stdio 命令、逐行参数和环境变量；命令通过 argv 直接启动且不经过
@@ -1116,7 +1122,7 @@ Repository、Use Case、Tool Registry 和各 ViewModel。
 - [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions)
 - [OpenAI：Skills in ChatGPT](https://help.openai.com/en/articles/20001066)
 - [OpenAI：From model to agent—computer environment and Agent Skills](https://openai.com/index/equip-responses-api-computer-environment/)
-- [MCP Server Features Overview](https://modelcontextprotocol.io/specification/2025-06-18/server/index)
-- [MCP Tools Specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools)
+- [MCP Server Features Overview](https://modelcontextprotocol.io/specification/2025-11-25/server/index)
+- [MCP Tools Specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
 - [MCP Client Best Practices](https://modelcontextprotocol.io/docs/develop/clients/client-best-practices)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)

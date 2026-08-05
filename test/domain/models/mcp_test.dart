@@ -27,7 +27,9 @@ void main() {
         id: 'server-1',
         name: 'Example',
         namespace: 'Not Valid',
-        endpoint: Uri.parse('https://example.com/mcp'),
+        transport: McpStreamableHttpServerTransport(
+          endpoint: Uri.parse('https://example.com/mcp'),
+        ),
         createdAt: DateTime(2026),
         updatedAt: DateTime(2026),
       ),
@@ -42,7 +44,7 @@ void main() {
         id: 'stdio-1',
         name: 'Local',
         namespace: 'local',
-        transportType: McpTransportType.stdio,
+        transport: McpStdioServerTransport(command: ''),
         createdAt: timestamp,
         updatedAt: timestamp,
       ),
@@ -54,20 +56,18 @@ void main() {
       id: 'stdio-1',
       name: 'Local',
       namespace: 'local',
-      transportType: McpTransportType.stdio,
-      command: 'npx',
-      arguments: arguments,
+      transport: McpStdioServerTransport(command: 'npx', arguments: arguments),
       createdAt: timestamp,
       updatedAt: timestamp,
     );
     arguments.add('--mutated');
 
-    expect(server.endpoint, Uri());
-    expect(server.arguments, ['-y', 'example-server']);
-    expect(() => server.arguments.add('blocked'), throwsUnsupportedError);
+    final transport = server.transport as McpStdioServerTransport;
+    expect(transport.arguments, ['-y', 'example-server']);
+    expect(() => transport.arguments.add('blocked'), throwsUnsupportedError);
   });
 
-  test('MCP Tool compatibility fails closed for unsupported schemas', () {
+  test('MCP tools fail closed when the client cannot execute them', () {
     final descriptor = McpToolDescriptor(
       serverId: 'server-1',
       namespace: 'example',
@@ -86,7 +86,23 @@ void main() {
       updatedAt: DateTime(2026),
     );
 
-    expect(descriptor.hasCompatibleSchema, isFalse);
+    expect(descriptor.isSupportedByClient, isFalse);
+  });
+
+  test('task-required MCP Tools stay out of the direct execution registry', () {
+    final descriptor = McpToolDescriptor(
+      serverId: 'server-1',
+      namespace: 'example',
+      remoteName: 'long_running',
+      title: 'Long running',
+      description: 'Requires the MCP task protocol.',
+      inputSchema: const {'type': 'object'},
+      taskSupport: McpToolTaskSupport.required,
+      enabled: true,
+      updatedAt: DateTime(2026),
+    );
+
+    expect(descriptor.isSupportedByClient, isFalse);
   });
 
   test('Dynamic Tool registry atomically replaces remote Tools', () {

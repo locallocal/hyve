@@ -287,7 +287,7 @@ class _McpServersPageState extends State<McpServersPage> {
                 server.name,
                 server.namespace,
                 _mcpConnectionSummary(server),
-                server.transportType.name,
+                server.transport.type.name,
                 server.status.name,
                 server.remoteServerName,
                 server.remoteServerVersion,
@@ -495,12 +495,13 @@ class _McpServersPageState extends State<McpServersPage> {
 }
 
 String _mcpConnectionSummary(McpServer server) {
-  return server.transportType == McpTransportType.stdio
-      ? [
-        server.command,
-        ...server.arguments,
-      ].where((part) => part.isNotEmpty).join(' ')
-      : server.endpoint.toString();
+  return switch (server.transport) {
+    McpStreamableHttpServerTransport(:final endpoint) => endpoint.toString(),
+    McpStdioServerTransport(:final command, :final arguments) => [
+      command,
+      ...arguments,
+    ].where((part) => part.isNotEmpty).join(' '),
+  };
 }
 
 IconData _mcpStatusIcon(McpConnectionStatus status) => switch (status) {
@@ -759,7 +760,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
             ShadBadge.secondary(child: Text(widget.server.namespace)),
             ShadBadge.secondary(
               child: Text(
-                widget.server.transportType == McpTransportType.stdio
+                widget.server.transport.type == McpTransportType.stdio
                     ? strings.mcpTransportStdio
                     : strings.mcpTransportStreamableHttp,
               ),
@@ -843,7 +844,7 @@ class _McpServerDetailsDialog extends StatelessWidget {
                   ShadBadge.secondary(child: Text(server.namespace)),
                   ShadBadge.secondary(
                     child: Text(
-                      server.transportType == McpTransportType.stdio
+                      server.transport.type == McpTransportType.stdio
                           ? strings.mcpTransportStdio
                           : strings.mcpTransportStreamableHttp,
                     ),
@@ -898,7 +899,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = StarsDesktopTokens.of(context);
-    final compatible = tool.hasCompatibleSchema;
+    final supported = tool.isSupportedByClient;
     final title = tool.title.isEmpty ? tool.remoteName : tool.title;
 
     return ShadCard(
@@ -944,16 +945,16 @@ class _DesktopMcpToolCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: DesktopThemeTokens.metaStyle(context),
                 ),
-                if (tool.description.isNotEmpty || !compatible) ...[
+                if (tool.description.isNotEmpty || !supported) ...[
                   const SizedBox(height: 4),
                   Text(
-                    compatible
+                    supported
                         ? tool.description
                         : S.of(context).mcpToolSchemaUnsupported,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: DesktopThemeTokens.metaStyle(context)?.copyWith(
-                      color: compatible ? tokens.secondaryText : tokens.danger,
+                      color: supported ? tokens.secondaryText : tokens.danger,
                     ),
                   ),
                 ],
@@ -966,7 +967,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
               'desktop-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
             ),
             value: tool.enabled,
-            enabled: serverEnabled && compatible,
+            enabled: serverEnabled && supported,
             onChanged: (enabled) => onEnabledChanged(tool, enabled),
           ),
         ],
@@ -1072,12 +1073,12 @@ class _ServerCard extends StatelessWidget {
               SwitchListTile(
                 value: tool.enabled,
                 onChanged:
-                    !server.enabled || !tool.hasCompatibleSchema
+                    !server.enabled || !tool.isSupportedByClient
                         ? null
                         : (enabled) => onToolEnabledChanged(tool, enabled),
                 title: Text(tool.title.isEmpty ? tool.remoteName : tool.title),
                 subtitle: Text(
-                  tool.hasCompatibleSchema
+                  tool.isSupportedByClient
                       ? '${tool.canonicalName}\n${tool.description}'
                       : S.of(context).mcpToolSchemaUnsupported,
                   maxLines: 3,
@@ -1142,21 +1143,31 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   void initState() {
     super.initState();
     final server = widget.server;
+    final httpTransport = switch (server?.transport) {
+      final McpStreamableHttpServerTransport transport => transport,
+      _ => null,
+    };
+    final stdioTransport = switch (server?.transport) {
+      final McpStdioServerTransport transport => transport,
+      _ => null,
+    };
     _nameController = TextEditingController(text: server?.name ?? '');
     _namespaceController = TextEditingController(text: server?.namespace ?? '');
     _transportController = TextEditingController();
     _endpointController = TextEditingController(
-      text: server?.endpoint.toString() ?? '',
+      text: httpTransport?.endpoint.toString() ?? '',
     );
-    _commandController = TextEditingController(text: server?.command ?? '');
+    _commandController = TextEditingController(
+      text: stdioTransport?.command ?? '',
+    );
     _argumentsController = TextEditingController(
-      text: server?.arguments.join('\n') ?? '',
+      text: stdioTransport?.arguments.join('\n') ?? '',
     );
     _environmentController = TextEditingController();
     _tokenController = TextEditingController();
     _authController = TextEditingController();
-    _transportType = server?.transportType ?? McpTransportType.streamableHttp;
-    _authType = server?.authType ?? McpAuthType.none;
+    _transportType = server?.transport.type ?? McpTransportType.streamableHttp;
+    _authType = httpTransport?.authType ?? McpAuthType.none;
   }
 
   @override

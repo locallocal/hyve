@@ -3,7 +3,7 @@ import 'package:stars/domain/models/models.dart';
 abstract interface class McpServerRepository {
   Stream<List<McpServer>> get changes;
 
-  Future<List<McpServer>> getServers({bool forceRefresh = false});
+  Future<List<McpServer>> getServers();
 
   Future<McpServer?> getServer(String id);
 
@@ -16,7 +16,9 @@ abstract interface class McpServerRepository {
     bool enabledOnly = false,
   });
 
-  Future<void> replaceTools(String serverId, List<McpToolDescriptor> tools);
+  Future<void> replaceCatalog(McpServer server, List<McpToolDescriptor> tools);
+
+  Future<bool> isToolEnabled(String serverId, String remoteName);
 
   Future<void> setToolEnabled(
     String serverId,

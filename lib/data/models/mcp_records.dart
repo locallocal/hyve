@@ -10,13 +10,9 @@ final class McpServerRecord {
       'id': server.id,
       'name': server.name,
       'namespace': server.namespace,
-      'transport_type': server.transportType.name,
-      'endpoint_uri': server.endpoint.toString(),
-      'command': server.command,
-      'arguments_json': jsonEncode(server.arguments),
-      'auth_type': server.authType.name,
+      'transport_type': server.transport.type.name,
+      'transport_config_json': jsonEncode(_transportToMap(server.transport)),
       'enabled': server.enabled ? 1 : 0,
-      'protocol_version': server.protocolVersion,
       'remote_server_name': server.remoteServerName,
       'remote_server_version': server.remoteServerVersion,
       'capabilities_json': jsonEncode(server.capabilities.toMap()),
@@ -31,51 +27,63 @@ final class McpServerRecord {
   final Map<String, Object?> values;
 
   McpServer toDomain() {
-    final lastConnectedAt = _nullableInteger(values['last_connected_at']);
+    final transportType = _enumValue(
+      McpTransportType.values,
+      _string('transport_type'),
+      field: 'transport_type',
+    );
+    final transportConfig = _decodeMap(
+      _string('transport_config_json'),
+      field: 'transport_config_json',
+    );
+    final lastConnectedAt = _nullableInteger(
+      values['last_connected_at'],
+      field: 'last_connected_at',
+    );
     return McpServer(
-      id: _text('id'),
-      name: _text('name'),
-      namespace: _text('namespace'),
-      transportType: _enumValue(
-        McpTransportType.values,
-        _text('transport_type'),
-        McpTransportType.streamableHttp,
-      ),
-      endpoint: Uri.parse(_text('endpoint_uri')),
-      command: _text('command'),
-      arguments: _decodeStringList(_text('arguments_json')),
-      authType: _enumValue(
-        McpAuthType.values,
-        _text('auth_type'),
-        McpAuthType.none,
-      ),
-      enabled: _integer(values['enabled']) == 1,
-      protocolVersion: _text('protocol_version'),
-      remoteServerName: _text('remote_server_name'),
-      remoteServerVersion: _text('remote_server_version'),
+      id: _string('id'),
+      name: _string('name'),
+      namespace: _string('namespace'),
+      transport: _transportFromMap(transportType, transportConfig),
+      enabled: _booleanInteger('enabled'),
+      remoteServerName: _string('remote_server_name'),
+      remoteServerVersion: _string('remote_server_version'),
       capabilities: McpServerCapabilities.fromMap(
-        _decodeMap(_text('capabilities_json')),
+        _decodeMap(_string('capabilities_json'), field: 'capabilities_json'),
       ),
       status: _enumValue(
         McpConnectionStatus.values,
-        _text('connection_status'),
-        McpConnectionStatus.disconnected,
+        _string('connection_status'),
+        field: 'connection_status',
       ),
-      lastErrorCode: _text('last_error_code'),
+      lastErrorCode: _string('last_error_code'),
       lastConnectedAt:
           lastConnectedAt == null
               ? null
               : DateTime.fromMillisecondsSinceEpoch(lastConnectedAt),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['created_at']),
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['updated_at']),
-      ),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(_integer('created_at')),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(_integer('updated_at')),
     );
   }
 
-  String _text(String key) => values[key]?.toString() ?? '';
+  String _string(String key) {
+    final value = values[key];
+    if (value is String) return value;
+    throw FormatException('MCP record field "$key" must be a string.');
+  }
+
+  int _integer(String key) {
+    final value = values[key];
+    if (value is int) return value;
+    throw FormatException('MCP record field "$key" must be an integer.');
+  }
+
+  bool _booleanInteger(String key) {
+    final value = _integer(key);
+    if (value == 0) return false;
+    if (value == 1) return true;
+    throw FormatException('MCP record field "$key" must be 0 or 1.');
+  }
 }
 
 final class McpToolRecord {
@@ -85,14 +93,13 @@ final class McpToolRecord {
     return McpToolRecord({
       'server_id': tool.serverId,
       'remote_name': tool.remoteName,
-      'namespace': tool.namespace,
-      'canonical_name': tool.canonicalName,
       'title': tool.title,
       'description': tool.description,
       'input_schema_json': jsonEncode(tool.inputSchema),
       'output_schema_json':
           tool.outputSchema == null ? null : jsonEncode(tool.outputSchema),
       'annotations_json': jsonEncode(tool.annotations.toMap()),
+      'task_support': tool.taskSupport.name,
       'enabled': tool.enabled ? 1 : 0,
       'updated_at': tool.updatedAt.millisecondsSinceEpoch,
     });
@@ -100,70 +107,137 @@ final class McpToolRecord {
 
   final Map<String, Object?> values;
 
-  McpToolDescriptor toDomain() {
-    final outputSchemaSource = values['output_schema_json']?.toString();
+  McpToolDescriptor toDomain({required String namespace}) {
+    final outputSchemaSource = values['output_schema_json'];
+    if (outputSchemaSource != null && outputSchemaSource is! String) {
+      throw const FormatException(
+        'MCP Tool output_schema_json must be a string or null.',
+      );
+    }
     return McpToolDescriptor(
-      serverId: values['server_id']?.toString() ?? '',
-      namespace: values['namespace']?.toString() ?? '',
-      remoteName: values['remote_name']?.toString() ?? '',
-      title: values['title']?.toString() ?? '',
-      description: values['description']?.toString() ?? '',
-      inputSchema: _decodeMap(values['input_schema_json']?.toString() ?? ''),
-      outputSchema:
-          outputSchemaSource == null || outputSchemaSource.isEmpty
-              ? null
-              : _decodeMap(outputSchemaSource),
-      annotations: McpToolAnnotations.fromMap(
-        _decodeMap(values['annotations_json']?.toString() ?? ''),
+      serverId: _requiredString(values, 'server_id'),
+      namespace: namespace,
+      remoteName: _requiredString(values, 'remote_name'),
+      title: _requiredString(values, 'title'),
+      description: _requiredString(values, 'description'),
+      inputSchema: _decodeMap(
+        _requiredString(values, 'input_schema_json'),
+        field: 'input_schema_json',
       ),
-      enabled: _integer(values['enabled']) == 1,
+      outputSchema:
+          outputSchemaSource == null
+              ? null
+              : _decodeMap(
+                outputSchemaSource as String,
+                field: 'output_schema_json',
+              ),
+      annotations: McpToolAnnotations.fromMap(
+        _decodeMap(
+          _requiredString(values, 'annotations_json'),
+          field: 'annotations_json',
+        ),
+      ),
+      taskSupport: _enumValue(
+        McpToolTaskSupport.values,
+        _requiredString(values, 'task_support'),
+        field: 'task_support',
+      ),
+      enabled: _requiredBooleanInteger(values, 'enabled'),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['updated_at']),
+        _requiredInteger(values, 'updated_at'),
       ),
     );
   }
 }
 
-Map<String, Object?> _decodeMap(String source) {
-  try {
-    final decoded = jsonDecode(source);
-    if (decoded is Map) {
-      return decoded.map(
-        (key, value) => MapEntry(key.toString(), value as Object?),
-      );
-    }
-  } on FormatException {
-    return const {};
-  }
-  return const {};
+Map<String, Object?> _transportToMap(McpServerTransport transport) {
+  return switch (transport) {
+    McpStreamableHttpServerTransport(:final endpoint, :final authType) => {
+      'endpoint': endpoint.toString(),
+      'authType': authType.name,
+    },
+    McpStdioServerTransport(:final command, :final arguments) => {
+      'command': command,
+      'arguments': arguments,
+    },
+  };
 }
 
-List<String> _decodeStringList(String source) {
-  try {
-    final decoded = jsonDecode(source);
-    if (decoded is List) {
-      return decoded.map((value) => value.toString()).toList(growable: false);
-    }
-  } on FormatException {
-    // Invalid persisted values fail closed to an empty argument list.
-  }
-  return const [];
+McpServerTransport _transportFromMap(
+  McpTransportType type,
+  Map<String, Object?> values,
+) {
+  return switch (type) {
+    McpTransportType.streamableHttp => McpStreamableHttpServerTransport(
+      endpoint: Uri.parse(_requiredString(values, 'endpoint')),
+      authType: _enumValue(
+        McpAuthType.values,
+        _requiredString(values, 'authType'),
+        field: 'authType',
+      ),
+    ),
+    McpTransportType.stdio => McpStdioServerTransport(
+      command: _requiredString(values, 'command'),
+      arguments: _decodeStringList(values['arguments'], field: 'arguments'),
+    ),
+  };
 }
 
-T _enumValue<T extends Enum>(List<T> values, String name, T fallback) {
+Map<String, Object?> _decodeMap(String source, {required String field}) {
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(source);
+  } on FormatException {
+    throw FormatException('MCP record field "$field" contains invalid JSON.');
+  }
+  if (decoded is! Map) {
+    throw FormatException('MCP record field "$field" must contain an object.');
+  }
+  return decoded.map(
+    (key, value) => MapEntry(key.toString(), value as Object?),
+  );
+}
+
+List<String> _decodeStringList(Object? value, {required String field}) {
+  if (value is! List || value.any((item) => item is! String)) {
+    throw FormatException('MCP record field "$field" must be a string array.');
+  }
+  return List<String>.unmodifiable(value.cast<String>());
+}
+
+T _enumValue<T extends Enum>(
+  List<T> values,
+  String name, {
+  required String field,
+}) {
   for (final value in values) {
     if (value.name == name) return value;
   }
-  return fallback;
+  throw FormatException('MCP record field "$field" has an unknown value.');
 }
 
-int _integer(Object? value) => _nullableInteger(value) ?? 0;
+String _requiredString(Map<String, Object?> values, String key) {
+  final value = values[key];
+  if (value is String) return value;
+  throw FormatException('MCP record field "$key" must be a string.');
+}
 
-int? _nullableInteger(Object? value) {
-  return switch (value) {
-    null => null,
-    final int number => number,
-    final num number => number.toInt(),
-    _ => int.tryParse(value.toString()),
-  };
+int _requiredInteger(Map<String, Object?> values, String key) {
+  final value = values[key];
+  if (value is int) return value;
+  throw FormatException('MCP record field "$key" must be an integer.');
+}
+
+bool _requiredBooleanInteger(Map<String, Object?> values, String key) {
+  final value = _requiredInteger(values, key);
+  if (value == 0) return false;
+  if (value == 1) return true;
+  throw FormatException('MCP record field "$key" must be 0 or 1.');
+}
+
+int? _nullableInteger(Object? value, {required String field}) {
+  if (value == null || value is int) return value as int?;
+  throw FormatException(
+    'MCP record field "$field" must be an integer or null.',
+  );
 }

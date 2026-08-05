@@ -461,8 +461,11 @@ void main() {
       id: 'server-1',
       name: 'Docs',
       namespace: 'docs',
-      endpoint: Uri.parse('https://mcp.example.test'),
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://mcp.example.test'),
+      ),
       enabled: true,
+      status: McpConnectionStatus.connected,
       createdAt: now,
       updatedAt: now,
     );
@@ -684,9 +687,7 @@ final class _FakeMcpServerRepository implements McpServerRepository {
       id == server.id ? server : null;
 
   @override
-  Future<List<McpServer>> getServers({bool forceRefresh = false}) async => [
-    server,
-  ];
+  Future<List<McpServer>> getServers() async => [server];
 
   @override
   Future<List<McpToolDescriptor>> getTools(
@@ -698,8 +699,19 @@ final class _FakeMcpServerRepository implements McpServerRepository {
           : const [];
 
   @override
-  Future<void> replaceTools(String serverId, List<McpToolDescriptor> tools) =>
-      throw UnimplementedError();
+  Future<void> replaceCatalog(
+    McpServer server,
+    List<McpToolDescriptor> tools,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<bool> isToolEnabled(String serverId, String remoteName) async =>
+      tools.any(
+        (tool) =>
+            tool.serverId == serverId &&
+            tool.remoteName == remoteName &&
+            tool.enabled,
+      );
 
   @override
   Future<void> saveServer(McpServer server) => throw UnimplementedError();

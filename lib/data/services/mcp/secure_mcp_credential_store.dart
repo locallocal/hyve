@@ -9,7 +9,7 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
     : _storage =
           storage ??
           const FlutterSecureStorage(
-            aOptions: AndroidOptions(migrateWithBackup: true),
+            aOptions: AndroidOptions(),
             iOptions: IOSOptions(
               accountName: 'com.example.stars.mcp.credentials',
             ),
@@ -24,28 +24,32 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
   Future<McpCredential?> read(String serverId) async {
     final source = await _storage.read(key: _key(serverId));
     if (source == null || source.isEmpty) return null;
-    try {
-      final decoded = jsonDecode(source);
-      if (decoded is! Map) return null;
-      final values = decoded.map(
-        (key, value) => MapEntry(key.toString(), value as Object?),
-      );
-      final accessToken = values['accessToken']?.toString() ?? '';
-      final environment = _stringMap(values['environment']);
-      if (accessToken.isEmpty && environment.isEmpty) return null;
-      final expiresAt = DateTime.tryParse(
-        values['expiresAt']?.toString() ?? '',
-      );
-      return McpCredential(
-        accessToken: accessToken,
-        environment: environment,
-        tokenType: values['tokenType']?.toString() ?? 'Bearer',
-        scope: values['scope']?.toString() ?? '',
-        expiresAt: expiresAt,
-      );
-    } on FormatException {
-      return null;
+    final decoded = jsonDecode(source);
+    if (decoded is! Map || decoded.keys.any((key) => key is! String)) {
+      throw const FormatException('MCP credential must be a JSON object.');
     }
+    final values = decoded.cast<String, Object?>();
+    final accessToken = _requiredString(values, 'accessToken');
+    final environment = _stringMap(values['environment']);
+    if (accessToken.isEmpty && environment.isEmpty) {
+      throw const FormatException('MCP credential cannot be empty.');
+    }
+    final rawExpiry = values['expiresAt'];
+    final DateTime? expiresAt;
+    if (rawExpiry == null) {
+      expiresAt = null;
+    } else if (rawExpiry is String) {
+      expiresAt = DateTime.parse(rawExpiry);
+    } else {
+      throw const FormatException('MCP credential expiry must be a string.');
+    }
+    return McpCredential(
+      accessToken: accessToken,
+      environment: environment,
+      tokenType: _requiredString(values, 'tokenType'),
+      scope: _requiredString(values, 'scope'),
+      expiresAt: expiresAt,
+    );
   }
 
   @override
@@ -74,14 +78,26 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
   Future<void> delete(String serverId) => _storage.delete(key: _key(serverId));
 
   String _key(String serverId) {
-    final safeId = serverId.replaceAll(RegExp(r'[^A-Za-z0-9_.:-]'), '_');
-    return 'stars.mcp.credential.$safeId';
+    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$').hasMatch(serverId)) {
+      throw ArgumentError.value(serverId, 'serverId', 'Invalid MCP server id.');
+    }
+    return 'stars.mcp.credential.$serverId';
   }
 }
 
 Map<String, String> _stringMap(Object? value) {
-  if (value is! Map) return const {};
-  return Map<String, String>.unmodifiable(
-    value.map((key, mapValue) => MapEntry(key.toString(), mapValue.toString())),
-  );
+  if (value is! Map ||
+      value.keys.any((key) => key is! String) ||
+      value.values.any((item) => item is! String)) {
+    throw const FormatException(
+      'MCP credential environment must be a string map.',
+    );
+  }
+  return Map<String, String>.unmodifiable(value.cast<String, String>());
+}
+
+String _requiredString(Map<String, Object?> values, String key) {
+  final value = values[key];
+  if (value is String) return value;
+  throw FormatException('MCP credential field "$key" must be a string.');
 }

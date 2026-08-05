@@ -135,14 +135,13 @@ void main() {
 
     expect(saved, isTrue);
     final server = viewModel.servers.single;
-    expect(server.transportType, McpTransportType.stdio);
-    expect(server.command, 'npx');
-    expect(server.arguments, [
+    final transport = server.transport as McpStdioServerTransport;
+    expect(transport.command, 'npx');
+    expect(transport.arguments, [
       '-y',
       '@modelcontextprotocol/server-filesystem',
       '/tmp',
     ]);
-    expect(server.authType, McpAuthType.none);
     expect(credentials.values[server.id]?.environment, {
       'API_KEY': 'local-secret',
       'MCP_MODE': 'read_only',
@@ -189,39 +188,31 @@ final class _FakeMcpClient implements McpClient {
   Object? initializeError;
 
   @override
-  Future<McpInitializeResult> initialize(
+  Future<McpServerCatalog> discoverTools(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) async {
     if (initializeError case final error?) throw error;
-    return const McpInitializeResult(
-      protocolVersion: '2025-11-25',
+    return McpServerCatalog(
       serverName: 'Remote Example',
       serverVersion: '1.0.0',
-      capabilities: McpServerCapabilities(tools: true),
-    );
-  }
-
-  @override
-  Future<List<McpToolDescriptor>> listTools(
-    McpServer server, {
-    AgentCancellationToken? cancellationToken,
-  }) async {
-    return [
-      McpToolDescriptor(
-        serverId: server.id,
-        namespace: server.namespace,
-        remoteName: 'search',
-        title: 'Search',
-        description: 'Search remote data.',
-        inputSchema: const {'type': 'object'},
-        annotations: const McpToolAnnotations(
-          readOnlyHint: true,
-          destructiveHint: false,
+      capabilities: const McpServerCapabilities(tools: true),
+      tools: [
+        McpToolDescriptor(
+          serverId: server.id,
+          namespace: server.namespace,
+          remoteName: 'search',
+          title: 'Search',
+          description: 'Search remote data.',
+          inputSchema: const {'type': 'object'},
+          annotations: const McpToolAnnotations(
+            readOnlyHint: true,
+            destructiveHint: false,
+          ),
+          updatedAt: DateTime(2026, 7, 29),
         ),
-        updatedAt: DateTime(2026, 7, 29),
-      ),
-    ];
+      ],
+    );
   }
 
   @override

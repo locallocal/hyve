@@ -209,10 +209,14 @@ final class ComposeChatTurn {
     final serverIds = bot.enabledMcpServerIds.toList()..sort();
     for (final serverId in serverIds) {
       final server = await repository.getServer(serverId);
-      if (server == null || !server.enabled) continue;
+      if (server == null ||
+          !server.enabled ||
+          server.status != McpConnectionStatus.connected) {
+        continue;
+      }
       final tools = await repository.getTools(serverId, enabledOnly: true);
       for (final tool in tools) {
-        if (tool.hasCompatibleSchema) names.add(tool.canonicalName);
+        if (tool.isSupportedByClient) names.add(tool.canonicalName);
       }
     }
     return Set<String>.unmodifiable(names);

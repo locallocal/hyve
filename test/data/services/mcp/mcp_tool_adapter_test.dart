@@ -133,7 +133,9 @@ McpServer _server() {
     id: 'server-1',
     name: 'Example',
     namespace: 'example',
-    endpoint: Uri.parse('https://example.com/mcp'),
+    transport: McpStreamableHttpServerTransport(
+      endpoint: Uri.parse('https://example.com/mcp'),
+    ),
     status: McpConnectionStatus.connected,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -183,15 +185,7 @@ final class _FakeMcpClient implements McpClient {
   Future<void> disconnect(McpServer server) async {}
 
   @override
-  Future<McpInitializeResult> initialize(
-    McpServer server, {
-    AgentCancellationToken? cancellationToken,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<McpToolDescriptor>> listTools(
+  Future<McpServerCatalog> discoverTools(
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) {

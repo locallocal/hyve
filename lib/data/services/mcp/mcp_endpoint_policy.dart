@@ -10,7 +10,7 @@ final class McpEndpointPolicy {
 
   final McpHostResolver _resolver;
 
-  Future<void> validate(Uri endpoint) async {
+  Future<List<InternetAddress>> validate(Uri endpoint) async {
     if (endpoint.scheme.toLowerCase() != 'https') {
       throw const McpException(
         'mcp_https_required',
@@ -39,7 +39,7 @@ final class McpEndpointPolicy {
     final literal = InternetAddress.tryParse(host);
     if (literal != null) {
       _rejectNonPublicAddress(literal);
-      return;
+      return [literal];
     }
 
     final List<InternetAddress> addresses;
@@ -60,6 +60,7 @@ final class McpEndpointPolicy {
     for (final address in addresses) {
       _rejectNonPublicAddress(address);
     }
+    return List<InternetAddress>.unmodifiable(addresses);
   }
 
   void _rejectNonPublicAddress(InternetAddress address) {

@@ -19,6 +19,7 @@ class MainShellViewModel extends ChangeNotifier {
   Bot? get selectedChatBot => _selectedChatBot;
   Bot? get selectedBot => _selectedBot;
   int get selectedProfileSection => _selectedProfileSection;
+  bool get isChatSelectionVisible => _currentIndex == 0;
 
   void selectChat(String chatId, Bot bot) {
     _selectedChatId = chatId;

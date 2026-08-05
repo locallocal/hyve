@@ -20,6 +20,7 @@ import 'package:stars/domain/use_cases/create_chat.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/views/desktop_layout.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
@@ -1399,6 +1400,119 @@ void main() {
       expect(menuAction.focusNode!.hasFocus, isFalse);
     });
   });
+
+  testWidgets(
+    'desktop Agent and My navigation restores the selected chat background',
+    (tester) async {
+      await _withDesktopPlatform(() async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(1440, 900);
+        addTearDown(tester.view.reset);
+
+        final registry = ChatGenerationRegistry(
+          messagePersister: (message) async => message,
+          lastMessageUpdater: (_, _) async {},
+          providerFactory: (_) => throw StateError('Provider is not expected'),
+        );
+        addTearDown(registry.clear);
+        final timestamp = DateTime(2026);
+        final bot = Bot(
+          id: 'bot-navigation',
+          name: '测试智能体',
+          avatar: '',
+          provider: 'OpenAI',
+          baseURL: '',
+          apiKey: '',
+          apiType: Bot.apiTypeOpenAI,
+          model: 'gpt-test',
+          systemPrompt: '',
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        );
+        final chat = Chat(
+          id: 'chat-navigation',
+          botId: bot.id,
+          lastMessage: '测试会话',
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        );
+        final shell = MainShellViewModel(
+          botRepository: _BotCardTestBotRepository([bot]),
+        )..selectChat(chat.id, bot);
+        addTearDown(shell.dispose);
+
+        await tester.pumpWidget(
+          _shadHarness(
+            brightness: Brightness.light,
+            homeBuilder:
+                (context) => ListenableBuilder(
+                  listenable: shell,
+                  builder:
+                      (context, _) => Scaffold(
+                        body: DesktopLayout(
+                          currentIndex: shell.currentIndex,
+                          onPageChanged: shell.selectPage,
+                          pages: [
+                            ChatListBuilder(
+                              chatList: [chat],
+                              bots: [bot],
+                              selectedChatId: shell.selectedChatId,
+                              selectionVisible: shell.isChatSelectionVisible,
+                              generationRegistry: registry,
+                              onChatDeleted: (_) {},
+                              onDeleteChat: (_) async {},
+                              onChatSelected: shell.selectChat,
+                            ),
+                            const Center(child: Text('bot list')),
+                            const Center(child: Text('skills')),
+                            const Center(child: Text('mcp servers')),
+                            const Center(child: Text('profile')),
+                          ],
+                          onBotUpdated: (_) async {},
+                          onBotDeleted: () async {},
+                        ),
+                      ),
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        ShadButton rowButton() => tester.widget<ShadButton>(
+          find
+              .descendant(
+                of: find.byType(DesktopInteractiveListItem),
+                matching: find.byType(ShadButton),
+              )
+              .first,
+        );
+
+        expect(rowButton().variant, ShadButtonVariant.primary);
+
+        await tester.tap(find.text('智能体').first);
+        await tester.pumpAndSettle();
+
+        expect(shell.currentIndex, 1);
+        expect(shell.selectedChatId, chat.id);
+        expect(rowButton().variant, ShadButtonVariant.ghost);
+
+        await tester.tap(find.text('我的').first);
+        await tester.pumpAndSettle();
+
+        expect(shell.currentIndex, 4);
+        expect(shell.selectedChatId, chat.id);
+        expect(rowButton().variant, ShadButtonVariant.ghost);
+
+        await tester.tap(
+          find.byType(DesktopInteractiveListItem).hitTestable().first,
+        );
+        await tester.pumpAndSettle();
+
+        expect(shell.currentIndex, 0);
+        expect(rowButton().variant, ShadButtonVariant.primary);
+      });
+    },
+  );
 
   testWidgets('desktop delete chat cancel matches delete bot styling', (
     tester,

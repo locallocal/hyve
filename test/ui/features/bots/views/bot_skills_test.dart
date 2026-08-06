@@ -243,7 +243,9 @@ void main() {
     }
   });
 
-  testWidgets('read-only bot details disable Skill changes', (tester) async {
+  testWidgets('read-only bot details hide Skill mutation actions', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
@@ -272,22 +274,21 @@ void main() {
       await tester.pumpWidget(_harness(viewModel, readOnly: true));
       await tester.pumpAndSettle();
 
-      final addSkill = find.byKey(const ValueKey<String>('add-bot-skill'));
       final skillToggle = find.byKey(
         const ValueKey<String>('bot-skill-toggle-user:release-notes'),
       );
-      final removeSkill = find.byKey(
-        const ValueKey<String>('remove-bot-skill-user:release-notes'),
-      );
       await tester.ensureVisible(skillToggle);
 
-      expect(tester.widget<ShadButton>(addSkill).enabled, isFalse);
+      expect(find.byKey(const ValueKey<String>('add-bot-skill')), findsNothing);
+      expect(
+        find.byKey(
+          const ValueKey<String>('remove-bot-skill-user:release-notes'),
+        ),
+        findsNothing,
+      );
       expect(tester.widget<ShadSwitch>(skillToggle).enabled, isFalse);
-      expect(tester.widget<ShadIconButton>(removeSkill).enabled, isFalse);
 
       await tester.tap(skillToggle, warnIfMissed: false);
-      await tester.tap(removeSkill, warnIfMissed: false);
-      await tester.tap(addSkill, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(bindingRepository.bindingFor('user:release-notes'), isNotNull);

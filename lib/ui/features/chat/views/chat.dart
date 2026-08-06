@@ -82,6 +82,7 @@ class ChatPageState extends State<ChatPage> {
   Stopwatch? _processStopwatch;
   final List<MessageToolCall> _toolCalls = [];
   final List<MessageCommandExecution> _commandExecutions = [];
+  final List<MessageSkillActivation> _skillActivations = [];
   bool _followLatest = true;
   bool _showJumpToLatest = false;
   bool _isPositioningInitialMessages = false;
@@ -184,7 +185,8 @@ class ChatPageState extends State<ChatPage> {
           (snapshot.streamingResponse.isNotEmpty ||
               snapshot.reasoningResponse.isNotEmpty ||
               snapshot.toolCalls.isNotEmpty ||
-              snapshot.commandExecutions.isNotEmpty);
+              snapshot.commandExecutions.isNotEmpty ||
+              snapshot.skillActivations.isNotEmpty);
       _isCancellable = snapshot.canCancel;
       _isStopping = snapshot.lifecycle == ChatRunLifecycle.stopping;
       _streamingResponse = snapshot.streamingResponse;
@@ -196,6 +198,9 @@ class ChatPageState extends State<ChatPage> {
       _commandExecutions
         ..clear()
         ..addAll(snapshot.commandExecutions);
+      _skillActivations
+        ..clear()
+        ..addAll(snapshot.skillActivations);
       if (snapshot.error != null) {
         _generationError = snapshot.error;
       } else if (snapshot.lifecycle.isRunning ||
@@ -1602,6 +1607,7 @@ class ChatPageState extends State<ChatPage> {
     _processStopwatch = Stopwatch()..start();
     _toolCalls.clear();
     _commandExecutions.clear();
+    _skillActivations.clear();
   }
 
   int? _stopProcessTracking() {
@@ -1616,6 +1622,7 @@ class ChatPageState extends State<ChatPage> {
       ..reset();
     _toolCalls.clear();
     _commandExecutions.clear();
+    _skillActivations.clear();
   }
 
   MessageProcessInfo _buildStreamingProcessInfo() {
@@ -1628,6 +1635,7 @@ class ChatPageState extends State<ChatPage> {
       reasoningStatus: _provider.getDeepThinking() ? 'streaming' : '',
       toolCalls: _toolCalls,
       commandExecutions: _commandExecutions,
+      skillActivations: _skillActivations,
     );
   }
 
@@ -1636,6 +1644,7 @@ class ChatPageState extends State<ChatPage> {
     int? durationMs,
     List<MessageToolCall> toolCalls = const [],
     List<MessageCommandExecution> commandExecutions = const [],
+    List<MessageSkillActivation> skillActivations = const [],
     List<String> imagePaths = const [],
     List<String> filePaths = const [],
     String audioPath = '',
@@ -1716,6 +1725,7 @@ class ChatPageState extends State<ChatPage> {
       toolCalls: List<MessageToolCall>.from(toolCalls),
       commandExecutions: List<MessageCommandExecution>.from(commandExecutions),
       fileEdits: fileEdits,
+      skillActivations: List<MessageSkillActivation>.from(skillActivations),
     );
   }
 }

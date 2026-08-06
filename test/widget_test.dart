@@ -1218,6 +1218,13 @@ void main() {
                           senderId: 'user',
                           content: '使用技能处理',
                           processInfo: const MessageProcessInfo(
+                            toolCalls: [
+                              MessageToolCall(
+                                name: 'activate_skill',
+                                status: 'completed',
+                                detail: 'release-notes',
+                              ),
+                            ],
                             skillActivations: [
                               MessageSkillActivation(
                                 name: 'release-notes',
@@ -1285,7 +1292,8 @@ void main() {
       await tester.tap(executionStatus);
       await tester.pumpAndSettle();
 
-      expect(find.text('release-notes').hitTestable(), findsOneWidget);
+      expect(find.text('release-notes').hitTestable(), findsNWidgets(2));
+      expect(find.text('activate_skill').hitTestable(), findsOneWidget);
       expect(find.text('mcp.docs.search').hitTestable(), findsOneWidget);
       expect(find.text('read_file').hitTestable(), findsOneWidget);
       expect(find.text('按消息启用 · abc123').hitTestable(), findsOneWidget);
@@ -1304,6 +1312,70 @@ void main() {
       expect(find.text('read_file').hitTestable(), findsNothing);
     },
   );
+
+  testWidgets('mobile hides execution status below user messages', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 800);
+    addTearDown(tester.view.reset);
+
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+
+    await tester.pumpWidget(
+      _shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: Column(
+                children: [
+                  MessageList(
+                    messages: [
+                      Message(
+                        messageId: 'message-user',
+                        turnId: 'turn-1',
+                        runId: 'run-1',
+                        chatId: 'chat-1',
+                        botId: 'bot-1',
+                        senderId: 'user',
+                        content: '使用技能处理',
+                        processInfo: const MessageProcessInfo(
+                          durationMs: 100,
+                          toolCalls: [
+                            MessageToolCall(
+                              name: 'activate_skill',
+                              status: 'completed',
+                            ),
+                          ],
+                          skillActivations: [
+                            MessageSkillActivation(
+                              name: 'release-notes',
+                              contentDigest: 'abc123',
+                              trigger: 'model',
+                            ),
+                          ],
+                        ),
+                        timestamp: DateTime(2026),
+                      ),
+                    ],
+                    scrollController: scrollController,
+                    isStreaming: false,
+                    streamingResponse: '',
+                    currentUserId: 'user',
+                  ),
+                ],
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('执行状态'), findsNothing);
+    expect(find.text('技能 1'), findsNothing);
+    expect(find.text('release-notes'), findsNothing);
+    expect(find.text('activate_skill'), findsNothing);
+  });
 
   testWidgets('desktop execution details scroll after reaching max height', (
     tester,

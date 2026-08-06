@@ -42,6 +42,7 @@ class ChatGenerationSnapshot {
     this.reasoningResponse = '',
     this.toolCalls = const [],
     this.commandExecutions = const [],
+    this.skillActivations = const [],
     this.pendingToolApproval,
     this.tokenUsage = ModelTokenUsage.empty,
     this.supportsCancellation = false,
@@ -59,6 +60,7 @@ class ChatGenerationSnapshot {
   final String reasoningResponse;
   final List<MessageToolCall> toolCalls;
   final List<MessageCommandExecution> commandExecutions;
+  final List<MessageSkillActivation> skillActivations;
   final ToolApprovalRequest? pendingToolApproval;
   final ModelTokenUsage tokenUsage;
   final bool supportsCancellation;
@@ -72,7 +74,10 @@ class ChatGenerationSnapshot {
   bool get reasoningActive =>
       isRunning && (reasoningResponse.isNotEmpty || contentStreaming);
   bool get toolingActive =>
-      isRunning && (toolCalls.isNotEmpty || commandExecutions.isNotEmpty);
+      isRunning &&
+      (toolCalls.isNotEmpty ||
+          commandExecutions.isNotEmpty ||
+          skillActivations.isNotEmpty);
   bool get canCancel =>
       supportsCancellation &&
       lifecycle.isRunning &&
@@ -88,6 +93,7 @@ class ChatGenerationSnapshot {
     String? reasoningResponse,
     List<MessageToolCall>? toolCalls,
     List<MessageCommandExecution>? commandExecutions,
+    List<MessageSkillActivation>? skillActivations,
     ToolApprovalRequest? pendingToolApproval,
     bool clearPendingToolApproval = false,
     ModelTokenUsage? tokenUsage,
@@ -109,6 +115,7 @@ class ChatGenerationSnapshot {
       reasoningResponse: reasoningResponse ?? this.reasoningResponse,
       toolCalls: toolCalls ?? this.toolCalls,
       commandExecutions: commandExecutions ?? this.commandExecutions,
+      skillActivations: skillActivations ?? this.skillActivations,
       pendingToolApproval:
           clearPendingToolApproval
               ? null
@@ -151,6 +158,7 @@ class PreparedTextGeneration {
     required this.messages,
     this.activatedSkills = const [],
     this.activationAttempts = const [],
+    this.skillToolCalls = const [],
     this.preflightTokenUsage = ModelTokenUsage.empty,
     this.requestedToolNames = const {},
     this.approvalExemptToolNames = const {},
@@ -160,6 +168,7 @@ class PreparedTextGeneration {
   final List<ChatMessage> messages;
   final List<ActivatedSkill> activatedSkills;
   final List<SkillActivationAttempt> activationAttempts;
+  final List<MessageToolCall> skillToolCalls;
   final ModelTokenUsage preflightTokenUsage;
   final Set<String> requestedToolNames;
   final Set<String> approvalExemptToolNames;
@@ -258,6 +267,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     required List<ChatMessage> messages,
     List<ActivatedSkill> activatedSkills = const [],
     List<SkillActivationAttempt> activationAttempts = const [],
+    List<MessageToolCall> skillToolCalls = const [],
     ModelTokenUsage preflightTokenUsage = ModelTokenUsage.empty,
     Set<String> requestedToolNames = const {},
     Set<String> approvalExemptToolNames = const {},
@@ -269,6 +279,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           messages: messages,
           activatedSkills: activatedSkills,
           activationAttempts: activationAttempts,
+          skillToolCalls: skillToolCalls,
           preflightTokenUsage: preflightTokenUsage,
           requestedToolNames: requestedToolNames,
           approvalExemptToolNames: approvalExemptToolNames,
@@ -345,6 +356,15 @@ class ChatGenerationViewModel extends ChangeNotifier
     _snapshot = _snapshot.copyWith(
       supportsCancellation: provider.supportsCancellation,
       tokenUsage: prepared.preflightTokenUsage,
+      toolCalls: prepared.skillToolCalls,
+      skillActivations: [
+        for (final skill in prepared.activatedSkills)
+          MessageSkillActivation(
+            name: skill.name,
+            contentDigest: skill.contentDigest,
+            trigger: skill.trigger.name,
+          ),
+      ],
       submittedUserMessage: preparedUser,
     );
     notifyListeners();
@@ -370,7 +390,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     notifyListeners();
     await _persistSkillActivationsSafely(
       runId: runId,
-      messageId: preparedUser.messageId,
+      messageId: '$runId:assistant',
       activatedSkills: prepared.activatedSkills,
       activationAttempts: prepared.activationAttempts,
     );
@@ -550,6 +570,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       reasoningResponse: '',
       toolCalls: const [],
       commandExecutions: const [],
+      skillActivations: const [],
       clearPendingToolApproval: true,
       tokenUsage: ModelTokenUsage.empty,
       supportsCancellation: false,
@@ -858,7 +879,8 @@ class ChatGenerationViewModel extends ChangeNotifier
         _snapshot.streamingResponse.isNotEmpty ||
         _snapshot.reasoningResponse.isNotEmpty ||
         _snapshot.toolCalls.isNotEmpty ||
-        _snapshot.commandExecutions.isNotEmpty;
+        _snapshot.commandExecutions.isNotEmpty ||
+        _snapshot.skillActivations.isNotEmpty;
     if (lifecycle == ChatRunLifecycle.completed && !hasGeneratedContent) {
       lifecycle = ChatRunLifecycle.emptyResponse;
     }
@@ -892,6 +914,9 @@ class ChatGenerationViewModel extends ChangeNotifier
           toolCalls: List<MessageToolCall>.of(_snapshot.toolCalls),
           commandExecutions: List<MessageCommandExecution>.of(
             _snapshot.commandExecutions,
+          ),
+          skillActivations: List<MessageSkillActivation>.of(
+            _snapshot.skillActivations,
           ),
         ),
         tokenUsage: _snapshot.tokenUsage,
@@ -973,7 +998,8 @@ class ChatGenerationViewModel extends ChangeNotifier
       _snapshot.streamingResponse.isNotEmpty ||
       _snapshot.reasoningResponse.isNotEmpty ||
       _snapshot.toolCalls.isNotEmpty ||
-      _snapshot.commandExecutions.isNotEmpty;
+      _snapshot.commandExecutions.isNotEmpty ||
+      _snapshot.skillActivations.isNotEmpty;
 
   Message _buildPartialAssistantMessage(String runId) {
     final duration =
@@ -995,6 +1021,9 @@ class ChatGenerationViewModel extends ChangeNotifier
         toolCalls: List<MessageToolCall>.of(_snapshot.toolCalls),
         commandExecutions: List<MessageCommandExecution>.of(
           _snapshot.commandExecutions,
+        ),
+        skillActivations: List<MessageSkillActivation>.of(
+          _snapshot.skillActivations,
         ),
       ),
       tokenUsage: _snapshot.tokenUsage,

@@ -90,29 +90,11 @@ class ChatViewModel extends ChangeNotifier {
       currentUserId: currentUserId,
     );
     return PreparedTextGeneration(
-      userMessage: userMessage.copyWith(
-        processInfo: MessageProcessInfo(
-          reasoningStatus: userMessage.processInfo.reasoningStatus,
-          durationMs: userMessage.processInfo.durationMs,
-          toolCalls: [
-            ...userMessage.processInfo.toolCalls,
-            ...preparedTurn.skillToolCalls,
-          ],
-          commandExecutions: userMessage.processInfo.commandExecutions,
-          fileEdits: userMessage.processInfo.fileEdits,
-          skillActivations: [
-            for (final skill in preparedTurn.activatedSkills)
-              MessageSkillActivation(
-                name: skill.name,
-                contentDigest: skill.contentDigest,
-                trigger: skill.trigger.name,
-              ),
-          ],
-        ),
-      ),
+      userMessage: userMessage,
       messages: preparedTurn.messages,
       activatedSkills: preparedTurn.activatedSkills,
       activationAttempts: preparedTurn.activationAttempts,
+      skillToolCalls: preparedTurn.skillToolCalls,
       preflightTokenUsage: preparedTurn.preflightTokenUsage,
       requestedToolNames: preparedTurn.requestedToolNames,
       approvalExemptToolNames: preparedTurn.approvalExemptToolNames,

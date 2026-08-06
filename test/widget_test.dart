@@ -505,15 +505,11 @@ void main() {
       model: 'gpt-test',
       systemPrompt: '',
       parameters: const {
+        Bot.parameterMcpServers: ['mcp-search', 'mcp-docs'],
         Bot.parameterMcpTools: [
           {
             'server_id': 'mcp-search',
             'remote_name': 'search',
-            'requires_approval': true,
-          },
-          {
-            'server_id': 'mcp-docs',
-            'remote_name': 'read',
             'requires_approval': true,
           },
         ],

@@ -200,8 +200,7 @@ class BotListViewModel extends ChangeNotifier {
         Future<List<BotSkillBinding>>.value(const []);
     final (usage, bindings) = await (usageFuture, bindingsFuture).wait;
     final serverNames =
-        bot.mcpTools
-            .map((configuration) => configuration.serverId)
+        bot.mcpServerIds
             .map((id) => serversById[id]?.name.trim())
             .whereType<String>()
             .where((name) => name.isNotEmpty)

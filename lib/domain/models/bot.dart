@@ -2,6 +2,7 @@ import 'package:stars/domain/models/mcp.dart';
 
 class Bot {
   static const parameterSupportsMcp = 'supports_mcp';
+  static const parameterMcpServers = 'mcp_servers';
   static const parameterMcpTools = 'mcp_tools';
   static const parameterSupportsAutomaticSkillActivation =
       'supports_automatic_skill_activation';
@@ -102,6 +103,29 @@ class Bot {
           ),
         );
       }),
+    );
+  }
+
+  Set<String> get mcpServerIds {
+    final value = parameters?[parameterMcpServers];
+    if (value == null) {
+      return Set<String>.unmodifiable(
+        mcpTools.map((configuration) => configuration.serverId),
+      );
+    }
+    if (value is! List) {
+      throw const FormatException('Bot MCP Servers must be a list.');
+    }
+    final configuredServerIds = value.map((item) {
+      if (item is! String || item.trim().isEmpty) {
+        throw const FormatException('Bot MCP Server id must be a string.');
+      }
+      return item;
+    });
+    return Set<String>.unmodifiable(
+      configuredServerIds.followedBy(
+        mcpTools.map((configuration) => configuration.serverId),
+      ),
     );
   }
 

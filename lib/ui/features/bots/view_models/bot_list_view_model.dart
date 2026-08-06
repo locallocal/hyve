@@ -26,6 +26,9 @@ class BotCardMetrics {
 }
 
 class BotListViewModel extends ChangeNotifier {
+  static final RegExp _searchWhitespace = RegExp(r'\s+');
+  static final RegExp _searchSeparators = RegExp(r'[\s\-_.:/]+');
+
   BotListViewModel({
     required BotRepository botRepository,
     required CreateChat createChat,
@@ -156,13 +159,34 @@ class BotListViewModel extends ChangeNotifier {
   }
 
   void _applyFilter() {
-    final normalized = _query.trim().toLowerCase();
+    final terms = _query
+        .trim()
+        .toLowerCase()
+        .split(_searchWhitespace)
+        .where((term) => term.isNotEmpty)
+        .toList(growable: false);
     _filteredBots =
-        normalized.isEmpty
+        terms.isEmpty
             ? _bots
             : List<Bot>.unmodifiable(
-              _bots.where((bot) => bot.name.toLowerCase().contains(normalized)),
+              _bots.where((bot) => _matchesSearch(bot, terms)),
             );
+  }
+
+  bool _matchesSearch(Bot bot, List<String> terms) {
+    final fields = [bot.name, bot.provider, bot.model]
+        .map((value) => value.trim().toLowerCase())
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+    final compactFields = fields
+        .map((value) => value.replaceAll(_searchSeparators, ''))
+        .toList(growable: false);
+    return terms.every((term) {
+      if (fields.any((field) => field.contains(term))) return true;
+      final compactTerm = term.replaceAll(_searchSeparators, '');
+      return compactTerm.isNotEmpty &&
+          compactFields.any((field) => field.contains(compactTerm));
+    });
   }
 
   Future<void> _loadCardMetrics(List<Bot> bots, {bool notify = true}) async {

@@ -14,6 +14,7 @@ class BotMcpToolPicker extends StatelessWidget {
     required this.onChanged,
     this.isLoading = false,
     this.embedded = false,
+    this.readOnly = false,
   });
 
   final List<McpServer> servers;
@@ -22,6 +23,7 @@ class BotMcpToolPicker extends StatelessWidget {
   final ValueChanged<Set<McpToolConfiguration>> onChanged;
   final bool isLoading;
   final bool embedded;
+  final bool readOnly;
 
   Map<String, McpToolConfiguration> get _configuredByKey => {
     for (final configuration in configurations)
@@ -130,14 +132,15 @@ class BotMcpToolPicker extends StatelessWidget {
                 'bot-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
               ),
               value: enabled,
-              onChanged: (value) => _setEnabled(tool, value),
+              enabled: !readOnly,
+              onChanged: readOnly ? null : (value) => _setEnabled(tool, value),
             )
             : Switch(
               key: ValueKey<String>(
                 'bot-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
               ),
               value: enabled,
-              onChanged: (value) => _setEnabled(tool, value),
+              onChanged: readOnly ? null : (value) => _setEnabled(tool, value),
             );
     final approvalSwitch =
         embedded
@@ -146,8 +149,9 @@ class BotMcpToolPicker extends StatelessWidget {
                 'bot-mcp-tool-no-approval-${tool.serverId}-${tool.remoteName}',
               ),
               value: configuration?.requiresApproval == false,
-              enabled: enabled,
-              onChanged: (value) => _setApprovalExempt(tool, value),
+              enabled: enabled && !readOnly,
+              onChanged:
+                  readOnly ? null : (value) => _setApprovalExempt(tool, value),
               label: Text(S.of(context).mcpNoApprovalRequired),
             )
             : Wrap(
@@ -160,7 +164,7 @@ class BotMcpToolPicker extends StatelessWidget {
                   ),
                   value: configuration?.requiresApproval == false,
                   onChanged:
-                      enabled
+                      enabled && !readOnly
                           ? (value) => _setApprovalExempt(tool, value)
                           : null,
                 ),
@@ -213,6 +217,7 @@ class BotMcpToolPicker extends StatelessWidget {
   }
 
   void _setEnabled(McpToolDescriptor tool, bool enabled) {
+    if (readOnly) return;
     final next = {
       for (final configuration in configurations)
         configuration.key: configuration,
@@ -230,6 +235,7 @@ class BotMcpToolPicker extends StatelessWidget {
   }
 
   void _setApprovalExempt(McpToolDescriptor tool, bool exempt) {
+    if (readOnly) return;
     final next = {
       for (final configuration in configurations)
         configuration.key: configuration,

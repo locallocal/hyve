@@ -107,6 +107,35 @@ void main() {
     );
   });
 
+  testWidgets('read-only bot details disable MCP Tool changes', (tester) async {
+    tester.view.physicalSize = const Size(900, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Bot? saved;
+    await tester.pumpWidget(
+      _editHarness(
+        bot: _bot(supportsMcp: true),
+        readOnly: true,
+        onSaved: (bot) async => saved = bot,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final toolToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
+    );
+    await tester.ensureVisible(toolToggle);
+    expect(tester.widget<Switch>(toolToggle).onChanged, isNull);
+    await tester.tap(toolToggle, warnIfMissed: false);
+    await tester.pump();
+
+    expect(tester.widget<Switch>(toolToggle).value, isFalse);
+    expect(find.text('保存修改'), findsNothing);
+    expect(saved, isNull);
+  });
+
   testWidgets('a bot is created without MCP Tool configuration', (
     tester,
   ) async {
@@ -154,6 +183,7 @@ void main() {
 Widget _editHarness({
   required Bot bot,
   required Future<void> Function(Bot) onSaved,
+  bool readOnly = false,
 }) {
   final server = _server();
   return MaterialApp(
@@ -168,6 +198,7 @@ Widget _editHarness({
     ],
     home: EditBotPage(
       bot: bot,
+      readOnly: readOnly,
       mcpCatalogLoader:
           () async => (
             servers: [server],

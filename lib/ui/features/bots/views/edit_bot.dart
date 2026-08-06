@@ -14,6 +14,7 @@ import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.da
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/bot_mcp_tool_picker.dart';
 import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
+import 'package:stars/ui/features/bots/views/skill_description_test_dialog.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -1154,72 +1155,11 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _showSkillDescriptionTest(SkillDescriptor skill) async {
-    final inputController = TextEditingController();
-    var shouldActivate = true;
-    final testCase = await showDialog<SkillDescriptionTestCase>(
+    final testCase = await showSkillDescriptionTestDialog(
       context: context,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (context, setDialogState) => AlertDialog(
-                  title: Text(S.of(context).testSkillDescription),
-                  content: SizedBox(
-                    width: 480,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          key: const ValueKey<String>(
-                            'skill-description-test-input',
-                          ),
-                          controller: inputController,
-                          autofocus: true,
-                          minLines: 2,
-                          maxLines: 5,
-                          onChanged: (_) => setDialogState(() {}),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).skillDescriptionTestInput,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          value: shouldActivate,
-                          onChanged:
-                              (value) => setDialogState(
-                                () => shouldActivate = value ?? true,
-                              ),
-                          title: Text(
-                            S.of(context).skillDescriptionShouldActivate,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(
-                        MaterialLocalizations.of(context).cancelButtonLabel,
-                      ),
-                    ),
-                    FilledButton(
-                      onPressed:
-                          inputController.text.trim().isEmpty
-                              ? null
-                              : () => Navigator.of(dialogContext).pop(
-                                SkillDescriptionTestCase(
-                                  input: inputController.text.trim(),
-                                  shouldActivate: shouldActivate,
-                                ),
-                              ),
-                      child: Text(S.of(context).runSkillDescriptionTest),
-                    ),
-                  ],
-                ),
-          ),
+      skill: skill,
+      desktopMode: widget.embedded,
     );
-    inputController.dispose();
     if (testCase == null || !mounted) return;
     try {
       final report = await _skillViewModel!.testDescription(

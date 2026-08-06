@@ -217,6 +217,25 @@ void main() {
         bindingRepository.bindingFor('user:release-notes')?.activationMode,
         SkillActivationMode.auto,
       );
+
+      final testDescription = find.byKey(
+        const ValueKey<String>('test-skill-description-user:release-notes'),
+      );
+      await tester.ensureVisible(testDescription);
+      await tester.tap(testDescription);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('skill-description-test-dialog')),
+        findsOneWidget,
+      );
+      expect(find.byType(ShadTextarea), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('cancel-skill-description-test')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ShadDialog), findsNothing);
     } finally {
       debugDefaultTargetPlatformOverride = null;
       tester.view.resetPhysicalSize();

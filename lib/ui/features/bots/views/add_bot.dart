@@ -11,6 +11,7 @@ import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/add_bot_skills.dart';
+import 'package:stars/ui/features/bots/views/bot_mcp_tool_picker.dart';
 import 'package:stars/utils/theme.dart';
 
 class AddBotDialog extends StatelessWidget {
@@ -21,6 +22,7 @@ class AddBotDialog extends StatelessWidget {
     this.avatarPicker,
     this.botId,
     this.skillViewModel,
+    this.mcpCatalogLoader,
   });
 
   final Future<void> Function(Bot, List<BotSkillBinding>) onBotAdded;
@@ -28,6 +30,7 @@ class AddBotDialog extends StatelessWidget {
   final Future<String?> Function()? avatarPicker;
   final String? botId;
   final BotSkillViewModel? skillViewModel;
+  final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +64,7 @@ class AddBotDialog extends StatelessWidget {
           avatarPicker: avatarPicker,
           botId: botId,
           skillViewModel: skillViewModel,
+          mcpCatalogLoader: mcpCatalogLoader,
         ),
       ),
     );
@@ -74,6 +78,7 @@ class AddBotPage extends StatefulWidget {
   final bool embedded;
   final String? botId;
   final BotSkillViewModel? skillViewModel;
+  final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
 
   const AddBotPage({
     super.key,
@@ -83,6 +88,7 @@ class AddBotPage extends StatefulWidget {
     this.embedded = false,
     this.botId,
     this.skillViewModel,
+    this.mcpCatalogLoader,
   });
 
   @override
@@ -126,6 +132,12 @@ class _AddBotPageState extends State<AddBotPage> {
   bool _isPasswordVisible = false;
   File? avatarImage;
   List<AiModelInfo> providerModels = [];
+  List<McpServer> _mcpServers = const [];
+  Map<String, List<McpToolDescriptor>> _mcpToolsByServer = const {};
+  Set<String> _mcpServerIds = const {};
+  Set<McpToolConfiguration> _mcpToolConfigurations = const {};
+  bool _isLoadingMcpServers = false;
+  bool _startedLoadingMcpServers = false;
 
   Future<void> _pickImage() async {
     final imagePath = await widget.avatarPicker?.call();
@@ -218,7 +230,65 @@ class _AddBotPageState extends State<AddBotPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_startedLoadingMcpServers) {
+      final dependencies = AppScope.maybeOf(context);
+      final loader =
+          widget.mcpCatalogLoader ??
+          (dependencies == null
+              ? null
+              : () async {
+                final servers =
+                    await dependencies.mcpServerRepository.getServers();
+                final tools = await Future.wait(
+                  servers.map(
+                    (server) async => (
+                      server.id,
+                      await dependencies.mcpServerRepository.getTools(
+                        server.id,
+                      ),
+                    ),
+                  ),
+                );
+                return (
+                  servers: servers,
+                  toolsByServer: {
+                    for (final entry in tools) entry.$1: entry.$2,
+                  },
+                );
+              });
+      if (loader != null) {
+        _startedLoadingMcpServers = true;
+        unawaited(_loadMcpCatalog(loader));
+      }
+    }
     _syncSelectedModelSkillSupport();
+  }
+
+  Future<void> _loadMcpCatalog(Future<BotMcpCatalog> Function() loader) async {
+    setState(() => _isLoadingMcpServers = true);
+    try {
+      final catalog = await loader();
+      if (!mounted) return;
+      setState(() {
+        _mcpServers = List<McpServer>.unmodifiable(
+          List<McpServer>.of(catalog.servers)
+            ..sort((left, right) => left.name.compareTo(right.name)),
+        );
+        _mcpToolsByServer = Map<String, List<McpToolDescriptor>>.unmodifiable({
+          for (final entry in catalog.toolsByServer.entries)
+            entry.key: List<McpToolDescriptor>.unmodifiable(entry.value),
+        });
+      });
+    } on Object {
+      if (mounted) {
+        setState(() {
+          _mcpServers = const [];
+          _mcpToolsByServer = const {};
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingMcpServers = false);
+    }
   }
 
   @override
@@ -348,7 +418,17 @@ class _AddBotPageState extends State<AddBotPage> {
         Bot.parameterSupportsMcp: _selectedModelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _selectedModelSupportsAutomaticSkillActivation,
-        Bot.parameterMcpTools: const <Map<String, Object?>>[],
+        Bot.parameterMcpServers:
+            _selectedModelSupportsMcp
+                ? (_mcpServerIds.toList()..sort())
+                : const <String>[],
+        Bot.parameterMcpTools:
+            _selectedModelSupportsMcp
+                ? ((_mcpToolConfigurations.toList()
+                      ..sort((left, right) => left.key.compareTo(right.key)))
+                    .map((configuration) => configuration.toMap())
+                    .toList(growable: false))
+                : const <Map<String, Object?>>[],
       },
       createTimestamp: DateTime.now(),
       modifyTimestamp: DateTime.now(),
@@ -459,6 +539,12 @@ class _AddBotPageState extends State<AddBotPage> {
                     _buildSystemPromptInput(fontSize),
                   ],
                 ),
+                if (_selectedModelSupportsMcp) ...[
+                  const SizedBox(height: 16),
+                  buildSectionContainer(context, S.of(context).mcpServers, [
+                    _buildMcpServerPicker(),
+                  ]),
+                ],
               ],
             ),
           ),
@@ -560,6 +646,17 @@ class _AddBotPageState extends State<AddBotPage> {
                                 'add-bot-model-section',
                               ),
                             ),
+                            if (_selectedModelSupportsMcp) ...[
+                              const SizedBox(height: 20),
+                              _buildDesktopSection(
+                                context,
+                                S.of(context).mcpServers,
+                                [_buildMcpServerPicker()],
+                                sectionKey: const ValueKey<String>(
+                                  'add-bot-mcp-section',
+                                ),
+                              ),
+                            ],
                             if (widget.skillViewModel?.supportsAutoActivation ??
                                 false) ...[
                               const SizedBox(height: 20),
@@ -1629,6 +1726,23 @@ class _AddBotPageState extends State<AddBotPage> {
 
   bool get _selectedModelSupportsMcp =>
       _modelInfoById(selectedModelController.text)?.supportsMcp == true;
+
+  Widget _buildMcpServerPicker() {
+    return BotMcpToolPicker(
+      servers: _mcpServers,
+      toolsByServer: _mcpToolsByServer,
+      selectedServerIds: _mcpServerIds,
+      configurations: _mcpToolConfigurations,
+      isLoading: _isLoadingMcpServers,
+      embedded: widget.embedded,
+      onSelectedServerIdsChanged: (serverIds) {
+        setState(() => _mcpServerIds = serverIds);
+      },
+      onChanged: (configurations) {
+        setState(() => _mcpToolConfigurations = configurations);
+      },
+    );
+  }
 
   bool get _selectedModelSupportsAutomaticSkillActivation {
     final model = _modelInfoById(selectedModelController.text);

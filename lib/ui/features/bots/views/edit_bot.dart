@@ -17,12 +17,6 @@ import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
-typedef BotMcpCatalog =
-    ({
-      List<McpServer> servers,
-      Map<String, List<McpToolDescriptor>> toolsByServer,
-    });
-
 class EditBotPage extends StatefulWidget {
   final Bot bot;
   final Future<void> Function(Bot) onBotUpdated;
@@ -72,6 +66,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _ownsSkillViewModel = false;
   List<McpServer> _mcpServers = const [];
   Map<String, List<McpToolDescriptor>> _mcpToolsByServer = const {};
+  late Set<String> _mcpServerIds;
   late Set<McpToolConfiguration> _mcpToolConfigurations;
   late bool _modelSupportsMcp;
   late bool _initialModelSupportsMcp;
@@ -95,6 +90,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     );
     selectedProvider = widget.bot.provider;
     selectedModel = widget.bot.model;
+    _mcpServerIds = widget.bot.mcpServerIds;
     _mcpToolConfigurations = widget.bot.mcpTools;
     _modelSupportsMcp = widget.bot.configuredSupportsMcp ?? false;
     _initialModelSupportsMcp = _modelSupportsMcp;
@@ -450,7 +446,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   SizedBox(height: widget.embedded ? 20 : 16),
                   _buildFormSection(
                     context,
-                    S.of(context).mcpTools,
+                    S.of(context).mcpServers,
                     [_buildMcpToolPicker()],
                     sectionKey: const ValueKey<String>(
                       'desktop-bot-mcp-section',
@@ -1313,6 +1309,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
         Bot.parameterSupportsMcp: _modelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _modelSupportsAutomaticSkillActivation,
+        Bot.parameterMcpServers:
+            _modelSupportsMcp
+                ? (_mcpServerIds.toList()..sort())
+                : const <String>[],
         Bot.parameterMcpTools:
             _modelSupportsMcp
                 ? ((_mcpToolConfigurations.toList()
@@ -1797,10 +1797,18 @@ class _EditAIBotPageState extends State<EditBotPage> {
     return BotMcpToolPicker(
       servers: _mcpServers,
       toolsByServer: _mcpToolsByServer,
+      selectedServerIds: _mcpServerIds,
       configurations: _mcpToolConfigurations,
       isLoading: _isLoadingMcpServers,
       embedded: widget.embedded,
       readOnly: widget.readOnly,
+      onSelectedServerIdsChanged: (serverIds) {
+        setState(() {
+          _mcpServerIds = serverIds;
+          _editRevision += 1;
+          _isSaved = false;
+        });
+      },
       onChanged: (configurations) {
         setState(() {
           _mcpToolConfigurations = configurations;

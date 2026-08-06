@@ -29,6 +29,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
+    );
+    await tester.pumpAndSettle();
+    final selectedServer = find.byKey(
+      const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(selectedServer);
+    await tester.tap(selectedServer);
+    await tester.pumpAndSettle();
+
     final toolToggle = find.byKey(
       const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
     );
@@ -44,11 +57,15 @@ void main() {
     await tester.tap(noApprovalToggle);
     await tester.pump();
 
+    await tester.tap(find.text('关闭').last);
+    await tester.pumpAndSettle();
+
     await tester.ensureVisible(find.text('保存修改'));
     await tester.tap(find.text('保存修改'));
     await tester.pumpAndSettle();
 
     expect(saved?.configuredSupportsMcp, isTrue);
+    expect(saved?.mcpServerIds, {'server-1'});
     expect(saved?.mcpTools, {
       McpToolConfiguration(
         serverId: 'server-1',
@@ -78,6 +95,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final selectedServer = find.byKey(
+      const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(selectedServer);
+    await tester.tap(selectedServer);
+    await tester.pumpAndSettle();
+
     final toolToggle = find.byKey(
       const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
     );
@@ -86,10 +110,56 @@ void main() {
     await tester.tap(toolToggle);
     await tester.pump();
 
+    await tester.tap(find.text('关闭').last);
+    await tester.pumpAndSettle();
+
     await tester.ensureVisible(find.text('保存修改'));
     await tester.tap(find.text('保存修改'));
     await tester.pumpAndSettle();
 
+    expect(saved?.mcpTools, isEmpty);
+    expect(saved?.mcpServerIds, {'server-1'});
+  });
+
+  testWidgets('existing bot removes an MCP Server and its Tool settings', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Bot? saved;
+    await tester.pumpWidget(
+      _editHarness(
+        bot: _bot(
+          supportsMcp: true,
+          serverIds: const {'server-1'},
+          tools: {
+            McpToolConfiguration(serverId: 'server-1', remoteName: 'search'),
+          },
+        ),
+        onSaved: (bot) async => saved = bot,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final removeServer = find.byKey(
+      const ValueKey<String>('remove-bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(removeServer);
+    await tester.tap(removeServer);
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-server-server-1')),
+      findsNothing,
+    );
+
+    await tester.ensureVisible(find.text('保存修改'));
+    await tester.tap(find.text('保存修改'));
+    await tester.pumpAndSettle();
+
+    expect(saved?.mcpServerIds, isEmpty);
     expect(saved?.mcpTools, isEmpty);
   });
 
@@ -116,11 +186,22 @@ void main() {
     Bot? saved;
     await tester.pumpWidget(
       _editHarness(
-        bot: _bot(supportsMcp: true),
+        bot: _bot(supportsMcp: true, serverIds: const {'server-1'}),
         readOnly: true,
         onSaved: (bot) async => saved = bot,
       ),
     );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('add-bot-mcp-server')),
+      findsOneWidget,
+    );
+    final selectedServer = find.byKey(
+      const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(selectedServer);
+    await tester.tap(selectedServer);
     await tester.pumpAndSettle();
 
     final toolToggle = find.byKey(
@@ -134,6 +215,88 @@ void main() {
     expect(tester.widget<Switch>(toolToggle).value, isFalse);
     expect(find.text('保存修改'), findsNothing);
     expect(saved, isNull);
+  });
+
+  testWidgets('a new bot adds an MCP Server and configures its Tools', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Bot? added;
+    await tester.pumpWidget(
+      _addHarness(enableMcp: true, onAdded: (bot, _) async => added = bot),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('add-bot-name')),
+        matching: find.byType(EditableText),
+      ),
+      'Assistant',
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('add-bot-api-key')),
+        matching: find.byType(EditableText),
+      ),
+      'secret',
+    );
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    await tester.pumpAndSettle();
+
+    final mcpSection = find.byKey(
+      const ValueKey<String>('add-bot-mcp-section'),
+    );
+    expect(mcpSection, findsOneWidget);
+    await tester.ensureVisible(mcpSection);
+    await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
+    );
+    await tester.pumpAndSettle();
+    final selectedServer = find.byKey(
+      const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(selectedServer);
+    await tester.tap(selectedServer);
+    await tester.pumpAndSettle();
+
+    final toolToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
+    );
+    final noApprovalToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-no-approval-server-1-search'),
+    );
+    await tester.tap(toolToggle);
+    await tester.pump();
+    await tester.ensureVisible(noApprovalToggle);
+    final noApprovalRect = tester.getRect(noApprovalToggle);
+    await tester.tapAt(
+      Offset(noApprovalRect.left + 16, noApprovalRect.center.dy),
+    );
+    await tester.pump();
+    await tester.tap(find.text('关闭').last);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('add-bot-submit')),
+    );
+    await tester.tap(find.byKey(const ValueKey<String>('add-bot-submit')));
+    await tester.pumpAndSettle();
+
+    expect(added?.mcpServerIds, {'server-1'});
+    expect(added?.mcpTools, {
+      McpToolConfiguration(
+        serverId: 'server-1',
+        remoteName: 'search',
+        requiresApproval: false,
+      ),
+    });
   });
 
   testWidgets('a bot is created without MCP Tool configuration', (
@@ -177,6 +340,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(added?.mcpTools, isEmpty);
+    expect(added?.mcpServerIds, isEmpty);
   });
 }
 
@@ -214,7 +378,9 @@ Widget _editHarness({
 
 Widget _addHarness({
   required Future<void> Function(Bot, List<BotSkillBinding>) onAdded,
+  bool enableMcp = false,
 }) {
+  final server = _server();
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
@@ -241,6 +407,25 @@ Widget _addHarness({
           home: AddBotPage(
             embedded: true,
             botId: 'bot-new',
+            modelLoader:
+                enableMcp
+                    ? (_) async => [
+                      AiModelInfo(
+                        modelId: 'gpt-test',
+                        providerId: 'openai',
+                        inputModalities: const [InputModality.text],
+                        outputModalities: const [OutputModality.text],
+                        supportsMcp: true,
+                      ),
+                    ]
+                    : null,
+            mcpCatalogLoader:
+                () async => (
+                  servers: [server],
+                  toolsByServer: {
+                    server.id: [_tool(server)],
+                  },
+                ),
             onBotAdded: onAdded,
           ),
         ),
@@ -249,6 +434,7 @@ Widget _addHarness({
 
 Bot _bot({
   required bool supportsMcp,
+  Set<String>? serverIds,
   Set<McpToolConfiguration> tools = const {},
 }) => Bot(
   id: 'bot-1',
@@ -262,6 +448,7 @@ Bot _bot({
   systemPrompt: '',
   parameters: {
     Bot.parameterSupportsMcp: supportsMcp,
+    if (serverIds != null) Bot.parameterMcpServers: serverIds.toList(),
     Bot.parameterMcpTools: [
       for (final configuration in tools) configuration.toMap(),
     ],

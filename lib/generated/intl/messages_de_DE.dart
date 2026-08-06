@@ -518,14 +518,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "startChatting": MessageLookupByLibrary.simpleMessage(
       "Beginnen Sie zu chatten",
     ),
+    "statusActivated": MessageLookupByLibrary.simpleMessage("Aktiviert"),
     "statusAttached": MessageLookupByLibrary.simpleMessage("Angehängt"),
+    "statusAwaitingApproval": MessageLookupByLibrary.simpleMessage(
+      "Wartet auf Bestätigung",
+    ),
     "statusCancelled": MessageLookupByLibrary.simpleMessage("Abgebrochen"),
     "statusCompleted": MessageLookupByLibrary.simpleMessage("Abgeschlossen"),
+    "statusDenied": MessageLookupByLibrary.simpleMessage("Abgelehnt"),
+    "statusDuplicate": MessageLookupByLibrary.simpleMessage("Doppelter Aufruf"),
     "statusFailed": MessageLookupByLibrary.simpleMessage("Fehlgeschlagen"),
     "statusGenerated": MessageLookupByLibrary.simpleMessage("Generiert"),
     "statusInProgress": MessageLookupByLibrary.simpleMessage("In Bearbeitung"),
     "statusRecorded": MessageLookupByLibrary.simpleMessage("Erfasst"),
+    "statusRequested": MessageLookupByLibrary.simpleMessage("Angefordert"),
     "statusRunning": MessageLookupByLibrary.simpleMessage("Wird ausgeführt"),
+    "statusSkipped": MessageLookupByLibrary.simpleMessage("Übersprungen"),
+    "statusTimedOut": MessageLookupByLibrary.simpleMessage(
+      "Zeitüberschreitung",
+    ),
+    "statusUnknown": MessageLookupByLibrary.simpleMessage("Unbekannt"),
     "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
       "Strukturierte Prozessinformationen",
     ),
@@ -551,7 +563,21 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Denkt nach…"),
+    "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
+      "Einmal erlaubt",
+    ),
+    "toolApprovalDenied": MessageLookupByLibrary.simpleMessage("Abgelehnt"),
     "toolCalls": MessageLookupByLibrary.simpleMessage("Tool-Aufrufe"),
+    "toolRiskDestructive": MessageLookupByLibrary.simpleMessage("Destruktiv"),
+    "toolRiskReadOnly": MessageLookupByLibrary.simpleMessage(
+      "Schreibgeschützt",
+    ),
+    "toolRiskWrite": MessageLookupByLibrary.simpleMessage("Schreiben"),
+    "toolSourceBuiltIn": MessageLookupByLibrary.simpleMessage("Integriert"),
+    "toolSourceMcp": MessageLookupByLibrary.simpleMessage("MCP"),
+    "toolSourceSkillScript": MessageLookupByLibrary.simpleMessage(
+      "Skill-Skript",
+    ),
     "typing": MessageLookupByLibrary.simpleMessage("Schreibt..."),
     "uninstall": MessageLookupByLibrary.simpleMessage("Deinstallieren"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(

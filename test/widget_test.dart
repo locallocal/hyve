@@ -1245,6 +1245,14 @@ void main() {
                                 source: 'mcp',
                                 riskLevel: 'readOnly',
                               ),
+                              MessageToolCall(
+                                name: 'read_file',
+                                status: 'awaitingApproval',
+                                source: 'builtIn',
+                                riskLevel: 'write',
+                                detail: 'tool_execution_failed',
+                                approvalStatus: 'allowOnce',
+                              ),
                             ],
                           ),
                           timestamp: DateTime(2026),
@@ -1279,6 +1287,15 @@ void main() {
 
       expect(find.text('release-notes').hitTestable(), findsOneWidget);
       expect(find.text('mcp.docs.search').hitTestable(), findsOneWidget);
+      expect(find.text('read_file').hitTestable(), findsOneWidget);
+      expect(find.text('按消息启用 · abc123').hitTestable(), findsOneWidget);
+      expect(find.text('MCP · 只读').hitTestable(), findsOneWidget);
+      expect(find.text('内置 · 写入 · 失败 · 已允许一次').hitTestable(), findsOneWidget);
+      expect(find.text('等待确认').hitTestable(), findsOneWidget);
+      expect(find.textContaining('builtIn'), findsNothing);
+      expect(find.textContaining('readOnly'), findsNothing);
+      expect(find.textContaining('allowOnce'), findsNothing);
+      expect(find.textContaining('tool_execution_failed'), findsNothing);
 
       await tester.tap(executionStatus);
       await tester.pumpAndSettle();

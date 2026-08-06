@@ -752,6 +752,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
     debugLabel: 'desktop-skill-card-actions',
   );
   bool _menuActionInvokedByPointer = false;
+  bool _hovered = false;
 
   @override
   void dispose() {
@@ -889,71 +890,103 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
   @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
-    return ShadCard(
-      width: double.infinity,
-      title: Row(
-        children: [
-          Expanded(child: Text(widget.skill.name)),
-          ShadBadge.outline(
-            child: Text(
-              widget.skill.version.isEmpty
-                  ? strings.skillUserScope
-                  : 'v${widget.skill.version}',
-            ),
-          ),
-        ],
-      ),
-      description: Text(
-        widget.skill.description,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-      ),
-      footer: Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: _buildActionMenu(context),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 14, bottom: 10),
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            if (widget.hasScriptTools)
-              widget.scriptEnabled
-                  ? ShadBadge(child: Text(strings.skillScriptsEnabled))
-                  : ShadBadge.destructive(
-                    child: Text(strings.skillScriptsDisabled),
+    final theme = ShadTheme.of(context);
+    return Semantics(
+      button: true,
+      label: widget.skill.name,
+      hint: strings.skillDetails,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onOpen,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            transform:
+                _hovered
+                    ? (Matrix4.identity()..translateByDouble(0, -2, 0, 1))
+                    : Matrix4.identity(),
+            child: ShadCard(
+              key: ValueKey<String>('desktop-skill-card-${widget.skill.id}'),
+              width: double.infinity,
+              backgroundColor: _hovered ? theme.colorScheme.accent : null,
+              title: Row(
+                children: [
+                  Expanded(child: Text(widget.skill.name)),
+                  _SkillCardTag(
+                    label:
+                        widget.skill.version.isEmpty
+                            ? strings.skillUserScope
+                            : 'v${widget.skill.version}',
                   ),
-            if (widget.update != null)
-              ShadBadge.secondary(child: Text(strings.skillUpdateAvailable)),
-            if (widget.skill.signatureStatus == SkillSignatureStatus.verified)
-              ShadBadge.secondary(child: Text(strings.skillSignatureVerified)),
-            if (widget.skill.signatureStatus == SkillSignatureStatus.unsigned)
-              ShadBadge.outline(child: Text(strings.skillSignatureUnsigned)),
-            if (widget.skill.signatureStatus ==
-                SkillSignatureStatus.unknownPublisher)
-              ShadBadge.destructive(
-                child: Text(strings.skillSignatureUnknownPublisher),
+                ],
               ),
-            if (widget.skill.signatureStatus == SkillSignatureStatus.invalid)
-              ShadBadge.destructive(child: Text(strings.skillSignatureInvalid)),
-            if (widget.skill.hasReferences)
-              ShadBadge.secondary(
-                child: Text(strings.skillReferencesAvailable),
+              description: Text(
+                widget.skill.description,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-            if (widget.skill.hasAssets)
-              ShadBadge.secondary(child: Text(strings.skillAssetsAvailable)),
-            if (widget.skill.diagnostics.isNotEmpty)
-              ShadBadge.outline(
-                child: Text(
-                  '${strings.skillValidationWarnings} '
-                  '${widget.skill.diagnostics.length}',
+              footer: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: _buildActionMenu(context),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 10),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (widget.hasScriptTools)
+                      widget.scriptEnabled
+                          ? _SkillCardTag(label: strings.skillScriptsEnabled)
+                          : _SkillCardTag(label: strings.skillScriptsDisabled),
+                    if (widget.update != null)
+                      _SkillCardTag(label: strings.skillUpdateAvailable),
+                    if (widget.skill.signatureStatus ==
+                        SkillSignatureStatus.verified)
+                      _SkillCardTag(label: strings.skillSignatureVerified),
+                    if (widget.skill.signatureStatus ==
+                        SkillSignatureStatus.unsigned)
+                      _SkillCardTag(label: strings.skillSignatureUnsigned),
+                    if (widget.skill.signatureStatus ==
+                        SkillSignatureStatus.unknownPublisher)
+                      _SkillCardTag(
+                        label: strings.skillSignatureUnknownPublisher,
+                      ),
+                    if (widget.skill.signatureStatus ==
+                        SkillSignatureStatus.invalid)
+                      _SkillCardTag(label: strings.skillSignatureInvalid),
+                    if (widget.skill.hasReferences)
+                      _SkillCardTag(label: strings.skillReferencesAvailable),
+                    if (widget.skill.hasAssets)
+                      _SkillCardTag(label: strings.skillAssetsAvailable),
+                    if (widget.skill.diagnostics.isNotEmpty)
+                      _SkillCardTag(
+                        label:
+                            '${strings.skillValidationWarnings} '
+                            '${widget.skill.diagnostics.length}',
+                      ),
+                  ],
                 ),
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );
+  }
+}
+
+class _SkillCardTag extends StatelessWidget {
+  const _SkillCardTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadBadge.outline(child: Text(label));
   }
 }
 

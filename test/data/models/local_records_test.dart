@@ -116,12 +116,17 @@ void main() {
       modifyTimestamp: timestamp,
     );
 
-    final restoredBot = BotRecord.fromDomain(bot).toDomain();
+    final botRecord = BotRecord.fromDomain(
+      bot,
+      storedApiKey: 'encrypted-api-key',
+    );
+    final restoredBot = botRecord.toDomain(apiKey: bot.apiKey);
     final restoredChat = ChatRecord.fromDomain(chat).toDomain();
     final restoredProfile = ProfileRecord.fromDomain(profile).toDomain();
 
     expect(restoredBot.parameters, {'temperature': 0.3});
     expect(restoredBot.modifyTimestamp, timestamp);
+    expect(botRecord.storedApiKey, 'encrypted-api-key');
     expect(restoredChat.lastMessage, 'Hello');
     expect(restoredChat.lastMessageTimestamp, timestamp);
     expect(restoredProfile.fontSize, 18);

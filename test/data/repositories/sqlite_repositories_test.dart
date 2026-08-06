@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:stars/data/models/local_records.dart';
@@ -8,22 +9,26 @@ import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
+import 'package:stars/data/services/bot_api_key_cipher.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/domain/models/models.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
 
   late Database database;
   late LocalDatabaseService localDatabase;
   late SqliteChatRepository chatRepository;
   late SqliteBotRepository botRepository;
+  late SecureBotApiKeyCipher apiKeyCipher;
   late SqliteBotSkillBindingRepository bindingRepository;
   late SqliteSkillRunRepository skillRunRepository;
   late SqliteConversationSkillPinRepository pinRepository;
 
   setUp(() async {
+    FlutterSecureStorage.setMockInitialValues({});
     database = await databaseFactoryFfi.openDatabase(
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
@@ -35,9 +40,11 @@ void main() {
       databaseProvider: () async => database,
     );
     chatRepository = SqliteChatRepository(localDatabase: localDatabase);
+    apiKeyCipher = SecureBotApiKeyCipher();
     botRepository = SqliteBotRepository(
       localDatabase: localDatabase,
       chatRepository: chatRepository,
+      apiKeyCipher: apiKeyCipher,
     );
     bindingRepository = SqliteBotSkillBindingRepository(
       localDatabase: localDatabase,
@@ -58,7 +65,11 @@ void main() {
 
   test('empty bot results are cached until an explicit refresh', () async {
     expect(await botRepository.getBots(), isEmpty);
-    await database.insert('bots', BotRecord.fromDomain(_bot()).values);
+    final bot = _bot();
+    await database.insert(
+      'bots',
+      BotRecord.fromDomain(bot, storedApiKey: bot.apiKey).values,
+    );
 
     expect(await botRepository.getBots(), isEmpty);
     expect(await botRepository.getBots(forceRefresh: true), hasLength(1));
@@ -90,10 +101,43 @@ void main() {
       where: 'id = ?',
       whereArgs: [original.id],
     );
-    final persisted = BotRecord(rows.single).toDomain();
+    final record = BotRecord(rows.single);
+    expect(record.storedApiKey, isNot('new-secret'));
+    expect(apiKeyCipher.isEncrypted(record.storedApiKey), isTrue);
+    final decryptedApiKey = await apiKeyCipher.decrypt(
+      botId: original.id,
+      encrypted: record.storedApiKey,
+    );
+    final persisted = record.toDomain(apiKey: decryptedApiKey);
+    expect(persisted.apiKey, 'new-secret');
     expect(persisted.apiType, Bot.apiTypeAnthropic);
     expect(persisted.parameters, {'temperature': 0.2});
     expect(persisted.modifyTimestamp, modifiedAt);
+  });
+
+  test('legacy plaintext Bot API keys migrate when read', () async {
+    final bot = _bot();
+    await database.insert(
+      'bots',
+      BotRecord.fromDomain(bot, storedApiKey: bot.apiKey).values,
+    );
+
+    final restored = await botRepository.getBot(bot.id);
+    final rows = await database.query(
+      'bots',
+      columns: ['api_key'],
+      where: 'id = ?',
+      whereArgs: [bot.id],
+    );
+    final storedApiKey = rows.single['api_key']! as String;
+
+    expect(restored?.apiKey, bot.apiKey);
+    expect(storedApiKey, isNot(bot.apiKey));
+    expect(apiKeyCipher.isEncrypted(storedApiKey), isTrue);
+    expect(
+      await apiKeyCipher.decrypt(botId: bot.id, encrypted: storedApiKey),
+      bot.apiKey,
+    );
   });
 
   test(

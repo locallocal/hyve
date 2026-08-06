@@ -164,6 +164,85 @@ void main() {
     }
   });
 
+  testWidgets('desktop Skill card uses one outline style for every tag', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final skill = _skill(
+      'Release Notes',
+      'Create polished changelogs',
+      hasReferences: true,
+      hasAssets: true,
+      signatureStatus: SkillSignatureStatus.verified,
+      diagnostics: const [
+        SkillDiagnostic(
+          code: 'warning',
+          message: 'Review this Skill',
+          severity: SkillDiagnosticSeverity.warning,
+        ),
+      ],
+    );
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([skill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final tags = tester.widgetList<ShadBadge>(find.byType(ShadBadge));
+      expect(tags, hasLength(5));
+      expect(
+        tags.every((tag) => tag.variant == ShadBadgeVariant.outline),
+        isTrue,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('desktop Skill card opens Skill details when clicked', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final skill = _skill('Release Notes', 'Create polished changelogs');
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([skill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(ValueKey<String>('desktop-skill-card-${skill.id}')),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(find.text('Instructions for Release Notes'), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop Skill card operation error can be dismissed', (
     tester,
   ) async {
@@ -307,6 +386,7 @@ void main() {
       await tester.tap(menuButton, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
 
+      expect(find.byType(ShadDialog), findsNothing);
       final actionMenu = find.byKey(
         ValueKey<String>('desktop-skill-action-menu-${skill.id}'),
       );
@@ -397,6 +477,10 @@ SkillDescriptor _skill(
   String description, {
   String? rootPath,
   bool hasScripts = false,
+  bool hasReferences = false,
+  bool hasAssets = false,
+  SkillSignatureStatus signatureStatus = SkillSignatureStatus.unsigned,
+  List<SkillDiagnostic> diagnostics = const [],
 }) {
   final timestamp = DateTime(2026, 7, 26);
   return SkillDescriptor(
@@ -411,7 +495,11 @@ SkillDescriptor _skill(
     trustState: SkillTrustState.userReviewed,
     validationStatus: SkillValidationStatus.valid,
     compatibility: '',
+    diagnostics: diagnostics,
     hasScripts: hasScripts,
+    hasReferences: hasReferences,
+    hasAssets: hasAssets,
+    signatureStatus: signatureStatus,
     installedAt: timestamp,
     updatedAt: timestamp,
   );

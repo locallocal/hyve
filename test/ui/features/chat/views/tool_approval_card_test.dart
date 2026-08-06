@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/ui/features/chat/views/tool_approval_card.dart';
+import 'package:stars/utils/theme.dart';
 
 void main() {
   testWidgets('shows tool risk and arguments and returns decisions', (
@@ -71,4 +73,106 @@ void main() {
       ToolApprovalDecision.deny,
     ]);
   });
+
+  testWidgets('desktop approval uses the shared Shad card hierarchy', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final decisions = <ToolApprovalDecision>[];
+    await tester.pumpWidget(
+      _desktopHarness(
+        request: ToolApprovalRequest(
+          runId: 'run-2',
+          call: ToolCallRequest(
+            callId: 'call-2',
+            name: 'delete_note',
+            arguments: const {
+              'note': {
+                'id': 'release',
+                'tags': ['draft', 'internal'],
+              },
+            },
+          ),
+          definition: ToolDefinition(
+            name: 'delete_note',
+            title: 'Delete note',
+            description: 'Permanently delete a note from local storage.',
+            inputSchema: const {
+              'type': 'object',
+              'properties': {
+                'note': {'type': 'object'},
+              },
+              'required': ['note'],
+              'additionalProperties': false,
+            },
+            source: ToolSource.builtIn,
+            riskLevel: ToolRiskLevel.destructive,
+            capabilities: const {ToolCapability.localWrite},
+          ),
+          reason: 'destructive_write_requires_approval',
+        ),
+        onDecision: decisions.add,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ShadCard), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('tool-approval-risk')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(LucideIcons.triangleAlert), findsOneWidget);
+    expect(find.text('destructive'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('tool-approval-arguments')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey<String>('approve-tool-call')));
+    await tester.pump();
+    expect(decisions, [ToolApprovalDecision.allowOnce]);
+  });
+}
+
+Widget _desktopHarness({
+  required ToolApprovalRequest request,
+  required ValueChanged<ToolApprovalDecision> onDecision,
+}) {
+  final shadTheme = buildStarsShadTheme(
+    brightness: Brightness.light,
+    fontSize: 16,
+  );
+  return ShadApp.custom(
+    themeMode: ThemeMode.light,
+    theme: shadTheme,
+    appBuilder:
+        (shadContext) => MaterialApp(
+          theme: buildShadMaterialBridgeTheme(
+            context: shadContext,
+            fontSize: 16,
+          ),
+          locale: const Locale('en'),
+          supportedLocales: supportedLocales,
+          localizationsDelegates: const [
+            GlobalShadLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            S.delegate,
+          ],
+          builder: (context, child) => ShadAppBuilder(child: child!),
+          home: Scaffold(
+            body: ToolApprovalCard(
+              request: request,
+              desktopMode: true,
+              onDecision: onDecision,
+            ),
+          ),
+        ),
+  );
 }

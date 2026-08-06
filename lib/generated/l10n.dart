@@ -2096,6 +2096,141 @@ class S {
     return Intl.message('Recorded', name: 'statusRecorded', desc: '', args: []);
   }
 
+  /// `Requested`
+  String get statusRequested {
+    return Intl.message(
+      'Requested',
+      name: 'statusRequested',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Awaiting approval`
+  String get statusAwaitingApproval {
+    return Intl.message(
+      'Awaiting approval',
+      name: 'statusAwaitingApproval',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Denied`
+  String get statusDenied {
+    return Intl.message('Denied', name: 'statusDenied', desc: '', args: []);
+  }
+
+  /// `Timed out`
+  String get statusTimedOut {
+    return Intl.message(
+      'Timed out',
+      name: 'statusTimedOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duplicate call`
+  String get statusDuplicate {
+    return Intl.message(
+      'Duplicate call',
+      name: 'statusDuplicate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skipped`
+  String get statusSkipped {
+    return Intl.message('Skipped', name: 'statusSkipped', desc: '', args: []);
+  }
+
+  /// `Activated`
+  String get statusActivated {
+    return Intl.message(
+      'Activated',
+      name: 'statusActivated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get statusUnknown {
+    return Intl.message('Unknown', name: 'statusUnknown', desc: '', args: []);
+  }
+
+  /// `Built-in`
+  String get toolSourceBuiltIn {
+    return Intl.message(
+      'Built-in',
+      name: 'toolSourceBuiltIn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MCP`
+  String get toolSourceMcp {
+    return Intl.message('MCP', name: 'toolSourceMcp', desc: '', args: []);
+  }
+
+  /// `Skill script`
+  String get toolSourceSkillScript {
+    return Intl.message(
+      'Skill script',
+      name: 'toolSourceSkillScript',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read only`
+  String get toolRiskReadOnly {
+    return Intl.message(
+      'Read only',
+      name: 'toolRiskReadOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Write`
+  String get toolRiskWrite {
+    return Intl.message('Write', name: 'toolRiskWrite', desc: '', args: []);
+  }
+
+  /// `Destructive`
+  String get toolRiskDestructive {
+    return Intl.message(
+      'Destructive',
+      name: 'toolRiskDestructive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Allowed once`
+  String get toolApprovalAllowOnce {
+    return Intl.message(
+      'Allowed once',
+      name: 'toolApprovalAllowOnce',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Denied`
+  String get toolApprovalDenied {
+    return Intl.message(
+      'Denied',
+      name: 'toolApprovalDenied',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Reasoning complete`
   String get reasoningCompleted {
     return Intl.message(

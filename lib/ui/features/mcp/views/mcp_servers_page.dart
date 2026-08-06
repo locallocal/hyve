@@ -551,6 +551,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
     debugLabel: 'desktop-mcp-server-card-actions',
   );
   bool _menuActionInvokedByPointer = false;
+  bool _hovered = false;
 
   @override
   void didUpdateWidget(covariant _DesktopServerCard oldWidget) {
@@ -690,67 +691,87 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
   @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
+    final theme = ShadTheme.of(context);
     final tokens = StarsDesktopTokens.of(context);
     final statusColor = _statusColor(tokens, widget.server.status);
 
-    return ShadCard(
-      width: double.infinity,
-      title: Row(
-        children: [
-          if (widget.busy)
-            const SizedBox.square(
-              dimension: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            Icon(
-              _mcpStatusIcon(widget.server.status),
-              size: 18,
-              color: statusColor,
-            ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              widget.server.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+    return Semantics(
+      button: true,
+      label: widget.server.name,
+      hint: strings.mcpServerDetails,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onOpenDetails,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            transform:
+                _hovered
+                    ? (Matrix4.identity()..translateByDouble(0, -2, 0, 1))
+                    : Matrix4.identity(),
+            child: ShadCard(
+              width: double.infinity,
+              backgroundColor: _hovered ? theme.colorScheme.accent : null,
+              title: Row(
+                children: [
+                  if (widget.busy)
+                    const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Icon(
+                      _mcpStatusIcon(widget.server.status),
+                      size: 18,
+                      color: statusColor,
+                    ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.server.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              description: Text(
+                _mcpConnectionSummary(widget.server),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              footer: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: _buildActionMenu(context),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 10),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _McpServerTag(
+                      label: _mcpStatusLabel(context, widget.server.status),
+                      foregroundColor: statusColor,
+                    ),
+                    _McpServerTag(label: widget.server.namespace),
+                    _McpServerTag(
+                      label:
+                          widget.server.transport.type == McpTransportType.stdio
+                              ? strings.mcpTransportStdio
+                              : strings.mcpTransportStreamableHttp,
+                    ),
+                    _McpServerTag(
+                      label: '${widget.tools.length} ${strings.mcpTools}',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
-      ),
-      description: Text(
-        _mcpConnectionSummary(widget.server),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      footer: Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: _buildActionMenu(context),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 14, bottom: 10),
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            ShadBadge.outline(
-              child: Text(
-                _mcpStatusLabel(context, widget.server.status),
-                style: TextStyle(color: statusColor),
-              ),
-            ),
-            ShadBadge.secondary(child: Text(widget.server.namespace)),
-            ShadBadge.secondary(
-              child: Text(
-                widget.server.transport.type == McpTransportType.stdio
-                    ? strings.mcpTransportStdio
-                    : strings.mcpTransportStreamableHttp,
-              ),
-            ),
-            ShadBadge.outline(
-              child: Text('${widget.tools.length} ${strings.mcpTools}'),
-            ),
-          ],
         ),
       ),
     );
@@ -810,23 +831,18 @@ class _McpServerDetailsDialog extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  ShadBadge.outline(
-                    child: Text(
-                      _mcpStatusLabel(context, server.status),
-                      style: TextStyle(color: statusColor),
-                    ),
+                  _McpServerTag(
+                    label: _mcpStatusLabel(context, server.status),
+                    foregroundColor: statusColor,
                   ),
-                  ShadBadge.secondary(child: Text(server.namespace)),
-                  ShadBadge.secondary(
-                    child: Text(
-                      server.transport.type == McpTransportType.stdio
-                          ? strings.mcpTransportStdio
-                          : strings.mcpTransportStreamableHttp,
-                    ),
+                  _McpServerTag(label: server.namespace),
+                  _McpServerTag(
+                    label:
+                        server.transport.type == McpTransportType.stdio
+                            ? strings.mcpTransportStdio
+                            : strings.mcpTransportStreamableHttp,
                   ),
-                  ShadBadge.outline(
-                    child: Text('${tools.length} ${strings.mcpTools}'),
-                  ),
+                  _McpServerTag(label: '${tools.length} ${strings.mcpTools}'),
                 ],
               ),
               const SizedBox(height: 18),
@@ -853,6 +869,21 @@ class _McpServerDetailsDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _McpServerTag extends StatelessWidget {
+  const _McpServerTag({required this.label, this.foregroundColor});
+
+  final String label;
+  final Color? foregroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadBadge.outline(
+      foregroundColor: foregroundColor,
+      child: Text(label),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
+import 'package:stars/ui/features/chat/views/chat.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
@@ -12,6 +13,45 @@ import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/utils/theme.dart';
 
 void main() {
+  testWidgets('generation error alert is compact and centers its message', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        const SizedBox(
+          width: 720,
+          child: ChatGenerationErrorAlert(
+            error: '请求失败',
+            isDesktop: true,
+            onDismiss: _noop,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final alert = find.byKey(
+      const ValueKey<String>('chat-generation-error-alert'),
+    );
+    final message = find.byKey(
+      const ValueKey<String>('chat-generation-error-message'),
+    );
+    expect(alert, findsOneWidget);
+    expect(tester.getSize(alert).height, lessThanOrEqualTo(44));
+    expect(
+      tester.getCenter(message).dy,
+      closeTo(tester.getCenter(alert).dy, 1),
+    );
+    expect(
+      tester.getCenter(message).dx,
+      closeTo(tester.getCenter(alert).dx, 1),
+    );
+    expect(
+      tester.widget<ShadAlert>(alert).crossAxisAlignment,
+      CrossAxisAlignment.center,
+    );
+  });
+
   group('desktop MessageInput', () {
     testWidgets('does not show provider or model metadata', (tester) async {
       final controller = TextEditingController();
@@ -347,6 +387,37 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+}
+
+Widget _harness(Widget child) {
+  final shadTheme = buildStarsShadTheme(
+    brightness: Brightness.light,
+    fontSize: 16,
+  );
+  return ShadApp.custom(
+    themeMode: ThemeMode.light,
+    theme: shadTheme,
+    appBuilder:
+        (shadContext) => MaterialApp(
+          theme: buildShadMaterialBridgeTheme(
+            context: shadContext,
+            fontSize: 16,
+          ),
+          locale: const Locale('zh', 'CN'),
+          supportedLocales: supportedLocales,
+          localizationsDelegates: const [
+            GlobalShadLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            S.delegate,
+          ],
+          builder: (context, child) => ShadAppBuilder(child: child!),
+          home: Scaffold(
+            body: Align(alignment: Alignment.topCenter, child: child),
+          ),
+        ),
+  );
 }
 
 Future<void> _pumpMessageInput(

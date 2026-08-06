@@ -227,6 +227,17 @@ void main() {
       expect(githubRect.top, filesystemRect.top);
       expect(filesystemRect.left - githubRect.right, 14);
 
+      for (final card in [githubCard, filesystemCard]) {
+        final tags = tester.widgetList<ShadBadge>(
+          find.descendant(of: card, matching: find.byType(ShadBadge)),
+        );
+        expect(tags, hasLength(4));
+        expect(
+          tags.every((tag) => tag.variant == ShadBadgeVariant.outline),
+          isTrue,
+        );
+      }
+
       expect(find.byType(ExpansionTile), findsNothing);
       expect(find.text('1 工具'), findsNWidgets(2));
       expect(
@@ -243,6 +254,30 @@ void main() {
       );
       expect(find.text('搜索议题'), findsNothing);
       expect(find.text('读取文件'), findsNothing);
+
+      await tester.tap(githubCard, kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-server-details-dialog-github'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-server-details-dialog-github'),
+        ),
+        findsNothing,
+      );
 
       final githubActions = find.byKey(
         const ValueKey<String>('desktop-mcp-server-actions-github'),
@@ -268,6 +303,12 @@ void main() {
 
       await tester.tap(githubActions, kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-server-details-dialog-github'),
+        ),
+        findsNothing,
+      );
       final githubActionMenu = find.byKey(
         const ValueKey<String>('desktop-mcp-server-action-menu-github'),
       );

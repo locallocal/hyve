@@ -157,12 +157,16 @@ void main() {
     test('persists the exact activated Skill identity for the run', () async {
       final factory = _FakeProviderFactory(cancellable: true);
       final activations = <SkillActivationRecord>[];
+      final persisted = <Message>[];
       final controller = ChatGenerationViewModel(
         chatId: 'chat-1',
         bot: _bot,
         providerFactory: factory.create,
         messageIdFactory: (prefix) => '$prefix-fixed',
-        messagePersister: (message) async => message,
+        messagePersister: (message) async {
+          persisted.add(message);
+          return message;
+        },
         lastMessageUpdater: (_, _) async {},
         skillActivationPersister: (records) async {
           activations.addAll(records);
@@ -172,7 +176,17 @@ void main() {
 
       expect(
         await controller.startText(
-          userMessage: _userMessage(),
+          userMessage: _userMessage().copyWith(
+            processInfo: const MessageProcessInfo(
+              fileEdits: [
+                MessageFileEdit(
+                  path: '/tmp/spec.md',
+                  type: 'file',
+                  status: 'attached',
+                ),
+              ],
+            ),
+          ),
           messages: <ChatMessage>[ChatMessage(role: 'user', content: 'Hello')],
           activatedSkills: const [
             ActivatedSkill(
@@ -182,19 +196,51 @@ void main() {
               trigger: SkillActivationTrigger.model,
             ),
           ],
+          skillToolCalls: const [
+            MessageToolCall(
+              name: 'activate_skill',
+              status: 'completed',
+              detail: 'release-notes',
+            ),
+          ],
         ),
         isTrue,
       );
 
+      expect(persisted, hasLength(1));
+      final user = persisted.single;
+      expect(user.senderId, 'user-1');
+      expect(user.processInfo.fileEdits, hasLength(1));
+      expect(user.processInfo.toolCalls, isEmpty);
+      expect(user.processInfo.skillActivations, isEmpty);
+      expect(controller.snapshot.toolCalls.single.name, 'activate_skill');
+      expect(controller.snapshot.skillActivations.single.name, 'release-notes');
+
       expect(activations, hasLength(1));
       expect(activations.single.runId, 'run-fixed');
-      expect(activations.single.messageId, 'run-fixed:user');
+      expect(activations.single.messageId, 'run-fixed:assistant');
       expect(activations.single.chatId, 'chat-1');
       expect(activations.single.skillId, 'user:release-notes');
       expect(activations.single.skillName, 'release-notes');
       expect(activations.single.contentDigest, 'abc123');
       expect(activations.single.trigger, SkillActivationTrigger.model);
       expect(activations.single.status, SkillActivationStatus.activated);
+
+      final provider = factory.instances.last;
+      provider.emitToken('done');
+      provider.emitTerminal(ProviderTerminalType.completed);
+      await _waitFor(
+        () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+      );
+
+      final assistant = persisted.last;
+      expect(assistant.senderId, _bot.id);
+      expect(assistant.processInfo.fileEdits, isEmpty);
+      expect(assistant.processInfo.toolCalls.single.name, 'activate_skill');
+      expect(
+        assistant.processInfo.skillActivations.single.name,
+        'release-notes',
+      );
     });
 
     test(

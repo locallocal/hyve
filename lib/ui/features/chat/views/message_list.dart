@@ -51,41 +51,49 @@ class MessageList extends StatelessWidget {
       for (final message in messages) message.processInfo,
     ];
     var streamingSkillActivations = const <MessageSkillActivation>[];
+    var streamingSkillToolCalls = const <MessageToolCall>[];
 
-    if (isDesktop) {
-      Message? pendingUserMessage;
-      var pendingSkillActivations = const <MessageSkillActivation>[];
+    Message? pendingUserMessage;
+    var pendingSkillActivations = const <MessageSkillActivation>[];
+    var pendingSkillToolCalls = const <MessageToolCall>[];
 
-      for (var index = 0; index < messages.length; index++) {
-        final message = messages[index];
-        final isCurrentUser = message.senderId == currentUserId;
+    for (var index = 0; index < messages.length; index++) {
+      final message = messages[index];
+      final isCurrentUser = message.senderId == currentUserId;
 
-        if (isCurrentUser) {
-          pendingUserMessage = message;
-          pendingSkillActivations = message.processInfo.skillActivations;
-          displayedProcessInfo[index] = _replaceSkillActivations(
-            message.processInfo,
-            const [],
-          );
-          continue;
-        }
-
-        if (pendingUserMessage != null &&
-            _messagesBelongToSameTurn(pendingUserMessage, message)) {
-          displayedProcessInfo[index] = _replaceSkillActivations(
-            message.processInfo,
-            _mergeSkillActivations(
-              message.processInfo.skillActivations,
-              pendingSkillActivations,
-            ),
-          );
-          pendingUserMessage = null;
-          pendingSkillActivations = const [];
-        }
+      if (isCurrentUser) {
+        pendingUserMessage = message;
+        pendingSkillActivations = message.processInfo.skillActivations;
+        pendingSkillToolCalls = _skillToolCalls(message.processInfo.toolCalls);
+        displayedProcessInfo[index] = _replaceSkillActivations(
+          message.processInfo,
+          const [],
+        );
+        continue;
       }
 
-      streamingSkillActivations = pendingSkillActivations;
+      if (pendingUserMessage != null &&
+          _messagesBelongToSameTurn(pendingUserMessage, message)) {
+        displayedProcessInfo[index] = _replaceSkillActivations(
+          _replaceToolCalls(
+            message.processInfo,
+            _mergeToolCalls(
+              message.processInfo.toolCalls,
+              pendingSkillToolCalls,
+            ),
+          ),
+          _mergeSkillActivations(
+            message.processInfo.skillActivations,
+            pendingSkillActivations,
+          ),
+        );
+        pendingUserMessage = null;
+        pendingSkillActivations = const [];
+        pendingSkillToolCalls = const [];
+      }
     }
+    streamingSkillActivations = pendingSkillActivations;
+    streamingSkillToolCalls = pendingSkillToolCalls;
 
     return Expanded(
       child: ListView.builder(
@@ -109,16 +117,19 @@ class MessageList extends StatelessWidget {
                   isStreaming: true,
                   reasoning:
                       deepThinking == true ? reasoningResponse ?? '' : '',
-                  processInfo:
-                      isDesktop
-                          ? _replaceSkillActivations(
-                            streamingProcessInfo,
-                            _mergeSkillActivations(
-                              streamingProcessInfo.skillActivations,
-                              streamingSkillActivations,
-                            ),
-                          )
-                          : streamingProcessInfo,
+                  processInfo: _replaceSkillActivations(
+                    _replaceToolCalls(
+                      streamingProcessInfo,
+                      _mergeToolCalls(
+                        streamingProcessInfo.toolCalls,
+                        streamingSkillToolCalls,
+                      ),
+                    ),
+                    _mergeSkillActivations(
+                      streamingProcessInfo.skillActivations,
+                      streamingSkillActivations,
+                    ),
+                  ),
                   tokenUsage: streamingTokenUsage,
                   showExecutionStatus: showExecutionStatus,
                   content: streamingResponse,
@@ -135,7 +146,7 @@ class MessageList extends StatelessWidget {
             reasoning: message.reasoning,
             processInfo: displayedProcessInfo[index],
             tokenUsage: message.tokenUsage,
-            showExecutionStatus: showExecutionStatus,
+            showExecutionStatus: showExecutionStatus && !isMe,
             content: message.content,
             images: message.images,
             files: message.files,
@@ -232,6 +243,50 @@ MessageProcessInfo _replaceSkillActivations(
     fileEdits: processInfo.fileEdits,
     skillActivations: skillActivations,
   );
+}
+
+MessageProcessInfo _replaceToolCalls(
+  MessageProcessInfo processInfo,
+  List<MessageToolCall> toolCalls,
+) {
+  if (identical(processInfo.toolCalls, toolCalls)) return processInfo;
+  return MessageProcessInfo(
+    reasoningStatus: processInfo.reasoningStatus,
+    durationMs: processInfo.durationMs,
+    toolCalls: toolCalls,
+    commandExecutions: processInfo.commandExecutions,
+    fileEdits: processInfo.fileEdits,
+    skillActivations: processInfo.skillActivations,
+  );
+}
+
+List<MessageToolCall> _skillToolCalls(List<MessageToolCall> toolCalls) =>
+    List<MessageToolCall>.unmodifiable(
+      toolCalls.where(
+        (call) =>
+            call.name == 'activate_skill' || call.name == 'read_skill_resource',
+      ),
+    );
+
+List<MessageToolCall> _mergeToolCalls(
+  List<MessageToolCall> responseCalls,
+  List<MessageToolCall> userSkillCalls,
+) {
+  if (userSkillCalls.isEmpty) return responseCalls;
+  if (responseCalls.isEmpty) return userSkillCalls;
+
+  final merged = <MessageToolCall>[...responseCalls];
+  for (final call in userSkillCalls) {
+    final alreadyIncluded = merged.any(
+      (item) =>
+          item.callId == call.callId &&
+          item.name == call.name &&
+          item.status == call.status &&
+          item.detail == call.detail,
+    );
+    if (!alreadyIncluded) merged.add(call);
+  }
+  return List<MessageToolCall>.unmodifiable(merged);
 }
 
 List<MessageSkillActivation> _mergeSkillActivations(

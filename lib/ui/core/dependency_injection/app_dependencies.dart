@@ -16,6 +16,7 @@ import 'package:stars/data/repositories/sqlite_skill_ecosystem_repository.dart';
 import 'package:stars/data/services/feedback_service.dart';
 import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
+import 'package:stars/data/services/bot_api_key_cipher.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
@@ -112,9 +113,11 @@ class AppDependencies {
     final messageRepository = SqliteMessageRepository(
       localDatabase: localDatabase,
     );
+    final botApiKeyCipher = SecureBotApiKeyCipher();
     final botRepository = SqliteBotRepository(
       localDatabase: localDatabase,
       chatRepository: chatRepository,
+      apiKeyCipher: botApiKeyCipher,
     );
     final profileRepository = SqliteProfileRepository(
       localDatabase: localDatabase,

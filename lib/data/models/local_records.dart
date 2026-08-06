@@ -6,14 +6,14 @@ import 'package:stars/domain/models/models.dart';
 final class BotRecord {
   const BotRecord(this.values);
 
-  factory BotRecord.fromDomain(Bot bot) {
+  factory BotRecord.fromDomain(Bot bot, {required String storedApiKey}) {
     return BotRecord({
       'id': bot.id,
       'name': bot.name,
       'avatar': bot.avatar,
       'provider': bot.provider,
       'base_url': bot.baseURL,
-      'api_key': bot.apiKey,
+      'api_key': storedApiKey,
       'api_type': bot.apiType,
       'model': bot.model,
       'system_prompt': bot.systemPrompt,
@@ -25,14 +25,18 @@ final class BotRecord {
 
   final Map<String, Object?> values;
 
-  Bot toDomain() {
+  String get id => _string(values['id']);
+
+  String get storedApiKey => _string(values['api_key']);
+
+  Bot toDomain({required String apiKey}) {
     return Bot(
-      id: _string(values['id']),
+      id: id,
       name: _string(values['name']),
       avatar: _string(values['avatar']),
       provider: _string(values['provider']),
       baseURL: _string(values['base_url']),
-      apiKey: _string(values['api_key']),
+      apiKey: apiKey,
       apiType: _string(values['api_type']),
       model: _string(values['model']),
       systemPrompt: _string(values['system_prompt']),

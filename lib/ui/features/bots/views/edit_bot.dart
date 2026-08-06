@@ -649,11 +649,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
-            const SizedBox(width: 12),
-            if (viewModel.availableSkills.isEmpty)
-              Tooltip(message: strings.allSkillsAdded, child: addButton)
-            else
-              addButton,
+            if (!widget.readOnly) ...[
+              const SizedBox(width: 12),
+              if (viewModel.availableSkills.isEmpty)
+                Tooltip(message: strings.allSkillsAdded, child: addButton)
+              else
+                addButton,
+            ],
           ],
         ),
         const SizedBox(height: 10),
@@ -811,8 +813,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
               ),
               const SizedBox(width: 12),
               switchWidget,
-              const SizedBox(width: 8),
-              removeButton,
+              if (!widget.readOnly) ...[const SizedBox(width: 8), removeButton],
             ],
           ),
           if (enabled && viewModel.supportsAutoActivation) ...[

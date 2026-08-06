@@ -177,7 +177,7 @@ void main() {
     );
   });
 
-  testWidgets('read-only bot details disable MCP Tool changes', (tester) async {
+  testWidgets('read-only bot details hide MCP Server addition', (tester) async {
     tester.view.physicalSize = const Size(900, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -195,7 +195,7 @@ void main() {
 
     expect(
       find.byKey(const ValueKey<String>('add-bot-mcp-server')),
-      findsOneWidget,
+      findsNothing,
     );
     final selectedServer = find.byKey(
       const ValueKey<String>('bot-mcp-server-server-1'),

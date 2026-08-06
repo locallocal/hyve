@@ -31,6 +31,7 @@ class DesktopLayout extends StatefulWidget {
   final String? selectedChatId;
   final Bot? selectedChatBot;
   final Bot? selectedBot;
+  final bool isEditingBot;
   final bool showExecutionStatus;
   final int selectedProfileSection;
   final ValueChanged<int>? onProfileSectionChanged;
@@ -49,6 +50,7 @@ class DesktopLayout extends StatefulWidget {
     this.selectedChatId,
     this.selectedChatBot,
     this.selectedBot,
+    this.isEditingBot = false,
     this.showExecutionStatus = true,
     this.selectedProfileSection = 0,
     this.onProfileSectionChanged,
@@ -997,9 +999,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   Widget _buildBotDetail(BuildContext context) {
     if (widget.selectedBot != null) {
       return EditBotPage(
-        key: ValueKey<String>(widget.selectedBot!.id),
+        key: ValueKey<String>(
+          '${widget.selectedBot!.id}-${widget.isEditingBot ? 'edit' : 'detail'}',
+        ),
         bot: widget.selectedBot!,
         embedded: true,
+        readOnly: !widget.isEditingBot,
         avatarPicker: widget.avatarPicker,
         onBotUpdated: widget.onBotUpdated,
         onBotDeleted: widget.onBotDeleted,

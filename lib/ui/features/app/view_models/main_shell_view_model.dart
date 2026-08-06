@@ -12,12 +12,14 @@ class MainShellViewModel extends ChangeNotifier {
   String? _selectedChatId;
   Bot? _selectedChatBot;
   Bot? _selectedBot;
+  bool _isEditingSelectedBot = false;
   int _selectedProfileSection = 0;
 
   int get currentIndex => _currentIndex;
   String? get selectedChatId => _selectedChatId;
   Bot? get selectedChatBot => _selectedChatBot;
   Bot? get selectedBot => _selectedBot;
+  bool get isEditingSelectedBot => _isEditingSelectedBot;
   int get selectedProfileSection => _selectedProfileSection;
   bool get isChatSelectionVisible => _currentIndex == 0;
 
@@ -30,6 +32,14 @@ class MainShellViewModel extends ChangeNotifier {
 
   void selectBot(Bot bot) {
     _selectedBot = bot;
+    _isEditingSelectedBot = false;
+    _currentIndex = 1;
+    notifyListeners();
+  }
+
+  void editBot(Bot bot) {
+    _selectedBot = bot;
+    _isEditingSelectedBot = true;
     _currentIndex = 1;
     notifyListeners();
   }
@@ -42,12 +52,16 @@ class MainShellViewModel extends ChangeNotifier {
 
   void clearSelectedBot() {
     _selectedBot = null;
+    _isEditingSelectedBot = false;
     notifyListeners();
   }
 
   void selectPage(int index) {
     _currentIndex = index;
-    if (index == 1) _selectedBot = null;
+    if (index == 1) {
+      _selectedBot = null;
+      _isEditingSelectedBot = false;
+    }
     notifyListeners();
   }
 
@@ -77,6 +91,7 @@ class MainShellViewModel extends ChangeNotifier {
       _selectedChatBot = null;
     }
     _selectedBot = null;
+    _isEditingSelectedBot = false;
     notifyListeners();
   }
 }

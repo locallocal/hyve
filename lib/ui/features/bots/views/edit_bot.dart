@@ -29,6 +29,7 @@ class EditBotPage extends StatefulWidget {
   final Future<void> Function() onBotDeleted;
   final Future<String?> Function()? avatarPicker;
   final bool embedded;
+  final bool readOnly;
   final BotSkillViewModel? skillViewModel;
   final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
 
@@ -39,6 +40,7 @@ class EditBotPage extends StatefulWidget {
     required this.onBotDeleted,
     this.avatarPicker,
     this.embedded = false,
+    this.readOnly = false,
     this.skillViewModel,
     this.mcpCatalogLoader,
   });
@@ -178,7 +180,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
         });
       }
     }
-    if (_tokenUsageViewModel == null) {
+    if (widget.readOnly && _tokenUsageViewModel == null) {
       _tokenUsageViewModel = dependencies.createBotTokenUsageViewModel(
         widget.bot.id,
       )..addListener(_handleTokenUsageChanged);
@@ -231,6 +233,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _pickImage() async {
+    if (widget.readOnly) return;
     final imagePath = await widget.avatarPicker?.call();
 
     if (imagePath != null && mounted) {
@@ -276,7 +279,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
               : AppBar(
                 centerTitle: true,
                 title: Text(
-                  S.of(context).editBot,
+                  widget.readOnly
+                      ? S.of(context).details
+                      : S.of(context).editBot,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: fontSize,
@@ -286,7 +291,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 scrolledUnderElevation: 0,
                 elevation: 0,
                 surfaceTintColor: Colors.transparent,
-                actions: [_buildDeleteButton(fontSize)],
+                actions: [if (!widget.readOnly) _buildDeleteButton(fontSize)],
               ),
       body: Center(
         child: ConstrainedBox(
@@ -318,7 +323,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           width: 56,
                           height: 56,
                           padding: EdgeInsets.zero,
-                          onPressed: _pickImage,
+                          enabled: !widget.readOnly,
+                          onPressed: widget.readOnly ? null : _pickImage,
                           child: CircleAvatar(
                             radius: 28,
                             backgroundColor:
@@ -363,7 +369,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           ],
                         ),
                       ),
-                      _buildDeleteButton(fontSize),
+                      if (!widget.readOnly) _buildDeleteButton(fontSize),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -372,7 +378,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 if (!widget.embedded) ...[
                   Center(
                     child: GestureDetector(
-                      onTap: _pickImage,
+                      onTap: widget.readOnly ? null : _pickImage,
                       child: CircleAvatar(
                         radius: 64,
                         backgroundColor:
@@ -462,22 +468,26 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     ),
                   ),
                 ],
-                SizedBox(height: widget.embedded ? 20 : 16),
-                _buildFormSection(
-                  context,
-                  S.of(context).tokenUsage,
-                  [_buildTokenUsage()],
-                  sectionKey: const ValueKey<String>(
-                    'desktop-bot-token-usage-section',
+                if (widget.readOnly) ...[
+                  SizedBox(height: widget.embedded ? 20 : 16),
+                  _buildFormSection(
+                    context,
+                    S.of(context).tokenUsage,
+                    [_buildTokenUsage()],
+                    sectionKey: const ValueKey<String>(
+                      'desktop-bot-token-usage-section',
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
         ),
       ),
       bottomNavigationBar:
-          widget.embedded
+          widget.readOnly
+              ? null
+              : widget.embedded
               ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -613,15 +623,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
               key: const ValueKey<String>('add-bot-skill'),
               size: ShadButtonSize.sm,
               width: 0,
-              enabled: viewModel.availableSkills.isNotEmpty,
-              onPressed: _showAddSkillDialog,
+              enabled: !widget.readOnly && viewModel.availableSkills.isNotEmpty,
+              onPressed: widget.readOnly ? null : _showAddSkillDialog,
               leading: const Icon(LucideIcons.plus, size: 15),
               child: Text(strings.addSkill),
             )
             : OutlinedButton.icon(
               key: const ValueKey<String>('add-bot-skill'),
               onPressed:
-                  viewModel.availableSkills.isEmpty
+                  widget.readOnly || viewModel.availableSkills.isEmpty
                       ? null
                       : _showAddSkillDialog,
               icon: const Icon(Icons.add_rounded, size: 18),
@@ -714,7 +724,11 @@ class _EditAIBotPageState extends State<EditBotPage> {
             ? ShadSwitch(
               key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
               value: enabled,
-              onChanged: (value) => _setSkillEnabled(skill.id, value),
+              enabled: !widget.readOnly,
+              onChanged:
+                  widget.readOnly
+                      ? null
+                      : (value) => _setSkillEnabled(skill.id, value),
               label: Text(
                 enabled ? strings.skillEnabled : strings.skillDisabled,
               ),
@@ -726,7 +740,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 Switch(
                   key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
                   value: enabled,
-                  onChanged: (value) => _setSkillEnabled(skill.id, value),
+                  onChanged:
+                      widget.readOnly
+                          ? null
+                          : (value) => _setSkillEnabled(skill.id, value),
                 ),
               ],
             );
@@ -740,14 +757,17 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 height: 30,
                 padding: EdgeInsets.zero,
                 iconSize: 16,
-                onPressed: () => _removeBotSkill(skill.id),
+                enabled: !widget.readOnly,
+                onPressed:
+                    widget.readOnly ? null : () => _removeBotSkill(skill.id),
                 icon: const Icon(LucideIcons.trash2),
               ),
             )
             : IconButton(
               key: ValueKey<String>('remove-bot-skill-${skill.id}'),
               tooltip: strings.removeSkill,
-              onPressed: () => _removeBotSkill(skill.id),
+              onPressed:
+                  widget.readOnly ? null : () => _removeBotSkill(skill.id),
               icon: const Icon(Icons.delete_outline_rounded),
             );
 
@@ -891,6 +911,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _showAddSkillDialog() async {
+    if (widget.readOnly) return;
     final viewModel = _skillViewModel;
     if (viewModel == null || viewModel.availableSkills.isEmpty) return;
     _skillSearchController.clear();
@@ -1106,6 +1127,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _setSkillEnabled(String skillId, bool enabled) async {
+    if (widget.readOnly) return;
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
     } catch (error) {
@@ -1117,6 +1139,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     BuildContext dialogContext,
     String skillId,
   ) async {
+    if (widget.readOnly) return;
     try {
       await _skillViewModel?.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
@@ -1126,6 +1149,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _removeBotSkill(String skillId) async {
+    if (widget.readOnly) return;
     try {
       await _skillViewModel?.removeSkill(skillId);
     } catch (error) {
@@ -1260,7 +1284,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Future<void> _saveBot() async {
-    if (_isSaving || _isDeleting) return;
+    if (widget.readOnly || _isSaving || _isDeleting) return;
     if (nameController.text.trim().isEmpty) {
       showSnackBar(context, S.of(context).fillRequiredFields);
       return;
@@ -1381,6 +1405,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     required IconData icon,
     required TextEditingController controller,
     String? placeholder,
+    bool readOnly = false,
     ValueChanged<String>? onChanged,
   }) {
     final shadTheme = ShadTheme.of(context);
@@ -1397,6 +1422,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
             leading: Icon(icon, size: 17),
             minHeight: 112,
             maxHeight: 220,
+            readOnly: readOnly,
             onChanged: onChanged,
           ),
         ),
@@ -1449,7 +1475,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
 
   Widget _buildDeleteButton(double? fontSize) {
     Future<void> deleteBot() async {
-      if (_isDeleting || _isSaving) return;
+      if (widget.readOnly || _isDeleting || _isSaving) return;
       final shouldDelete =
           widget.embedded
               ? await showShadDialog<bool>(
@@ -1570,11 +1596,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.auto_awesome_outlined,
         controller: nameController,
         placeholder: S.of(context).enterBotName,
-        onChanged: _markUnsaved,
+        readOnly: widget.readOnly,
+        onChanged: widget.readOnly ? null : _markUnsaved,
       );
     }
     return TextField(
       controller: nameController,
+      readOnly: widget.readOnly,
       decoration: _fieldDecoration(
         label: S.of(context).botName,
         icon: Icons.auto_awesome_outlined,
@@ -1595,7 +1623,11 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     return TextField(
       controller: providerController,
-      onChanged: (value) => setState(() => selectedProvider = value),
+      readOnly: widget.readOnly,
+      onChanged:
+          widget.readOnly
+              ? null
+              : (value) => setState(() => selectedProvider = value),
       decoration: _fieldDecoration(
         label: S.of(context).provider,
         icon: Icons.business_outlined,
@@ -1615,6 +1647,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     return TextField(
       controller: apiTypeController,
+      readOnly: widget.readOnly,
       decoration: _fieldDecoration(
         label: S.of(context).apiType,
         icon: Icons.category_outlined,
@@ -1634,6 +1667,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     return TextField(
       controller: baseURLController,
+      readOnly: widget.readOnly,
       decoration: _fieldDecoration(
         label: S.of(context).apiAddress,
         icon: Icons.link_rounded,
@@ -1685,6 +1719,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     return TextField(
       controller: apiKeyController,
       obscureText: !_isPasswordVisible,
+      readOnly: widget.readOnly,
       decoration: _fieldDecoration(
         label: S.of(context).apiKey,
         icon: Icons.key_outlined,
@@ -1736,6 +1771,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     return TextField(
       controller: selectedModelController,
+      readOnly: widget.readOnly,
       onChanged: (value) {
         final stillSelectedModel = value.trim() == widget.bot.model;
         setState(() {
@@ -1764,6 +1800,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
       configurations: _mcpToolConfigurations,
       isLoading: _isLoadingMcpServers,
       embedded: widget.embedded,
+      readOnly: widget.readOnly,
       onChanged: (configurations) {
         setState(() {
           _mcpToolConfigurations = configurations;
@@ -1781,11 +1818,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.subject_rounded,
         controller: systemPromptController,
         placeholder: S.of(context).enterSystemPrompt,
-        onChanged: _markUnsaved,
+        readOnly: widget.readOnly,
+        onChanged: widget.readOnly ? null : _markUnsaved,
       );
     }
     return TextField(
       controller: systemPromptController,
+      readOnly: widget.readOnly,
       decoration: _fieldDecoration(
         label: S.of(context).systemPrompt.replaceAll(':', ''),
         icon: Icons.subject_rounded,

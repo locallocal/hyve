@@ -775,7 +775,7 @@ void main() {
     expect(bindingRepository.savedBindings, [same(binding)]);
   });
 
-  testWidgets('desktop bot card menu exposes edit and delete actions', (
+  testWidgets('desktop bot card opens details while its menu opens editing', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -805,7 +805,8 @@ void main() {
     addTearDown(viewModel.dispose);
     await viewModel.load();
 
-    Bot? selectedBot;
+    Bot? selectedDetailBot;
+    Bot? selectedEditBot;
     await _withDesktopPlatform(() async {
       await tester.pumpWidget(
         _shadHarness(
@@ -814,7 +815,8 @@ void main() {
               (context) => Scaffold(
                 body: ContactsPage(
                   viewModel: viewModel,
-                  onBotSelected: (bot) => selectedBot = bot,
+                  onBotSelected: (bot) => selectedDetailBot = bot,
+                  onBotEditSelected: (bot) => selectedEditBot = bot,
                 ),
               ),
         ),
@@ -838,6 +840,11 @@ void main() {
         greaterThan(tester.getCenter(card).dy),
       );
 
+      await tester.tap(card);
+      await tester.pumpAndSettle();
+      expect(selectedDetailBot?.id, bot.id);
+      expect(selectedEditBot, isNull);
+
       await tester.tap(menuButton);
       await tester.pumpAndSettle();
 
@@ -845,7 +852,6 @@ void main() {
         const ValueKey<String>('desktop-bot-action-menu-bot-menu'),
       );
       final pageContext = tester.element(find.byType(ContactsPage));
-      expect(selectedBot, isNull);
       expect(actionMenu, findsOneWidget);
       expect(
         tester.getRect(actionMenu).right,
@@ -866,7 +872,7 @@ void main() {
 
       await tester.tap(find.text('编辑'));
       await tester.pumpAndSettle();
-      expect(selectedBot?.id, bot.id);
+      expect(selectedEditBot?.id, bot.id);
 
       await tester.tap(menuButton);
       await tester.pumpAndSettle();
@@ -878,6 +884,93 @@ void main() {
       await tester.pumpAndSettle();
       expect(botRepository.deletedBotId, bot.id);
     });
+  });
+
+  testWidgets('mobile bot card opens a read-only detail page', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(430, 900);
+    addTearDown(tester.view.reset);
+
+    final bot = Bot(
+      id: 'bot-mobile-detail',
+      name: '移动智能体',
+      avatar: '',
+      provider: 'OpenAI',
+      baseURL: 'https://example.invalid',
+      apiKey: 'secret',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'gpt-test',
+      systemPrompt: 'Be helpful',
+      createTimestamp: DateTime(2026),
+      modifyTimestamp: DateTime(2026),
+    );
+    final viewModel = BotListViewModel(
+      botRepository: _BotCardTestBotRepository([bot]),
+      createChat: CreateChat(chatRepository: _BotCardTestChatRepository()),
+      aiProviderRepository: _UnusedAiProviderRepository(),
+      attachmentRepository: _UnusedAttachmentRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    await _withMobilePlatform(() async {
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: ContactsPage(viewModel: viewModel, onBotSelected: (_) {}),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(bot.name));
+      await tester.pumpAndSettle();
+
+      final page = tester.widget<EditBotPage>(find.byType(EditBotPage));
+      expect(page.readOnly, isTrue);
+      expect(find.text('详情'), findsOneWidget);
+      expect(find.text('保存修改'), findsNothing);
+      expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
+      for (final field in tester.widgetList<TextField>(
+        find.byType(TextField),
+      )) {
+        expect(field.readOnly, isTrue);
+      }
+    });
+  });
+
+  test('main shell distinguishes bot details from bot editing', () {
+    final bot = Bot(
+      id: 'bot-shell-mode',
+      name: 'Mode test',
+      avatar: '',
+      provider: 'OpenAI',
+      baseURL: '',
+      apiKey: '',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'gpt-test',
+      systemPrompt: '',
+      createTimestamp: DateTime(2026),
+      modifyTimestamp: DateTime(2026),
+    );
+    final viewModel = MainShellViewModel(
+      botRepository: _BotCardTestBotRepository([bot]),
+    );
+    addTearDown(viewModel.dispose);
+
+    viewModel.selectBot(bot);
+    expect(viewModel.selectedBot, same(bot));
+    expect(viewModel.isEditingSelectedBot, isFalse);
+
+    viewModel.editBot(bot);
+    expect(viewModel.selectedBot, same(bot));
+    expect(viewModel.isEditingSelectedBot, isTrue);
+
+    viewModel.clearSelectedBot();
+    expect(viewModel.selectedBot, isNull);
+    expect(viewModel.isEditingSelectedBot, isFalse);
   });
 
   testWidgets('desktop message content uses its full available page width', (
@@ -2217,9 +2310,6 @@ void main() {
     final detailScaffold = tester.widget<Scaffold>(
       find.byKey(const ValueKey<String>('desktop-bot-detail-scaffold')),
     );
-    final saveBarBackground = tester.widget<ColoredBox>(
-      find.byKey(const ValueKey<String>('desktop-bot-save-bar-background')),
-    );
     final detailContext = tester.element(
       find.byKey(const ValueKey<String>('desktop-bot-detail-scaffold')),
     );
@@ -2231,7 +2321,15 @@ void main() {
                 DesktopThemeTokens.botFormSectionBorderWidth) *
             2;
     expect(detailScaffold.backgroundColor, workspaceColor);
-    expect(saveBarBackground.color, workspaceColor);
+    expect(
+      find.byKey(const ValueKey<String>('desktop-bot-save-bar-background')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('desktop-bot-save')),
+      findsNothing,
+    );
+    expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
     expect(
       tester
           .getSize(
@@ -2342,6 +2440,13 @@ void main() {
       findsNothing,
     );
     expect(find.byIcon(Icons.vertical_split_outlined), findsNothing);
+    for (final input in tester.widgetList<ShadInput>(find.byType(ShadInput))) {
+      expect(input.readOnly, isTrue);
+    }
+    expect(
+      tester.widget<ShadTextarea>(find.byType(ShadTextarea)).readOnly,
+      true,
+    );
   });
 
   testWidgets('desktop bot provider settings are read-only and preserved', (
@@ -2387,6 +2492,10 @@ void main() {
         (DesktopThemeTokens.botFormSectionPadding +
                 DesktopThemeTokens.botFormSectionBorderWidth) *
             2;
+    expect(
+      find.byKey(const ValueKey<String>('desktop-bot-token-usage-section')),
+      findsNothing,
+    );
     const readOnlyFieldKeys = [
       'desktop-bot-provider',
       'desktop-bot-api-type',
@@ -3091,6 +3200,15 @@ void main() {
 
 Future<void> _withDesktopPlatform(Future<void> Function() body) async {
   debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+  try {
+    await body();
+  } finally {
+    debugDefaultTargetPlatformOverride = null;
+  }
+}
+
+Future<void> _withMobilePlatform(Future<void> Function() body) async {
+  debugDefaultTargetPlatformOverride = TargetPlatform.android;
   try {
     await body();
   } finally {

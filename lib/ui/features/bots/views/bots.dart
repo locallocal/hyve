@@ -18,6 +18,7 @@ import 'package:stars/utils/theme.dart';
 class ContactsPage extends StatefulWidget {
   final String? selectedBotId;
   final ValueChanged<Bot> onBotSelected;
+  final ValueChanged<Bot>? onBotEditSelected;
   final void Function(String chatId, Bot bot)? onChatCreated;
   final VoidCallback? onSelectionCleared;
   final BotListViewModel viewModel;
@@ -27,6 +28,7 @@ class ContactsPage extends StatefulWidget {
     required this.viewModel,
     this.selectedBotId,
     required this.onBotSelected,
+    this.onBotEditSelected,
     this.onChatCreated,
     this.onSelectionCleared,
   });
@@ -73,18 +75,32 @@ class ContactsPageState extends State<ContactsPage> {
     );
   }
 
-  void _editBot(Bot bot) {
+  void _openBotDetails(Bot bot) {
     if (isDesktopOrTabletPlatform(context)) {
       widget.onBotSelected(bot);
       return;
     }
 
+    _pushBotPage(bot, readOnly: true);
+  }
+
+  void _editBot(Bot bot) {
+    if (isDesktopOrTabletPlatform(context)) {
+      (widget.onBotEditSelected ?? widget.onBotSelected)(bot);
+      return;
+    }
+
+    _pushBotPage(bot);
+  }
+
+  void _pushBotPage(Bot bot, {bool readOnly = false}) {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder:
             (context) => EditBotPage(
               bot: bot,
+              readOnly: readOnly,
               avatarPicker: widget.viewModel.pickAvatar,
               onBotUpdated: (updatedBot) async {
                 await widget.viewModel.updateBot(updatedBot);
@@ -229,7 +245,8 @@ class ContactsPageState extends State<ContactsPage> {
                     bot.model.isEmpty
                         ? bot.provider
                         : '${bot.provider} · ${bot.model}',
-                onOpen: () => _editBot(bot),
+                onOpen: () => _openBotDetails(bot),
+                onEdit: () => _editBot(bot),
                 onStartChat: () => _startChat(bot),
                 onDelete: () => _deleteBot(bot),
               );
@@ -290,7 +307,7 @@ class ContactsPageState extends State<ContactsPage> {
                           ? bot.provider
                           : '${bot.provider} - ${bot.model}',
                   isSelected: widget.selectedBotId == bot.id,
-                  onTap: () => _editBot(bot),
+                  onTap: () => _openBotDetails(bot),
                   fontSize: fontSize ?? 16,
                   trailing: ShadTooltip(
                     builder:
@@ -345,27 +362,7 @@ class ContactsPageState extends State<ContactsPage> {
               ),
               CustomSlidableAction(
                 onPressed: (context) {
-                  if (isDesktopOrTabletPlatform(context)) {
-                    widget.onBotSelected(bot);
-                    return;
-                  }
-                  // 跳转到编辑页面
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder:
-                          (context) => EditBotPage(
-                            bot: bot,
-                            avatarPicker: widget.viewModel.pickAvatar,
-                            onBotUpdated: (updatedBot) async {
-                              await widget.viewModel.updateBot(updatedBot);
-                            },
-                            onBotDeleted: () async {
-                              await widget.viewModel.deleteBot(bot.id);
-                            },
-                          ),
-                    ),
-                  );
+                  _editBot(bot);
                 },
                 backgroundColor: Theme.of(context).colorScheme.tertiary,
                 foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -438,28 +435,7 @@ class ContactsPageState extends State<ContactsPage> {
                     ? bot.provider
                     : '${bot.provider} - ${bot.model}',
             isSelected: isDesktop && widget.selectedBotId == bot.id,
-            onTap: () {
-              if (isDesktopOrTabletPlatform(context)) {
-                widget.onBotSelected(bot);
-                return;
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder:
-                      (context) => EditBotPage(
-                        bot: bot,
-                        avatarPicker: widget.viewModel.pickAvatar,
-                        onBotUpdated: (updatedBot) async {
-                          await widget.viewModel.updateBot(updatedBot);
-                        },
-                        onBotDeleted: () async {
-                          await widget.viewModel.deleteBot(bot.id);
-                        },
-                      ),
-                ),
-              );
-            },
+            onTap: () => _openBotDetails(bot),
             fontSize: fontSize ?? 16,
           ),
         );
@@ -601,6 +577,7 @@ class _DesktopBotCard extends StatefulWidget {
     required this.metrics,
     required this.subtitle,
     required this.onOpen,
+    required this.onEdit,
     required this.onStartChat,
     required this.onDelete,
   });
@@ -609,6 +586,7 @@ class _DesktopBotCard extends StatefulWidget {
   final BotCardMetrics metrics;
   final String subtitle;
   final VoidCallback onOpen;
+  final VoidCallback onEdit;
   final VoidCallback onStartChat;
   final VoidCallback onDelete;
 
@@ -689,7 +667,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                   ),
                   ShadButton.ghost(
                     size: ShadButtonSize.sm,
-                    onPressed: () => _invokeMenuAction(widget.onOpen),
+                    onPressed: () => _invokeMenuAction(widget.onEdit),
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(Icons.edit_outlined, size: 16),
                     child: Text(S.of(context).edit),
@@ -744,7 +722,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
             ),
             MenuItemButton(
               leadingIcon: const Icon(Icons.edit_outlined, size: 16),
-              onPressed: widget.onOpen,
+              onPressed: widget.onEdit,
               child: Text(S.of(context).editBot),
             ),
             MenuItemButton(

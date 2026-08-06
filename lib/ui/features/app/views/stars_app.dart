@@ -466,6 +466,7 @@ class _MainPageState extends State<MainPage> {
         viewModel: _botListViewModel,
         selectedBotId: _viewModel.selectedBot?.id,
         onBotSelected: _onBotSelected,
+        onBotEditSelected: _onBotEditSelected,
         onChatCreated: _onChatSelected,
         onSelectionCleared: _viewModel.clearSelectedBot,
       ),
@@ -490,6 +491,7 @@ class _MainPageState extends State<MainPage> {
                 selectedChatId: _viewModel.selectedChatId,
                 selectedChatBot: _viewModel.selectedChatBot,
                 selectedBot: _viewModel.selectedBot,
+                isEditingBot: _viewModel.isEditingSelectedBot,
                 showExecutionStatus: widget.showExecutionStatus,
                 selectedProfileSection: _viewModel.selectedProfileSection,
                 onProfileSectionChanged: _viewModel.selectProfileSection,
@@ -564,6 +566,11 @@ class _MainPageState extends State<MainPage> {
   void _onBotSelected(Bot bot) {
     if (!mounted) return;
     _viewModel.selectBot(bot);
+  }
+
+  void _onBotEditSelected(Bot bot) {
+    if (!mounted) return;
+    _viewModel.editBot(bot);
   }
 
   void _onPageChanged(int index) {

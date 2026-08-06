@@ -224,6 +224,62 @@ void main() {
     }
   });
 
+  testWidgets('read-only bot details disable Skill changes', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    final timestamp = DateTime(2026, 7, 26);
+    final bindingRepository = _FakeBindingRepository([
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: 'user:release-notes',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    ]);
+    final viewModel = BotSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: _FakeSkillRepository([
+        _skill('release-notes'),
+        _skill('another-skill'),
+      ]),
+      bindingRepository: bindingRepository,
+      supportsAutoActivation: true,
+    );
+    addTearDown(bindingRepository.dispose);
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel, readOnly: true));
+      await tester.pumpAndSettle();
+
+      final addSkill = find.byKey(const ValueKey<String>('add-bot-skill'));
+      final skillToggle = find.byKey(
+        const ValueKey<String>('bot-skill-toggle-user:release-notes'),
+      );
+      final removeSkill = find.byKey(
+        const ValueKey<String>('remove-bot-skill-user:release-notes'),
+      );
+      await tester.ensureVisible(skillToggle);
+
+      expect(tester.widget<ShadButton>(addSkill).enabled, isFalse);
+      expect(tester.widget<ShadSwitch>(skillToggle).enabled, isFalse);
+      expect(tester.widget<ShadIconButton>(removeSkill).enabled, isFalse);
+
+      await tester.tap(skillToggle, warnIfMissed: false);
+      await tester.tap(removeSkill, warnIfMissed: false);
+      await tester.tap(addSkill, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(bindingRepository.bindingFor('user:release-notes'), isNotNull);
+      expect(find.byType(ShadDialog), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('unsupported provider hides the Skill section', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     tester.view.physicalSize = const Size(1400, 1000);
@@ -255,7 +311,7 @@ void main() {
   });
 }
 
-Widget _harness(BotSkillViewModel viewModel) {
+Widget _harness(BotSkillViewModel viewModel, {bool readOnly = false}) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
@@ -296,6 +352,7 @@ Widget _harness(BotSkillViewModel viewModel) {
           home: EditBotPage(
             bot: bot,
             embedded: true,
+            readOnly: readOnly,
             skillViewModel: viewModel,
             onBotUpdated: (_) async {},
             onBotDeleted: () async {},

@@ -3141,6 +3141,9 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.text('已开启'), findsNothing);
+      expect(find.text('已关闭'), findsNothing);
+      expect(find.bySemanticsLabel('自动激活'), findsOneWidget);
       expect(find.text('按消息启用'), findsNothing);
       expect(find.text('始终启用'), findsNothing);
       final providerField = find.byKey(

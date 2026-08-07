@@ -164,18 +164,21 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                strings.autoActivation,
-                key: ValueKey<String>('add-bot-skill-auto-${skill.id}'),
-                style: DesktopThemeTokens.metaStyle(context),
+              ExcludeSemantics(
+                child: Text(
+                  strings.autoActivation,
+                  key: ValueKey<String>('add-bot-skill-auto-${skill.id}'),
+                  style: DesktopThemeTokens.metaStyle(context),
+                ),
               ),
               const SizedBox(width: 12),
-              ShadSwitch(
-                key: ValueKey<String>('add-bot-skill-toggle-${skill.id}'),
-                value: enabled,
-                onChanged: (value) => _setEnabled(skill.id, value),
-                label: Text(
-                  enabled ? strings.skillEnabled : strings.skillDisabled,
+              Semantics(
+                label: strings.autoActivation,
+                toggled: enabled,
+                child: ShadSwitch(
+                  key: ValueKey<String>('add-bot-skill-toggle-${skill.id}'),
+                  value: enabled,
+                  onChanged: (value) => _setEnabled(skill.id, value),
                 ),
               ),
               const SizedBox(width: 8),

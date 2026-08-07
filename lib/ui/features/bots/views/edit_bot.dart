@@ -718,34 +718,30 @@ class _EditAIBotPageState extends State<EditBotPage> {
     final strings = S.of(context);
     final binding = viewModel.bindingFor(skill.id);
     final enabled = binding?.enabled ?? false;
-    final switchWidget =
-        widget.embedded
-            ? ShadSwitch(
-              key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
-              value: enabled,
-              enabled: !widget.readOnly,
-              onChanged:
-                  widget.readOnly
-                      ? null
-                      : (value) => _setSkillEnabled(skill.id, value),
-              label: Text(
-                enabled ? strings.skillEnabled : strings.skillDisabled,
+    final switchWidget = Semantics(
+      label: strings.autoActivation,
+      toggled: enabled,
+      enabled: !widget.readOnly,
+      child:
+          widget.embedded
+              ? ShadSwitch(
+                key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
+                value: enabled,
+                enabled: !widget.readOnly,
+                onChanged:
+                    widget.readOnly
+                        ? null
+                        : (value) => _setSkillEnabled(skill.id, value),
+              )
+              : Switch(
+                key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
+                value: enabled,
+                onChanged:
+                    widget.readOnly
+                        ? null
+                        : (value) => _setSkillEnabled(skill.id, value),
               ),
-            )
-            : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(enabled ? strings.skillEnabled : strings.skillDisabled),
-                Switch(
-                  key: ValueKey<String>('bot-skill-toggle-${skill.id}'),
-                  value: enabled,
-                  onChanged:
-                      widget.readOnly
-                          ? null
-                          : (value) => _setSkillEnabled(skill.id, value),
-                ),
-              ],
-            );
+    );
     final removeButton =
         widget.embedded
             ? ShadTooltip(
@@ -803,13 +799,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                strings.autoActivation,
-                key: ValueKey<String>('bot-skill-auto-${skill.id}'),
-                style:
-                    widget.embedded
-                        ? DesktopThemeTokens.metaStyle(context)
-                        : Theme.of(context).textTheme.bodySmall,
+              ExcludeSemantics(
+                child: Text(
+                  strings.autoActivation,
+                  key: ValueKey<String>('bot-skill-auto-${skill.id}'),
+                  style:
+                      widget.embedded
+                          ? DesktopThemeTokens.metaStyle(context)
+                          : Theme.of(context).textTheme.bodySmall,
+                ),
               ),
               const SizedBox(width: 12),
               switchWidget,

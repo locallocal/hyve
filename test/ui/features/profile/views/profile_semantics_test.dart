@@ -190,6 +190,13 @@ void main() {
       );
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
+      expect(
+        find.descendant(
+          of: mcpEntry,
+          matching: find.byIcon(Icons.hub_outlined),
+        ),
+        findsOneWidget,
+      );
 
       await tester.ensureVisible(skillEntry);
       await tester.tap(skillEntry);

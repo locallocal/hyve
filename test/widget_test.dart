@@ -749,7 +749,7 @@ void main() {
       );
       final mcpIcon = find.descendant(
         of: mcpMetric,
-        matching: find.byIcon(LucideIcons.server),
+        matching: find.byIcon(Icons.hub_outlined),
       );
       final contextWindowIcon = find.descendant(
         of: contextWindowMetric,
@@ -2674,6 +2674,13 @@ void main() {
     );
     expect(
       find.descendant(of: supportsSkillsDetail, matching: find.text('支持')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: supportsSkillsDetail,
+        matching: find.byIcon(LucideIcons.wrench),
+      ),
       findsOneWidget,
     );
     final supportsMcpDetail = find.byKey(

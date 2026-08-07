@@ -31,12 +31,29 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
     await tester.pumpAndSettle();
+    final availableServer = find.byKey(
+      const ValueKey<String>('available-bot-mcp-server-server-1'),
+    );
+    expect(
+      find.descendant(
+        of: availableServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
+    );
     await tester.tap(
       find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
     );
     await tester.pumpAndSettle();
     final selectedServer = find.byKey(
       const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    expect(
+      find.descendant(
+        of: selectedServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
     );
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
@@ -97,6 +114,13 @@ void main() {
 
     final selectedServer = find.byKey(
       const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    expect(
+      find.descendant(
+        of: selectedServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
     );
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
@@ -200,6 +224,13 @@ void main() {
     final selectedServer = find.byKey(
       const ValueKey<String>('bot-mcp-server-server-1'),
     );
+    expect(
+      find.descendant(
+        of: selectedServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
+    );
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
@@ -255,12 +286,29 @@ void main() {
     await tester.ensureVisible(mcpSection);
     await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
     await tester.pumpAndSettle();
+    final availableServer = find.byKey(
+      const ValueKey<String>('available-bot-mcp-server-server-1'),
+    );
+    expect(
+      find.descendant(
+        of: availableServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
+    );
     await tester.tap(
       find.byKey(const ValueKey<String>('select-bot-mcp-server-server-1')),
     );
     await tester.pumpAndSettle();
     final selectedServer = find.byKey(
       const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    expect(
+      find.descendant(
+        of: selectedServer,
+        matching: find.byIcon(Icons.hub_outlined),
+      ),
+      findsNothing,
     );
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);

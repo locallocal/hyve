@@ -182,7 +182,7 @@ class _McpServersPageState extends State<McpServersPage> {
                     )
                   else if (_viewModel.servers.isEmpty)
                     DesktopEmptyStateCard(
-                      icon: LucideIcons.server,
+                      icon: Icons.hub_outlined,
                       title: strings.noMcpServers,
                       description: strings.noMcpServersDescription,
                       action: ShadButton(
@@ -1412,7 +1412,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              LucideIcons.server,
+              Icons.hub_outlined,
               size: 23,
               color: tokens.secondaryText,
             ),
@@ -1542,7 +1542,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       controller: _nameController,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).mcpServerName),
-      leading: _desktopInputLeading(LucideIcons.server),
+      leading: _desktopInputLeading(Icons.hub_outlined),
       constraints: _desktopInputConstraints,
       validator:
           (value) =>

@@ -470,7 +470,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           'bot-detail-supports-skills',
                         ),
                         label: S.of(context).supportsSkills,
-                        icon: Icons.extension_outlined,
+                        icon: LucideIcons.wrench,
                         supported: _resolvedSupportsSkills,
                       ),
                       _buildModelCapabilityDetail(

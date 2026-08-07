@@ -61,7 +61,11 @@ class _McpServersPageState extends State<McpServersPage> {
   Widget _buildMobile(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).mcpServers),
+        title: Text(
+          S.of(context).mcpServers,
+          key: const ValueKey<String>('mcp-servers-title'),
+          style: DesktopThemeTokens.pageTitleStyle(context),
+        ),
         actions: [
           IconButton(
             tooltip: S.of(context).addMcpServer,
@@ -108,6 +112,7 @@ class _McpServersPageState extends State<McpServersPage> {
                           children: [
                             Text(
                               strings.mcpServers,
+                              key: const ValueKey<String>('mcp-servers-title'),
                               style: DesktopThemeTokens.pageTitleStyle(context),
                             ),
                             const SizedBox(height: 6),
@@ -735,8 +740,12 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                   Expanded(
                     child: Text(
                       widget.server.name,
+                      key: ValueKey<String>(
+                        'desktop-mcp-server-title-${widget.server.id}',
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: DesktopThemeTokens.pageTitleStyle(context),
                     ),
                   ),
                 ],
@@ -826,7 +835,11 @@ class _McpServerDetailsDialog extends StatelessWidget {
 
     return ShadDialog(
       key: ValueKey<String>('desktop-mcp-server-details-dialog-${server.id}'),
-      title: Text(server.name),
+      title: Text(
+        server.name,
+        key: ValueKey<String>('mcp-server-details-title-${server.id}'),
+        style: DesktopThemeTokens.pageTitleStyle(context),
+      ),
       description: Text(
         _mcpConnectionSummary(server),
         maxLines: 2,
@@ -1012,7 +1025,11 @@ class _ServerCard extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
                 : Icon(_mcpStatusIcon(server.status)),
-        title: Text(server.name),
+        title: Text(
+          server.name,
+          key: ValueKey<String>('mobile-mcp-server-title-${server.id}'),
+          style: DesktopThemeTokens.pageTitleStyle(context),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

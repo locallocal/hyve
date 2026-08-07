@@ -221,6 +221,14 @@ void main() {
       expect(githubCard, findsOneWidget);
       expect(filesystemCard, findsOneWidget);
 
+      final pageTitle = tester.widget<Text>(
+        find.byKey(const ValueKey<String>('mcp-servers-title')),
+      );
+      final githubTitle = tester.widget<Text>(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-title-github')),
+      );
+      expect(githubTitle.style, pageTitle.style);
+
       final githubRect = tester.getRect(githubCard);
       final filesystemRect = tester.getRect(filesystemCard);
       expect(githubRect.width, 453);
@@ -294,6 +302,10 @@ void main() {
         ),
         findsOneWidget,
       );
+      final detailsTitle = tester.widget<Text>(
+        find.byKey(const ValueKey<String>('mcp-server-details-title-github')),
+      );
+      expect(detailsTitle.style, pageTitle.style);
 
       await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();

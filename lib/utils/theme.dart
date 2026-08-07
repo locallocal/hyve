@@ -708,6 +708,7 @@ class DesktopThemeTokens {
   static const double botFormSectionPadding = 20;
   static const double botFormSectionBorderWidth = 1;
   static const double botFormSectionTitleFontSize = 16;
+  static const double pageTitleFontSize = 17;
   static const EdgeInsets settingsRowPadding = EdgeInsets.symmetric(
     horizontal: 8,
     vertical: 10,
@@ -818,7 +819,7 @@ class DesktopThemeTokens {
 
   static TextStyle? pageTitleStyle(BuildContext context) =>
       Theme.of(context).textTheme.titleLarge?.copyWith(
-        fontSize: 17,
+        fontSize: pageTitleFontSize,
         fontWeight: FontWeight.w600,
         height: 1.3,
         color: text(context),

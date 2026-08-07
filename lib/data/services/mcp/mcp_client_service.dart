@@ -536,7 +536,6 @@ final class McpClientService implements McpClient {
     }
     return McpToolDescriptor(
       serverId: server.id,
-      namespace: server.namespace,
       remoteName: remoteName,
       title: title,
       description: description as String? ?? '',
@@ -628,7 +627,6 @@ final class McpClientService implements McpClient {
 
   String _fingerprint(McpServer server) {
     return jsonEncode({
-      'namespace': server.namespace,
       'transport': switch (server.transport) {
         McpStreamableHttpServerTransport(:final endpoint, :final authType) => {
           'type': McpTransportType.streamableHttp.name,

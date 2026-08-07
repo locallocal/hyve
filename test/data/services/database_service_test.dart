@@ -130,7 +130,7 @@ void main() {
   });
 
   test(
-    'version 13 replaces MCP state without migrating global enablement',
+    'version 14 replaces MCP state instead of migrating namespaces',
     () async {
       final database = await databaseFactoryFfi.openDatabase(
         inMemoryDatabasePath,
@@ -175,7 +175,7 @@ void main() {
         'remote_name': 'legacy-tool',
       });
 
-      await DatabaseService.migrateSchema(database, 12, 13);
+      await DatabaseService.migrateSchema(database, 13, 14);
 
       final columns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
       expect(
@@ -191,7 +191,13 @@ void main() {
         columns.map((column) => column['name']),
         isNot(
           contains(
-            anyOf('endpoint_uri', 'protocol_version', 'auth_type', 'enabled'),
+            anyOf(
+              'namespace',
+              'endpoint_uri',
+              'protocol_version',
+              'auth_type',
+              'enabled',
+            ),
           ),
         ),
       );

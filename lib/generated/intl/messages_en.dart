@@ -443,10 +443,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
       "Local process security",
     ),
-    "mcpNamespace": MessageLookupByLibrary.simpleMessage("Tool namespace"),
-    "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
-      "1–32 lowercase letters, digits, underscores, or hyphens.",
-    ),
     "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
       "No confirmation",
     ),

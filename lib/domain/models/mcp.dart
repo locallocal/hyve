@@ -106,7 +106,6 @@ final class McpServer {
   McpServer({
     required this.id,
     required this.name,
-    required this.namespace,
     required this.transport,
     this.remoteServerName = '',
     this.remoteServerVersion = '',
@@ -127,18 +126,10 @@ final class McpServer {
         'MCP server name cannot be empty.',
       );
     }
-    if (!RegExp(r'^[a-z][a-z0-9_-]{0,31}$').hasMatch(namespace)) {
-      throw ArgumentError.value(
-        namespace,
-        'namespace',
-        'Use 1-32 lowercase letters, digits, underscores, or hyphens.',
-      );
-    }
   }
 
   final String id;
   final String name;
-  final String namespace;
   final McpServerTransport transport;
   final String remoteServerName;
   final String remoteServerVersion;
@@ -151,7 +142,6 @@ final class McpServer {
 
   McpServer copyWith({
     String? name,
-    String? namespace,
     McpServerTransport? transport,
     String? remoteServerName,
     String? remoteServerVersion,
@@ -166,7 +156,6 @@ final class McpServer {
     return McpServer(
       id: id,
       name: name ?? this.name,
-      namespace: namespace ?? this.namespace,
       transport: transport ?? this.transport,
       remoteServerName: remoteServerName ?? this.remoteServerName,
       remoteServerVersion: remoteServerVersion ?? this.remoteServerVersion,
@@ -217,7 +206,6 @@ enum McpToolTaskSupport { forbidden, optional, required }
 final class McpToolDescriptor {
   McpToolDescriptor({
     required this.serverId,
-    required this.namespace,
     required this.remoteName,
     required this.title,
     required this.description,
@@ -237,7 +225,6 @@ final class McpToolDescriptor {
   }
 
   final String serverId;
-  final String namespace;
   final String remoteName;
   final String title;
   final String description;
@@ -248,7 +235,7 @@ final class McpToolDescriptor {
   final DateTime updatedAt;
 
   String get canonicalName =>
-      McpToolDescriptor.canonicalNameFor(namespace, remoteName);
+      McpToolDescriptor.canonicalNameFor(serverId, remoteName);
 
   bool get isSupportedByClient {
     const validator = JsonSchemaValidator();
@@ -261,7 +248,6 @@ final class McpToolDescriptor {
   McpToolDescriptor copyWith({DateTime? updatedAt}) {
     return McpToolDescriptor(
       serverId: serverId,
-      namespace: namespace,
       remoteName: remoteName,
       title: title,
       description: description,
@@ -273,10 +259,10 @@ final class McpToolDescriptor {
     );
   }
 
-  static String canonicalNameFor(String namespace, String remoteName) {
+  static String canonicalNameFor(String serverId, String remoteName) {
     final trimmed = remoteName.trim();
     if (RegExp(r'^[A-Za-z0-9_-]{1,96}$').hasMatch(trimmed)) {
-      return 'mcp.$namespace.$trimmed';
+      return 'mcp.$serverId.$trimmed';
     }
     final slug = trimmed
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_')
@@ -284,7 +270,7 @@ final class McpToolDescriptor {
         .replaceAll(RegExp(r'^_|_$'), '');
     final safeSlug = slug.isEmpty ? 'tool' : slug;
     final slugEnd = safeSlug.length > 64 ? 64 : safeSlug.length;
-    return 'mcp.$namespace.${safeSlug.substring(0, slugEnd)}'
+    return 'mcp.$serverId.${safeSlug.substring(0, slugEnd)}'
         '_${_stableHash(trimmed)}';
   }
 }

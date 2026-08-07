@@ -928,8 +928,6 @@
     "mcpConnectionError": "连接错误",
     "mcpDisconnected": "未连接",
     "mcpServerName": "服务器名称",
-    "mcpNamespace": "工具命名空间",
-    "mcpNamespaceDescription": "使用 1–32 位小写字母、数字、下划线或连字符。",
     "mcpConnectionSettings": "连接配置",
     "mcpTransport": "传输方式",
     "mcpTransportStreamableHttp": "Streamable HTTP",

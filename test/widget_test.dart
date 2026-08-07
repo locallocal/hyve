@@ -3747,7 +3747,6 @@ class _BotCardTestMcpRepository implements McpServerRepository {
 McpServer _botCardMcpServer(String id, String name) => McpServer(
   id: id,
   name: name,
-  namespace: id.replaceAll('-', '_'),
   transport: McpStreamableHttpServerTransport(
     endpoint: Uri.parse('https://mcp.example.test/$id'),
   ),

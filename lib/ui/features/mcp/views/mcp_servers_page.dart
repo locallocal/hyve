@@ -283,7 +283,6 @@ class _McpServersPageState extends State<McpServersPage> {
           final searchableText =
               [
                 server.name,
-                server.namespace,
                 _mcpConnectionSummary(server),
                 server.transport.type.name,
                 server.status.name,
@@ -757,7 +756,6 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                       label: _mcpStatusLabel(context, widget.server.status),
                       foregroundColor: statusColor,
                     ),
-                    _McpServerTag(label: widget.server.namespace),
                     _McpServerTag(
                       label:
                           widget.server.transport.type == McpTransportType.stdio
@@ -835,7 +833,6 @@ class _McpServerDetailsDialog extends StatelessWidget {
                     label: _mcpStatusLabel(context, server.status),
                     foregroundColor: statusColor,
                   ),
-                  _McpServerTag(label: server.namespace),
                   _McpServerTag(
                     label:
                         server.transport.type == McpTransportType.stdio
@@ -1006,7 +1003,7 @@ class _ServerCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               '${_mcpStatusLabel(context, server.status)} · '
-              '${server.namespace} · ${tools.length} ${S.of(context).mcpTools}',
+              '${tools.length} ${S.of(context).mcpTools}',
               style: TextStyle(
                 color:
                     server.status == McpConnectionStatus.error
@@ -1104,7 +1101,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   final _desktopFormKey = GlobalKey<ShadFormState>();
   final _desktopScrollController = ScrollController();
   late final TextEditingController _nameController;
-  late final TextEditingController _namespaceController;
   late final TextEditingController _transportController;
   late final TextEditingController _endpointController;
   late final TextEditingController _commandController;
@@ -1128,7 +1124,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       _ => null,
     };
     _nameController = TextEditingController(text: server?.name ?? '');
-    _namespaceController = TextEditingController(text: server?.namespace ?? '');
     _transportController = TextEditingController();
     _endpointController = TextEditingController(
       text: httpTransport?.endpoint.toString() ?? '',
@@ -1157,7 +1152,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   void dispose() {
     _desktopScrollController.dispose();
     _nameController.dispose();
-    _namespaceController.dispose();
     _transportController.dispose();
     _endpointController.dispose();
     _commandController.dispose();
@@ -1227,10 +1221,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                                 _buildDesktopSection(
                                   context,
                                   S.of(context).basicInformation,
-                                  [
-                                    _buildDesktopNameInput(context),
-                                    _buildDesktopNamespaceInput(context),
-                                  ],
+                                  [_buildDesktopNameInput(context)],
                                   sectionKey: const ValueKey<String>(
                                     'mcp-server-basic-section',
                                   ),
@@ -1292,15 +1283,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: S.of(context).mcpServerName,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _namespaceController,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: S.of(context).mcpNamespace,
-                  helperText: S.of(context).mcpNamespaceDescription,
                 ),
               ),
               const SizedBox(height: 12),
@@ -1547,25 +1529,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       validator:
           (value) =>
               value.trim().isEmpty ? S.of(context).fillRequiredFields : null,
-    );
-  }
-
-  Widget _buildDesktopNamespaceInput(BuildContext context) {
-    return ShadInputFormField(
-      key: const ValueKey<String>('mcp-server-namespace'),
-      id: 'namespace',
-      controller: _namespaceController,
-      textInputAction: TextInputAction.next,
-      autocorrect: false,
-      label: Text(S.of(context).mcpNamespace),
-      description: Text(S.of(context).mcpNamespaceDescription),
-      leading: _desktopInputLeading(LucideIcons.braces),
-      constraints: _desktopInputConstraints,
-      validator:
-          (value) =>
-              RegExp(r'^[a-z][a-z0-9_-]{0,31}$').hasMatch(value.trim())
-                  ? null
-                  : S.of(context).mcpNamespaceDescription,
     );
   }
 
@@ -1844,11 +1807,9 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       return;
     }
     final name = _nameController.text.trim();
-    final namespace = _namespaceController.text.trim().toLowerCase();
     final endpoint = _endpointController.text.trim();
     final command = _commandController.text.trim();
     if (name.isEmpty ||
-        !RegExp(r'^[a-z][a-z0-9_-]{0,31}$').hasMatch(namespace) ||
         (_transportType == McpTransportType.streamableHttp &&
             endpoint.isEmpty) ||
         (_transportType == McpTransportType.stdio && command.isEmpty)) {
@@ -1858,7 +1819,6 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       McpServerDraft(
         id: widget.server?.id,
         name: name,
-        namespace: namespace,
         transportType: _transportType,
         endpoint: endpoint,
         command: command,

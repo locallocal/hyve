@@ -215,7 +215,6 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${server?.namespace ?? serverId} · '
                   '$enabledCount/${tools.length} ${strings.mcpTools}',
                   style:
                       widget.embedded
@@ -348,7 +347,6 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${availableServers[index].namespace} · '
                           '${_toolsFor(availableServers[index].id).length} '
                           '${strings.mcpTools}',
                           style:
@@ -405,8 +403,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
     final server = _serversById[serverId];
     final tools = _toolsFor(serverId);
     final title = server?.name ?? serverId;
-    final description =
-        '${server?.namespace ?? serverId} · ${tools.length} ${S.of(context).mcpTools}';
+    final description = '${tools.length} ${S.of(context).mcpTools}';
     if (widget.embedded) {
       await showShadDialog<void>(
         context: context,

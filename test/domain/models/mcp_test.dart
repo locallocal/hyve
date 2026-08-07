@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/domain/models/models.dart';
 
 void main() {
-  test('MCP Tool canonical names are stable and namespace scoped', () {
+  test('MCP Tool canonical names are stable and server scoped', () {
     expect(
       McpToolDescriptor.canonicalNameFor('github', 'create_issue'),
       'mcp.github.create_issue',
@@ -19,14 +19,17 @@ void main() {
     expect(first, second);
     expect(first, startsWith('mcp.docs.search_documents_v2_'));
     expect(first, isNot(contains(' ')));
+    expect(
+      McpToolDescriptor.canonicalNameFor('server-1', 'search'),
+      isNot(McpToolDescriptor.canonicalNameFor('server-2', 'search')),
+    );
   });
 
-  test('MCP server rejects invalid capability namespaces', () {
+  test('MCP server rejects invalid ids', () {
     expect(
       () => McpServer(
-        id: 'server-1',
+        id: 'not valid',
         name: 'Example',
-        namespace: 'Not Valid',
         transport: McpStreamableHttpServerTransport(
           endpoint: Uri.parse('https://example.com/mcp'),
         ),
@@ -43,7 +46,6 @@ void main() {
       () => McpServer(
         id: 'stdio-1',
         name: 'Local',
-        namespace: 'local',
         transport: McpStdioServerTransport(command: ''),
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -55,7 +57,6 @@ void main() {
     final server = McpServer(
       id: 'stdio-1',
       name: 'Local',
-      namespace: 'local',
       transport: McpStdioServerTransport(command: 'npx', arguments: arguments),
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -70,7 +71,6 @@ void main() {
   test('MCP tools fail closed when the client cannot execute them', () {
     final descriptor = McpToolDescriptor(
       serverId: 'server-1',
-      namespace: 'example',
       remoteName: 'search',
       title: 'Search',
       description: 'Search.',
@@ -92,7 +92,6 @@ void main() {
   test('task-required MCP Tools stay out of the direct execution registry', () {
     final descriptor = McpToolDescriptor(
       serverId: 'server-1',
-      namespace: 'example',
       remoteName: 'long_running',
       title: 'Long running',
       description: 'Requires the MCP task protocol.',

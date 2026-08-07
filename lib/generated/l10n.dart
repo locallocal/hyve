@@ -3477,26 +3477,6 @@ class S {
     );
   }
 
-  /// `Tool namespace`
-  String get mcpNamespace {
-    return Intl.message(
-      'Tool namespace',
-      name: 'mcpNamespace',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `1–32 lowercase letters, digits, underscores, or hyphens.`
-  String get mcpNamespaceDescription {
-    return Intl.message(
-      '1–32 lowercase letters, digits, underscores, or hyphens.',
-      name: 'mcpNamespaceDescription',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Connection`
   String get mcpConnectionSettings {
     return Intl.message(

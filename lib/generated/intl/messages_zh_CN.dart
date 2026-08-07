@@ -342,10 +342,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
       "本地进程安全",
     ),
-    "mcpNamespace": MessageLookupByLibrary.simpleMessage("工具命名空间"),
-    "mcpNamespaceDescription": MessageLookupByLibrary.simpleMessage(
-      "使用 1–32 位小写字母、数字、下划线或连字符。",
-    ),
     "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage("免确认"),
     "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("无"),
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(

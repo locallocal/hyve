@@ -55,7 +55,6 @@ void main() {
     final server = McpServer(
       id: 'stdio-1',
       name: 'Local',
-      namespace: 'local',
       transport: McpStdioServerTransport(
         command: 'npx',
         arguments: const ['-y', '@example/mcp'],
@@ -86,14 +85,13 @@ void main() {
     expect(await repository.getTools(server.id), isEmpty);
   });
 
-  test('a duplicate namespace never replaces another server', () async {
+  test('distinct server ids coexist without a separate namespace', () async {
     final original = _server();
     await repository.saveServer(original);
     final timestamp = DateTime(2026, 7, 29);
     final duplicate = McpServer(
       id: 'server-2',
-      name: 'Duplicate',
-      namespace: original.namespace,
+      name: 'Second',
       transport: McpStreamableHttpServerTransport(
         endpoint: Uri.parse('https://second.example.com/mcp'),
       ),
@@ -101,11 +99,11 @@ void main() {
       updatedAt: timestamp,
     );
 
-    await expectLater(repository.saveServer(duplicate), throwsA(anything));
+    await repository.saveServer(duplicate);
 
     final rows = await database.query('mcp_servers');
-    expect(rows, hasLength(1));
-    expect(rows.single['id'], original.id);
+    expect(rows, hasLength(2));
+    expect(rows.map((row) => row['id']), containsAll(['server-1', 'server-2']));
   });
 
   test(
@@ -130,7 +128,6 @@ McpServer _server() {
   return McpServer(
     id: 'server-1',
     name: 'Example',
-    namespace: 'example',
     transport: McpStreamableHttpServerTransport(
       endpoint: Uri.parse('https://example.com/mcp'),
     ),
@@ -147,7 +144,6 @@ McpServer _server() {
 McpToolDescriptor _tool({String remoteName = 'search'}) {
   return McpToolDescriptor(
     serverId: 'server-1',
-    namespace: 'example',
     remoteName: remoteName,
     title: 'Search',
     description: 'Search remote data.',

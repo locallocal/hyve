@@ -368,7 +368,6 @@ void main() {
       final server = McpServer(
         id: 'stdio-server',
         name: 'Fixture',
-        namespace: 'fixture',
         transport: McpStdioServerTransport(
           command: 'dart',
           arguments: const [
@@ -401,7 +400,6 @@ McpServer _server() {
   return McpServer(
     id: 'server-1',
     name: 'Example',
-    namespace: 'example',
     transport: McpStreamableHttpServerTransport(
       endpoint: Uri.parse('https://mcp.example.com/mcp'),
       authType: McpAuthType.oauthAccessToken,

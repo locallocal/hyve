@@ -283,15 +283,11 @@ class LocalDatabaseService {
 
   Future<List<Map<String, Object?>>> loadMcpTools(String serverId) async {
     final database = await _databaseProvider();
-    return database.rawQuery(
-      '''
-      SELECT tools.*, servers.namespace AS server_namespace
-      FROM mcp_tools AS tools
-      INNER JOIN mcp_servers AS servers ON servers.id = tools.server_id
-      WHERE tools.server_id = ?
-      ORDER BY tools.remote_name ASC
-      ''',
-      [serverId],
+    return database.query(
+      'mcp_tools',
+      where: 'server_id = ?',
+      whereArgs: [serverId],
+      orderBy: 'remote_name ASC',
     );
   }
 

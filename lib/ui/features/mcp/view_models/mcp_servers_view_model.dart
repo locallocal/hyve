@@ -8,7 +8,6 @@ final class McpServerDraft {
   const McpServerDraft({
     this.id,
     required this.name,
-    required this.namespace,
     this.transportType = McpTransportType.streamableHttp,
     this.endpoint = '',
     this.command = '',
@@ -20,7 +19,6 @@ final class McpServerDraft {
 
   final String? id;
   final String name;
-  final String namespace;
   final McpTransportType transportType;
   final String endpoint;
   final String command;
@@ -143,7 +141,6 @@ final class McpServersViewModel extends ChangeNotifier {
       final server = McpServer(
         id: id,
         name: draft.name.trim(),
-        namespace: draft.namespace.trim().toLowerCase(),
         transport: transport,
         remoteServerName: existing?.remoteServerName ?? '',
         remoteServerVersion: existing?.remoteServerVersion ?? '',

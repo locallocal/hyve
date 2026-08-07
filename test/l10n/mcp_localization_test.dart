@@ -39,8 +39,6 @@ void main() {
     'mcpConnectionError',
     'mcpDisconnected',
     'mcpServerName',
-    'mcpNamespace',
-    'mcpNamespaceDescription',
     'mcpConnectionSettings',
     'mcpTransport',
     'mcpTransportStreamableHttp',

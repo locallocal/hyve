@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
@@ -70,6 +72,31 @@ void main() {
     expect(server.status, McpConnectionStatus.connected);
     expect(credentials.values[server.id]?.accessToken, 'secret-token');
     expect(viewModel.toolsFor(server.id), hasLength(1));
+  });
+
+  test('publishes a new server before Tool discovery completes', () async {
+    final discoveryStarted = Completer<void>();
+    final continueDiscovery = Completer<void>();
+    client.discoveryStarted = discoveryStarted;
+    client.continueDiscovery = continueDiscovery;
+
+    final save = viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Slow server',
+        endpoint: 'https://example.com/slow-mcp',
+      ),
+    );
+    await discoveryStarted.future;
+
+    expect(viewModel.servers, hasLength(1));
+    expect(viewModel.servers.single.name, 'Slow server');
+    expect(viewModel.servers.single.status, McpConnectionStatus.disconnected);
+    expect(viewModel.busyServerId, viewModel.servers.single.id);
+    expect(viewModel.toolsFor(viewModel.servers.single.id), isEmpty);
+
+    continueDiscovery.complete();
+    expect(await save, isTrue);
+    expect(viewModel.servers.single.status, McpConnectionStatus.connected);
   });
 
   test('a discovered Tool is available in the runtime registry', () async {
@@ -164,6 +191,8 @@ final class _MemoryCredentialStore implements McpCredentialStore {
 
 final class _FakeMcpClient implements McpClient {
   Object? initializeError;
+  Completer<void>? discoveryStarted;
+  Completer<void>? continueDiscovery;
 
   @override
   Future<McpServerCatalog> discoverTools(
@@ -171,6 +200,8 @@ final class _FakeMcpClient implements McpClient {
     AgentCancellationToken? cancellationToken,
   }) async {
     if (initializeError case final error?) throw error;
+    discoveryStarted?.complete();
+    if (continueDiscovery case final gate?) await gate.future;
     return McpServerCatalog(
       serverName: 'Remote Example',
       serverVersion: '1.0.0',

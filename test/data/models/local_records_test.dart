@@ -53,9 +53,11 @@ void main() {
       toolCalls: [
         MessageToolCall(
           callId: 'call-1',
-          name: 'save_note',
+          name: 'mcp.server-1.save_note',
+          title: 'Save note',
+          mcpServerName: 'Notes',
           status: 'succeeded',
-          source: 'builtIn',
+          source: 'mcp',
           riskLevel: 'write',
           argumentsSummary: '{"title":"Release"}',
           resultSummary: 'saved',
@@ -72,8 +74,10 @@ void main() {
     final call = restored.toolCalls.single;
 
     expect(call.callId, 'call-1');
-    expect(call.name, 'save_note');
-    expect(call.source, 'builtIn');
+    expect(call.name, 'mcp.server-1.save_note');
+    expect(call.title, 'Save note');
+    expect(call.mcpServerName, 'Notes');
+    expect(call.source, 'mcp');
     expect(call.riskLevel, 'write');
     expect(call.argumentsSummary, '{"title":"Release"}');
     expect(call.resultSummary, 'saved');

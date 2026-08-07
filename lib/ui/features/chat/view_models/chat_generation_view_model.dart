@@ -737,6 +737,8 @@ class ChatGenerationViewModel extends ChangeNotifier
     final item = MessageToolCall(
       callId: invocation.callId,
       name: invocation.name,
+      title: invocation.title,
+      mcpServerName: invocation.mcpServerName,
       status: invocation.status.name,
       detail:
           invocation.errorCode.isNotEmpty

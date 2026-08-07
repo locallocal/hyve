@@ -1395,7 +1395,7 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
                     title: strings.toolCalls,
                     icon: LucideIcons.wrench,
                     items: widget.processInfo.toolCalls,
-                    titleBuilder: (item) => item.name,
+                    titleBuilder: _toolCallTitle,
                     subtitleBuilder: (item) => _toolCallSubtitle(strings, item),
                     statusBuilder: (item) => item.status,
                   ),
@@ -1835,6 +1835,14 @@ String _fileTypeLabel(S strings, String type) {
 String _joinMeta(List<String> parts) {
   final filtered = parts.where((item) => item.isNotEmpty).toSet().toList();
   return filtered.join(' · ');
+}
+
+String _toolCallTitle(MessageToolCall item) {
+  if (item.source != ToolSource.mcp.name || item.mcpServerName.trim().isEmpty) {
+    return item.name;
+  }
+  final toolName = item.title.trim().isEmpty ? item.name : item.title.trim();
+  return '${item.mcpServerName.trim()} · $toolName';
 }
 
 String _toolCallSubtitle(S strings, MessageToolCall item) => _joinMeta([

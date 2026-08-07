@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/foundation.dart';
@@ -736,6 +737,76 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets(
+    'new MCP server card appears while connection is still in progress',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1;
+
+      final repository = _SavingMcpServerRepository();
+      final client = _BlockingMcpClient();
+      final viewModel = McpServersViewModel(
+        repository: repository,
+        credentialStore: const _NoOpCredentialStore(),
+        catalogService: McpCatalogService(
+          repository: repository,
+          client: client,
+          toolRegistry: DynamicToolRegistry(const []),
+        ),
+      );
+      addTearDown(viewModel.dispose);
+
+      try {
+        await tester.pumpWidget(_harness(viewModel));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey<String>('add-mcp-server-desktop')),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('mcp-server-name')),
+            matching: find.byType(EditableText),
+          ),
+          'Slow MCP',
+        );
+        await tester.enterText(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('mcp-server-endpoint')),
+            matching: find.byType(EditableText),
+          ),
+          'https://example.com/slow-mcp',
+        );
+        await tester.tap(
+          find.ancestor(
+            of: find.text('保存并连接'),
+            matching: find.byType(ShadButton),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(client.discoveryStarted.isCompleted, isTrue);
+        expect(find.byType(ShadDialog), findsNothing);
+        expect(find.text('Slow MCP'), findsOneWidget);
+        expect(viewModel.servers.single.name, 'Slow MCP');
+        expect(viewModel.busyServerId, viewModel.servers.single.id);
+
+        client.continueDiscovery.complete();
+        await tester.pumpAndSettle();
+        expect(viewModel.busyServerId, isNull);
+        expect(find.text('Slow MCP'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      }
+    },
+  );
 }
 
 Widget _harness(McpServersViewModel viewModel) {
@@ -845,4 +916,91 @@ final class _UnusedMcpClient implements McpClient {
     McpServer server, {
     AgentCancellationToken? cancellationToken,
   }) => throw UnimplementedError();
+}
+
+final class _SavingMcpServerRepository implements McpServerRepository {
+  final Map<String, McpServer> _servers = {};
+  final Map<String, List<McpToolDescriptor>> _tools = {};
+
+  @override
+  Stream<List<McpServer>> get changes => const Stream.empty();
+
+  @override
+  Future<void> deleteServer(String id) async {
+    _servers.remove(id);
+    _tools.remove(id);
+  }
+
+  @override
+  Future<McpServer?> getServer(String id) async => _servers[id];
+
+  @override
+  Future<List<McpServer>> getServers() async {
+    final servers =
+        _servers.values.toList()
+          ..sort((left, right) => left.name.compareTo(right.name));
+    return List<McpServer>.unmodifiable(servers);
+  }
+
+  @override
+  Future<List<McpToolDescriptor>> getTools(String serverId) async =>
+      _tools[serverId] ?? const [];
+
+  @override
+  Future<void> replaceCatalog(
+    McpServer server,
+    List<McpToolDescriptor> tools,
+  ) async {
+    _servers[server.id] = server;
+    _tools[server.id] = List<McpToolDescriptor>.unmodifiable(tools);
+  }
+
+  @override
+  Future<void> saveServer(McpServer server) async {
+    _servers[server.id] = server;
+  }
+}
+
+final class _NoOpCredentialStore implements McpCredentialStore {
+  const _NoOpCredentialStore();
+
+  @override
+  Future<void> delete(String serverId) async {}
+
+  @override
+  Future<McpCredential?> read(String serverId) async => null;
+
+  @override
+  Future<void> write(String serverId, McpCredential credential) async {}
+}
+
+final class _BlockingMcpClient implements McpClient {
+  final Completer<void> discoveryStarted = Completer<void>();
+  final Completer<void> continueDiscovery = Completer<void>();
+
+  @override
+  Future<McpToolCallResult> callTool({
+    required McpServer server,
+    required String remoteName,
+    required Map<String, Object?> arguments,
+    required AgentCancellationToken cancellationToken,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> disconnect(McpServer server) async {}
+
+  @override
+  Future<McpServerCatalog> discoverTools(
+    McpServer server, {
+    AgentCancellationToken? cancellationToken,
+  }) async {
+    discoveryStarted.complete();
+    await continueDiscovery.future;
+    return McpServerCatalog(
+      serverName: 'Slow MCP',
+      serverVersion: '1.0.0',
+      capabilities: McpServerCapabilities(tools: true),
+      tools: [],
+    );
+  }
 }

@@ -18,6 +18,7 @@ final class ToolDefinition {
   ToolDefinition({
     required this.name,
     this.title = '',
+    this.mcpServerName = '',
     required this.description,
     required Map<String, Object?> inputSchema,
     Map<String, Object?>? outputSchema,
@@ -44,6 +45,7 @@ final class ToolDefinition {
 
   final String name;
   final String title;
+  final String mcpServerName;
   final String description;
   final Map<String, Object?> inputSchema;
   final Map<String, Object?>? outputSchema;
@@ -419,6 +421,8 @@ final class ToolInvocationRecord {
   ToolInvocationRecord({
     required this.callId,
     required this.name,
+    this.title = '',
+    this.mcpServerName = '',
     required this.source,
     required this.riskLevel,
     required this.status,
@@ -433,6 +437,8 @@ final class ToolInvocationRecord {
 
   final String callId;
   final String name;
+  final String title;
+  final String mcpServerName;
   final ToolSource source;
   final ToolRiskLevel riskLevel;
   final ToolInvocationStatus status;
@@ -455,6 +461,8 @@ final class ToolInvocationRecord {
     return ToolInvocationRecord(
       callId: callId,
       name: name,
+      title: title,
+      mcpServerName: mcpServerName,
       source: source,
       riskLevel: riskLevel,
       status: status ?? this.status,

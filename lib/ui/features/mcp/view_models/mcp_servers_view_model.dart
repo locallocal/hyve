@@ -150,6 +150,10 @@ final class McpServersViewModel extends ChangeNotifier {
         updatedAt: timestamp,
       );
       await _repository.saveServer(server);
+      _publishSavedServer(
+        server,
+        clearTools: existing != null && existing.transport != server.transport,
+      );
       await _saveCredential(
         id: id,
         existing: existing,
@@ -163,6 +167,29 @@ final class McpServersViewModel extends ChangeNotifier {
       await _reloadPreservingError();
       return false;
     }
+  }
+
+  void _publishSavedServer(McpServer server, {required bool clearTools}) {
+    // An older page refresh must not replace this freshly persisted state.
+    _loadGeneration += 1;
+    _isLoading = false;
+    final servers = [
+      for (final current in _servers)
+        if (current.id != server.id) current,
+      server,
+    ]..sort(
+      (left, right) =>
+          left.name.toLowerCase().compareTo(right.name.toLowerCase()),
+    );
+    final toolsByServer = <String, List<McpToolDescriptor>>{..._toolsByServer};
+    if (clearTools || !toolsByServer.containsKey(server.id)) {
+      toolsByServer[server.id] = const [];
+    }
+    _servers = List<McpServer>.unmodifiable(servers);
+    _toolsByServer = Map<String, List<McpToolDescriptor>>.unmodifiable(
+      toolsByServer,
+    );
+    notifyListeners();
   }
 
   Future<bool> refresh(String serverId) async {

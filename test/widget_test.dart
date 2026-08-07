@@ -1414,6 +1414,8 @@ void main() {
                             toolCalls: [
                               MessageToolCall(
                                 name: 'mcp.docs.search',
+                                title: '搜索文档',
+                                mcpServerName: '文档服务',
                                 status: 'completed',
                                 source: 'mcp',
                                 riskLevel: 'readOnly',
@@ -1453,14 +1455,14 @@ void main() {
       expect(find.text('技能 1'), findsOneWidget);
       expect(find.text('MCP 1'), findsOneWidget);
       expect(find.text('release-notes').hitTestable(), findsNothing);
-      expect(find.text('mcp.docs.search').hitTestable(), findsNothing);
+      expect(find.text('文档服务 · 搜索文档').hitTestable(), findsNothing);
 
       await tester.tap(executionStatus);
       await tester.pumpAndSettle();
 
       expect(find.text('release-notes').hitTestable(), findsNWidgets(2));
       expect(find.text('activate_skill').hitTestable(), findsOneWidget);
-      expect(find.text('mcp.docs.search').hitTestable(), findsOneWidget);
+      expect(find.text('文档服务 · 搜索文档').hitTestable(), findsOneWidget);
       expect(find.text('read_file').hitTestable(), findsOneWidget);
       expect(find.text('按消息启用 · abc123').hitTestable(), findsOneWidget);
       expect(find.text('MCP · 只读').hitTestable(), findsOneWidget);

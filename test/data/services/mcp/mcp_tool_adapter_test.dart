@@ -18,6 +18,8 @@ void main() {
     );
 
     expect(adapter.definition.name, 'mcp.server-1.search');
+    expect(adapter.definition.title, 'Search');
+    expect(adapter.definition.mcpServerName, 'Example');
     expect(adapter.definition.source, ToolSource.mcp);
     expect(adapter.definition.riskLevel, ToolRiskLevel.readOnly);
     expect(

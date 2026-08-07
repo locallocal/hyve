@@ -83,7 +83,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(bindingRepository.bindingFor('user:Skill 06')?.enabled, isFalse);
-        expect(find.text('已关闭'), findsOneWidget);
+        expect(find.text('已开启'), findsNothing);
+        expect(find.text('已关闭'), findsNothing);
         expect(find.text('Skill 06'), findsOneWidget);
 
         final removeSkill = find.byKey(
@@ -209,6 +210,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('自动激活'), findsOneWidget);
+      expect(find.text('已开启'), findsNothing);
+      expect(find.text('已关闭'), findsNothing);
+      expect(find.bySemanticsLabel('自动激活'), findsOneWidget);
       expect(find.text('按消息启用'), findsNothing);
       expect(find.text('始终启用'), findsNothing);
       expect(find.text('测试技能描述'), findsOneWidget);
@@ -287,6 +291,9 @@ void main() {
         findsNothing,
       );
       expect(tester.widget<ShadSwitch>(skillToggle).enabled, isFalse);
+      expect(find.text('已开启'), findsNothing);
+      expect(find.text('已关闭'), findsNothing);
+      expect(find.bySemanticsLabel('自动激活'), findsOneWidget);
 
       await tester.tap(skillToggle, warnIfMissed: false);
       await tester.pumpAndSettle();

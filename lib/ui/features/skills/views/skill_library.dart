@@ -17,8 +17,6 @@ class SkillLibraryPage extends StatefulWidget {
 }
 
 class _SkillLibraryPageState extends State<SkillLibraryPage> {
-  static const double _desktopSkillCardHeight = 240;
-
   late final TextEditingController _searchController;
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -278,7 +276,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 crossAxisCount: columns,
                 crossAxisSpacing: gap,
                 mainAxisSpacing: gap,
-                mainAxisExtent: _desktopSkillCardHeight,
+                mainAxisExtent: DesktopThemeTokens.managementCardHeight,
               ),
               itemCount: viewModel.paginatedSkills.length,
               itemBuilder: (context, index) {
@@ -946,12 +944,8 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                       ),
                     ),
                   ),
-                  _SkillCardTag(
-                    label:
-                        widget.skill.version.isEmpty
-                            ? strings.skillUserScope
-                            : 'v${widget.skill.version}',
-                  ),
+                  if (widget.skill.version.isNotEmpty)
+                    _SkillCardTag(label: 'v${widget.skill.version}'),
                 ],
               ),
               description: Text(
@@ -959,47 +953,77 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
-              footer: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: _buildActionMenu(context),
-              ),
               child: Padding(
-                padding: const EdgeInsets.only(top: 14, bottom: 10),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (widget.hasScriptTools)
-                      widget.scriptEnabled
-                          ? _SkillCardTag(label: strings.skillScriptsEnabled)
-                          : _SkillCardTag(label: strings.skillScriptsDisabled),
-                    if (widget.update != null)
-                      _SkillCardTag(label: strings.skillUpdateAvailable),
-                    if (widget.skill.signatureStatus ==
-                        SkillSignatureStatus.verified)
-                      _SkillCardTag(label: strings.skillSignatureVerified),
-                    if (widget.skill.signatureStatus ==
-                        SkillSignatureStatus.unsigned)
-                      _SkillCardTag(label: strings.skillSignatureUnsigned),
-                    if (widget.skill.signatureStatus ==
-                        SkillSignatureStatus.unknownPublisher)
-                      _SkillCardTag(
-                        label: strings.skillSignatureUnknownPublisher,
+                padding: const EdgeInsets.only(top: 14),
+                child: Align(
+                  alignment: AlignmentDirectional.bottomCenter,
+                  child: Row(
+                    key: ValueKey<String>(
+                      'desktop-skill-card-footer-${widget.skill.id}',
+                    ),
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            if (widget.skill.version.isEmpty)
+                              _SkillCardTag(label: strings.skillUserScope),
+                            if (widget.hasScriptTools)
+                              widget.scriptEnabled
+                                  ? _SkillCardTag(
+                                    label: strings.skillScriptsEnabled,
+                                  )
+                                  : _SkillCardTag(
+                                    label: strings.skillScriptsDisabled,
+                                  ),
+                            if (widget.update != null)
+                              _SkillCardTag(
+                                label: strings.skillUpdateAvailable,
+                              ),
+                            if (widget.skill.signatureStatus ==
+                                SkillSignatureStatus.verified)
+                              _SkillCardTag(
+                                label: strings.skillSignatureVerified,
+                              ),
+                            if (widget.skill.signatureStatus ==
+                                SkillSignatureStatus.unsigned)
+                              _SkillCardTag(
+                                label: strings.skillSignatureUnsigned,
+                              ),
+                            if (widget.skill.signatureStatus ==
+                                SkillSignatureStatus.unknownPublisher)
+                              _SkillCardTag(
+                                label: strings.skillSignatureUnknownPublisher,
+                              ),
+                            if (widget.skill.signatureStatus ==
+                                SkillSignatureStatus.invalid)
+                              _SkillCardTag(
+                                label: strings.skillSignatureInvalid,
+                              ),
+                            if (widget.skill.hasReferences)
+                              _SkillCardTag(
+                                label: strings.skillReferencesAvailable,
+                              ),
+                            if (widget.skill.hasAssets)
+                              _SkillCardTag(
+                                label: strings.skillAssetsAvailable,
+                              ),
+                            if (widget.skill.diagnostics.isNotEmpty)
+                              _SkillCardTag(
+                                label:
+                                    '${strings.skillValidationWarnings} '
+                                    '${widget.skill.diagnostics.length}',
+                              ),
+                          ],
+                        ),
                       ),
-                    if (widget.skill.signatureStatus ==
-                        SkillSignatureStatus.invalid)
-                      _SkillCardTag(label: strings.skillSignatureInvalid),
-                    if (widget.skill.hasReferences)
-                      _SkillCardTag(label: strings.skillReferencesAvailable),
-                    if (widget.skill.hasAssets)
-                      _SkillCardTag(label: strings.skillAssetsAvailable),
-                    if (widget.skill.diagnostics.isNotEmpty)
-                      _SkillCardTag(
-                        label:
-                            '${strings.skillValidationWarnings} '
-                            '${widget.skill.diagnostics.length}',
-                      ),
-                  ],
+                      const SizedBox(width: 8),
+                      _buildActionMenu(context),
+                    ],
+                  ),
                 ),
               ),
             ),

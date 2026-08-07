@@ -174,6 +174,7 @@ void main() {
     final skill = _skill(
       'Release Notes',
       'Create polished changelogs',
+      version: '',
       hasReferences: true,
       hasAssets: true,
       signatureStatus: SkillSignatureStatus.verified,
@@ -201,6 +202,14 @@ void main() {
       expect(
         tags.every((tag) => tag.variant == ShadBadgeVariant.outline),
         isTrue,
+      );
+      final footer = find.byKey(
+        ValueKey<String>('desktop-skill-card-footer-${skill.id}'),
+      );
+      expect(find.text('用户'), findsOneWidget);
+      expect(
+        find.descendant(of: footer, matching: find.text('用户')),
+        findsOneWidget,
       );
     } finally {
       debugDefaultTargetPlatformOverride = null;
@@ -250,6 +259,10 @@ void main() {
       expect(compactCard, findsOneWidget);
       expect(detailedCard, findsOneWidget);
       expect(tester.getSize(compactCard), tester.getSize(detailedCard));
+      expect(
+        tester.getSize(compactCard).height,
+        DesktopThemeTokens.managementCardHeight,
+      );
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
@@ -433,6 +446,28 @@ void main() {
         ValueKey<String>('desktop-skill-menu-button-${skill.id}'),
       );
       expect(menuButton, findsOneWidget);
+      final card = find.byKey(
+        ValueKey<String>('desktop-skill-card-${skill.id}'),
+      );
+      final cardTitle = find.byKey(
+        ValueKey<String>('desktop-skill-card-title-${skill.id}'),
+      );
+      final footer = find.byKey(
+        ValueKey<String>('desktop-skill-card-footer-${skill.id}'),
+      );
+      final footerTags = find.descendant(
+        of: footer,
+        matching: find.byType(ShadBadge),
+      );
+      expect(footerTags, findsOneWidget);
+      expect(
+        tester.getCenter(footerTags).dy,
+        closeTo(tester.getCenter(menuButton).dy, 1),
+      );
+      expect(
+        tester.getRect(card).bottom - tester.getRect(menuButton).bottom,
+        closeTo(tester.getRect(cardTitle).top - tester.getRect(card).top, 1),
+      );
       final menuIconButton = tester.widget<ShadIconButton>(
         find.descendant(of: menuButton, matching: find.byType(ShadIconButton)),
       );
@@ -537,6 +572,7 @@ SkillDescriptor _skill(
   String name,
   String description, {
   String? rootPath,
+  String version = '1.0.0',
   bool hasScripts = false,
   bool hasReferences = false,
   bool hasAssets = false,
@@ -548,7 +584,7 @@ SkillDescriptor _skill(
     id: 'user:$name',
     name: name,
     description: description,
-    version: '1.0.0',
+    version: version,
     scope: SkillScope.user,
     sourceUri: 'file:///$name',
     rootPath: rootPath ?? '/skills/$name',

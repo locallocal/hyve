@@ -447,7 +447,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildDesktopSettingRow(
                       context,
                       key: const ValueKey<String>('profile-mcp-servers'),
-                      icon: LucideIcons.server,
+                      icon: Icons.hub_outlined,
                       title: S.of(context).mcpServers,
                       subtitle: S.of(context).mcpServersDescription,
                       onTap: widget.onOpenMcpServers,

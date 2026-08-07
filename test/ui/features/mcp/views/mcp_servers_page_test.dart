@@ -51,6 +51,10 @@ void main() {
       expect(find.text('MCP 服务器'), findsOneWidget);
       expect(find.text('添加 MCP 服务器'), findsNWidgets(2));
       expect(
+        find.descendant(of: content, matching: find.byIcon(Icons.hub_outlined)),
+        findsOneWidget,
+      );
+      expect(
         find.byKey(const ValueKey<String>('add-mcp-server-desktop')),
         findsOneWidget,
       );

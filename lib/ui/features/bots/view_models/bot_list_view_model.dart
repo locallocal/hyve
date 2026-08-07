@@ -79,6 +79,8 @@ class BotListViewModel extends ChangeNotifier {
   Object? _error;
   bool _isLoading = false;
   bool _metricsLoadScheduled = false;
+  bool _isPersistingModelMetadata = false;
+  bool _reloadMetricsAfterModelMetadataPersistence = false;
   bool _disposed = false;
   int _loadGeneration = 0;
   int _metricsLoadGeneration = 0;
@@ -151,6 +153,10 @@ class BotListViewModel extends ChangeNotifier {
   void _handleBotsChanged(List<Bot> bots) {
     if (_disposed) return;
     _applyBots(bots);
+    if (_isPersistingModelMetadata) {
+      _reloadMetricsAfterModelMetadataPersistence = true;
+      return;
+    }
     _scheduleMetricsLoad();
   }
 
@@ -211,10 +217,13 @@ class BotListViewModel extends ChangeNotifier {
     _cardMetrics = Map<String, BotCardMetrics>.unmodifiable({
       for (final entry in entries) entry.$1: entry.$2,
     });
+    await _persistModelMetadata(
+      entries.map((entry) => entry.$3).whereType<Bot>(),
+    );
     if (notify) notifyListeners();
   }
 
-  Future<(String, BotCardMetrics)> _loadBotCardMetrics(
+  Future<(String, BotCardMetrics, Bot?)> _loadBotCardMetrics(
     Bot bot,
     Map<String, McpServer> serversById,
   ) async {
@@ -227,6 +236,12 @@ class BotListViewModel extends ChangeNotifier {
     final modelInfoFuture = _loadModelInfoForCard(bot);
     final (usage, bindings, modelInfo) =
         await (usageFuture, bindingsFuture, modelInfoFuture).wait;
+    final contextWindowTokens =
+        bot.configuredContextWindowTokens ?? modelInfo?.contextWindowTokens;
+    final metadataBackfill =
+        bot.configuredContextWindowTokens == null && contextWindowTokens != null
+            ? _withContextWindowTokens(bot, contextWindowTokens)
+            : null;
     final serverNames =
         bot.mcpServerIds
             .map((id) => serversById[id]?.name.trim())
@@ -243,10 +258,52 @@ class BotListViewModel extends ChangeNotifier {
         tokenUsage: usage,
         mcpServerNames: List<String>.unmodifiable(serverNames),
         skillCount: bindings.length,
-        contextWindowTokens:
-            bot.configuredContextWindowTokens ?? modelInfo?.contextWindowTokens,
+        contextWindowTokens: contextWindowTokens,
       ),
+      metadataBackfill,
     );
+  }
+
+  Bot _withContextWindowTokens(Bot bot, int contextWindowTokens) {
+    return Bot(
+      id: bot.id,
+      name: bot.name,
+      avatar: bot.avatar,
+      provider: bot.provider,
+      baseURL: bot.baseURL,
+      apiKey: bot.apiKey,
+      apiType: bot.apiType,
+      model: bot.model,
+      systemPrompt: bot.systemPrompt,
+      parameters: {
+        ...?bot.parameters,
+        Bot.parameterContextWindowTokens: contextWindowTokens,
+      },
+      createTimestamp: bot.createTimestamp,
+      modifyTimestamp: bot.modifyTimestamp,
+    );
+  }
+
+  Future<void> _persistModelMetadata(Iterable<Bot> bots) async {
+    final backfills = bots.toList(growable: false);
+    if (backfills.isEmpty || _disposed) return;
+    _isPersistingModelMetadata = true;
+    try {
+      for (final bot in backfills) {
+        if (_disposed) return;
+        try {
+          await _botRepository.updateBot(bot);
+        } on Object {
+          // The card can still use the fetched value for this session.
+        }
+      }
+    } finally {
+      _isPersistingModelMetadata = false;
+      if (_reloadMetricsAfterModelMetadataPersistence && !_disposed) {
+        _reloadMetricsAfterModelMetadataPersistence = false;
+        _scheduleMetricsLoad();
+      }
+    }
   }
 
   Future<AiModelInfo?> _loadModelInfoForCard(Bot bot) async {

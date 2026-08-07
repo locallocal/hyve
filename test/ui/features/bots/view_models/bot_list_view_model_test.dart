@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -49,14 +51,17 @@ void main() {
 
   test('loads missing model context window for card metrics', () async {
     final providerRepository = _ModelInfoAiProviderRepository();
-    final bot = _bot(
-      id: 'research',
-      name: 'Research Assistant',
-      provider: 'OpenAI',
-      model: 'gpt-test',
-    );
+    final botRepository = _UpdatingBotRepository([
+      _bot(
+        id: 'research',
+        name: 'Research Assistant',
+        provider: 'OpenAI',
+        model: 'gpt-test',
+      ),
+    ]);
+    addTearDown(botRepository.dispose);
     final viewModel = BotListViewModel(
-      botRepository: _FakeBotRepository([bot]),
+      botRepository: botRepository,
       createChat: CreateChat(chatRepository: _UnusedChatRepository()),
       aiProviderRepository: providerRepository,
       attachmentRepository: _UnusedAttachmentRepository(),
@@ -64,9 +69,28 @@ void main() {
     addTearDown(viewModel.dispose);
 
     await viewModel.load();
+    await pumpEventQueue();
 
     expect(providerRepository.lookupCount, 1);
-    expect(viewModel.metricsFor(bot.id).contextWindowTokens, 128000);
+    expect(viewModel.metricsFor('research').contextWindowTokens, 128000);
+    expect(botRepository.bots.single.configuredContextWindowTokens, 128000);
+    expect(botRepository.bots.single.modifyTimestamp, DateTime(2026, 8, 7));
+
+    final reloadedViewModel = BotListViewModel(
+      botRepository: botRepository,
+      createChat: CreateChat(chatRepository: _UnusedChatRepository()),
+      aiProviderRepository: providerRepository,
+      attachmentRepository: _UnusedAttachmentRepository(),
+    );
+    addTearDown(reloadedViewModel.dispose);
+
+    await reloadedViewModel.load();
+
+    expect(providerRepository.lookupCount, 1);
+    expect(
+      reloadedViewModel.metricsFor('research').contextWindowTokens,
+      128000,
+    );
   });
 }
 
@@ -148,6 +172,39 @@ final class _FakeBotRepository implements BotRepository {
   @override
   Future<void> deleteBot(String id) =>
       throw UnsupportedError('Not used in search tests.');
+}
+
+final class _UpdatingBotRepository implements BotRepository {
+  _UpdatingBotRepository(List<Bot> bots) : bots = List<Bot>.of(bots);
+
+  final List<Bot> bots;
+  final StreamController<List<Bot>> _changes =
+      StreamController<List<Bot>>.broadcast();
+
+  @override
+  Stream<List<Bot>> get changes => _changes.stream;
+
+  @override
+  Future<List<Bot>> getBots({bool forceRefresh = false}) async =>
+      List<Bot>.unmodifiable(bots);
+
+  @override
+  Future<Bot?> getBot(String id) async =>
+      bots.where((bot) => bot.id == id).firstOrNull;
+
+  @override
+  Future<void> updateBot(Bot bot) async {
+    final index = bots.indexWhere((item) => item.id == bot.id);
+    if (index == -1) throw StateError('Unknown Bot: ${bot.id}');
+    bots[index] = bot;
+    _changes.add(List<Bot>.unmodifiable(bots));
+  }
+
+  Future<void> dispose() => _changes.close();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Only Bot reads and updates are used.');
 }
 
 final class _UnusedChatRepository implements ChatRepository {

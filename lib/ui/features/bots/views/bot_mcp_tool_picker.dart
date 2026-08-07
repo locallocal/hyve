@@ -202,8 +202,6 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          const Icon(LucideIcons.server, size: 18),
-          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,8 +335,6 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.server, size: 18),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

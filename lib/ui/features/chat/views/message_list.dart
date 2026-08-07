@@ -714,6 +714,8 @@ class _MessageBubble extends StatelessWidget {
 
   Widget _buildImagePreview(BuildContext context, String imagePath) {
     return GestureDetector(
+      key: ValueKey<String>('message-image-preview-$imagePath'),
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         _showImageDialog(context, imagePath);
       },
@@ -721,6 +723,8 @@ class _MessageBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(isDesktop ? 8 : 12),
         child: ConstrainedBox(
           constraints: BoxConstraints(
+            minWidth: 96,
+            minHeight: 96,
             maxWidth: isDesktop ? 220 : 150,
             maxHeight: isDesktop ? 240 : 200,
           ),
@@ -1123,6 +1127,7 @@ void _showImageDialog(BuildContext context, String imagePath) {
 
   Widget preview(BuildContext dialogContext) {
     return Stack(
+      key: const ValueKey<String>('message-image-dialog-preview'),
       children: [
         if (isDesktop)
           Positioned.fill(
@@ -1176,7 +1181,9 @@ void _showImageDialog(BuildContext context, String imagePath) {
       context: context,
       builder:
           (dialogContext) => ShadDialog(
+            key: const ValueKey<String>('message-image-dialog'),
             constraints: BoxConstraints.tightFor(width: width, height: height),
+            scrollable: false,
             padding: EdgeInsets.zero,
             gap: 0,
             closeIcon: const SizedBox.shrink(),

@@ -1129,6 +1129,67 @@ void main() {
     );
   });
 
+  testWidgets('desktop message image opens a laid out preview dialog', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 600);
+    addTearDown(tester.view.reset);
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    const imagePath = 'assets/images/profile/no_bots_v2.png';
+
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        _shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (context) => Scaffold(
+                body: Column(
+                  children: [
+                    MessageList(
+                      messages: [
+                        Message(
+                          messageId: 'message-with-image',
+                          chatId: 'chat-1',
+                          botId: 'bot-1',
+                          senderId: 'me',
+                          content: '',
+                          images: const [imagePath],
+                          timestamp: DateTime(2026),
+                        ),
+                      ],
+                      scrollController: scrollController,
+                      isStreaming: false,
+                      streamingResponse: '',
+                      currentUserId: 'me',
+                      isDesktop: true,
+                    ),
+                  ],
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('message-image-preview-$imagePath')),
+      );
+      await tester.pumpAndSettle();
+
+      final dialog = find.byKey(const ValueKey<String>('message-image-dialog'));
+      expect(dialog, findsOneWidget);
+      final preview = find.byKey(
+        const ValueKey<String>('message-image-dialog-preview'),
+      );
+      expect(preview, findsOneWidget);
+      final previewSize = tester.getSize(preview);
+      expect(previewSize.width, greaterThan(0));
+      expect(previewSize.height, greaterThan(0));
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   testWidgets('desktop message execution status is the final message block', (
     tester,
   ) async {

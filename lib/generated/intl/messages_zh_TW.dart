@@ -161,6 +161,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "管理個人資訊、外觀、語言與應用程式支援。",
     ),
     "details": MessageLookupByLibrary.simpleMessage("詳情"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "全部關閉免確認",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部關閉工具"),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("停用指令碼"),
     "edit": MessageLookupByLibrary.simpleMessage("編輯"),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
@@ -169,6 +173,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "獲取回覆失敗: 伺服器返回空響應",
     ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "全部開啟免確認",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部開啟工具"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("啟用指令碼"),
     "enableSkillScriptsDescription": m10,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(

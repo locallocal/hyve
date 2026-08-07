@@ -195,6 +195,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gestiona tu perfil, apariencia, idioma y soporte de la aplicación.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Detalles"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Desactivar sin confirmación para todas",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Desactivar todas las herramientas",
+    ),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Desactivar scripts",
     ),
@@ -203,6 +209,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editName": MessageLookupByLibrary.simpleMessage("Editar nombre"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Error al obtener respuesta: el servidor devolvió una respuesta vacía",
+    ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Activar sin confirmación para todas",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Activar todas las herramientas",
     ),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Activar scripts",

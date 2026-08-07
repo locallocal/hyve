@@ -197,6 +197,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gérez votre profil, l’apparence, la langue et l’assistance de l’application.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Détails"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Désactiver sans confirmation pour tous",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Désactiver tous les outils",
+    ),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Désactiver les scripts",
     ),
@@ -205,6 +211,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editName": MessageLookupByLibrary.simpleMessage("Modifier le Nom"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Échec de récupération de la réponse: le serveur a renvoyé une réponse vide",
+    ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Activer sans confirmation pour tous",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Activer tous les outils",
     ),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Activer les scripts",

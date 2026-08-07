@@ -209,6 +209,55 @@ void main() {
     }
   });
 
+  testWidgets('desktop Skill cards keep the same height', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+
+    final compactSkill = _skill('Compact', 'Short description');
+    final detailedSkill = _skill(
+      'Detailed',
+      'A longer description that spans multiple lines and still keeps the '
+          'card aligned with a compact Skill beside it.',
+      hasReferences: true,
+      hasAssets: true,
+      signatureStatus: SkillSignatureStatus.verified,
+      diagnostics: const [
+        SkillDiagnostic(
+          code: 'warning',
+          message: 'Review this Skill',
+          severity: SkillDiagnosticSeverity.warning,
+        ),
+      ],
+    );
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([compactSkill, detailedSkill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final compactCard = find.byKey(
+        ValueKey<String>('desktop-skill-card-${compactSkill.id}'),
+      );
+      final detailedCard = find.byKey(
+        ValueKey<String>('desktop-skill-card-${detailedSkill.id}'),
+      );
+      expect(compactCard, findsOneWidget);
+      expect(detailedCard, findsOneWidget);
+      expect(tester.getSize(compactCard), tester.getSize(detailedCard));
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop Skill card opens Skill details when clicked', (
     tester,
   ) async {

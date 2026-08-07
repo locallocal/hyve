@@ -166,6 +166,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "프로필, 모양, 언어 및 앱 지원을 관리합니다.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("세부 정보"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "모두 확인 없이 실행 해제",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage("모든 도구 끄기"),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("스크립트 비활성화"),
     "edit": MessageLookupByLibrary.simpleMessage("편집"),
     "editBot": MessageLookupByLibrary.simpleMessage("봇 편집"),
@@ -173,6 +177,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "응답을 가져오지 못했습니다: 서버가 빈 응답을 반환했습니다",
     ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "모두 확인 없이 실행",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("모든 도구 켜기"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("스크립트 활성화"),
     "enableSkillScriptsDescription": m10,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(

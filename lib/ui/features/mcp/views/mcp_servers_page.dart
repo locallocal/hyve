@@ -18,6 +18,8 @@ class McpServersPage extends StatefulWidget {
 }
 
 class _McpServersPageState extends State<McpServersPage> {
+  static const double _desktopServerCardHeight = 220;
+
   McpServersViewModel? _resolvedViewModel;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
@@ -248,27 +250,29 @@ class _McpServersPageState extends State<McpServersPage> {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 800 ? 2 : 1;
         const gap = 14.0;
-        final itemWidth =
-            (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final server in servers)
-              SizedBox(
-                width: itemWidth,
-                child: _DesktopServerCard(
-                  key: ValueKey<String>('desktop-mcp-server-${server.id}'),
-                  server: server,
-                  tools: _viewModel.toolsFor(server.id),
-                  busy: _viewModel.busyServerId == server.id,
-                  onOpenDetails: () => _showDetails(server),
-                  onEdit: () => _showEditor(server),
-                  onRefresh: () => _viewModel.refresh(server.id),
-                  onDelete: () => _confirmDelete(server),
-                ),
-              ),
-          ],
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: gap,
+            mainAxisSpacing: gap,
+            mainAxisExtent: _desktopServerCardHeight,
+          ),
+          itemCount: servers.length,
+          itemBuilder: (context, index) {
+            final server = servers[index];
+            return _DesktopServerCard(
+              key: ValueKey<String>('desktop-mcp-server-${server.id}'),
+              server: server,
+              tools: _viewModel.toolsFor(server.id),
+              busy: _viewModel.busyServerId == server.id,
+              onOpenDetails: () => _showDetails(server),
+              onEdit: () => _showEditor(server),
+              onRefresh: () => _viewModel.refresh(server.id),
+              onDelete: () => _confirmDelete(server),
+            );
+          },
         );
       },
     );
@@ -742,30 +746,47 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              footer: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: _buildActionMenu(context),
-              ),
               child: Padding(
-                padding: const EdgeInsets.only(top: 14, bottom: 10),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    _McpServerTag(
-                      label: _mcpStatusLabel(context, widget.server.status),
-                      foregroundColor: statusColor,
+                padding: const EdgeInsets.only(top: 20),
+                child: Align(
+                  alignment: AlignmentDirectional.bottomCenter,
+                  child: Row(
+                    key: ValueKey<String>(
+                      'desktop-mcp-server-footer-${widget.server.id}',
                     ),
-                    _McpServerTag(
-                      label:
-                          widget.server.transport.type == McpTransportType.stdio
-                              ? strings.mcpTransportStdio
-                              : strings.mcpTransportStreamableHttp,
-                    ),
-                    _McpServerTag(
-                      label: '${widget.tools.length} ${strings.mcpTools}',
-                    ),
-                  ],
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _McpServerTag(
+                              label: _mcpStatusLabel(
+                                context,
+                                widget.server.status,
+                              ),
+                              foregroundColor: statusColor,
+                            ),
+                            _McpServerTag(
+                              label:
+                                  widget.server.transport.type ==
+                                          McpTransportType.stdio
+                                      ? strings.mcpTransportStdio
+                                      : strings.mcpTransportStreamableHttp,
+                            ),
+                            _McpServerTag(
+                              label:
+                                  '${widget.tools.length} ${strings.mcpTools}',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildActionMenu(context),
+                    ],
+                  ),
                 ),
               ),
             ),

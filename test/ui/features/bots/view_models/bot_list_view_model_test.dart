@@ -46,6 +46,28 @@ void main() {
       },
     );
   });
+
+  test('loads missing model context window for card metrics', () async {
+    final providerRepository = _ModelInfoAiProviderRepository();
+    final bot = _bot(
+      id: 'research',
+      name: 'Research Assistant',
+      provider: 'OpenAI',
+      model: 'gpt-test',
+    );
+    final viewModel = BotListViewModel(
+      botRepository: _FakeBotRepository([bot]),
+      createChat: CreateChat(chatRepository: _UnusedChatRepository()),
+      aiProviderRepository: providerRepository,
+      attachmentRepository: _UnusedAttachmentRepository(),
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+
+    expect(providerRepository.lookupCount, 1);
+    expect(viewModel.metricsFor(bot.id).contextWindowTokens, 128000);
+  });
 }
 
 List<String> _ids(BotListViewModel viewModel) =>
@@ -140,6 +162,26 @@ final class _UnusedAiProviderRepository implements AiProviderRepository {
       throw UnsupportedError(
         'AI provider repository is not used in search tests.',
       );
+}
+
+final class _ModelInfoAiProviderRepository implements AiProviderRepository {
+  int lookupCount = 0;
+
+  @override
+  Future<AiModelInfo?> getModelInfo(Bot bot) async {
+    lookupCount += 1;
+    return AiModelInfo(
+      modelId: bot.model,
+      providerId: 'openai',
+      inputModalities: const [InputModality.text],
+      outputModalities: const [OutputModality.text],
+      contextWindowTokens: 128000,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Only model info lookup is used by this test.');
 }
 
 final class _UnusedAttachmentRepository implements AttachmentRepository {

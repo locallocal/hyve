@@ -403,6 +403,7 @@ class _AddBotPageState extends State<AddBotPage> {
     final apiType =
         (providerInfo?['api_type'] as String?) ?? apiTypeController.text.trim();
     final baseURL = baseURLController.text.trim();
+    final selectedModelInfo = _modelInfoById(selectedModelController.text);
 
     final newBot = Bot(
       id: _botId,
@@ -418,6 +419,11 @@ class _AddBotPageState extends State<AddBotPage> {
         Bot.parameterSupportsMcp: _selectedModelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _selectedModelSupportsAutomaticSkillActivation,
+        if (selectedModelInfo?.supportsSkills != null)
+          Bot.parameterSupportsSkills: selectedModelInfo!.supportsSkills,
+        if (selectedModelInfo?.contextWindowTokens != null)
+          Bot.parameterContextWindowTokens:
+              selectedModelInfo!.contextWindowTokens,
         Bot.parameterMcpServers:
             _selectedModelSupportsMcp
                 ? (_mcpServerIds.toList()..sort())

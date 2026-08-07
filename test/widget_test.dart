@@ -486,7 +486,7 @@ void main() {
     expect(searchTop - panelTop, DesktopThemeTokens.panelPadding.top);
   });
 
-  testWidgets('desktop bot cards show token, MCP, and Skill metrics', (
+  testWidgets('desktop bot cards show usage, model, and creation metrics', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -505,6 +505,7 @@ void main() {
       model: 'gpt-test',
       systemPrompt: '',
       parameters: const {
+        Bot.parameterContextWindowTokens: 128000,
         Bot.parameterMcpServers: ['mcp-search', 'mcp-docs'],
         Bot.parameterMcpTools: [
           {
@@ -573,6 +574,12 @@ void main() {
       final mcpMetric = find.byKey(
         const ValueKey<String>('bot-card-mcp-count-bot-1'),
       );
+      final contextWindowMetric = find.byKey(
+        const ValueKey<String>('bot-card-context-window-bot-1'),
+      );
+      final creationTimeMetric = find.byKey(
+        const ValueKey<String>('bot-card-creation-time-bot-1'),
+      );
       final avatar = find.descendant(
         of: card,
         matching: find.byType(CircleAvatar),
@@ -593,6 +600,8 @@ void main() {
       expect(tokenMetric, findsOneWidget);
       expect(skillMetric, findsOneWidget);
       expect(mcpMetric, findsOneWidget);
+      expect(contextWindowMetric, findsOneWidget);
+      expect(creationTimeMetric, findsOneWidget);
       expect(avatar, findsOneWidget);
       expect(botName, findsOneWidget);
       expect(providerAndModel, findsOneWidget);
@@ -630,6 +639,14 @@ void main() {
         closeTo(tester.getCenter(mcpMetric).dy, 0.5),
       );
       expect(
+        tester.getCenter(mcpMetric).dy,
+        closeTo(tester.getCenter(contextWindowMetric).dy, 0.5),
+      );
+      expect(
+        tester.getCenter(contextWindowMetric).dy,
+        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
+      );
+      expect(
         tester.getTopLeft(tokenMetric).dx,
         lessThan(tester.getTopLeft(skillMetric).dx),
       );
@@ -658,6 +675,21 @@ void main() {
         findsOneWidget,
       );
       expect(
+        find.descendant(of: contextWindowMetric, matching: find.text('—')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(
+                of: creationTimeMetric,
+                matching: find.byType(Text),
+              ),
+            )
+            .data,
+        contains('2026'),
+      );
+      expect(
         tester
             .widget<Tooltip>(
               find.descendant(of: tokenMetric, matching: find.byType(Tooltip)),
@@ -682,6 +714,28 @@ void main() {
         'MCP 服务器',
       );
       expect(
+        tester
+            .widget<Tooltip>(
+              find.descendant(
+                of: contextWindowMetric,
+                matching: find.byType(Tooltip),
+              ),
+            )
+            .message,
+        '模型上下文大小',
+      );
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.descendant(
+                of: creationTimeMetric,
+                matching: find.byType(Tooltip),
+              ),
+            )
+            .message,
+        '创建时间',
+      );
+      expect(
         find.descendant(of: tokenMetric, matching: find.byType(Container)),
         findsNothing,
       );
@@ -696,6 +750,14 @@ void main() {
       final mcpIcon = find.descendant(
         of: mcpMetric,
         matching: find.byIcon(LucideIcons.server),
+      );
+      final contextWindowIcon = find.descendant(
+        of: contextWindowMetric,
+        matching: find.byIcon(Icons.data_array_rounded),
+      );
+      final creationTimeIcon = find.descendant(
+        of: creationTimeMetric,
+        matching: find.byIcon(Icons.schedule_outlined),
       );
       final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
       addTearDown(mouse.removePointer);
@@ -712,12 +774,15 @@ void main() {
       await expectTooltip(tokenIcon, 'Token 总量');
       await expectTooltip(skillIcon, '技能');
       await expectTooltip(mcpIcon, 'MCP 服务器');
+      await expectTooltip(contextWindowIcon, '模型上下文大小');
+      await expectTooltip(creationTimeIcon, '创建时间');
       expect(find.byIcon(LucideIcons.arrowUpRight), findsNothing);
       expect(
         viewModel.metricsFor(bot.id).tokenUsage.effectiveTotalTokens,
         1500,
       );
       expect(viewModel.metricsFor(bot.id).skillCount, 2);
+      expect(viewModel.metricsFor(bot.id).contextWindowTokens, 128000);
       expect(viewModel.metricsFor(bot.id).mcpServerNames, ['Docs', 'Search']);
       final addBotButton =
           find
@@ -2427,6 +2492,11 @@ void main() {
       apiType: Bot.apiTypeOpenAI,
       model: 'gpt-test',
       systemPrompt: systemPrompt,
+      parameters: const {
+        Bot.parameterContextWindowTokens: 128000,
+        Bot.parameterSupportsSkills: true,
+        Bot.parameterSupportsMcp: false,
+      },
       createTimestamp: DateTime(2026),
       modifyTimestamp: DateTime(2026),
     );
@@ -2554,15 +2624,65 @@ void main() {
     );
     for (final key in [
       'bot-detail-name',
+      'bot-detail-creation-time',
       'bot-detail-provider',
       'bot-detail-api-type',
       'bot-detail-base-url',
       'bot-detail-api-key',
       'bot-detail-model',
+      'bot-detail-model-context-window',
+      'bot-detail-supports-skills',
+      'bot-detail-supports-mcp',
       'bot-detail-system-prompt',
     ]) {
       expect(find.byKey(ValueKey<String>(key)), findsOneWidget);
     }
+    final creationTimeDetail = find.byKey(
+      const ValueKey<String>('bot-detail-creation-time'),
+    );
+    expect(
+      find.descendant(of: creationTimeDetail, matching: find.text('创建时间')),
+      findsOneWidget,
+    );
+    final creationTimeValue = tester.widget<SelectableText>(
+      find.descendant(
+        of: creationTimeDetail,
+        matching: find.byType(SelectableText),
+      ),
+    );
+    expect(creationTimeValue.data, contains('2026'));
+    final contextWindowDetail = find.byKey(
+      const ValueKey<String>('bot-detail-model-context-window'),
+    );
+    expect(
+      find.descendant(of: contextWindowDetail, matching: find.text('模型上下文大小')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<SelectableText>(
+            find.descendant(
+              of: contextWindowDetail,
+              matching: find.byType(SelectableText),
+            ),
+          )
+          .data,
+      contains('128'),
+    );
+    final supportsSkillsDetail = find.byKey(
+      const ValueKey<String>('bot-detail-supports-skills'),
+    );
+    expect(
+      find.descendant(of: supportsSkillsDetail, matching: find.text('支持')),
+      findsOneWidget,
+    );
+    final supportsMcpDetail = find.byKey(
+      const ValueKey<String>('bot-detail-supports-mcp'),
+    );
+    expect(
+      find.descendant(of: supportsMcpDetail, matching: find.text('不支持')),
+      findsOneWidget,
+    );
     expect(find.text('https://example.invalid'), findsOneWidget);
     expect(find.text(systemPrompt), findsOneWidget);
 

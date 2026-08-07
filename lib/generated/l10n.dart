@@ -1497,6 +1497,16 @@ class S {
     );
   }
 
+  /// `Creation Time`
+  String get creationTime {
+    return Intl.message(
+      'Creation Time',
+      name: 'creationTime',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Provider Information`
   String get providerInformation {
     return Intl.message(
@@ -1515,6 +1525,56 @@ class S {
       desc: '',
       args: [],
     );
+  }
+
+  /// `Model Context Size`
+  String get modelContextWindow {
+    return Intl.message(
+      'Model Context Size',
+      name: 'modelContextWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Supports Skills`
+  String get supportsSkills {
+    return Intl.message(
+      'Supports Skills',
+      name: 'supportsSkills',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Supports MCP`
+  String get supportsMcp {
+    return Intl.message(
+      'Supports MCP',
+      name: 'supportsMcp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Supported`
+  String get supported {
+    return Intl.message('Supported', name: 'supported', desc: '', args: []);
+  }
+
+  /// `Not supported`
+  String get notSupported {
+    return Intl.message(
+      'Not supported',
+      name: 'notSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `tokens`
+  String get tokens {
+    return Intl.message('tokens', name: 'tokens', desc: '', args: []);
   }
 
   /// `Copy API Key`

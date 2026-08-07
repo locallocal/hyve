@@ -708,6 +708,18 @@ class DesktopThemeTokens {
   static const double botFormSectionPadding = 20;
   static const double botFormSectionBorderWidth = 1;
   static const double botFormSectionTitleFontSize = 16;
+  static const EdgeInsets settingsRowPadding = EdgeInsets.symmetric(
+    horizontal: 8,
+    vertical: 10,
+  );
+  static const double settingsRowMinHeight = 38;
+  static const double settingsRowIconSlotWidth = 24;
+  static const double settingsRowIconSize = 18;
+  static const double settingsRowIconGap = 8;
+  static const double settingsRowValueGap = 16;
+  static const double settingsRowValueMaxWidth = 220;
+  static const EdgeInsetsDirectional settingsRowSeparatorMargin =
+      EdgeInsetsDirectional.only(start: 40);
   static const EdgeInsets formPagePadding = EdgeInsets.fromLTRB(32, 28, 32, 48);
   static const double panelRadiusValue = 8;
   static const double itemRadiusValue = 6;

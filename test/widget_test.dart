@@ -951,11 +951,29 @@ void main() {
       expect(find.text('详情'), findsOneWidget);
       expect(find.text('保存修改'), findsNothing);
       expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
-      for (final field in tester.widgetList<TextField>(
-        find.byType(TextField),
-      )) {
-        expect(field.readOnly, isTrue);
-      }
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(ShadInput), findsNothing);
+      expect(find.byType(ShadTextarea), findsNothing);
+      final providerDetail = find.byKey(
+        const ValueKey<String>('bot-detail-provider'),
+      );
+      await tester.ensureVisible(providerDetail);
+      await tester.pumpAndSettle();
+      final providerLabel = find.descendant(
+        of: providerDetail,
+        matching: find.text('供应商'),
+      );
+      final providerValue = find.descendant(
+        of: providerDetail,
+        matching: find.text('OpenAI'),
+      );
+      expect(providerDetail, findsOneWidget);
+      expect(providerLabel, findsOneWidget);
+      expect(providerValue, findsOneWidget);
+      expect(
+        tester.getTopLeft(providerLabel).dy,
+        lessThan(tester.getTopLeft(providerValue).dy),
+      );
     });
   });
 
@@ -2391,22 +2409,24 @@ void main() {
     expect(find.text('Stars'), findsNothing);
   });
 
-  testWidgets('desktop bot detail omits the redundant inspector action', (
+  testWidgets('desktop bot detail displays information without form inputs', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1440, 900);
     addTearDown(tester.view.reset);
+    const systemPrompt =
+        'Be helpful, concise, and include the reasoning needed to support the answer.';
     final bot = Bot(
       id: 'bot-1',
       name: 'Researcher',
       avatar: '',
       provider: 'OpenAI',
       baseURL: 'https://example.invalid',
-      apiKey: '',
+      apiKey: 'secret',
       apiType: Bot.apiTypeOpenAI,
       model: 'gpt-test',
-      systemPrompt: '',
+      systemPrompt: systemPrompt,
       createTimestamp: DateTime(2026),
       modifyTimestamp: DateTime(2026),
     );
@@ -2422,11 +2442,9 @@ void main() {
     );
     final workspaceColor = DesktopThemeTokens.workspaceSurface(detailContext);
     final raisedSurface = StarsDesktopTokens.of(detailContext).raisedSurface;
-    final expectedFieldWidth =
-        DesktopThemeTokens.formContentMaxWidth -
-        (DesktopThemeTokens.botFormSectionPadding +
-                DesktopThemeTokens.botFormSectionBorderWidth) *
-            2;
+    final detailContent = find.byKey(
+      const ValueKey<String>('desktop-bot-detail-content'),
+    );
     expect(detailScaffold.backgroundColor, workspaceColor);
     expect(
       find.byKey(const ValueKey<String>('desktop-bot-save-bar-background')),
@@ -2438,11 +2456,7 @@ void main() {
     );
     expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
     expect(
-      tester
-          .getSize(
-            find.byKey(const ValueKey<String>('desktop-bot-detail-content')),
-          )
-          .width,
+      tester.getSize(detailContent).width,
       DesktopThemeTokens.formContentMaxWidth +
           DesktopThemeTokens.formPagePadding.horizontal,
     );
@@ -2527,19 +2541,96 @@ void main() {
       lessThan(tester.getRect(tokenUsageSection).top),
     );
     expect(
-      tester
-          .getSize(
-            find
-                .descendant(
-                  of: find.byKey(
-                    const ValueKey<String>('desktop-bot-detail-content'),
-                  ),
-                  matching: find.byType(ShadInput),
-                )
-                .first,
-          )
-          .width,
-      expectedFieldWidth,
+      find.descendant(of: detailContent, matching: find.byType(ShadInput)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: detailContent, matching: find.byType(ShadTextarea)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: detailContent, matching: find.byType(TextField)),
+      findsNothing,
+    );
+    for (final key in [
+      'bot-detail-name',
+      'bot-detail-provider',
+      'bot-detail-api-type',
+      'bot-detail-base-url',
+      'bot-detail-api-key',
+      'bot-detail-model',
+      'bot-detail-system-prompt',
+    ]) {
+      expect(find.byKey(ValueKey<String>(key)), findsOneWidget);
+    }
+    expect(find.text('https://example.invalid'), findsOneWidget);
+    expect(find.text(systemPrompt), findsOneWidget);
+
+    final providerDetail = find.byKey(
+      const ValueKey<String>('bot-detail-provider'),
+    );
+    final providerLabel = find.descendant(
+      of: providerDetail,
+      matching: find.text('供应商'),
+    );
+    final providerValue = find.descendant(
+      of: providerDetail,
+      matching: find.text('OpenAI'),
+    );
+    expect(
+      tester.getTopLeft(providerLabel).dx,
+      lessThan(tester.getTopLeft(providerValue).dx),
+    );
+    final providerIcon = find.descendant(
+      of: providerDetail,
+      matching: find.byIcon(Icons.business_outlined),
+    );
+    expect(
+      tester.widget<Icon>(providerIcon).size,
+      DesktopThemeTokens.settingsRowIconSize,
+    );
+    expect(
+      tester.getSize(providerDetail).height,
+      DesktopThemeTokens.settingsRowMinHeight +
+          DesktopThemeTokens.settingsRowPadding.vertical,
+    );
+    final providerSeparators = find.descendant(
+      of: providerSection,
+      matching: find.byType(ShadSeparator),
+    );
+    expect(providerSeparators, findsNWidgets(3));
+    expect(
+      tester.widget<ShadSeparator>(providerSeparators.first).margin,
+      DesktopThemeTokens.settingsRowSeparatorMargin,
+    );
+
+    final systemPromptDetail = find.byKey(
+      const ValueKey<String>('bot-detail-system-prompt'),
+    );
+    final systemPromptValue = find.descendant(
+      of: systemPromptDetail,
+      matching: find.text(systemPrompt),
+    );
+    expect(
+      tester.getSize(systemPromptValue).width,
+      lessThanOrEqualTo(DesktopThemeTokens.settingsRowValueMaxWidth),
+    );
+
+    final apiKeyDetail = find.byKey(
+      const ValueKey<String>('bot-detail-api-key'),
+    );
+    expect(
+      find.descendant(of: apiKeyDetail, matching: find.text('••••••••••••')),
+      findsOneWidget,
+    );
+    expect(find.text('secret'), findsNothing);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('bot-detail-toggle-api-key')),
+    );
+    await tester.pump();
+    expect(
+      find.descendant(of: apiKeyDetail, matching: find.text('secret')),
+      findsOneWidget,
     );
 
     expect(
@@ -2547,13 +2638,6 @@ void main() {
       findsNothing,
     );
     expect(find.byIcon(Icons.vertical_split_outlined), findsNothing);
-    for (final input in tester.widgetList<ShadInput>(find.byType(ShadInput))) {
-      expect(input.readOnly, isTrue);
-    }
-    expect(
-      tester.widget<ShadTextarea>(find.byType(ShadTextarea)).readOnly,
-      true,
-    );
   });
 
   testWidgets('desktop bot provider settings are read-only and preserved', (

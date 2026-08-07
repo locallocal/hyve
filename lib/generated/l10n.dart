@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1470,7 +1469,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -3181,6 +3181,46 @@ class S {
     return Intl.message(
       'No confirmation',
       name: 'mcpNoApprovalRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable all Tools`
+  String get enableAllMcpTools {
+    return Intl.message(
+      'Enable all Tools',
+      name: 'enableAllMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disable all Tools`
+  String get disableAllMcpTools {
+    return Intl.message(
+      'Disable all Tools',
+      name: 'disableAllMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable no confirmation for all`
+  String get enableAllMcpToolNoApproval {
+    return Intl.message(
+      'Enable no confirmation for all',
+      name: 'enableAllMcpToolNoApproval',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disable no confirmation for all`
+  String get disableAllMcpToolNoApproval {
+    return Intl.message(
+      'Disable no confirmation for all',
+      name: 'disableAllMcpToolNoApproval',
       desc: '',
       args: [],
     );

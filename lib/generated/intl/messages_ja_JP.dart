@@ -170,6 +170,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "プロフィール、外観、言語、アプリのサポートを管理します。",
     ),
     "details": MessageLookupByLibrary.simpleMessage("詳細"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "すべての確認不要を解除",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage("すべてのツールを無効化"),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("スクリプトを無効化"),
     "edit": MessageLookupByLibrary.simpleMessage("編集"),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
@@ -177,6 +181,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "応答の取得に失敗しました：サーバーが空の応答を返しました",
     ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "すべて確認不要にする",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("すべてのツールを有効化"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("スクリプトを有効化"),
     "enableSkillScriptsDescription": m10,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(

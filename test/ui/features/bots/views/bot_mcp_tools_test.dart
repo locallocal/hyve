@@ -145,6 +145,114 @@ void main() {
     expect(saved?.mcpServerIds, {'server-1'});
   });
 
+  testWidgets('existing bot can update all MCP Tool settings at once', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    Bot? saved;
+    await tester.pumpWidget(
+      _editHarness(
+        bot: _bot(supportsMcp: true, serverIds: const {'server-1'}),
+        includeSecondTool: true,
+        onSaved: (bot) async => saved = bot,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final selectedServer = find.byKey(
+      const ValueKey<String>('bot-mcp-server-server-1'),
+    );
+    await tester.ensureVisible(selectedServer);
+    await tester.tap(selectedServer);
+    await tester.pumpAndSettle();
+
+    final toggleAll = find.byKey(
+      const ValueKey<String>('bot-mcp-tools-toggle-all-server-1'),
+    );
+    final toggleAllNoApproval = find.byKey(
+      const ValueKey<String>('bot-mcp-tools-no-approval-all-server-1'),
+    );
+    expect(find.text('全部开启工具'), findsOneWidget);
+    expect(
+      tester.widget<OutlinedButton>(toggleAllNoApproval).onPressed,
+      isNull,
+    );
+
+    await tester.tap(toggleAll);
+    await tester.pump();
+    expect(find.text('全部关闭工具'), findsOneWidget);
+    for (final remoteName in ['search', 'fetch']) {
+      expect(
+        tester
+            .widget<Switch>(
+              find.byKey(
+                ValueKey<String>('bot-mcp-tool-toggle-server-1-$remoteName'),
+              ),
+            )
+            .value,
+        isTrue,
+      );
+    }
+
+    await tester.tap(toggleAllNoApproval);
+    await tester.pump();
+    expect(find.text('全部关闭免确认'), findsOneWidget);
+    for (final remoteName in ['search', 'fetch']) {
+      expect(
+        tester
+            .widget<Switch>(
+              find.byKey(
+                ValueKey<String>(
+                  'bot-mcp-tool-no-approval-server-1-$remoteName',
+                ),
+              ),
+            )
+            .value,
+        isTrue,
+      );
+    }
+
+    await tester.tap(toggleAllNoApproval);
+    await tester.pump();
+    expect(find.text('全部开启免确认'), findsOneWidget);
+
+    await tester.tap(toggleAll);
+    await tester.pump();
+    expect(find.text('全部开启工具'), findsOneWidget);
+    expect(
+      tester.widget<OutlinedButton>(toggleAllNoApproval).onPressed,
+      isNull,
+    );
+
+    await tester.tap(toggleAll);
+    await tester.pump();
+    await tester.tap(toggleAllNoApproval);
+    await tester.pump();
+
+    await tester.tap(find.text('关闭').last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('保存修改'));
+    await tester.tap(find.text('保存修改'));
+    await tester.pumpAndSettle();
+
+    expect(saved?.mcpTools, {
+      McpToolConfiguration(
+        serverId: 'server-1',
+        remoteName: 'search',
+        requiresApproval: false,
+      ),
+      McpToolConfiguration(
+        serverId: 'server-1',
+        remoteName: 'fetch',
+        requiresApproval: false,
+      ),
+    });
+  });
+
   testWidgets('existing bot removes an MCP Server and its Tool settings', (
     tester,
   ) async {
@@ -248,9 +356,7 @@ void main() {
     expect(saved, isNull);
   });
 
-  testWidgets('a new bot adds an MCP Server and configures its Tools', (
-    tester,
-  ) async {
+  testWidgets('a new bot configures all MCP Tools at once', (tester) async {
     tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -258,7 +364,11 @@ void main() {
 
     Bot? added;
     await tester.pumpWidget(
-      _addHarness(enableMcp: true, onAdded: (bot, _) async => added = bot),
+      _addHarness(
+        enableMcp: true,
+        includeSecondTool: true,
+        onAdded: (bot, _) async => added = bot,
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -314,18 +424,14 @@ void main() {
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
 
-    final toolToggle = find.byKey(
-      const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
+    await tester.tap(
+      find.byKey(const ValueKey<String>('bot-mcp-tools-toggle-all-server-1')),
     );
-    final noApprovalToggle = find.byKey(
-      const ValueKey<String>('bot-mcp-tool-no-approval-server-1-search'),
-    );
-    await tester.tap(toolToggle);
     await tester.pump();
-    await tester.ensureVisible(noApprovalToggle);
-    final noApprovalRect = tester.getRect(noApprovalToggle);
-    await tester.tapAt(
-      Offset(noApprovalRect.left + 16, noApprovalRect.center.dy),
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('bot-mcp-tools-no-approval-all-server-1'),
+      ),
     );
     await tester.pump();
     await tester.tap(find.text('关闭').last);
@@ -342,6 +448,11 @@ void main() {
       McpToolConfiguration(
         serverId: 'server-1',
         remoteName: 'search',
+        requiresApproval: false,
+      ),
+      McpToolConfiguration(
+        serverId: 'server-1',
+        remoteName: 'fetch',
         requiresApproval: false,
       ),
     });
@@ -396,6 +507,7 @@ Widget _editHarness({
   required Bot bot,
   required Future<void> Function(Bot) onSaved,
   bool readOnly = false,
+  bool includeSecondTool = false,
 }) {
   final server = _server();
   return MaterialApp(
@@ -415,7 +527,11 @@ Widget _editHarness({
           () async => (
             servers: [server],
             toolsByServer: {
-              server.id: [_tool(server)],
+              server.id: [
+                _tool(server),
+                if (includeSecondTool)
+                  _tool(server, remoteName: 'fetch', title: 'Fetch'),
+              ],
             },
           ),
       onBotUpdated: onSaved,
@@ -427,6 +543,7 @@ Widget _editHarness({
 Widget _addHarness({
   required Future<void> Function(Bot, List<BotSkillBinding>) onAdded,
   bool enableMcp = false,
+  bool includeSecondTool = false,
 }) {
   final server = _server();
   final shadTheme = buildStarsShadTheme(
@@ -471,7 +588,11 @@ Widget _addHarness({
                 () async => (
                   servers: [server],
                   toolsByServer: {
-                    server.id: [_tool(server)],
+                    server.id: [
+                      _tool(server),
+                      if (includeSecondTool)
+                        _tool(server, remoteName: 'fetch', title: 'Fetch'),
+                    ],
                   },
                 ),
             onBotAdded: onAdded,
@@ -516,11 +637,15 @@ McpServer _server() => McpServer(
   updatedAt: DateTime(2026),
 );
 
-McpToolDescriptor _tool(McpServer server) => McpToolDescriptor(
+McpToolDescriptor _tool(
+  McpServer server, {
+  String remoteName = 'search',
+  String title = 'Search',
+}) => McpToolDescriptor(
   serverId: server.id,
-  remoteName: 'search',
-  title: 'Search',
-  description: 'Search documentation.',
+  remoteName: remoteName,
+  title: title,
+  description: '$title documentation.',
   inputSchema: const {'type': 'object'},
   updatedAt: DateTime(2026),
 );

@@ -224,6 +224,7 @@ void main() {
       final filesystemRect = tester.getRect(filesystemCard);
       expect(githubRect.width, 453);
       expect(filesystemRect.width, 453);
+      expect(githubRect.height, filesystemRect.height);
       expect(githubRect.top, filesystemRect.top);
       expect(filesystemRect.left - githubRect.right, 14);
 
@@ -237,6 +238,29 @@ void main() {
           isTrue,
         );
       }
+
+      final githubFooter = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-footer-github'),
+      );
+      final githubActions = find.byKey(
+        const ValueKey<String>('desktop-mcp-server-actions-github'),
+      );
+      final githubTags = find.descendant(
+        of: githubCard,
+        matching: find.byType(ShadBadge),
+      );
+      expect(githubFooter, findsOneWidget);
+      expect(githubActions, findsOneWidget);
+      for (final tag in githubTags.evaluate()) {
+        expect(
+          tester.getCenter(find.byWidget(tag.widget)).dy,
+          closeTo(tester.getCenter(githubActions).dy, 1),
+        );
+      }
+      expect(
+        githubRect.bottom - tester.getRect(githubActions).bottom,
+        closeTo(tester.getRect(find.text('GitHub')).top - githubRect.top, 1),
+      );
 
       expect(find.byType(ExpansionTile), findsNothing);
       expect(find.text('1 工具'), findsNWidgets(2));
@@ -279,10 +303,6 @@ void main() {
         findsNothing,
       );
 
-      final githubActions = find.byKey(
-        const ValueKey<String>('desktop-mcp-server-actions-github'),
-      );
-      expect(githubActions, findsOneWidget);
       final githubActionsFocusNode =
           tester
               .widget<ShadIconButton>(

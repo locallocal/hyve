@@ -217,6 +217,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "details": MessageLookupByLibrary.simpleMessage("详情"),
     "directPlayback": MessageLookupByLibrary.simpleMessage("可直接播放"),
     "directPreview": MessageLookupByLibrary.simpleMessage("可直接预览"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "全部关闭免确认",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部关闭工具"),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("停用脚本"),
     "edit": MessageLookupByLibrary.simpleMessage("编辑"),
     "editBot": MessageLookupByLibrary.simpleMessage("编辑智能体"),
@@ -225,6 +229,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "获取回复失败: 服务器返回空响应",
     ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "全部开启免确认",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部开启工具"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("启用脚本"),
     "enableSkillScriptsDescription": m10,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(

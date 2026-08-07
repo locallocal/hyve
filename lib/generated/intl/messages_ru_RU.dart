@@ -193,6 +193,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Сведения"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Отключить без подтверждения для всех",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Отключить все инструменты",
+    ),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Отключить скрипты",
     ),
@@ -201,6 +207,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editName": MessageLookupByLibrary.simpleMessage("Изменить имя"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Ошибка получения ответа: сервер вернул пустой ответ",
+    ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Включить без подтверждения для всех",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Включить все инструменты",
     ),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Включить скрипты",

@@ -187,6 +187,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
     ),
     "details": MessageLookupByLibrary.simpleMessage("विवरण"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "सभी के लिए बिना पुष्टि बंद करें",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "सभी टूल बंद करें",
+    ),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट अक्षम करें",
     ),
@@ -195,6 +201,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "उत्तर प्राप्त करने में विफल: सर्वर ने खाली प्रतिक्रिया लौटाई",
+    ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "सभी के लिए बिना पुष्टि चालू करें",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "सभी टूल चालू करें",
     ),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट सक्षम करें",

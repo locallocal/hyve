@@ -17,6 +17,8 @@ class SkillLibraryPage extends StatefulWidget {
 }
 
 class _SkillLibraryPageState extends State<SkillLibraryPage> {
+  static const double _desktopSkillCardHeight = 240;
+
   late final TextEditingController _searchController;
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -265,35 +267,36 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 800 ? 2 : 1;
         const gap = 14.0;
-        final itemWidth =
-            (constraints.maxWidth - gap * (columns - 1)) / columns;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (final skill in viewModel.paginatedSkills)
-                  SizedBox(
-                    width: itemWidth,
-                    child: _DesktopSkillCard(
-                      skill: skill,
-                      hasScriptTools: viewModel.hasScriptTools(skill.id),
-                      scriptEnabled: viewModel.isScriptEnabled(skill.id),
-                      update: _updateFor(skill),
-                      onOpen: () => _showDetails(context, skill),
-                      onUninstall: () => _confirmUninstall(context, skill),
-                      onToggleScripts:
-                          () => _confirmScriptToggle(context, skill),
-                      onUpdate:
-                          _updateFor(skill) == null
-                              ? null
-                              : () =>
-                                  _installUpdate(context, _updateFor(skill)!),
-                    ),
-                  ),
-              ],
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: gap,
+                mainAxisSpacing: gap,
+                mainAxisExtent: _desktopSkillCardHeight,
+              ),
+              itemCount: viewModel.paginatedSkills.length,
+              itemBuilder: (context, index) {
+                final skill = viewModel.paginatedSkills[index];
+                final update = _updateFor(skill);
+                return _DesktopSkillCard(
+                  skill: skill,
+                  hasScriptTools: viewModel.hasScriptTools(skill.id),
+                  scriptEnabled: viewModel.isScriptEnabled(skill.id),
+                  update: update,
+                  onOpen: () => _showDetails(context, skill),
+                  onUninstall: () => _confirmUninstall(context, skill),
+                  onToggleScripts: () => _confirmScriptToggle(context, skill),
+                  onUpdate:
+                      update == null
+                          ? null
+                          : () => _installUpdate(context, update),
+                );
+              },
             ),
             if (viewModel.totalPages > 1) ...[
               const SizedBox(height: 20),

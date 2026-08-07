@@ -268,6 +268,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "details": MessageLookupByLibrary.simpleMessage("Details"),
     "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
     "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
+    "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Disable no confirmation for all",
+    ),
+    "disableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Disable all Tools",
+    ),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Disable scripts",
     ),
@@ -277,6 +283,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editName": MessageLookupByLibrary.simpleMessage("Edit Name"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Failed to get response: Server returned empty response",
+    ),
+    "enableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
+      "Enable no confirmation for all",
+    ),
+    "enableAllMcpTools": MessageLookupByLibrary.simpleMessage(
+      "Enable all Tools",
     ),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Enable scripts",

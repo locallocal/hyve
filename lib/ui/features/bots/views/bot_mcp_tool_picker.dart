@@ -490,6 +490,13 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (!widget.readOnly) ...[
+            _buildToolBatchActions(tools, refresh: refresh),
+            const SizedBox(height: 8),
+            widget.embedded
+                ? const ShadSeparator.horizontal()
+                : const Divider(height: 1),
+          ],
           for (var index = 0; index < tools.length; index++) ...[
             _buildToolRow(tools[index], refresh: refresh),
             if (index != tools.length - 1)
@@ -499,6 +506,104 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildToolBatchActions(
+    List<McpToolDescriptor> tools, {
+    required StateSetter refresh,
+  }) {
+    final strings = S.of(context);
+    final serverId = tools.first.serverId;
+    final configuredByKey = _configuredByKey;
+    final allToolsEnabled = tools.every(
+      (tool) => configuredByKey.containsKey(
+        McpToolConfiguration.keyFor(tool.serverId, tool.remoteName),
+      ),
+    );
+    final enabledConfigurations = [
+      for (final tool in tools)
+        if (configuredByKey[McpToolConfiguration.keyFor(
+              tool.serverId,
+              tool.remoteName,
+            )]
+            case final configuration?)
+          configuration,
+    ];
+    final allNoApproval =
+        enabledConfigurations.isNotEmpty &&
+        enabledConfigurations.every(
+          (configuration) => !configuration.requiresApproval,
+        );
+
+    void toggleAllTools() {
+      _setAllToolsEnabled(tools, !allToolsEnabled);
+      refresh(() {});
+    }
+
+    void toggleAllNoApproval() {
+      _setAllApprovalExempt(tools, !allNoApproval);
+      refresh(() {});
+    }
+
+    if (widget.embedded) {
+      return Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          ShadButton.outline(
+            key: ValueKey<String>('bot-mcp-tools-toggle-all-$serverId'),
+            size: ShadButtonSize.sm,
+            width: 0,
+            onPressed: toggleAllTools,
+            child: Text(
+              allToolsEnabled
+                  ? strings.disableAllMcpTools
+                  : strings.enableAllMcpTools,
+            ),
+          ),
+          ShadButton.outline(
+            key: ValueKey<String>('bot-mcp-tools-no-approval-all-$serverId'),
+            size: ShadButtonSize.sm,
+            width: 0,
+            enabled: enabledConfigurations.isNotEmpty,
+            onPressed:
+                enabledConfigurations.isEmpty ? null : toggleAllNoApproval,
+            child: Text(
+              allNoApproval
+                  ? strings.disableAllMcpToolNoApproval
+                  : strings.enableAllMcpToolNoApproval,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Wrap(
+      alignment: WrapAlignment.end,
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        OutlinedButton(
+          key: ValueKey<String>('bot-mcp-tools-toggle-all-$serverId'),
+          onPressed: toggleAllTools,
+          child: Text(
+            allToolsEnabled
+                ? strings.disableAllMcpTools
+                : strings.enableAllMcpTools,
+          ),
+        ),
+        OutlinedButton(
+          key: ValueKey<String>('bot-mcp-tools-no-approval-all-$serverId'),
+          onPressed: enabledConfigurations.isEmpty ? null : toggleAllNoApproval,
+          child: Text(
+            allNoApproval
+                ? strings.disableAllMcpToolNoApproval
+                : strings.enableAllMcpToolNoApproval,
+          ),
+        ),
+      ],
     );
   }
 
@@ -655,6 +760,46 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       );
     } else {
       next.remove(key);
+    }
+    _configurations = Set<McpToolConfiguration>.unmodifiable(next.values);
+    widget.onChanged(_configurations);
+  }
+
+  void _setAllToolsEnabled(List<McpToolDescriptor> tools, bool enabled) {
+    if (widget.readOnly) return;
+    final next = {
+      for (final configuration in _configurations)
+        configuration.key: configuration,
+    };
+    for (final tool in tools) {
+      final key = McpToolConfiguration.keyFor(tool.serverId, tool.remoteName);
+      if (enabled) {
+        next.putIfAbsent(
+          key,
+          () => McpToolConfiguration(
+            serverId: tool.serverId,
+            remoteName: tool.remoteName,
+          ),
+        );
+      } else {
+        next.remove(key);
+      }
+    }
+    _configurations = Set<McpToolConfiguration>.unmodifiable(next.values);
+    widget.onChanged(_configurations);
+  }
+
+  void _setAllApprovalExempt(List<McpToolDescriptor> tools, bool exempt) {
+    if (widget.readOnly) return;
+    final next = {
+      for (final configuration in _configurations)
+        configuration.key: configuration,
+    };
+    for (final tool in tools) {
+      final key = McpToolConfiguration.keyFor(tool.serverId, tool.remoteName);
+      final current = next[key];
+      if (current == null) continue;
+      next[key] = current.copyWith(requiresApproval: !exempt);
     }
     _configurations = Set<McpToolConfiguration>.unmodifiable(next.values);
     widget.onChanged(_configurations);

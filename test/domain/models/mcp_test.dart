@@ -89,6 +89,45 @@ void main() {
     expect(descriptor.isSupportedByClient, isFalse);
   });
 
+  test('MCP tools accept FastMCP wrapped output schemas', () {
+    final descriptor = McpToolDescriptor(
+      serverId: 'basic-memory',
+      remoteName: 'write_note',
+      title: 'Write Note',
+      description: 'Write a note.',
+      inputSchema: const {
+        'type': 'object',
+        'properties': {
+          'title': {'type': 'string'},
+        },
+        'required': ['title'],
+        'additionalProperties': false,
+      },
+      outputSchema: const {
+        'type': 'object',
+        'properties': {
+          'result': {
+            'anyOf': [
+              {'type': 'object', 'additionalProperties': true},
+              {'type': 'string'},
+            ],
+          },
+        },
+        'required': ['result'],
+        'x-fastmcp-wrap-result': true,
+      },
+      updatedAt: DateTime(2026),
+    );
+
+    expect(descriptor.isSupportedByClient, isTrue);
+    expect(
+      const JsonSchemaValidator().validate(const {
+        'result': 'created',
+      }, descriptor.outputSchema!),
+      isEmpty,
+    );
+  });
+
   test('task-required MCP Tools stay out of the direct execution registry', () {
     final descriptor = McpToolDescriptor(
       serverId: 'server-1',

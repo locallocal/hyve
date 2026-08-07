@@ -510,6 +510,8 @@ const _supportedJsonSchemaKeywords = <String>{
   'anyOf',
   'oneOf',
   'not',
+  // FastMCP annotation; it changes result wrapping, not validation semantics.
+  'x-fastmcp-wrap-result',
 };
 
 final class JsonSchemaValidator {

@@ -666,6 +666,16 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     ),
                   ),
                   ShadButton.ghost(
+                    key: ValueKey<String>(
+                      'desktop-bot-details-${widget.bot.id}',
+                    ),
+                    size: ShadButtonSize.sm,
+                    onPressed: () => _invokeMenuAction(widget.onOpen),
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    leading: const Icon(LucideIcons.info, size: 16),
+                    child: Text(S.of(context).details),
+                  ),
+                  ShadButton.ghost(
                     size: ShadButtonSize.sm,
                     onPressed: () => _invokeMenuAction(widget.onEdit),
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -719,6 +729,11 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
               child: Text(
                 desktopConversationText(context, S.of(context).startChatting),
               ),
+            ),
+            MenuItemButton(
+              leadingIcon: const Icon(LucideIcons.info, size: 16),
+              onPressed: widget.onOpen,
+              child: Text(S.of(context).details),
             ),
             MenuItemButton(
               leadingIcon: const Icon(Icons.edit_outlined, size: 16),

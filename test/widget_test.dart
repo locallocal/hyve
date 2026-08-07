@@ -771,7 +771,7 @@ void main() {
     expect(bindingRepository.savedBindings, [same(binding)]);
   });
 
-  testWidgets('desktop bot card opens details while its menu opens editing', (
+  testWidgets('desktop bot card menu opens details and editing', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -840,6 +840,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(selectedDetailBot?.id, bot.id);
       expect(selectedEditBot, isNull);
+      selectedDetailBot = null;
 
       await tester.tap(menuButton);
       await tester.pumpAndSettle();
@@ -847,25 +848,46 @@ void main() {
       final actionMenu = find.byKey(
         const ValueKey<String>('desktop-bot-action-menu-bot-menu'),
       );
+      final detailsAction = find.byKey(
+        const ValueKey<String>('desktop-bot-details-bot-menu'),
+      );
       final pageContext = tester.element(find.byType(ContactsPage));
+      final startChatLabel = desktopConversationText(
+        pageContext,
+        S.of(pageContext).startChatting,
+      );
+      final startChatAction = find.ancestor(
+        of: find.text(startChatLabel),
+        matching: find.byType(ShadButton),
+      );
       expect(actionMenu, findsOneWidget);
+      expect(detailsAction, findsOneWidget);
+      expect(startChatAction, findsOneWidget);
       expect(
         tester.getRect(actionMenu).right,
         closeTo(tester.getRect(menuButton).right, 1),
       );
-      expect(
-        find.text(
-          desktopConversationText(pageContext, S.of(pageContext).startChatting),
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(startChatLabel), findsOneWidget);
+      expect(find.text('详情'), findsOneWidget);
       expect(find.text('编辑'), findsOneWidget);
       expect(find.text('删除'), findsOneWidget);
       expect(
+        tester.getCenter(startChatAction).dy,
+        lessThan(tester.getCenter(detailsAction).dy),
+      );
+      expect(
         find.descendant(of: actionMenu, matching: find.byType(ShadButton)),
-        findsNWidgets(3),
+        findsNWidgets(4),
       );
 
+      await tester.tap(detailsAction);
+      await tester.pumpAndSettle();
+      expect(selectedDetailBot?.id, bot.id);
+      expect(selectedEditBot, isNull);
+      expect(actionMenu, findsNothing);
+
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('编辑'));
       await tester.pumpAndSettle();
       expect(selectedEditBot?.id, bot.id);

@@ -88,6 +88,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                         children: [
                           Text(
                             strings.skillLibrary,
+                            key: const ValueKey<String>('skill-library-title'),
                             style: DesktopThemeTokens.pageTitleStyle(context),
                           ),
                           const SizedBox(height: 6),
@@ -370,7 +371,13 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     final strings = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(strings.skillLibrary),
+        title: Text(
+          strings.skillLibrary,
+          key: const ValueKey<String>('skill-library-title'),
+          style: const TextStyle(
+            fontSize: DesktopThemeTokens.pageTitleFontSize,
+          ),
+        ),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -467,7 +474,12 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
               final skill = viewModel.paginatedSkills[index];
               return Card(
                 child: ListTile(
-                  title: Text(skill.name),
+                  title: Text(
+                    skill.name,
+                    style: const TextStyle(
+                      fontSize: DesktopThemeTokens.pageTitleFontSize,
+                    ),
+                  ),
                   subtitle: Text(
                     skill.description,
                     maxLines: 2,
@@ -630,7 +642,13 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
           context: context,
           builder:
               (dialogContext) => AlertDialog(
-                title: Text(skill.name),
+                title: Text(
+                  skill.name,
+                  key: ValueKey<String>('skill-details-title-${skill.id}'),
+                  style: const TextStyle(
+                    fontSize: DesktopThemeTokens.pageTitleFontSize,
+                  ),
+                ),
                 content: SizedBox(
                   width: 520,
                   child: SingleChildScrollView(
@@ -917,7 +935,17 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
               backgroundColor: _hovered ? theme.colorScheme.accent : null,
               title: Row(
                 children: [
-                  Expanded(child: Text(widget.skill.name)),
+                  Expanded(
+                    child: Text(
+                      widget.skill.name,
+                      key: ValueKey<String>(
+                        'desktop-skill-card-title-${widget.skill.id}',
+                      ),
+                      style: const TextStyle(
+                        fontSize: DesktopThemeTokens.pageTitleFontSize,
+                      ),
+                    ),
+                  ),
                   _SkillCardTag(
                     label:
                         widget.skill.version.isEmpty
@@ -1020,7 +1048,11 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
     final strings = S.of(context);
     final skill = widget.content.descriptor;
     return ShadDialog(
-      title: Text(skill.name),
+      title: Text(
+        skill.name,
+        key: ValueKey<String>('skill-details-title-${skill.id}'),
+        style: const TextStyle(fontSize: DesktopThemeTokens.pageTitleFontSize),
+      ),
       description: Text(skill.description),
       constraints: const BoxConstraints(maxWidth: 720),
       actions: [

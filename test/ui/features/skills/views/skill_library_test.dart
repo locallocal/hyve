@@ -277,6 +277,14 @@ void main() {
       await tester.pumpWidget(_harness(viewModel));
       await tester.pumpAndSettle();
 
+      final pageTitle = tester.widget<Text>(
+        find.byKey(const ValueKey<String>('skill-library-title')),
+      );
+      final cardTitle = tester.widget<Text>(
+        find.byKey(ValueKey<String>('desktop-skill-card-title-${skill.id}')),
+      );
+      expect(cardTitle.style?.fontSize, pageTitle.style?.fontSize);
+
       await tester.tap(
         find.byKey(ValueKey<String>('desktop-skill-card-${skill.id}')),
         kind: PointerDeviceKind.mouse,
@@ -285,6 +293,10 @@ void main() {
 
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.text('Instructions for Release Notes'), findsOneWidget);
+      final detailsTitle = tester.widget<Text>(
+        find.byKey(ValueKey<String>('skill-details-title-${skill.id}')),
+      );
+      expect(detailsTitle.style?.fontSize, pageTitle.style?.fontSize);
     } finally {
       debugDefaultTargetPlatformOverride = null;
       tester.view.resetPhysicalSize();

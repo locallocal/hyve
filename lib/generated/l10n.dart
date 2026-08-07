@@ -29,10 +29,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -1471,8 +1470,7 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc:
-          'Disabled primary action label while a request is running and cannot be cancelled',
+      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -1482,7 +1480,8 @@ class S {
     return Intl.message(
       'Stopping…',
       name: 'stopping',
-      desc: 'Disabled primary action label while cancellation is being confirmed',
+      desc:
+          'Disabled primary action label while cancellation is being confirmed',
       args: [],
     );
   }

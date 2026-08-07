@@ -1186,7 +1186,18 @@ class _EditAIBotPageState extends State<EditBotPage> {
     Key? sectionKey,
   }) {
     if (!widget.embedded) {
-      return buildSectionContainer(context, title, children);
+      return buildSectionContainer(
+        context,
+        title,
+        widget.readOnly && children.length > 1
+            ? [
+              for (var index = 0; index < children.length; index++) ...[
+                children[index],
+                if (index != children.length - 1) const Divider(height: 16),
+              ],
+            ]
+            : children,
+      );
     }
     final tokens = StarsDesktopTokens.of(context);
     return ShadCard(
@@ -1206,13 +1217,21 @@ class _EditAIBotPageState extends State<EditBotPage> {
         )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(top: 16),
+        padding: EdgeInsets.only(top: widget.readOnly ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var index = 0; index < children.length; index++) ...[
               children[index],
-              if (index != children.length - 1) const SizedBox(height: 12),
+              if (index != children.length - 1)
+                if (widget.readOnly) ...[
+                  const SizedBox(height: 8),
+                  const ShadSeparator.horizontal(
+                    margin: DesktopThemeTokens.settingsRowSeparatorMargin,
+                  ),
+                  const SizedBox(height: 8),
+                ] else
+                  const SizedBox(height: 12),
             ],
           ],
         ),
@@ -1294,6 +1313,206 @@ class _EditAIBotPageState extends State<EditBotPage> {
       _editRevision += 1;
       _isSaved = false;
     });
+  }
+
+  Widget _buildDetailValue({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required String value,
+    Widget? trailing,
+    TextAlign textAlign = TextAlign.end,
+  }) {
+    final materialTheme = Theme.of(context);
+    final displayValue = value.trim().isEmpty ? '—' : value;
+    final labelStyle =
+        widget.embedded
+            ? DesktopThemeTokens.bodyStyle(context)
+            : materialTheme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            );
+    final valueStyle =
+        widget.embedded
+            ? DesktopThemeTokens.metaStyle(context)
+            : materialTheme.textTheme.bodySmall?.copyWith(
+              color: materialTheme.colorScheme.onSurfaceVariant,
+            );
+    final iconColor =
+        widget.embedded
+            ? DesktopThemeTokens.mutedText(context)
+            : materialTheme.colorScheme.primary;
+
+    final leading = SizedBox(
+      width: DesktopThemeTokens.settingsRowIconSlotWidth,
+      child: Icon(
+        icon,
+        size: widget.embedded ? DesktopThemeTokens.settingsRowIconSize : 20,
+        color: iconColor,
+      ),
+    );
+
+    return KeyedSubtree(
+      key: key,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useSettingsRowLayout = constraints.maxWidth >= 600;
+          if (useSettingsRowLayout) {
+            return Padding(
+              padding: DesktopThemeTokens.settingsRowPadding,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: DesktopThemeTokens.settingsRowMinHeight,
+                ),
+                child: Row(
+                  children: [
+                    leading,
+                    const SizedBox(
+                      width: DesktopThemeTokens.settingsRowIconGap,
+                    ),
+                    Expanded(child: Text(label, style: labelStyle)),
+                    const SizedBox(
+                      width: DesktopThemeTokens.settingsRowValueGap,
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: DesktopThemeTokens.settingsRowValueMaxWidth,
+                      ),
+                      child: SelectableText(
+                        displayValue,
+                        textAlign: textAlign,
+                        style: valueStyle,
+                      ),
+                    ),
+                    if (trailing != null) ...[
+                      const SizedBox(width: 8),
+                      trailing,
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.embedded ? 8 : 0,
+              vertical: 8,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                leading,
+                SizedBox(
+                  width:
+                      widget.embedded
+                          ? DesktopThemeTokens.settingsRowIconGap
+                          : 16,
+                ),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(label, style: labelStyle),
+                            const SizedBox(height: 2),
+                            SelectableText(
+                              displayValue,
+                              textAlign: TextAlign.start,
+                              style: valueStyle,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 8),
+                        trailing,
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDetailApiKey() {
+    final apiKey = apiKeyController.text;
+    final displayValue =
+        apiKey.isEmpty
+            ? ''
+            : _isPasswordVisible
+            ? apiKey
+            : '••••••••••••';
+    return _buildDetailValue(
+      key: const ValueKey<String>('bot-detail-api-key'),
+      label: S.of(context).apiKey,
+      icon: Icons.key_outlined,
+      value: displayValue,
+      trailing:
+          apiKey.isEmpty
+              ? null
+              : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDetailAction(
+                    key: const ValueKey<String>('bot-detail-copy-api-key'),
+                    tooltip: S.of(context).copyApiKey,
+                    icon: Icons.copy_outlined,
+                    onPressed:
+                        () => Clipboard.setData(ClipboardData(text: apiKey)),
+                  ),
+                  _buildDetailAction(
+                    key: const ValueKey<String>('bot-detail-toggle-api-key'),
+                    tooltip:
+                        _isPasswordVisible
+                            ? S.of(context).hideApiKey
+                            : S.of(context).showApiKey,
+                    icon:
+                        _isPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildDetailAction({
+    required Key key,
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    if (widget.embedded) {
+      return ShadTooltip(
+        builder: (context) => Text(tooltip),
+        child: ShadIconButton.ghost(
+          key: key,
+          onPressed: onPressed,
+          icon: Icon(icon),
+          iconSize: 16,
+          width: 28,
+          height: 28,
+          padding: EdgeInsets.zero,
+        ),
+      );
+    }
+    return IconButton(
+      key: key,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+    );
   }
 
   Widget _buildDesktopInput({
@@ -1530,6 +1749,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildNameInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-name'),
+        label: S.of(context).botName,
+        icon: Icons.auto_awesome_outlined,
+        value: nameController.text,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-name'),
@@ -1553,6 +1780,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildProviderInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-provider'),
+        label: S.of(context).provider,
+        icon: Icons.business_outlined,
+        value: providerController.text,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-provider'),
@@ -1577,6 +1812,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildApiTypeInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-api-type'),
+        label: S.of(context).apiType,
+        icon: Icons.category_outlined,
+        value: apiTypeController.text,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-api-type'),
@@ -1597,6 +1840,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildApiAddressInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-base-url'),
+        label: S.of(context).apiAddress,
+        icon: Icons.link_rounded,
+        value: baseURLController.text,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-base-url'),
@@ -1617,6 +1868,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildApiKeyInput(double? fontSize) {
+    if (widget.readOnly) return _buildDetailApiKey();
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-api-key'),
@@ -1701,6 +1953,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildModelsInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-model'),
+        label: S.of(context).model,
+        icon: Icons.memory_outlined,
+        value: selectedModelController.text,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopInput(
         key: const ValueKey<String>('desktop-bot-model'),
@@ -1761,6 +2021,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildSystemPromptInput(double? fontSize) {
+    if (widget.readOnly) {
+      return _buildDetailValue(
+        key: const ValueKey<String>('bot-detail-system-prompt'),
+        label: S.of(context).systemPrompt.replaceAll(':', ''),
+        icon: Icons.subject_rounded,
+        value: systemPromptController.text,
+        textAlign: TextAlign.start,
+      );
+    }
     if (widget.embedded) {
       return _buildDesktopTextarea(
         label: S.of(context).systemPrompt.replaceAll(':', ''),

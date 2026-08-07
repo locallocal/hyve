@@ -532,7 +532,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 children[index],
                 if (index != children.length - 1)
                   const ShadSeparator.horizontal(
-                    margin: EdgeInsetsDirectional.only(start: 40),
+                    margin: DesktopThemeTokens.settingsRowSeparatorMargin,
                   ),
               ],
             ],
@@ -613,22 +613,24 @@ class _ProfilePageState extends State<ProfilePage> {
         width: double.infinity,
         height: 0,
         expands: true,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: DesktopThemeTokens.settingsRowPadding,
         mainAxisAlignment: MainAxisAlignment.start,
         onPressed: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 38),
+          constraints: const BoxConstraints(
+            minHeight: DesktopThemeTokens.settingsRowMinHeight,
+          ),
           child: Row(
             children: [
               SizedBox(
-                width: 24,
+                width: DesktopThemeTokens.settingsRowIconSlotWidth,
                 child: Icon(
                   icon,
-                  size: 18,
+                  size: DesktopThemeTokens.settingsRowIconSize,
                   color: DesktopThemeTokens.mutedText(context),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: DesktopThemeTokens.settingsRowIconGap),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -646,9 +648,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               if (value != null) ...[
-                const SizedBox(width: 16),
+                const SizedBox(width: DesktopThemeTokens.settingsRowValueGap),
                 ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
+                  constraints: const BoxConstraints(
+                    maxWidth: DesktopThemeTokens.settingsRowValueMaxWidth,
+                  ),
                   child: Text(
                     value,
                     textAlign: TextAlign.end,

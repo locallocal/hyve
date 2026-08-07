@@ -226,6 +226,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
     "createChatFailed": m23,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
+    "creationTime": MessageLookupByLibrary.simpleMessage("Creation Time"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Custom Provider...",
     ),
@@ -498,6 +499,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "modelConfiguration": MessageLookupByLibrary.simpleMessage(
       "Model Configuration",
     ),
+    "modelContextWindow": MessageLookupByLibrary.simpleMessage(
+      "Model Context Size",
+    ),
     "modelsRetrievedSuccess": m13,
     "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
     "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
@@ -555,6 +559,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
       "No token usage recorded",
     ),
+    "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
     "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
       "Delete this orphaned chat or recreate the missing bot.",
     ),
@@ -787,6 +792,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Structured process information",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Submit Feedback"),
+    "supported": MessageLookupByLibrary.simpleMessage("Supported"),
+    "supportsMcp": MessageLookupByLibrary.simpleMessage("Supports MCP"),
+    "supportsSkills": MessageLookupByLibrary.simpleMessage("Supports Skills"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("System Prompt"),
     "takePhoto": MessageLookupByLibrary.simpleMessage("Camera"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
@@ -808,6 +816,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompletedWithDuration": m20,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Thinking…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
+    "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "Allowed once",
     ),

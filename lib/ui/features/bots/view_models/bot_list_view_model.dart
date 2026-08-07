@@ -16,6 +16,7 @@ class BotCardMetrics {
     this.tokenUsage = ModelTokenUsage.empty,
     this.mcpServerNames = const [],
     this.skillCount = 0,
+    this.contextWindowTokens,
   });
 
   static const empty = BotCardMetrics();
@@ -23,6 +24,7 @@ class BotCardMetrics {
   final ModelTokenUsage tokenUsage;
   final List<String> mcpServerNames;
   final int skillCount;
+  final int? contextWindowTokens;
 }
 
 class BotListViewModel extends ChangeNotifier {
@@ -222,7 +224,9 @@ class BotListViewModel extends ChangeNotifier {
     final bindingsFuture =
         _botSkillBindingRepository?.getForBot(bot.id) ??
         Future<List<BotSkillBinding>>.value(const []);
-    final (usage, bindings) = await (usageFuture, bindingsFuture).wait;
+    final modelInfoFuture = _loadModelInfoForCard(bot);
+    final (usage, bindings, modelInfo) =
+        await (usageFuture, bindingsFuture, modelInfoFuture).wait;
     final serverNames =
         bot.mcpServerIds
             .map((id) => serversById[id]?.name.trim())
@@ -239,8 +243,19 @@ class BotListViewModel extends ChangeNotifier {
         tokenUsage: usage,
         mcpServerNames: List<String>.unmodifiable(serverNames),
         skillCount: bindings.length,
+        contextWindowTokens:
+            bot.configuredContextWindowTokens ?? modelInfo?.contextWindowTokens,
       ),
     );
+  }
+
+  Future<AiModelInfo?> _loadModelInfoForCard(Bot bot) async {
+    if (bot.configuredContextWindowTokens != null) return null;
+    try {
+      return await _aiProviderRepository.getModelInfo(bot);
+    } on Object {
+      return null;
+    }
   }
 
   void _scheduleMetricsLoad() {

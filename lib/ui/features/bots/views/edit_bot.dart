@@ -76,6 +76,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _isLoadingMcpServers = false;
   bool _startedLoadingMcpServers = false;
   bool _resolvedInitialMcpCapability = false;
+  bool _startedLoadingModelInfo = false;
+  AiModelInfo? _modelInfo;
 
   @override
   void initState() {
@@ -149,6 +151,18 @@ class _EditAIBotPageState extends State<EditBotPage> {
       }
     }
     if (dependencies == null) return;
+    if (widget.readOnly &&
+        !_startedLoadingModelInfo &&
+        (widget.bot.configuredContextWindowTokens == null ||
+            widget.bot.configuredSupportsSkills == null ||
+            widget.bot.configuredSupportsMcp == null)) {
+      _startedLoadingModelInfo = true;
+      unawaited(
+        _loadModelInfo(
+          () => dependencies.aiProviderRepository.getModelInfo(widget.bot),
+        ),
+      );
+    }
     if (!_resolvedInitialMcpCapability) {
       _resolvedInitialMcpCapability = true;
       final supportsMcp =
@@ -200,6 +214,15 @@ class _EditAIBotPageState extends State<EditBotPage> {
 
   void _handleSkillChanged() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadModelInfo(Future<AiModelInfo?> Function() loader) async {
+    try {
+      final modelInfo = await loader();
+      if (mounted) setState(() => _modelInfo = modelInfo);
+    } on Object {
+      // Stored metadata remains available when the provider cannot be queried.
+    }
   }
 
   Future<void> _loadMcpCatalog(Future<BotMcpCatalog> Function() loader) async {
@@ -408,7 +431,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 _buildFormSection(
                   context,
                   S.of(context).basicInformation,
-                  [_buildNameInput(fontSize)],
+                  [
+                    _buildNameInput(fontSize),
+                    if (widget.readOnly) _buildCreationTimeDetail(),
+                  ],
                   sectionKey: const ValueKey<String>(
                     'desktop-bot-basic-section',
                   ),
@@ -437,6 +463,23 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   S.of(context).modelConfiguration,
                   [
                     _buildModelsInput(fontSize),
+                    if (widget.readOnly) ...[
+                      _buildModelContextWindowDetail(),
+                      _buildModelCapabilityDetail(
+                        key: const ValueKey<String>(
+                          'bot-detail-supports-skills',
+                        ),
+                        label: S.of(context).supportsSkills,
+                        icon: Icons.extension_outlined,
+                        supported: _resolvedSupportsSkills,
+                      ),
+                      _buildModelCapabilityDetail(
+                        key: const ValueKey<String>('bot-detail-supports-mcp'),
+                        label: S.of(context).supportsMcp,
+                        icon: Icons.hub_outlined,
+                        supported: _resolvedSupportsMcp,
+                      ),
+                    ],
                     _buildSystemPromptInput(fontSize),
                   ],
                   sectionKey: const ValueKey<String>(
@@ -1244,6 +1287,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
       return;
     }
     final navigator = Navigator.of(context);
+    final keepsOriginalModel =
+        selectedModelController.text.trim() == widget.bot.model;
     final updatedBot = Bot(
       id: widget.bot.id,
       name: nameController.text.trim(),
@@ -1267,6 +1312,12 @@ class _EditAIBotPageState extends State<EditBotPage> {
         Bot.parameterSupportsMcp: _modelSupportsMcp,
         Bot.parameterSupportsAutomaticSkillActivation:
             _modelSupportsAutomaticSkillActivation,
+        if (keepsOriginalModel && widget.bot.configuredSupportsSkills != null)
+          Bot.parameterSupportsSkills: widget.bot.configuredSupportsSkills,
+        if (keepsOriginalModel &&
+            widget.bot.configuredContextWindowTokens != null)
+          Bot.parameterContextWindowTokens:
+              widget.bot.configuredContextWindowTokens,
         Bot.parameterMcpServers:
             _modelSupportsMcp
                 ? (_mcpServerIds.toList()..sort())
@@ -1774,6 +1825,73 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.auto_awesome_outlined,
         hintText: S.of(context).enterBotName,
       ),
+    );
+  }
+
+  Widget _buildCreationTimeDetail() {
+    final localizations = MaterialLocalizations.of(context);
+    final timestamp = widget.bot.createTimestamp.toLocal();
+    final formattedDate = localizations.formatFullDate(timestamp);
+    final formattedTime = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(timestamp),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return _buildDetailValue(
+      key: const ValueKey<String>('bot-detail-creation-time'),
+      label: S.of(context).creationTime,
+      icon: Icons.schedule_outlined,
+      value: '$formattedDate $formattedTime',
+    );
+  }
+
+  int? get _resolvedContextWindowTokens =>
+      _modelInfo?.contextWindowTokens ??
+      widget.bot.configuredContextWindowTokens;
+
+  bool? get _resolvedSupportsSkills {
+    final supportsSkills =
+        _modelInfo?.supportsSkills ?? widget.bot.configuredSupportsSkills;
+    if (supportsSkills != null) return supportsSkills;
+    final supportsAutomaticActivation =
+        _modelInfo?.supportsAutomaticSkillActivation ??
+        widget.bot.configuredSupportsAutomaticSkillActivation;
+    return supportsAutomaticActivation == true ? true : null;
+  }
+
+  bool? get _resolvedSupportsMcp =>
+      _modelInfo?.supportsMcp ?? widget.bot.configuredSupportsMcp;
+
+  Widget _buildModelContextWindowDetail() {
+    final contextWindowTokens = _resolvedContextWindowTokens;
+    final value =
+        contextWindowTokens == null
+            ? S.of(context).statusUnknown
+            : '${NumberFormat.decimalPattern(Localizations.localeOf(context).toString()).format(contextWindowTokens)} '
+                '${S.of(context).tokens}';
+    return _buildDetailValue(
+      key: const ValueKey<String>('bot-detail-model-context-window'),
+      label: S.of(context).modelContextWindow,
+      icon: Icons.data_array_rounded,
+      value: value,
+    );
+  }
+
+  Widget _buildModelCapabilityDetail({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required bool? supported,
+  }) {
+    return _buildDetailValue(
+      key: key,
+      label: label,
+      icon: icon,
+      value:
+          supported == null
+              ? S.of(context).statusUnknown
+              : supported
+              ? S.of(context).supported
+              : S.of(context).notSupported,
     );
   }
 

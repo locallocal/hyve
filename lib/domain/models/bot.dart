@@ -6,6 +6,8 @@ class Bot {
   static const parameterMcpTools = 'mcp_tools';
   static const parameterSupportsAutomaticSkillActivation =
       'supports_automatic_skill_activation';
+  static const parameterSupportsSkills = 'supports_skills';
+  static const parameterContextWindowTokens = 'context_window_tokens';
 
   static const apiTypeOpenAI = 'openai';
   static const apiTypeAzure = 'azure';
@@ -132,6 +134,16 @@ class Bot {
   bool? get configuredSupportsAutomaticSkillActivation {
     final value = parameters?[parameterSupportsAutomaticSkillActivation];
     return value is bool ? value : null;
+  }
+
+  bool? get configuredSupportsSkills {
+    final value = parameters?[parameterSupportsSkills];
+    return value is bool ? value : null;
+  }
+
+  int? get configuredContextWindowTokens {
+    final value = parameters?[parameterContextWindowTokens];
+    return value is int && value > 0 ? value : null;
   }
 
   static List<String> getAllApiTypes() {

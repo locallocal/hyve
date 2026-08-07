@@ -836,6 +836,30 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                               name: S.of(context).mcpServers,
                               value: '${mcpServerNames.length}',
                             ),
+                            _BotCardMetric(
+                              key: ValueKey<String>(
+                                'bot-card-context-window-${widget.bot.id}',
+                              ),
+                              icon: Icons.data_array_rounded,
+                              name: S.of(context).modelContextWindow,
+                              value:
+                                  widget.metrics.contextWindowTokens == null
+                                      ? '—'
+                                      : numberFormat.format(
+                                        widget.metrics.contextWindowTokens,
+                                      ),
+                            ),
+                            _BotCardMetric(
+                              key: ValueKey<String>(
+                                'bot-card-creation-time-${widget.bot.id}',
+                              ),
+                              icon: Icons.schedule_outlined,
+                              name: S.of(context).creationTime,
+                              value: formatTimestamp(
+                                context,
+                                widget.bot.createTimestamp,
+                              ),
+                            ),
                           ],
                         ),
                         const Spacer(),
@@ -908,6 +932,10 @@ class _BotListItemState extends State<_BotListItem> {
     final metaStyle = DesktopThemeTokens.metaStyle(
       context,
     )?.copyWith(fontSize: widget.fontSize - 2, color: selectedTextColor);
+    final contextWindow =
+        widget.metrics.contextWindowTokens == null
+            ? '—'
+            : numberFormat.format(widget.metrics.contextWindowTokens);
 
     return DesktopInteractiveListItem(
       selected: widget.isSelected,
@@ -966,6 +994,7 @@ class _BotListItemState extends State<_BotListItem> {
                 ),
                 const SizedBox(height: 3),
                 Text(
+                  '${S.of(context).modelContextWindow} $contextWindow · '
                   '${S.of(context).totalTokens} ${numberFormat.format(widget.metrics.tokenUsage.effectiveTotalTokens)} · '
                   '${S.of(context).botSkills} ${widget.metrics.skillCount} · '
                   '${S.of(context).mcpServers} ${widget.metrics.mcpServerNames.length}',

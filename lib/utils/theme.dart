@@ -709,6 +709,7 @@ class DesktopThemeTokens {
   static const double botFormSectionBorderWidth = 1;
   static const double botFormSectionTitleFontSize = 16;
   static const double pageTitleFontSize = 17;
+  static const double managementCardHeight = 220;
   static const EdgeInsets settingsRowPadding = EdgeInsets.symmetric(
     horizontal: 8,
     vertical: 10,

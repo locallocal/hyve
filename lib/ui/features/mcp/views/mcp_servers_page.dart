@@ -18,8 +18,6 @@ class McpServersPage extends StatefulWidget {
 }
 
 class _McpServersPageState extends State<McpServersPage> {
-  static const double _desktopServerCardHeight = 220;
-
   McpServersViewModel? _resolvedViewModel;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
@@ -262,7 +260,7 @@ class _McpServersPageState extends State<McpServersPage> {
             crossAxisCount: columns,
             crossAxisSpacing: gap,
             mainAxisSpacing: gap,
-            mainAxisExtent: _desktopServerCardHeight,
+            mainAxisExtent: DesktopThemeTokens.managementCardHeight,
           ),
           itemCount: servers.length,
           itemBuilder: (context, index) {

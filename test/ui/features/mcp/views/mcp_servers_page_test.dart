@@ -234,6 +234,7 @@ void main() {
       expect(githubRect.width, 453);
       expect(filesystemRect.width, 453);
       expect(githubRect.height, filesystemRect.height);
+      expect(githubRect.height, DesktopThemeTokens.managementCardHeight);
       expect(githubRect.top, filesystemRect.top);
       expect(filesystemRect.left - githubRect.right, 14);
 

@@ -928,8 +928,6 @@
     "mcpConnectionError": "Connection error",
     "mcpDisconnected": "Disconnected",
     "mcpServerName": "Server name",
-    "mcpNamespace": "Tool namespace",
-    "mcpNamespaceDescription": "1–32 lowercase letters, digits, underscores, or hyphens.",
     "mcpConnectionSettings": "Connection",
     "mcpTransport": "Transport",
     "mcpTransportStreamableHttp": "Streamable HTTP",

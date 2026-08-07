@@ -482,7 +482,6 @@ void main() {
     final server = McpServer(
       id: 'server-1',
       name: 'Docs',
-      namespace: 'docs',
       transport: McpStreamableHttpServerTransport(
         endpoint: Uri.parse('https://mcp.example.test'),
       ),
@@ -492,7 +491,6 @@ void main() {
     );
     final tool = McpToolDescriptor(
       serverId: server.id,
-      namespace: server.namespace,
       remoteName: 'search',
       title: 'Search',
       description: 'Search documentation',
@@ -524,8 +522,8 @@ void main() {
       skillToolProvider: _McpProvider(),
     );
 
-    expect(result.requestedToolNames, {'mcp.docs.search'});
-    expect(result.approvalExemptToolNames, {'mcp.docs.search'});
+    expect(result.requestedToolNames, {'mcp.server-1.search'});
+    expect(result.approvalExemptToolNames, {'mcp.server-1.search'});
 
     final unconfiguredResult = await compose(
       bot: _bot(parameters: const {Bot.parameterSupportsMcp: true}),

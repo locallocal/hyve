@@ -9,7 +9,6 @@ final class McpServerRecord {
     return McpServerRecord({
       'id': server.id,
       'name': server.name,
-      'namespace': server.namespace,
       'transport_type': server.transport.type.name,
       'transport_config_json': jsonEncode(_transportToMap(server.transport)),
       'remote_server_name': server.remoteServerName,
@@ -42,7 +41,6 @@ final class McpServerRecord {
     return McpServer(
       id: _string('id'),
       name: _string('name'),
-      namespace: _string('namespace'),
       transport: _transportFromMap(transportType, transportConfig),
       remoteServerName: _string('remote_server_name'),
       remoteServerVersion: _string('remote_server_version'),
@@ -97,7 +95,7 @@ final class McpToolRecord {
 
   final Map<String, Object?> values;
 
-  McpToolDescriptor toDomain({required String namespace}) {
+  McpToolDescriptor toDomain() {
     final outputSchemaSource = values['output_schema_json'];
     if (outputSchemaSource != null && outputSchemaSource is! String) {
       throw const FormatException(
@@ -106,7 +104,6 @@ final class McpToolRecord {
     }
     return McpToolDescriptor(
       serverId: _requiredString(values, 'server_id'),
-      namespace: namespace,
       remoteName: _requiredString(values, 'remote_name'),
       title: _requiredString(values, 'title'),
       description: _requiredString(values, 'description'),

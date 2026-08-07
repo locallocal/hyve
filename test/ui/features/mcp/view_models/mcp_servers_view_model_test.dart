@@ -58,7 +58,6 @@ void main() {
     final saved = await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Example',
-        namespace: 'example',
         endpoint: 'https://example.com/mcp',
         authType: McpAuthType.oauthAccessToken,
         accessToken: 'secret-token',
@@ -77,7 +76,6 @@ void main() {
     await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Example',
-        namespace: 'example',
         endpoint: 'https://example.com/mcp',
         authType: McpAuthType.none,
       ),
@@ -93,7 +91,6 @@ void main() {
     final saved = await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Local files',
-        namespace: 'local_files',
         transportType: McpTransportType.stdio,
         command: 'missing-mcp-server',
       ),
@@ -108,7 +105,6 @@ void main() {
     final saved = await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Local files',
-        namespace: 'local_files',
         transportType: McpTransportType.stdio,
         command: 'npx',
         arguments: '-y\n@modelcontextprotocol/server-filesystem\n/tmp',
@@ -135,7 +131,6 @@ void main() {
     final saved = await viewModel.saveAndConnect(
       const McpServerDraft(
         name: 'Local',
-        namespace: 'local',
         transportType: McpTransportType.stdio,
         command: 'npx',
         environment: 'NOT VALID',
@@ -183,7 +178,6 @@ final class _FakeMcpClient implements McpClient {
       tools: [
         McpToolDescriptor(
           serverId: server.id,
-          namespace: server.namespace,
           remoteName: 'search',
           title: 'Search',
           description: 'Search remote data.',

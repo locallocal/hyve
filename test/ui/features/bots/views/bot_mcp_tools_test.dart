@@ -508,7 +508,6 @@ Bot _bot({
 McpServer _server() => McpServer(
   id: 'server-1',
   name: 'Docs',
-  namespace: 'docs',
   transport: McpStreamableHttpServerTransport(
     endpoint: Uri.parse('https://mcp.example.test/docs'),
   ),
@@ -519,7 +518,6 @@ McpServer _server() => McpServer(
 
 McpToolDescriptor _tool(McpServer server) => McpToolDescriptor(
   serverId: server.id,
-  namespace: server.namespace,
   remoteName: 'search',
   title: 'Search',
   description: 'Search documentation.',

@@ -35,10 +35,7 @@ final class SqliteMcpServerRepository implements McpServerRepository {
     final existing = await getServer(server.id);
     await _localDatabase.upsertMcpServer(
       McpServerRecord.fromDomain(server).values,
-      clearTools:
-          existing != null &&
-          (existing.namespace != server.namespace ||
-              existing.transport != server.transport),
+      clearTools: existing != null && existing.transport != server.transport,
     );
     await _emitServers();
   }
@@ -53,11 +50,7 @@ final class SqliteMcpServerRepository implements McpServerRepository {
   Future<List<McpToolDescriptor>> getTools(String serverId) async {
     final records = await _localDatabase.loadMcpTools(serverId);
     return List<McpToolDescriptor>.unmodifiable(
-      records.map(
-        (record) => McpToolRecord(
-          record,
-        ).toDomain(namespace: record['server_namespace']! as String),
-      ),
+      records.map((record) => McpToolRecord(record).toDomain()),
     );
   }
 
@@ -80,7 +73,7 @@ final class SqliteMcpServerRepository implements McpServerRepository {
   ) async {
     return [
       for (final tool in tools)
-        if (tool.serverId != server.id || tool.namespace != server.namespace)
+        if (tool.serverId != server.id)
           throw ArgumentError.value(
             tool.remoteName,
             'tools',

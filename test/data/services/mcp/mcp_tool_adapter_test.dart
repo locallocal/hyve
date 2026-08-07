@@ -17,7 +17,7 @@ void main() {
       client: _FakeMcpClient(),
     );
 
-    expect(adapter.definition.name, 'mcp.example.search');
+    expect(adapter.definition.name, 'mcp.server-1.search');
     expect(adapter.definition.source, ToolSource.mcp);
     expect(adapter.definition.riskLevel, ToolRiskLevel.readOnly);
     expect(
@@ -132,7 +132,6 @@ McpServer _server() {
   return McpServer(
     id: 'server-1',
     name: 'Example',
-    namespace: 'example',
     transport: McpStreamableHttpServerTransport(
       endpoint: Uri.parse('https://example.com/mcp'),
     ),
@@ -151,7 +150,6 @@ McpToolDescriptor _tool({
 }) {
   return McpToolDescriptor(
     serverId: 'server-1',
-    namespace: 'example',
     remoteName: 'search',
     title: 'Search',
     description: 'Search remote records.',

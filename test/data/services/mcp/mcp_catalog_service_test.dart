@@ -112,7 +112,6 @@ McpServer _server() {
   return McpServer(
     id: 'server-1',
     name: 'Example',
-    namespace: 'example',
     transport: McpStreamableHttpServerTransport(
       endpoint: Uri.parse('https://example.com/mcp'),
     ),
@@ -125,7 +124,6 @@ McpServer _server() {
 McpToolDescriptor _tool(String name) {
   return McpToolDescriptor(
     serverId: 'server-1',
-    namespace: 'example',
     remoteName: name,
     title: name,
     description: '$name Tool',

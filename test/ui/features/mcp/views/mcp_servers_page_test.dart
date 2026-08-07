@@ -147,7 +147,6 @@ void main() {
       McpServer(
         id: 'github',
         name: 'GitHub',
-        namespace: 'github',
         transport: McpStreamableHttpServerTransport(
           endpoint: Uri.parse('https://example.com/github/mcp'),
         ),
@@ -158,7 +157,6 @@ void main() {
       McpServer(
         id: 'filesystem',
         name: 'Filesystem',
-        namespace: 'files',
         transport: McpStdioServerTransport(
           command: 'npx',
           arguments: const ['-y', '@example/filesystem-mcp'],
@@ -173,7 +171,6 @@ void main() {
         'github': [
           McpToolDescriptor(
             serverId: 'github',
-            namespace: 'github',
             remoteName: 'search_issues',
             title: '搜索议题',
             description: '搜索仓库中的议题。',
@@ -187,7 +184,6 @@ void main() {
         'filesystem': [
           McpToolDescriptor(
             serverId: 'filesystem',
-            namespace: 'files',
             remoteName: 'read_file',
             title: '读取文件',
             description: '读取工作区中的文件。',
@@ -235,7 +231,7 @@ void main() {
         final tags = tester.widgetList<ShadBadge>(
           find.descendant(of: card, matching: find.byType(ShadBadge)),
         );
-        expect(tags, hasLength(4));
+        expect(tags, hasLength(3));
         expect(
           tags.every((tag) => tag.variant == ShadBadgeVariant.outline),
           isTrue,
@@ -440,7 +436,6 @@ void main() {
     final server = McpServer(
       id: 'github',
       name: 'GitHub',
-      namespace: 'github',
       transport: McpStreamableHttpServerTransport(
         endpoint: Uri.parse('https://example.com/github/mcp'),
       ),
@@ -584,7 +579,6 @@ void main() {
 
       final inputSizes = [
         inputSize('mcp-server-name'),
-        inputSize('mcp-server-namespace'),
         inputSize('mcp-server-transport'),
         inputSize('mcp-server-endpoint'),
         inputSize('mcp-server-authentication'),

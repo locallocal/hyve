@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 13;
+  static const int databaseVersion = 14;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -301,6 +301,9 @@ class DatabaseService {
     if (oldVersion < 13 && newVersion >= 13) {
       await _resetMcpSchema(db);
     }
+    if (oldVersion >= 13 && oldVersion < 14 && newVersion >= 14) {
+      await _resetMcpSchema(db);
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -486,7 +489,6 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS mcp_servers (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        namespace TEXT NOT NULL UNIQUE,
         transport_type TEXT NOT NULL
           CHECK (transport_type IN ('streamableHttp', 'stdio')),
         transport_config_json TEXT NOT NULL,

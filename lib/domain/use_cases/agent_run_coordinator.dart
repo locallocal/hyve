@@ -386,6 +386,8 @@ final class AgentRunCoordinator {
         ToolInvocationRecord(
           callId: call.callId,
           name: call.name,
+          title: definition?.title ?? '',
+          mcpServerName: definition?.mcpServerName ?? '',
           source: definition?.source ?? ToolSource.builtIn,
           riskLevel: definition?.riskLevel ?? ToolRiskLevel.readOnly,
           status: ToolInvocationStatus.duplicate,
@@ -427,6 +429,8 @@ final class AgentRunCoordinator {
         ToolInvocationRecord(
           callId: call.callId,
           name: call.name,
+          title: tool?.definition.title ?? '',
+          mcpServerName: tool?.definition.mcpServerName ?? '',
           source: tool?.definition.source ?? ToolSource.builtIn,
           riskLevel: tool?.definition.riskLevel ?? ToolRiskLevel.readOnly,
           status: ToolInvocationStatus.denied,
@@ -446,6 +450,8 @@ final class AgentRunCoordinator {
     var record = ToolInvocationRecord(
       callId: call.callId,
       name: call.name,
+      title: definition.title,
+      mcpServerName: definition.mcpServerName,
       source: definition.source,
       riskLevel: definition.riskLevel,
       status: ToolInvocationStatus.requested,

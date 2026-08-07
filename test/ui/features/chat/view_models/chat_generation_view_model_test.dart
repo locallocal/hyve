@@ -577,7 +577,7 @@ void main() {
           await controller.startText(
             userMessage: _userMessage(),
             messages: [ChatMessage(role: 'user', content: 'Save it')],
-            requestedToolNames: const {'save_note'},
+            requestedToolNames: const {'mcp.notes.save_note'},
           ),
           isTrue,
         );
@@ -610,7 +610,12 @@ void main() {
         );
         final assistant = persisted.last;
         expect(assistant.content, 'Saved.');
-        expect(assistant.processInfo.toolCalls.single.name, 'save_note');
+        expect(
+          assistant.processInfo.toolCalls.single.name,
+          'mcp.notes.save_note',
+        );
+        expect(assistant.processInfo.toolCalls.single.title, 'Save note');
+        expect(assistant.processInfo.toolCalls.single.mcpServerName, 'Notes');
         expect(
           assistant.processInfo.toolCalls.single.approvalStatus,
           ToolApprovalDecision.allowOnce.name,
@@ -743,7 +748,9 @@ class _FakeProvider extends AiProvider {
 final class _ViewModelTool implements ExecutableTool {
   @override
   final ToolDefinition definition = ToolDefinition(
-    name: 'save_note',
+    name: 'mcp.notes.save_note',
+    title: 'Save note',
+    mcpServerName: 'Notes',
     description: 'Save a note on the device.',
     inputSchema: const {
       'type': 'object',
@@ -755,9 +762,9 @@ final class _ViewModelTool implements ExecutableTool {
       'required': ['value'],
       'additionalProperties': false,
     },
-    source: ToolSource.builtIn,
+    source: ToolSource.mcp,
     riskLevel: ToolRiskLevel.write,
-    capabilities: const {ToolCapability.localWrite},
+    capabilities: const {ToolCapability.network, ToolCapability.externalWrite},
   );
 
   int executions = 0;
@@ -801,7 +808,7 @@ final class _ViewModelAgentSession implements AgentModelSession {
   Stream<ModelEvent> start() => Stream.fromIterable([
     ToolCallRequested(
       callId: 'save-1',
-      name: 'save_note',
+      name: 'mcp.notes.save_note',
       arguments: {
         'value': 'hello',
         'api_token': 'do-not-persist',

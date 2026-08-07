@@ -2,6 +2,8 @@ class MessageToolCall {
   const MessageToolCall({
     this.callId = '',
     required this.name,
+    this.title = '',
+    this.mcpServerName = '',
     this.status = '',
     this.detail = '',
     this.source = '',
@@ -15,6 +17,8 @@ class MessageToolCall {
 
   final String callId;
   final String name;
+  final String title;
+  final String mcpServerName;
   final String status;
   final String detail;
   final String source;
@@ -36,6 +40,8 @@ class MessageToolCall {
     return MessageToolCall(
       callId: callId,
       name: name,
+      title: title,
+      mcpServerName: mcpServerName,
       status: status ?? this.status,
       detail: detail ?? this.detail,
       source: source,

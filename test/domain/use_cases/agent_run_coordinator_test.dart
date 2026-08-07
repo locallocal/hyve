@@ -250,6 +250,8 @@ void main() {
     test('runs an approval-exempt MCP Tool without prompting', () async {
       final tool = _FakeTool(
         name: 'mcp.notes.save',
+        title: 'Save note',
+        mcpServerName: 'Notes',
         source: ToolSource.mcp,
         riskLevel: ToolRiskLevel.write,
         capabilities: const {ToolCapability.externalWrite},
@@ -285,6 +287,8 @@ void main() {
       expect(result.status, AgentRunStatus.completed);
       expect(tool.executions, 1);
       expect(result.toolInvocations.single.approvalDecision, isEmpty);
+      expect(result.toolInvocations.single.title, 'Save note');
+      expect(result.toolInvocations.single.mcpServerName, 'Notes');
     });
 
     test('cancels approval wait and provider session', () async {
@@ -434,11 +438,15 @@ AgentRunRequest _request({
 final class _FakeTool implements ExecutableTool {
   _FakeTool({
     required String name,
+    String title = '',
+    String mcpServerName = '',
     ToolSource source = ToolSource.builtIn,
     ToolRiskLevel riskLevel = ToolRiskLevel.readOnly,
     Set<ToolCapability> capabilities = const {ToolCapability.compute},
   }) : definition = ToolDefinition(
          name: name,
+         title: title,
+         mcpServerName: mcpServerName,
          description: 'A test tool.',
          inputSchema: const {
            'type': 'object',

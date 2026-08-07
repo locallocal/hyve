@@ -18,6 +18,7 @@ final class McpToolAdapter implements ExecutableTool {
        definition = ToolDefinition(
          name: descriptor.canonicalName,
          title: descriptor.title,
+         mcpServerName: server.name,
          description:
              descriptor.description.isEmpty
                  ? 'Remote MCP Tool ${descriptor.remoteName}'

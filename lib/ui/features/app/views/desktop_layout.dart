@@ -1697,27 +1697,6 @@ class _InspectorRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: SelectableText(
-              value,
-              textAlign: TextAlign.right,
-              style: DesktopThemeTokens.metaStyle(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      StarsInspectorInfoRow(icon: icon, label: label, value: value);
 }

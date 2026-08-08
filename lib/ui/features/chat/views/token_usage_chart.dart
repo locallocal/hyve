@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/utils/theme.dart';
 
@@ -199,29 +200,8 @@ class _InspectorTokenMetric extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: SelectableText(
-              value,
-              textAlign: TextAlign.right,
-              style: DesktopThemeTokens.metaStyle(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      StarsInspectorInfoRow(icon: icon, label: label, value: value);
 }
 
 class TokenUsageChart extends StatelessWidget {

@@ -59,6 +59,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(ShadSwitch), findsOneWidget);
+    final summarizedTurnsValue = find.descendant(
+      of: find.byKey(const ValueKey<String>('memory-summarized-turns')),
+      matching: find.byType(SelectableText),
+    );
     final compactionStatusValue = find.descendant(
       of: find.byKey(const ValueKey<String>('memory-compaction-status')),
       matching: find.byType(SelectableText),
@@ -66,10 +70,42 @@ void main() {
     final automaticMemorySwitch = find.byKey(
       const ValueKey<String>('automatic-memory-switch'),
     );
+    final summarizedTurnsRow = find.byKey(
+      const ValueKey<String>('memory-summarized-turns'),
+    );
+    final compactionStatusRow = find.byKey(
+      const ValueKey<String>('memory-compaction-status'),
+    );
+    final automaticMemoryRow = find.byKey(
+      const ValueKey<String>('automatic-memory-row'),
+    );
     expect(
       tester.getRect(compactionStatusValue).center.dx,
       closeTo(tester.getRect(automaticMemorySwitch).center.dx, 0.01),
     );
+    expect(
+      tester.getRect(summarizedTurnsValue).center.dx,
+      closeTo(tester.getRect(automaticMemorySwitch).center.dx, 0.01),
+    );
+    expect(
+      tester.getRect(summarizedTurnsValue).right,
+      closeTo(tester.getRect(summarizedTurnsRow).right, 0.01),
+    );
+    expect(
+      tester.getRect(compactionStatusValue).right,
+      closeTo(tester.getRect(compactionStatusRow).right, 0.01),
+    );
+    expect(
+      tester.getRect(automaticMemorySwitch).right,
+      closeTo(tester.getRect(automaticMemoryRow).right, 0.01),
+    );
+    final memoryLabelLefts = [
+      tester.getRect(find.text('已摘要消息数')).left,
+      tester.getRect(find.text('压缩状态')).left,
+      tester.getRect(find.text('自动记忆')).left,
+    ];
+    expect(memoryLabelLefts[1], closeTo(memoryLabelLefts[0], 0.01));
+    expect(memoryLabelLefts[2], closeTo(memoryLabelLefts[0], 0.01));
 
     final actionsRect = tester.getRect(
       find.byKey(const ValueKey<String>('conversation-memory-actions')),

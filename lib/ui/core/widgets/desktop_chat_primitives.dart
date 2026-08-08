@@ -1,14 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/utils/theme.dart';
 
 // Shared desktop interaction primitives used by multiple feature views.
 const IconData desktopStartConversationIcon = LucideIcons.messageCircle;
 const IconData desktopBotIcon = LucideIcons.bot;
+const double starsInspectorIconLabelGap = 9;
 const double _appIconCornerRadiusRatio = 0.24;
 
 BorderRadius desktopAppIconBorderRadius(double size) =>
     BorderRadius.circular(size * _appIconCornerRadiusRatio);
+
+/// A shared label/value row for the desktop conversation inspector.
+///
+/// The label always starts after the same icon gutter. Text values occupy the
+/// available trailing region and align to its right edge, while controls can
+/// opt into a fixed-width trailing column.
+class StarsInspectorInfoRow extends StatelessWidget {
+  const StarsInspectorInfoRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.value,
+    this.trailing,
+    this.trailingWidth,
+    this.valueTextAlign = TextAlign.right,
+    this.padding = const EdgeInsets.symmetric(vertical: 9),
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.iconLabelGapKey,
+  }) : assert(
+         (value == null) != (trailing == null),
+         'Provide either value or trailing.',
+       );
+
+  final IconData icon;
+  final String label;
+  final String? value;
+  final Widget? trailing;
+  final double? trailingWidth;
+  final TextAlign valueTextAlign;
+  final EdgeInsetsGeometry padding;
+  final CrossAxisAlignment crossAxisAlignment;
+  final Key? iconLabelGapKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final trailingContent =
+        trailing ??
+        SelectableText(
+          value!,
+          textAlign: valueTextAlign,
+          style: DesktopThemeTokens.metaStyle(context),
+        );
+    final trailingColumn = switch (trailingWidth) {
+      final width? => SizedBox(width: width, child: trailingContent),
+      null => Flexible(
+        child: Align(alignment: Alignment.centerRight, child: trailingContent),
+      ),
+    };
+
+    return Padding(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: crossAxisAlignment,
+        children: [
+          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
+          SizedBox(key: iconLabelGapKey, width: starsInspectorIconLabelGap),
+          Expanded(
+            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
+          ),
+          const SizedBox(width: 8),
+          trailingColumn,
+        ],
+      ),
+    );
+  }
+}
 
 /// Applies desktop-chat-specific layout and surface overrides without
 /// changing the app-wide Shad theme.

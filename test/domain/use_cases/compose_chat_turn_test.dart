@@ -204,8 +204,10 @@ void main() {
       final shellSkill = _systemShellSkill();
       final compose = ComposeChatTurn(
         skillRepository: _FakeSkillRepository(const {}),
-        bindingRepository: _FakeBindingRepository(const []),
-        systemShellSkillLoader: () async => shellSkill,
+        bindingRepository: _FakeBindingRepository([
+          _binding(shellCommandSkillId),
+        ]),
+        bundledSkillLoader: () async => [shellSkill],
       );
 
       final result = await compose(
@@ -224,6 +226,32 @@ void main() {
       expect(result.messages.first.content, contains(shellSkill.instructions));
     },
   );
+
+  test('unbound or disabled shell system Skill exposes no tool', () async {
+    final shellSkill = _systemShellSkill();
+    for (final bindings in <List<BotSkillBinding>>[
+      const [],
+      [_binding(shellCommandSkillId, enabled: false)],
+    ]) {
+      final compose = ComposeChatTurn(
+        skillRepository: _FakeSkillRepository(const {}),
+        bindingRepository: _FakeBindingRepository(bindings),
+        bundledSkillLoader: () async => [shellSkill],
+      );
+
+      final result = await compose(
+        bot: _bot(),
+        history: const [],
+        userMessage: _message(senderId: 'user-1', content: 'List local files'),
+        currentUserId: 'user-1',
+        skillToolProvider: _FakeSkillProvider(const []),
+      );
+
+      expect(result.requestedToolNames, isEmpty);
+      expect(result.activatedSkills, isEmpty);
+      expect(result.messages.single.role, 'user');
+    }
+  });
 
   test(
     'reuses an activated reference without spending its budget twice',
@@ -620,11 +648,16 @@ SkillContent _systemShellSkill() {
   );
 }
 
-BotSkillBinding _binding(String skillId, {int priority = 0}) {
+BotSkillBinding _binding(
+  String skillId, {
+  int priority = 0,
+  bool enabled = true,
+}) {
   final now = DateTime(2026, 7, 26);
   return BotSkillBinding(
     botId: 'bot-1',
     skillId: skillId,
+    enabled: enabled,
     priority: priority,
     createdAt: now,
     updatedAt: now,

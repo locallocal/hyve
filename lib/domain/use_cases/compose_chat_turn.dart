@@ -10,8 +10,6 @@ import 'package:stars/domain/use_cases/skill_catalog.dart';
 import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 
-typedef SystemShellSkillLoader = Future<SkillContent?> Function();
-
 final class PreparedChatTurn {
   PreparedChatTurn({
     required List<ChatMessage> messages,
@@ -87,7 +85,7 @@ final class ComposeChatTurn {
     SkillContextBudget budget = const SkillContextBudget(),
     PrepareConversationContext? prepareConversationContext,
     CompactConversation? compactConversation,
-    SystemShellSkillLoader? systemShellSkillLoader,
+    BundledSkillLoader? bundledSkillLoader,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
        _mcpServerRepository = mcpServerRepository,
@@ -95,7 +93,7 @@ final class ComposeChatTurn {
        _budget = budget,
        _prepareConversationContext = prepareConversationContext,
        _compactConversation = compactConversation,
-       _systemShellSkillLoader = systemShellSkillLoader;
+       _bundledSkillLoader = bundledSkillLoader;
 
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
@@ -104,7 +102,7 @@ final class ComposeChatTurn {
   final SkillContextBudget _budget;
   final PrepareConversationContext? _prepareConversationContext;
   final CompactConversation? _compactConversation;
-  final SystemShellSkillLoader? _systemShellSkillLoader;
+  final BundledSkillLoader? _bundledSkillLoader;
 
   Future<PreparedChatTurn> call({
     required Bot bot,
@@ -113,23 +111,30 @@ final class ComposeChatTurn {
     required String currentUserId,
     AiProvider? skillToolProvider,
   }) async {
+    final bundledContents = await _loadBundledSkills();
     final bindings = await _bindingRepository.getForBot(bot.id);
     final enabledBindings =
         bindings.where((binding) => binding.enabled).toList()
           ..sort(_compareBindings);
     final descriptors = <String, SkillDescriptor>{};
     for (final binding in enabledBindings) {
-      final descriptor = await _skillRepository.getById(binding.skillId);
+      final descriptor =
+          bundledContents[binding.skillId]?.descriptor ??
+          await _skillRepository.getById(binding.skillId);
       if (descriptor != null && descriptor.isUsable) {
         descriptors[binding.skillId] = descriptor;
       }
     }
 
-    final state = _TurnSkillState();
+    final state = _TurnSkillState()..bundledContents.addAll(bundledContents);
     final provider = skillToolProvider;
+    final enabledSkillIds =
+        enabledBindings.map((binding) => binding.skillId).toSet();
     final autoBindings = enabledBindings.where(
       (binding) =>
           descriptors.containsKey(binding.skillId) &&
+          binding.skillId != shellCommandSkillId &&
+          binding.skillId != conversationHistorySkillId &&
           !state.contents.containsKey(binding.skillId),
     );
     final catalog = _skillCatalog.recall(
@@ -186,7 +191,16 @@ final class ComposeChatTurn {
       }
     }
 
-    final systemShellSkill = await _loadSystemShellSkill(provider, state);
+    final systemShellSkill = _loadSystemShellSkill(
+      provider,
+      state,
+      enabledSkillIds,
+    );
+    final conversationHistorySkillEnabled =
+        enabledSkillIds.contains(conversationHistorySkillId) &&
+        _isValidConversationHistorySkill(
+          bundledContents[conversationHistorySkillId],
+        );
     final systemShellSkillTokens =
         systemShellSkill == null
             ? 0
@@ -216,6 +230,7 @@ final class ComposeChatTurn {
               currentUserId: currentUserId,
               providerSupportsHistoryLookup:
                   provider?.capabilities.supportsAgentLoop ?? false,
+              conversationHistorySkillEnabled: conversationHistorySkillEnabled,
               skillTokens: totalSkillTokens,
             );
     if (preparedContext?.report.compressionAction ==
@@ -234,6 +249,7 @@ final class ComposeChatTurn {
           currentUserId: currentUserId,
           providerSupportsHistoryLookup:
               provider?.capabilities.supportsAgentLoop ?? false,
+          conversationHistorySkillEnabled: conversationHistorySkillEnabled,
           skillTokens: totalSkillTokens,
         );
       }
@@ -299,34 +315,51 @@ final class ComposeChatTurn {
     );
   }
 
-  Future<SkillContent?> _loadSystemShellSkill(
+  Future<Map<String, SkillContent>> _loadBundledSkills() async {
+    final loader = _bundledSkillLoader;
+    if (loader == null) return const {};
+    try {
+      return Map<String, SkillContent>.unmodifiable({
+        for (final content in await loader())
+          if (content.descriptor.scope == SkillScope.bundled)
+            content.descriptor.id: content,
+      });
+    } on Object {
+      return const {};
+    }
+  }
+
+  SkillContent? _loadSystemShellSkill(
     AiProvider? provider,
     _TurnSkillState state,
-  ) async {
-    final loader = _systemShellSkillLoader;
-    if (loader == null || provider?.capabilities.supportsAgentLoop != true) {
+    Set<String> enabledSkillIds,
+  ) {
+    if (provider?.capabilities.supportsAgentLoop != true ||
+        !enabledSkillIds.contains(shellCommandSkillId)) {
       return null;
     }
-    try {
-      final content = await loader();
-      if (content == null ||
-          content.descriptor.id != shellCommandSkillId ||
-          content.descriptor.scope != SkillScope.bundled ||
-          !content.descriptor.isUsable ||
-          !content.descriptor.requestedToolNames.contains(
-            shellCommandToolName,
-          )) {
-        return null;
-      }
-      final tokens = _estimateTokens(content.instructions);
-      if (tokens > _budget.maxTokensPerSkill ||
-          state.skillTokens + tokens > _budget.maxSkillContextTokens) {
-        return null;
-      }
-      return content;
-    } on Object {
+    final content = state.bundledContents[shellCommandSkillId];
+    if (content == null ||
+        content.descriptor.id != shellCommandSkillId ||
+        !content.descriptor.isUsable ||
+        !content.descriptor.requestedToolNames.contains(shellCommandToolName)) {
       return null;
     }
+    final tokens = _estimateTokens(content.instructions);
+    if (tokens > _budget.maxTokensPerSkill ||
+        state.skillTokens + tokens > _budget.maxSkillContextTokens) {
+      return null;
+    }
+    return content;
+  }
+
+  bool _isValidConversationHistorySkill(SkillContent? content) {
+    return content != null &&
+        content.descriptor.id == conversationHistorySkillId &&
+        content.descriptor.isUsable &&
+        content.descriptor.requestedToolNames.containsAll(
+          conversationHistoryToolNames,
+        );
   }
 
   Future<_ResolvedMcpTools> _resolveMcpTools({
@@ -652,10 +685,12 @@ ${references.isEmpty ? '' : '<available_references>\n$references\n</available_re
       if (state.contents.length >= _budget.maxActivatedSkills) {
         errorCode = 'skill_count_limit';
       } else {
-        content = await _skillRepository.load(
-          descriptor.id,
-          contentDigest: descriptor.contentDigest,
-        );
+        content =
+            state.bundledContents[descriptor.id] ??
+            await _skillRepository.load(
+              descriptor.id,
+              contentDigest: descriptor.contentDigest,
+            );
         final tokens = _estimateTokens(content.instructions);
         if (tokens > _budget.maxTokensPerSkill) {
           errorCode = 'per_skill_token_limit';
@@ -822,6 +857,7 @@ final class _TurnSkillState {
 
   final Map<String, ({SkillContent content, SkillActivationTrigger trigger})>
   contents = {};
+  final Map<String, SkillContent> bundledContents = {};
   final Map<String, SkillResourceContent> resources = {};
   final List<SkillActivationAttempt> attempts = [];
   final List<MessageToolCall> toolCalls = [];

@@ -116,6 +116,7 @@ class AppDependencies {
     required this.compactConversation,
     required this.systemConversationHistorySkill,
     required this.systemShellSkill,
+    required this.bundledSkillLoader,
     required this.createChat,
     required this.generationRegistry,
     this.skillEcosystemRepository,
@@ -166,6 +167,24 @@ class AppDependencies {
     final shellCommandTool = createHostShellCommandTool();
     final systemShellSkill =
         shellCommandTool == null ? null : SystemShellSkill();
+    Future<List<SkillContent>> loadBundledSkills() async {
+      final contents = <SkillContent>[];
+      try {
+        contents.add(await systemConversationHistorySkill.loadContent());
+      } on Object {
+        // A damaged built-in Skill is omitted while other Skills stay usable.
+      }
+      try {
+        final shellSkill = systemShellSkill;
+        if (shellSkill != null) {
+          contents.add(await shellSkill.loadContent());
+        }
+      } on Object {
+        // Shell execution fails closed if its built-in Skill is damaged.
+      }
+      return List<SkillContent>.unmodifiable(contents);
+    }
+
     final compactConversation = CompactConversation(
       messageRepository: messageRepository,
       memoryRepository: conversationMemoryRepository,
@@ -238,13 +257,7 @@ class AppDependencies {
         historySkillAvailable: () => systemConversationHistorySkill.isValid,
       ),
       compactConversation: compactConversation,
-      systemShellSkillLoader:
-          systemShellSkill == null
-              ? null
-              : () async {
-                if (!systemShellSkill.isValid) return null;
-                return systemShellSkill.loadContent();
-              },
+      bundledSkillLoader: loadBundledSkills,
     );
     final toolRegistry = DynamicToolRegistry([
       ...createBuiltInTools(),
@@ -304,6 +317,7 @@ class AppDependencies {
       compactConversation: compactConversation,
       systemConversationHistorySkill: systemConversationHistorySkill,
       systemShellSkill: systemShellSkill,
+      bundledSkillLoader: loadBundledSkills,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
         messagePersister: messageRepository.upsertMessage,
@@ -382,6 +396,7 @@ class AppDependencies {
   final CompactConversation compactConversation;
   final SystemConversationHistorySkill systemConversationHistorySkill;
   final SystemShellSkill? systemShellSkill;
+  final BundledSkillLoader bundledSkillLoader;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
   final SkillEcosystemRepository? skillEcosystemRepository;
@@ -458,6 +473,7 @@ class AppDependencies {
       botId: bot.id,
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
+      bundledSkillLoader: bundledSkillLoader,
       skillToolProvider: provider,
       supportsAutoActivation:
           bot.configuredSupportsAutomaticSkillActivation ??
@@ -470,6 +486,7 @@ class AppDependencies {
         botId: botId,
         skillRepository: skillRepository,
         bindingRepository: DraftBotSkillBindingRepository(),
+        bundledSkillLoader: bundledSkillLoader,
         supportsAutoActivation: false,
       );
 
@@ -479,11 +496,7 @@ class AppDependencies {
     ecosystemRepository: skillEcosystemRepository,
     scriptCatalogService: skillScriptCatalogService,
     catalogService: skillCatalogService,
-    bundledSkillLoader:
-        () async => [
-          await systemConversationHistorySkill.loadContent(),
-          if (systemShellSkill != null) await systemShellSkill!.loadContent(),
-        ],
+    bundledSkillLoader: bundledSkillLoader,
   );
 
   McpServersViewModel createMcpServersViewModel() => McpServersViewModel(
@@ -497,6 +510,7 @@ class AppDependencies {
         botId: bot.id,
         skillRepository: skillRepository,
         bindingRepository: botSkillBindingRepository,
+        bundledSkillLoader: bundledSkillLoader,
         supportsAutoActivation:
             bot.configuredSupportsAutomaticSkillActivation ??
             aiProviderRepository

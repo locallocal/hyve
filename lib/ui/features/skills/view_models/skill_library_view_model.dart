@@ -7,8 +7,6 @@ import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
-typedef BundledSkillLoader = Future<List<SkillContent>> Function();
-
 final class SkillLibraryViewModel extends ChangeNotifier {
   static const int defaultPageSize = 10;
 

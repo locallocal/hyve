@@ -203,6 +203,53 @@ void main() {
     expect(viewModel.availableSkills.map((skill) => skill.id), ['user:one']);
   });
 
+  test(
+    'bundled bot Skills can be added, disabled, enabled, and removed',
+    () async {
+      final bundled = _bundledSkillContent();
+      final bindingRepository = _FakeBindingRepository();
+      final viewModel = BotSkillViewModel(
+        botId: 'bot-1',
+        skillRepository: _FakeSkillRepository(const []),
+        bindingRepository: bindingRepository,
+        bundledSkillLoader: () async => [bundled],
+        supportsAutoActivation: true,
+      );
+      addTearDown(viewModel.dispose);
+      await viewModel.load();
+
+      expect(viewModel.addedSkills, isEmpty);
+      expect(viewModel.availableSkills.map((skill) => skill.id), [
+        conversationHistorySkillId,
+      ]);
+
+      await viewModel.addSkill(conversationHistorySkillId);
+      await Future<void>.delayed(Duration.zero);
+      expect(viewModel.addedSkills.map((skill) => skill.id), [
+        conversationHistorySkillId,
+      ]);
+      expect(bindingRepository.bindings.single.enabled, isTrue);
+
+      await viewModel.setEnabled(conversationHistorySkillId, false);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        viewModel.bindingFor(conversationHistorySkillId)?.enabled,
+        isFalse,
+      );
+
+      await viewModel.setEnabled(conversationHistorySkillId, true);
+      await Future<void>.delayed(Duration.zero);
+      expect(viewModel.bindingFor(conversationHistorySkillId)?.enabled, isTrue);
+
+      await viewModel.removeSkill(conversationHistorySkillId);
+      await Future<void>.delayed(Duration.zero);
+      expect(bindingRepository.bindings, isEmpty);
+      expect(viewModel.availableSkills.map((skill) => skill.id), [
+        conversationHistorySkillId,
+      ]);
+    },
+  );
+
   test('bot Skill added and available lists paginate independently', () async {
     final skillRepository = _FakeSkillRepository([
       for (var index = 1; index <= 13; index += 1) _skill('Skill $index'),
@@ -396,6 +443,43 @@ void main() {
       'user:second',
     ]);
   });
+
+  test('chat Skill catalog includes only enabled bundled bindings', () async {
+    final bundled = _bundledSkillContent();
+    final timestamp = DateTime(2026, 7, 26);
+    final bindingRepository = _FakeBindingRepository([
+      BotSkillBinding(
+        botId: 'bot-1',
+        skillId: conversationHistorySkillId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    ]);
+    final viewModel = ChatSkillViewModel(
+      botId: 'bot-1',
+      skillRepository: _FakeSkillRepository(const []),
+      bindingRepository: bindingRepository,
+      bundledSkillLoader: () async => [bundled],
+      supportsAutoActivation: true,
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    expect(viewModel.availableSkills.map((skill) => skill.id), [
+      conversationHistorySkillId,
+    ]);
+
+    await bindingRepository.save(
+      bindingRepository.bindings.single.copyWith(
+        enabled: false,
+        updatedAt: timestamp.add(const Duration(minutes: 1)),
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(viewModel.availableSkills, isEmpty);
+  });
 }
 
 final class _AutoProvider extends AiProvider {
@@ -449,7 +533,7 @@ SkillContent _bundledSkillContent() {
   final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   return SkillContent(
     descriptor: SkillDescriptor(
-      id: 'system:conversation-history',
+      id: conversationHistorySkillId,
       name: 'conversation-history',
       description: 'Search exact messages from the current conversation.',
       version: '1',
@@ -462,6 +546,7 @@ SkillContent _bundledSkillContent() {
       compatibility: 'Stars',
       installedAt: timestamp,
       updatedAt: timestamp,
+      requestedToolNames: conversationHistoryToolNames,
     ),
     instructions: 'Query conversation history when exact context is needed.',
     files: const ['SKILL.md'],

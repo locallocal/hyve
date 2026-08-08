@@ -614,6 +614,7 @@
     },
     "basicInformation": "基本信息",
     "creationTime": "创建时间",
+    "modificationTime": "修改时间",
     "providerInformation": "提供商信息",
     "modelConfiguration": "模型配置",
     "modelContextWindow": "模型上下文大小",

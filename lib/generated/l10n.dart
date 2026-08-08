@@ -1506,6 +1506,16 @@ class S {
     );
   }
 
+  /// `Modification Time`
+  String get modificationTime {
+    return Intl.message(
+      'Modification Time',
+      name: 'modificationTime',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Provider Information`
   String get providerInformation {
     return Intl.message(

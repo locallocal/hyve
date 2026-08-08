@@ -59,6 +59,9 @@ final class McpServersViewModel extends ChangeNotifier {
   List<McpToolDescriptor> toolsFor(String serverId) =>
       _toolsByServer[serverId] ?? const [];
 
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId) =>
+      _catalogService.getStdioProcessInfo(serverId);
+
   void clearError() {
     if (_error == null) return;
     _error = null;

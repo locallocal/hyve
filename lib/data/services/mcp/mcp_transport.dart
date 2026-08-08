@@ -26,3 +26,7 @@ abstract interface class McpTransport {
     required String? sessionId,
   });
 }
+
+abstract interface class McpStdioProcessInfoProvider {
+  McpStdioProcessInfo? getProcessInfo(String serverId);
+}

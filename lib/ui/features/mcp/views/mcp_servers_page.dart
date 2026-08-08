@@ -401,6 +401,7 @@ class _McpServersPageState extends State<McpServersPage> {
               return _McpServerDetailsDialog(
                 server: currentServer,
                 tools: _viewModel.toolsFor(server.id),
+                processInfo: _viewModel.getStdioProcessInfo(server.id),
               );
             },
           ),
@@ -814,10 +815,15 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
 }
 
 class _McpServerDetailsDialog extends StatelessWidget {
-  const _McpServerDetailsDialog({required this.server, required this.tools});
+  const _McpServerDetailsDialog({
+    required this.server,
+    required this.tools,
+    required this.processInfo,
+  });
 
   final McpServer server;
   final List<McpToolDescriptor> tools;
+  final McpStdioProcessInfo? processInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -875,9 +881,23 @@ class _McpServerDetailsDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
+              if (server.transport case McpStdioServerTransport transport) ...[
+                _McpStdioRuntimeDetails(
+                  serverId: server.id,
+                  transport: transport,
+                  processInfo: processInfo,
+                ),
+                const SizedBox(height: 8),
+              ],
               const ShadSeparator.horizontal(),
               const SizedBox(height: 18),
-              Text(strings.mcpTools, style: ShadTheme.of(context).textTheme.h4),
+              Text(
+                strings.mcpTools,
+                key: ValueKey<String>('mcp-tools-title-${server.id}'),
+                style: DesktopThemeTokens.pageTitleStyle(
+                  context,
+                )?.copyWith(color: tokens.secondaryText),
+              ),
               const SizedBox(height: 10),
               if (tools.isEmpty)
                 Text(
@@ -900,6 +920,108 @@ class _McpServerDetailsDialog extends StatelessWidget {
       ),
     );
   }
+}
+
+class _McpStdioRuntimeDetails extends StatelessWidget {
+  const _McpStdioRuntimeDetails({
+    required this.serverId,
+    required this.transport,
+    required this.processInfo,
+  });
+
+  final String serverId;
+  final McpStdioServerTransport transport;
+  final McpStdioProcessInfo? processInfo;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = S.of(context);
+    final info = processInfo;
+    final arguments = info?.arguments ?? transport.arguments;
+    return Column(
+      key: ValueKey<String>('mcp-stdio-runtime-$serverId'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          strings.mcpStdioProcessAndChannel,
+          key: ValueKey<String>('mcp-stdio-runtime-title-$serverId'),
+          style: DesktopThemeTokens.pageTitleStyle(
+            context,
+          )?.copyWith(color: StarsDesktopTokens.of(context).secondaryText),
+        ),
+        const SizedBox(height: 12),
+        _McpServerDetailRow(
+          label: strings.mcpProcessStatus,
+          value:
+              info == null
+                  ? strings.mcpProcessNotRunning
+                  : strings.mcpProcessRunning,
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpProcessId,
+          value: info?.processId.toString() ?? '—',
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpCommand,
+          value: info?.command ?? transport.command,
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpArguments,
+          value: arguments.isEmpty ? '—' : arguments.join('\n'),
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpProcessStartedAt,
+          value:
+              info == null ? '—' : _formatMcpProcessStartedAt(info.startedAt),
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpSecureEnvironmentVariables,
+          value:
+              info == null
+                  ? '—'
+                  : strings.mcpHiddenEnvironmentVariableCount(
+                    info.environmentVariableCount,
+                  ),
+        ),
+        _McpServerDetailRow(
+          label: strings.mcpCommunicationChannel,
+          value: strings.mcpStdioPipeChannel,
+        ),
+      ],
+    );
+  }
+}
+
+class _McpServerDetailRow extends StatelessWidget {
+  const _McpServerDetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 168,
+            child: Text(label, style: ShadTheme.of(context).textTheme.muted),
+          ),
+          Expanded(child: SelectableText(value)),
+        ],
+      ),
+    );
+  }
+}
+
+String _formatMcpProcessStartedAt(DateTime value) {
+  final local = value.toLocal();
+  String twoDigits(int number) => number.toString().padLeft(2, '0');
+  return '${local.year}-${twoDigits(local.month)}-${twoDigits(local.day)} '
+      '${twoDigits(local.hour)}:${twoDigits(local.minute)}:'
+      '${twoDigits(local.second)}';
 }
 
 class _McpServerTag extends StatelessWidget {

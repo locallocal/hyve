@@ -945,6 +945,21 @@
     "mcpCommandDescription": "填写可执行文件名称或绝对路径；命令将直接运行，不经过 Shell。",
     "mcpArguments": "参数",
     "mcpArgumentsDescription": "每行填写一个参数。",
+    "mcpStdioProcessAndChannel": "本地进程与通信",
+    "mcpProcessStatus": "进程状态",
+    "mcpProcessRunning": "运行中",
+    "mcpProcessNotRunning": "未运行",
+    "mcpProcessId": "进程 ID (PID)",
+    "mcpProcessStartedAt": "启动时间",
+    "mcpSecureEnvironmentVariables": "安全环境变量",
+    "mcpHiddenEnvironmentVariableCount": "{count} 个（值已隐藏）",
+    "@mcpHiddenEnvironmentVariableCount": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "mcpCommunicationChannel": "通信通道",
+    "mcpStdioPipeChannel": "stdin / stdout / stderr（操作系统管道）",
     "mcpEnvironment": "环境变量",
     "mcpEnvironmentDescription": "每行填写一个 KEY=VALUE。内容保存在操作系统安全凭据存储中；编辑时留空可保留现有值。",
     "mcpAuthentication": "身份验证",

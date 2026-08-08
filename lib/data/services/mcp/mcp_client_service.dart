@@ -5,7 +5,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 
-final class McpClientService implements McpClient {
+final class McpClientService implements McpClient, McpStdioProcessInfoSource {
   McpClientService({
     required Iterable<McpTransport> transports,
     required McpCredentialStore credentialStore,
@@ -25,6 +25,15 @@ final class McpClientService implements McpClient {
   final Map<String, _PendingInitialization> _pendingInitializations = {};
   final Map<String, int> _connectionEpochs = {};
   int _nextRequestId = 1;
+
+  @override
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId) {
+    final transport = _transports[McpTransportType.stdio];
+    return switch (transport) {
+      McpStdioProcessInfoProvider provider => provider.getProcessInfo(serverId),
+      _ => null,
+    };
+  }
 
   @override
   Future<McpServerCatalog> discoverTools(

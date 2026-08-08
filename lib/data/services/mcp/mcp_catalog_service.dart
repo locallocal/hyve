@@ -19,6 +19,14 @@ final class McpCatalogService {
   final DynamicToolRegistry _toolRegistry;
   final DateTime Function() _now;
 
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId) {
+    final client = _client;
+    return switch (client) {
+      McpStdioProcessInfoSource source => source.getStdioProcessInfo(serverId),
+      _ => null,
+    };
+  }
+
   Future<void> hydrateFromCache() async {
     final servers = await _repository.getServers();
     final tools = <ExecutableTool>[];

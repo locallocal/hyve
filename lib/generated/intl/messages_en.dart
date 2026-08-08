@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m31(error) => "MCP connection failed: ${error}";
 
+  static String m32(count) => "${count} configured (values hidden)";
+
   static String m12(minutes) => "${minutes} minutes ago";
 
   static String m13(count) => "Successfully retrieved ${count} models";
@@ -87,9 +89,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(error) => "Failed to get response: ${error}";
 
-  static String m32(error) => "Could not save image: ${error}";
+  static String m33(error) => "Could not save image: ${error}";
 
-  static String m33(error) => "Could not share image: ${error}";
+  static String m34(error) => "Could not share image: ${error}";
 
   static String m19(error) => "Could not import Skill: ${error}";
 
@@ -429,6 +431,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
       "Executable name or absolute path. The command runs directly without a shell.",
     ),
+    "mcpCommunicationChannel": MessageLookupByLibrary.simpleMessage(
+      "Communication channel",
+    ),
     "mcpConnected": MessageLookupByLibrary.simpleMessage("Connected"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("Connecting"),
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
@@ -446,6 +451,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
     ),
+    "mcpHiddenEnvironmentVariableCount": m32,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "Remote MCP endpoints must use HTTPS.",
     ),
@@ -465,17 +471,31 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
       "Private, local, and link-local MCP endpoints are blocked.",
     ),
+    "mcpProcessId": MessageLookupByLibrary.simpleMessage("Process ID (PID)"),
+    "mcpProcessNotRunning": MessageLookupByLibrary.simpleMessage("Not running"),
+    "mcpProcessRunning": MessageLookupByLibrary.simpleMessage("Running"),
+    "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
+    "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
       "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
     ),
+    "mcpSecureEnvironmentVariables": MessageLookupByLibrary.simpleMessage(
+      "Secure environment variables",
+    ),
     "mcpServerDetails": MessageLookupByLibrary.simpleMessage("Server details"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP Servers"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "Connect MCP Servers and discover their Tool catalogs. Configure Tools after creating an agent.",
+    ),
+    "mcpStdioPipeChannel": MessageLookupByLibrary.simpleMessage(
+      "stdin / stdout / stderr (operating system pipes)",
+    ),
+    "mcpStdioProcessAndChannel": MessageLookupByLibrary.simpleMessage(
+      "Local process and communication",
     ),
     "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
       "The stdio MCP command could not be started.",
@@ -655,7 +675,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m32,
+    "saveImageFailed": m33,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -674,7 +694,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("Send"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m33,
+    "shareImageFailed": m34,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),

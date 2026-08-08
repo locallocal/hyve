@@ -15,3 +15,7 @@ abstract interface class McpClient {
 
   Future<void> disconnect(McpServer server);
 }
+
+abstract interface class McpStdioProcessInfoSource {
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId);
+}

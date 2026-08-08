@@ -7,18 +7,28 @@ import 'package:stars/domain/models/models.dart';
 
 /// Runs a local MCP server without invoking a shell and exchanges one JSON-RPC
 /// message per line over stdin/stdout.
-final class McpStdioTransport implements McpTransport {
+final class McpStdioTransport
+    implements McpTransport, McpStdioProcessInfoProvider {
   McpStdioTransport({
     this.requestTimeout = const Duration(seconds: 30),
     this.maxMessageCharacters = 4 * 1024 * 1024,
-  }) : assert(maxMessageCharacters > 0);
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       assert(maxMessageCharacters > 0);
 
   final Duration requestTimeout;
   final int maxMessageCharacters;
+  final DateTime Function() _now;
   final Map<String, _McpStdioSession> _sessions = {};
 
   @override
   McpTransportType get type => McpTransportType.stdio;
+
+  @override
+  McpStdioProcessInfo? getProcessInfo(String serverId) {
+    final session = _sessions[serverId];
+    return session == null || session.isClosed ? null : session.processInfo;
+  }
 
   @override
   Future<McpTransportResponse> send({
@@ -135,11 +145,19 @@ final class McpStdioTransport implements McpTransport {
       );
     }
 
+    final configuration = server.transport as McpStdioServerTransport;
     late final _McpStdioSession session;
     session = _McpStdioSession(
       process: process,
       fingerprint: fingerprint,
       maxMessageCharacters: maxMessageCharacters,
+      processInfo: McpStdioProcessInfo(
+        processId: process.pid,
+        command: configuration.command.trim(),
+        arguments: configuration.arguments,
+        startedAt: _now(),
+        environmentVariableCount: environment.length,
+      ),
       onExited: () {
         if (identical(_sessions[server.id], session)) {
           _sessions.remove(server.id);
@@ -169,12 +187,14 @@ final class _McpStdioSession {
     required this.process,
     required this.fingerprint,
     required this.maxMessageCharacters,
+    required this.processInfo,
     required this.onExited,
   });
 
   final Process process;
   final String fingerprint;
   final int maxMessageCharacters;
+  final McpStdioProcessInfo processInfo;
   final void Function() onExited;
   final Map<String, Completer<Map<String, Object?>>> _pending = {};
   StreamSubscription<String>? _stdoutSubscription;

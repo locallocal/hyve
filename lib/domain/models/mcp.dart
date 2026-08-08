@@ -6,6 +6,44 @@ enum McpAuthType { none, oauthAccessToken }
 
 enum McpTransportType { streamableHttp, stdio }
 
+final class McpStdioProcessInfo {
+  McpStdioProcessInfo({
+    required this.processId,
+    required this.command,
+    List<String> arguments = const [],
+    required this.startedAt,
+    this.environmentVariableCount = 0,
+  }) : arguments = List<String>.unmodifiable(arguments) {
+    if (processId <= 0) {
+      throw ArgumentError.value(
+        processId,
+        'processId',
+        'MCP stdio process id must be positive.',
+      );
+    }
+    if (command.trim().isEmpty) {
+      throw ArgumentError.value(
+        command,
+        'command',
+        'MCP stdio process command cannot be empty.',
+      );
+    }
+    if (environmentVariableCount < 0) {
+      throw ArgumentError.value(
+        environmentVariableCount,
+        'environmentVariableCount',
+        'MCP stdio environment variable count cannot be negative.',
+      );
+    }
+  }
+
+  final int processId;
+  final String command;
+  final List<String> arguments;
+  final DateTime startedAt;
+  final int environmentVariableCount;
+}
+
 sealed class McpServerTransport {
   const McpServerTransport();
 

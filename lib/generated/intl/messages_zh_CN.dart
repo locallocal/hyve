@@ -66,6 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m31(error) => "MCP 连接失败：${error}";
 
+  static String m32(count) => "${count} 个（值已隐藏）";
+
   static String m12(minutes) => "${minutes}分钟前";
 
   static String m13(count) => "成功获取${count}个模型";
@@ -80,9 +82,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(error) => "获取回复失败: ${error}";
 
-  static String m32(error) => "保存图片失败：${error}";
+  static String m33(error) => "保存图片失败：${error}";
 
-  static String m33(error) => "分享图片失败：${error}";
+  static String m34(error) => "分享图片失败：${error}";
 
   static String m19(error) => "技能导入失败：${error}";
 
@@ -328,6 +330,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
       "填写可执行文件名称或绝对路径；命令将直接运行，不经过 Shell。",
     ),
+    "mcpCommunicationChannel": MessageLookupByLibrary.simpleMessage("通信通道"),
     "mcpConnected": MessageLookupByLibrary.simpleMessage("已连接"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("连接中"),
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage("连接错误"),
@@ -339,6 +342,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "每行填写一个 KEY=VALUE。内容保存在操作系统安全凭据存储中；编辑时留空可保留现有值。",
     ),
+    "mcpHiddenEnvironmentVariableCount": m32,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "远程 MCP 端点必须使用 HTTPS。",
     ),
@@ -356,15 +360,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
       "已阻止私网、本机和链路本地 MCP 端点。",
     ),
+    "mcpProcessId": MessageLookupByLibrary.simpleMessage("进程 ID (PID)"),
+    "mcpProcessNotRunning": MessageLookupByLibrary.simpleMessage("未运行"),
+    "mcpProcessRunning": MessageLookupByLibrary.simpleMessage("运行中"),
+    "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("启动时间"),
+    "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("进程状态"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
       "Stars 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 请求超时。"),
+    "mcpSecureEnvironmentVariables": MessageLookupByLibrary.simpleMessage(
+      "安全环境变量",
+    ),
     "mcpServerDetails": MessageLookupByLibrary.simpleMessage("服务器详情"),
     "mcpServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP 服务器"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "连接 MCP 服务器并发现工具目录；创建智能体后再按工具配置。",
+    ),
+    "mcpStdioPipeChannel": MessageLookupByLibrary.simpleMessage(
+      "stdin / stdout / stderr（操作系统管道）",
+    ),
+    "mcpStdioProcessAndChannel": MessageLookupByLibrary.simpleMessage(
+      "本地进程与通信",
     ),
     "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
       "无法启动 stdio MCP 命令。",
@@ -492,7 +510,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("保存并连接"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("保存修改"),
     "saveImage": MessageLookupByLibrary.simpleMessage("保存图片"),
-    "saveImageFailed": m32,
+    "saveImageFailed": m33,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage("保存到相册失败"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("保存中..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("搜索智能体"),
@@ -507,7 +525,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("发送"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "shareImage": MessageLookupByLibrary.simpleMessage("分享图片"),
-    "shareImageFailed": m33,
+    "shareImageFailed": m34,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "来自 Stars 的图片",
     ),

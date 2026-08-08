@@ -3631,6 +3631,106 @@ class S {
     );
   }
 
+  /// `Local process and communication`
+  String get mcpStdioProcessAndChannel {
+    return Intl.message(
+      'Local process and communication',
+      name: 'mcpStdioProcessAndChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Process status`
+  String get mcpProcessStatus {
+    return Intl.message(
+      'Process status',
+      name: 'mcpProcessStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Running`
+  String get mcpProcessRunning {
+    return Intl.message(
+      'Running',
+      name: 'mcpProcessRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not running`
+  String get mcpProcessNotRunning {
+    return Intl.message(
+      'Not running',
+      name: 'mcpProcessNotRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Process ID (PID)`
+  String get mcpProcessId {
+    return Intl.message(
+      'Process ID (PID)',
+      name: 'mcpProcessId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Started at`
+  String get mcpProcessStartedAt {
+    return Intl.message(
+      'Started at',
+      name: 'mcpProcessStartedAt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Secure environment variables`
+  String get mcpSecureEnvironmentVariables {
+    return Intl.message(
+      'Secure environment variables',
+      name: 'mcpSecureEnvironmentVariables',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} configured (values hidden)`
+  String mcpHiddenEnvironmentVariableCount(int count) {
+    return Intl.message(
+      '$count configured (values hidden)',
+      name: 'mcpHiddenEnvironmentVariableCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Communication channel`
+  String get mcpCommunicationChannel {
+    return Intl.message(
+      'Communication channel',
+      name: 'mcpCommunicationChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `stdin / stdout / stderr (operating system pipes)`
+  String get mcpStdioPipeChannel {
+    return Intl.message(
+      'stdin / stdout / stderr (operating system pipes)',
+      name: 'mcpStdioPipeChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Environment variables`
   String get mcpEnvironment {
     return Intl.message(

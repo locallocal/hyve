@@ -353,6 +353,11 @@ void main() {
             ..value = McpCredential(
               environment: {'STARS_MCP_TEST_VALUE': 'secure-environment'},
             );
+      final processStartedAt = DateTime.utc(2026, 7, 30, 9, 45);
+      final stdioTransport = McpStdioTransport(
+        requestTimeout: const Duration(seconds: 10),
+        now: () => processStartedAt,
+      );
       final client = McpClientService(
         transports: [
           McpHttpTransport(
@@ -360,7 +365,7 @@ void main() {
               resolver: (_) async => [InternetAddress('8.8.8.8')],
             ),
           ),
-          McpStdioTransport(requestTimeout: const Duration(seconds: 10)),
+          stdioTransport,
         ],
         credentialStore: credentials,
       );
@@ -390,7 +395,18 @@ void main() {
 
       expect(tools.single.remoteName, 'echo');
       expect(result.content, 'hello|secure-environment|fixture-argument');
+      final processInfo = stdioTransport.getProcessInfo(server.id);
+      expect(processInfo, isNotNull);
+      expect(processInfo!.processId, greaterThan(0));
+      expect(processInfo.command, 'dart');
+      expect(processInfo.arguments, [
+        'test/fixtures/mcp_stdio_server.dart',
+        'fixture-argument',
+      ]);
+      expect(processInfo.environmentVariableCount, 1);
+      expect(processInfo.startedAt, processStartedAt);
       await client.disconnect(server);
+      expect(stdioTransport.getProcessInfo(server.id), isNull);
     },
   );
 }

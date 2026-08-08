@@ -162,6 +162,7 @@ void main() {
           command: 'npx',
           arguments: const ['-y', '@example/filesystem-mcp'],
         ),
+        status: McpConnectionStatus.connected,
         createdAt: now,
         updatedAt: now,
       ),
@@ -202,7 +203,17 @@ void main() {
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
         repository: repository,
-        client: const _UnusedMcpClient(),
+        client: _UnusedMcpClient(
+          processInfoByServerId: {
+            'filesystem': McpStdioProcessInfo(
+              processId: 4242,
+              command: 'npx',
+              arguments: const ['-y', '@example/filesystem-mcp'],
+              startedAt: DateTime(2026, 7, 30, 9, 45),
+              environmentVariableCount: 2,
+            ),
+          },
+        ),
         toolRegistry: DynamicToolRegistry(const []),
       ),
     );
@@ -430,6 +441,62 @@ void main() {
         reason:
             'Pointer-invoked card actions must not leave a focus ring behind.',
       );
+
+      await tester.tap(filesystemCard, kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('mcp-stdio-runtime-filesystem')),
+        findsOneWidget,
+      );
+      expect(find.text('本地进程与通信'), findsOneWidget);
+      expect(find.text('进程 ID (PID)'), findsOneWidget);
+      expect(find.text('4242'), findsOneWidget);
+      expect(find.text('运行中'), findsOneWidget);
+      expect(find.text('npx'), findsOneWidget);
+      expect(find.text('-y\n@example/filesystem-mcp'), findsOneWidget);
+      expect(find.text('2026-07-30 09:45:00'), findsOneWidget);
+      expect(find.text('stdin / stdout / stderr（操作系统管道）'), findsOneWidget);
+      expect(find.text('Socket'), findsNothing);
+      expect(find.text('不适用（stdio 使用进程管道）'), findsNothing);
+      expect(find.text('2 个（值已隐藏）'), findsOneWidget);
+      final filesystemDetailsTitle = tester.widget<Text>(
+        find.byKey(
+          const ValueKey<String>('mcp-server-details-title-filesystem'),
+        ),
+      );
+      final runtimeTitle = tester.widget<Text>(
+        find.byKey(
+          const ValueKey<String>('mcp-stdio-runtime-title-filesystem'),
+        ),
+      );
+      final toolsTitle = tester.widget<Text>(
+        find.byKey(const ValueKey<String>('mcp-tools-title-filesystem')),
+      );
+      final secondaryText =
+          StarsDesktopTokens.of(
+            tester.element(
+              find.byKey(
+                const ValueKey<String>('mcp-stdio-runtime-title-filesystem'),
+              ),
+            ),
+          ).secondaryText;
+      expect(
+        runtimeTitle.style?.fontSize,
+        filesystemDetailsTitle.style?.fontSize,
+      );
+      expect(
+        toolsTitle.style?.fontSize,
+        filesystemDetailsTitle.style?.fontSize,
+      );
+      expect(runtimeTitle.style?.color, secondaryText);
+      expect(toolsTitle.style?.color, secondaryText);
+      expect(
+        runtimeTitle.style?.color,
+        isNot(filesystemDetailsTitle.style?.color),
+      );
+
+      await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
 
       final searchInput = find.descendant(
         of: find.byKey(const ValueKey<String>('mcp-search-field')),
@@ -910,8 +977,14 @@ final class _UnusedCredentialStore implements McpCredentialStore {
       throw UnimplementedError();
 }
 
-final class _UnusedMcpClient implements McpClient {
-  const _UnusedMcpClient();
+final class _UnusedMcpClient implements McpClient, McpStdioProcessInfoSource {
+  const _UnusedMcpClient({this.processInfoByServerId = const {}});
+
+  final Map<String, McpStdioProcessInfo> processInfoByServerId;
+
+  @override
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId) =>
+      processInfoByServerId[serverId];
 
   @override
   Future<McpToolCallResult> callTool({

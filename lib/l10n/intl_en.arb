@@ -945,6 +945,21 @@
     "mcpCommandDescription": "Executable name or absolute path. The command runs directly without a shell.",
     "mcpArguments": "Arguments",
     "mcpArgumentsDescription": "Enter one argument per line.",
+    "mcpStdioProcessAndChannel": "Local process and communication",
+    "mcpProcessStatus": "Process status",
+    "mcpProcessRunning": "Running",
+    "mcpProcessNotRunning": "Not running",
+    "mcpProcessId": "Process ID (PID)",
+    "mcpProcessStartedAt": "Started at",
+    "mcpSecureEnvironmentVariables": "Secure environment variables",
+    "mcpHiddenEnvironmentVariableCount": "{count} configured (values hidden)",
+    "@mcpHiddenEnvironmentVariableCount": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "mcpCommunicationChannel": "Communication channel",
+    "mcpStdioPipeChannel": "stdin / stdout / stderr (operating system pipes)",
     "mcpEnvironment": "Environment variables",
     "mcpEnvironmentDescription": "Enter one KEY=VALUE per line. Values are stored in the operating system's secure credential store; leave blank while editing to keep existing values.",
     "mcpAuthentication": "Authentication",

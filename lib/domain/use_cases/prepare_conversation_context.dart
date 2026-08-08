@@ -50,6 +50,7 @@ final class PrepareConversationContext {
     required Message userMessage,
     required String currentUserId,
     required bool providerSupportsHistoryLookup,
+    bool conversationHistorySkillEnabled = true,
     int skillTokens = 0,
   }) async {
     final warnings = <String>[];
@@ -101,11 +102,13 @@ final class PrepareConversationContext {
     );
     final preliminaryAvailable = inputBudget - p0Tokens;
     final wouldOmit = totalTurnTokens > preliminaryAvailable;
+    final historySkillAvailable =
+        conversationHistorySkillEnabled && _historySkillAvailable();
     final historyLookupAvailable =
         providerSupportsHistoryLookup &&
-        _historySkillAvailable() &&
+        historySkillAvailable &&
         (wouldOmit || summary != null);
-    if ((!providerSupportsHistoryLookup || !_historySkillAvailable()) &&
+    if ((!providerSupportsHistoryLookup || !historySkillAvailable) &&
         (wouldOmit || summary != null)) {
       warnings.add('history_lookup_unavailable');
     }

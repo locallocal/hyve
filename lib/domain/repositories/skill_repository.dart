@@ -1,5 +1,7 @@
 import 'package:stars/domain/models/models.dart';
 
+typedef BundledSkillLoader = Future<List<SkillContent>> Function();
+
 abstract interface class SkillRepository {
   Stream<List<SkillDescriptor>> get changes;
 

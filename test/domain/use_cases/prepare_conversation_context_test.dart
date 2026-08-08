@@ -94,6 +94,29 @@ void main() {
     },
   );
 
+  test(
+    'does not expose history lookup when its system Skill is disabled',
+    () async {
+      final useCase = PrepareConversationContext(
+        memoryRepository: _MemoryRepository(summary: _summary()),
+        aiProviderRepository: _AiRepository(contextWindow: 4096, output: 512),
+      );
+
+      final result = await useCase(
+        bot: _bot(),
+        systemPrompt: '',
+        history: const [],
+        userMessage: _current('continue'),
+        currentUserId: 'user_1',
+        providerSupportsHistoryLookup: true,
+        conversationHistorySkillEnabled: false,
+      );
+
+      expect(result.report.historyLookupAvailable, isFalse);
+      expect(result.report.warnings, contains('history_lookup_unavailable'));
+    },
+  );
+
   test('does not silently truncate P0 content', () async {
     final useCase = PrepareConversationContext(
       memoryRepository: _MemoryRepository(),

@@ -16,10 +16,12 @@ final class BotSkillViewModel extends ChangeNotifier {
     required BotSkillBindingRepository bindingRepository,
     AiProvider? skillToolProvider,
     bool? supportsAutoActivation,
+    BundledSkillLoader? bundledSkillLoader,
     TestSkillDescription testSkillDescription = const TestSkillDescription(),
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
+       _bundledSkillLoader = bundledSkillLoader,
        _skillToolProvider = skillToolProvider,
        _supportsAutoActivation =
            supportsAutoActivation ??
@@ -34,6 +36,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   final String botId;
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
+  final BundledSkillLoader? _bundledSkillLoader;
   final AiProvider? _skillToolProvider;
   bool _supportsAutoActivation;
   final TestSkillDescription _testSkillDescription;
@@ -234,9 +237,19 @@ final class BotSkillViewModel extends ChangeNotifier {
       final results = await Future.wait<Object>([
         _skillRepository.getInstalled(forceRefresh: true),
         _bindingRepository.getForBot(botId),
+        _bundledSkillLoader?.call() ?? Future.value(const <SkillContent>[]),
       ]);
-      _skills = results[0] as List<SkillDescriptor>;
+      final installed = results[0] as List<SkillDescriptor>;
       final bindings = results[1] as List<BotSkillBinding>;
+      final bundled = results[2] as List<SkillContent>;
+      final merged = <String, SkillDescriptor>{
+        for (final content in bundled)
+          content.descriptor.id: content.descriptor,
+      };
+      for (final skill in installed) {
+        merged.putIfAbsent(skill.id, () => skill);
+      }
+      _skills = List<SkillDescriptor>.unmodifiable(merged.values);
       _bindings = Map<String, BotSkillBinding>.unmodifiable({
         for (final binding in bindings) binding.skillId: binding,
       });

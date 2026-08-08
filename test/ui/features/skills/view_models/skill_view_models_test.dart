@@ -39,6 +39,32 @@ void main() {
     },
   );
 
+  test('library merges and loads read-only bundled Skills', () async {
+    final bundled = _bundledSkillContent();
+    final repository = _FakeSkillRepository([_skill('one')]);
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: repository,
+      pickerRepository: const _FakeSkillPickerRepository(null),
+      bundledSkillLoader: () async => [bundled],
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+
+    expect(viewModel.skills.map((skill) => skill.id), [
+      'system:conversation-history',
+      'user:one',
+    ]);
+    expect(
+      await viewModel.loadContent('system:conversation-history'),
+      same(bundled),
+    );
+
+    await viewModel.uninstall('system:conversation-history');
+
+    expect(viewModel.skills.first.id, 'system:conversation-history');
+  });
+
   test('library searches Skill names and descriptions', () async {
     final repository = _FakeSkillRepository([
       _skill('Release Notes', description: 'Create polished changelogs'),
@@ -416,6 +442,29 @@ SkillDescriptor _skill(String name, {String? description}) {
     compatibility: '',
     installedAt: timestamp,
     updatedAt: timestamp,
+  );
+}
+
+SkillContent _bundledSkillContent() {
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return SkillContent(
+    descriptor: SkillDescriptor(
+      id: 'system:conversation-history',
+      name: 'conversation-history',
+      description: 'Search exact messages from the current conversation.',
+      version: '1',
+      scope: SkillScope.bundled,
+      sourceUri: 'asset:///conversation-history/SKILL.md',
+      rootPath: 'assets/skills/system/conversation-history',
+      contentDigest: 'system-digest',
+      trustState: SkillTrustState.bundledTrusted,
+      validationStatus: SkillValidationStatus.valid,
+      compatibility: 'Stars',
+      installedAt: timestamp,
+      updatedAt: timestamp,
+    ),
+    instructions: 'Query conversation history when exact context is needed.',
+    files: const ['SKILL.md'],
   );
 }
 

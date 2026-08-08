@@ -455,6 +455,8 @@ class AppDependencies {
     ecosystemRepository: skillEcosystemRepository,
     scriptCatalogService: skillScriptCatalogService,
     catalogService: skillCatalogService,
+    bundledSkillLoader:
+        () async => [await systemConversationHistorySkill.loadContent()],
   );
 
   McpServersViewModel createMcpServersViewModel() => McpServersViewModel(

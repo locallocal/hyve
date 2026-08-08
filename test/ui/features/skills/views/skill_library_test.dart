@@ -165,6 +165,67 @@ void main() {
     }
   });
 
+  testWidgets('desktop Skill library shows the bundled history Skill', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    final bundled = _bundledSkillContent();
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: const _FakeSkillRepository([]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+      bundledSkillLoader: () async => [bundled],
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(
+          const ValueKey<String>(
+            'desktop-skill-card-system:conversation-history',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('conversation-history'), findsOneWidget);
+      expect(find.text('内置'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>(
+            'desktop-skill-menu-button-system:conversation-history',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(
+          const ValueKey<String>(
+            'desktop-skill-details-system:conversation-history',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey<String>(
+            'desktop-skill-uninstall-system:conversation-history',
+          ),
+        ),
+        findsNothing,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
   testWidgets('desktop Skill card uses one outline style for every tag', (
     tester,
   ) async {
@@ -711,6 +772,29 @@ SkillDescriptor _skill(
     signatureStatus: signatureStatus,
     installedAt: timestamp,
     updatedAt: timestamp,
+  );
+}
+
+SkillContent _bundledSkillContent() {
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return SkillContent(
+    descriptor: SkillDescriptor(
+      id: 'system:conversation-history',
+      name: 'conversation-history',
+      description: 'Search exact messages from the current conversation.',
+      version: '1',
+      scope: SkillScope.bundled,
+      sourceUri: 'asset:///conversation-history/SKILL.md',
+      rootPath: 'assets/skills/system/conversation-history',
+      contentDigest: 'system-digest',
+      trustState: SkillTrustState.bundledTrusted,
+      validationStatus: SkillValidationStatus.valid,
+      compatibility: 'Stars',
+      installedAt: timestamp,
+      updatedAt: timestamp,
+    ),
+    instructions: 'Query conversation history when exact context is needed.',
+    files: const ['SKILL.md'],
   );
 }
 

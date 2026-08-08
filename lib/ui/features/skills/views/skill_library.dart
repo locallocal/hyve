@@ -289,7 +289,10 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                   scriptEnabled: viewModel.isScriptEnabled(skill.id),
                   update: update,
                   onOpen: () => _showDetails(context, skill),
-                  onUninstall: () => _confirmUninstall(context, skill),
+                  onUninstall:
+                      skill.scope == SkillScope.bundled
+                          ? null
+                          : () => _confirmUninstall(context, skill),
                   onToggleScripts: () => _confirmScriptToggle(context, skill),
                   onUpdate:
                       update == null
@@ -485,11 +488,14 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   onTap: () => _showDetails(context, skill),
-                  trailing: IconButton(
-                    tooltip: strings.uninstallSkill,
-                    onPressed: () => _confirmUninstall(context, skill),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
+                  trailing:
+                      skill.scope == SkillScope.bundled
+                          ? null
+                          : IconButton(
+                            tooltip: strings.uninstallSkill,
+                            onPressed: () => _confirmUninstall(context, skill),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
                 ),
               );
             },
@@ -705,6 +711,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     BuildContext context,
     SkillDescriptor skill,
   ) async {
+    if (skill.scope == SkillScope.bundled) return;
     final strings = S.of(context);
     final confirmed =
         isDesktopOrTabletPlatform(context)
@@ -783,7 +790,7 @@ class _DesktopSkillCard extends StatefulWidget {
   final bool scriptEnabled;
   final OnlineSkillCatalogEntry? update;
   final VoidCallback onOpen;
-  final VoidCallback onUninstall;
+  final VoidCallback? onUninstall;
   final VoidCallback onToggleScripts;
   final VoidCallback? onUpdate;
 
@@ -909,18 +916,19 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                         leading: const Icon(LucideIcons.download, size: 16),
                         child: Text(S.of(context).installSkillUpdate),
                       ),
-                    ShadButton.raw(
-                      key: ValueKey<String>(
-                        'desktop-skill-uninstall-${widget.skill.id}',
+                    if (widget.onUninstall != null)
+                      ShadButton.raw(
+                        key: ValueKey<String>(
+                          'desktop-skill-uninstall-${widget.skill.id}',
+                        ),
+                        variant: ShadButtonVariant.ghost,
+                        size: ShadButtonSize.sm,
+                        foregroundColor: colors.destructive,
+                        onPressed: () => _invokeMenuAction(widget.onUninstall!),
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        leading: const Icon(LucideIcons.trash2, size: 16),
+                        child: Text(S.of(context).uninstall),
                       ),
-                      variant: ShadButtonVariant.ghost,
-                      size: ShadButtonSize.sm,
-                      foregroundColor: colors.destructive,
-                      onPressed: () => _invokeMenuAction(widget.onUninstall),
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      leading: const Icon(LucideIcons.trash2, size: 16),
-                      child: Text(S.of(context).uninstall),
-                    ),
                   ],
                 ),
               ),
@@ -1001,7 +1009,9 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                           runSpacing: 6,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            if (widget.skill.version.isEmpty)
+                            if (widget.skill.scope == SkillScope.bundled)
+                              _SkillCardTag(label: strings.toolSourceBuiltIn)
+                            else if (widget.skill.version.isEmpty)
                               _SkillCardTag(label: strings.skillUserScope),
                             if (widget.hasScriptTools)
                               widget.scriptEnabled
@@ -1015,23 +1025,27 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                               _SkillCardTag(
                                 label: strings.skillUpdateAvailable,
                               ),
-                            if (widget.skill.signatureStatus ==
-                                SkillSignatureStatus.verified)
+                            if (widget.skill.scope != SkillScope.bundled &&
+                                widget.skill.signatureStatus ==
+                                    SkillSignatureStatus.verified)
                               _SkillCardTag(
                                 label: strings.skillSignatureVerified,
                               ),
-                            if (widget.skill.signatureStatus ==
-                                SkillSignatureStatus.unsigned)
+                            if (widget.skill.scope != SkillScope.bundled &&
+                                widget.skill.signatureStatus ==
+                                    SkillSignatureStatus.unsigned)
                               _SkillCardTag(
                                 label: strings.skillSignatureUnsigned,
                               ),
-                            if (widget.skill.signatureStatus ==
-                                SkillSignatureStatus.unknownPublisher)
+                            if (widget.skill.scope != SkillScope.bundled &&
+                                widget.skill.signatureStatus ==
+                                    SkillSignatureStatus.unknownPublisher)
                               _SkillCardTag(
                                 label: strings.skillSignatureUnknownPublisher,
                               ),
-                            if (widget.skill.signatureStatus ==
-                                SkillSignatureStatus.invalid)
+                            if (widget.skill.scope != SkillScope.bundled &&
+                                widget.skill.signatureStatus ==
+                                    SkillSignatureStatus.invalid)
                               _SkillCardTag(
                                 label: strings.skillSignatureInvalid,
                               ),

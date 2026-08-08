@@ -7,6 +7,8 @@ import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
+typedef BundledSkillLoader = Future<List<SkillContent>> Function();
+
 final class SkillLibraryViewModel extends ChangeNotifier {
   static const int defaultPageSize = 10;
 
@@ -16,16 +18,18 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     SkillEcosystemRepository? ecosystemRepository,
     SkillScriptCatalogService? scriptCatalogService,
     SkillCatalogService? catalogService,
+    BundledSkillLoader? bundledSkillLoader,
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
        _pickerRepository = pickerRepository,
        _ecosystemRepository = ecosystemRepository,
        _scriptCatalogService = scriptCatalogService,
        _catalogService = catalogService,
+       _bundledSkillLoader = bundledSkillLoader,
        assert(pageSize > 0) {
     _changesSubscription = _skillRepository.changes.listen((skills) {
       if (_disposed) return;
-      _applySkills(skills);
+      _applyInstalledSkills(skills);
       unawaited(_refreshEcosystemState());
     });
   }
@@ -35,10 +39,13 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   final SkillEcosystemRepository? _ecosystemRepository;
   final SkillScriptCatalogService? _scriptCatalogService;
   final SkillCatalogService? _catalogService;
+  final BundledSkillLoader? _bundledSkillLoader;
   final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _changesSubscription;
 
   List<SkillDescriptor> _skills = const [];
+  List<SkillDescriptor> _installedSkills = const [];
+  Map<String, SkillContent> _bundledContents = const {};
   List<SkillDescriptor> _filteredSkills = const [];
   String _query = '';
   int _pageIndex = 0;
@@ -102,10 +109,12 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _applySkills(
-        await _skillRepository.getInstalled(forceRefresh: true),
-        notify: false,
-      );
+      final installed = await _skillRepository.getInstalled(forceRefresh: true);
+      final bundled = await _bundledSkillLoader?.call() ?? const [];
+      _bundledContents = Map<String, SkillContent>.unmodifiable({
+        for (final content in bundled) content.descriptor.id: content,
+      });
+      _applyInstalledSkills(installed, notify: false);
       await _refreshEcosystemState(notify: false);
     } catch (error) {
       _error = error;
@@ -147,10 +156,11 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     return source == null ? null : _install(source);
   }
 
-  Future<SkillContent> loadContent(String skillId) =>
-      _skillRepository.load(skillId);
+  Future<SkillContent> loadContent(String skillId) async =>
+      _bundledContents[skillId] ?? await _skillRepository.load(skillId);
 
   Future<void> uninstall(String skillId) async {
+    if (_bundledContents.containsKey(skillId)) return;
     _error = null;
     notifyListeners();
     try {
@@ -182,10 +192,13 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     SkillDescriptor skill,
     SkillUpdatePolicy policy,
   ) async {
+    if (skill.scope == SkillScope.bundled) return;
     final repository = _ecosystemRepository;
     if (repository == null) return;
     await repository.setSkillUpdatePolicy(skill.id, policy);
-    _applySkills(await _skillRepository.getInstalled(forceRefresh: true));
+    _applyInstalledSkills(
+      await _skillRepository.getInstalled(forceRefresh: true),
+    );
   }
 
   Future<void> refreshCatalogs() async {
@@ -206,7 +219,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
         }
       }
       await service.applyAutomaticUpdates();
-      _applySkills(
+      _applyInstalledSkills(
         await _skillRepository.getInstalled(forceRefresh: true),
         notify: false,
       );
@@ -225,7 +238,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     final service = _catalogService;
     if (service == null) return;
     await service.install(entry);
-    _applySkills(
+    _applyInstalledSkills(
       await _skillRepository.getInstalled(forceRefresh: true),
       notify: false,
     );
@@ -256,6 +269,21 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     _skills = List<SkillDescriptor>.unmodifiable(skills);
     _applyFilter();
     if (notify) notifyListeners();
+  }
+
+  void _applyInstalledSkills(
+    List<SkillDescriptor> skills, {
+    bool notify = true,
+  }) {
+    _installedSkills = List<SkillDescriptor>.unmodifiable(skills);
+    final merged = <String, SkillDescriptor>{
+      for (final content in _bundledContents.values)
+        content.descriptor.id: content.descriptor,
+    };
+    for (final skill in _installedSkills) {
+      merged.putIfAbsent(skill.id, () => skill);
+    }
+    _applySkills(merged.values.toList(), notify: notify);
   }
 
   void _applyFilter() {

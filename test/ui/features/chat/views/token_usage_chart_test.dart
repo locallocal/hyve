@@ -59,6 +59,23 @@ void main() {
     expect(inputRect.top, greaterThan(totalRect.top));
     expect(outputRect.top, greaterThan(inputRect.top));
 
+    final metricFinders = [totalMetric, inputMetric, outputMetric];
+    final labelLefts = <double>[];
+    for (final metric in metricFinders) {
+      final label = find.descendant(of: metric, matching: find.byType(Text));
+      final value = find.descendant(
+        of: metric,
+        matching: find.byType(SelectableText),
+      );
+      labelLefts.add(tester.getRect(label).left);
+      expect(
+        tester.getRect(value).right,
+        closeTo(tester.getRect(metric).right, 0.01),
+      );
+    }
+    expect(labelLefts[1], closeTo(labelLefts[0], 0.01));
+    expect(labelLefts[2], closeTo(labelLefts[0], 0.01));
+
     final totalLabel = tester.widget<Text>(find.text('Token 总量'));
     final inputLabel = tester.widget<Text>(find.text('输入 Token'));
     final outputLabel = tester.widget<Text>(find.text('输出 Token'));

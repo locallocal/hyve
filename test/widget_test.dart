@@ -2243,6 +2243,24 @@ void main() {
       final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
       expect(sheet.constraints?.minWidth, DesktopThemeTokens.inspectorWidth);
       expect(sheet.constraints?.maxWidth, DesktopThemeTokens.inspectorWidth);
+      final infoRows = find.byType(StarsInspectorInfoRow);
+      expect(infoRows, findsNWidgets(3));
+      final labelLefts = <double>[];
+      for (var index = 0; index < 3; index += 1) {
+        final row = infoRows.at(index);
+        final label = find.descendant(of: row, matching: find.byType(Text));
+        final value = find.descendant(
+          of: row,
+          matching: find.byType(SelectableText),
+        );
+        labelLefts.add(tester.getRect(label).left);
+        expect(
+          tester.getRect(value).right,
+          closeTo(tester.getRect(row).right, 0.01),
+        );
+      }
+      expect(labelLefts[1], closeTo(labelLefts[0], 0.01));
+      expect(labelLefts[2], closeTo(labelLefts[0], 0.01));
       expect(tester.takeException(), isNull);
     });
   });

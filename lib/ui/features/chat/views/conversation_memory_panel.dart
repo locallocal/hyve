@@ -11,7 +11,6 @@ import 'package:stars/ui/features/chat/view_models/conversation_memory_view_mode
 import 'package:stars/utils/theme.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-const double _memoryIconLabelGap = 9;
 const double _memoryTrailingControlWidth = 44;
 
 final class ConversationMemoryPanel extends StatefulWidget {
@@ -111,6 +110,8 @@ final class _ConversationMemoryPanelState
             key: const ValueKey<String>('memory-summarized-turns'),
             icon: Icons.summarize_outlined,
             label: S.of(context).summarizedTurns,
+            valueWidth: _memoryTrailingControlWidth,
+            valueTextAlign: TextAlign.center,
             value: numberFormat.format(
               viewModel.summary?.metadata.sourceMessageIds.length ?? 0,
             ),
@@ -380,36 +381,12 @@ final class _MemoryMetric extends StatelessWidget {
   final TextAlign valueTextAlign;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 9),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
-        ),
-        const SizedBox(width: 8),
-        if (valueWidth case final width?)
-          SizedBox(
-            width: width,
-            child: SelectableText(
-              value,
-              textAlign: valueTextAlign,
-              style: DesktopThemeTokens.metaStyle(context),
-            ),
-          )
-        else
-          Flexible(
-            child: SelectableText(
-              value,
-              textAlign: valueTextAlign,
-              style: DesktopThemeTokens.metaStyle(context),
-            ),
-          ),
-      ],
-    ),
+  Widget build(BuildContext context) => StarsInspectorInfoRow(
+    icon: icon,
+    label: label,
+    value: value,
+    trailingWidth: valueWidth,
+    valueTextAlign: valueTextAlign,
   );
 }
 
@@ -426,34 +403,20 @@ final class _AutomaticMemoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MergeSemantics(
-    child: Padding(
+    child: StarsInspectorInfoRow(
+      key: const ValueKey<String>('automatic-memory-row'),
+      icon: LucideIcons.brain,
+      label: S.of(context).automaticMemory,
       padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(
-            LucideIcons.brain,
-            size: 17,
-            color: DesktopThemeTokens.mutedText(context),
-          ),
-          const SizedBox(
-            key: ValueKey<String>('automatic-memory-icon-gap'),
-            width: _memoryIconLabelGap,
-          ),
-          Expanded(
-            child: Text(
-              S.of(context).automaticMemory,
-              style: DesktopThemeTokens.bodyStyle(context),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ShadSwitch(
-            key: const ValueKey<String>('automatic-memory-switch'),
-            width: _memoryTrailingControlWidth,
-            value: value,
-            enabled: enabled,
-            onChanged: onChanged,
-          ),
-        ],
+      crossAxisAlignment: CrossAxisAlignment.center,
+      iconLabelGapKey: const ValueKey<String>('automatic-memory-icon-gap'),
+      trailingWidth: _memoryTrailingControlWidth,
+      trailing: ShadSwitch(
+        key: const ValueKey<String>('automatic-memory-switch'),
+        width: _memoryTrailingControlWidth,
+        value: value,
+        enabled: enabled,
+        onChanged: onChanged,
       ),
     ),
   );
@@ -493,7 +456,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: _memoryIconLabelGap,
+        gap: starsInspectorIconLabelGap,
         onPressed: onViewSummary,
         leading: Icon(LucideIcons.fileText, size: iconSize),
         child: label(S.of(context).viewSummary),
@@ -503,7 +466,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: _memoryIconLabelGap,
+        gap: starsInspectorIconLabelGap,
         onPressed: onManage,
         leading: Icon(LucideIcons.brain, size: iconSize),
         child: label(S.of(context).manageMemory),
@@ -513,7 +476,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: _memoryIconLabelGap,
+        gap: starsInspectorIconLabelGap,
         onPressed: compacting ? null : onCompact,
         leading:
             compacting

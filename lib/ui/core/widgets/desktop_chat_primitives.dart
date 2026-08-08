@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 // Shared desktop interaction primitives used by multiple feature views.
 const IconData desktopStartConversationIcon = LucideIcons.messageCircle;
+const IconData desktopBotIcon = LucideIcons.bot;
 const double _appIconCornerRadiusRatio = 0.24;
 
 BorderRadius desktopAppIconBorderRadius(double size) =>

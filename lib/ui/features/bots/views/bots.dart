@@ -444,11 +444,7 @@ class ContactsPageState extends State<ContactsPage> {
     if (isDesktop) {
       return DesktopEmptyStateCard(
         icon:
-            searchQuery.isNotEmpty
-                ? Icons.search_off_rounded
-                : Icons.smart_toy_outlined,
-        imageAsset:
-            searchQuery.isEmpty ? 'assets/images/profile/no_bots_v2.png' : null,
+            searchQuery.isNotEmpty ? Icons.search_off_rounded : desktopBotIcon,
         title:
             searchQuery.isNotEmpty
                 ? S.of(context).noMatchingBots
@@ -458,9 +454,7 @@ class ContactsPageState extends State<ContactsPage> {
                 ? S.of(context).tryDifferentSearch
                 : S.of(context).clickToCreateBot,
         supportingText:
-            searchQuery.isNotEmpty
-                ? S.of(context).botSearchScope
-                : S.of(context).newBotWorkspaceHint,
+            searchQuery.isNotEmpty ? S.of(context).botSearchScope : null,
       );
     }
 

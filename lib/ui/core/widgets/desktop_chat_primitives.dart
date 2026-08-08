@@ -3,6 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 // Shared desktop interaction primitives used by multiple feature views.
+const IconData desktopStartConversationIcon = LucideIcons.messageCircle;
+const double _appIconCornerRadiusRatio = 0.24;
+
+BorderRadius desktopAppIconBorderRadius(double size) =>
+    BorderRadius.circular(size * _appIconCornerRadiusRatio);
+
 /// Applies desktop-chat-specific layout and surface overrides without
 /// changing the app-wide Shad theme.
 class StarsChatThemeScope extends StatelessWidget {

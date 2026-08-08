@@ -929,6 +929,13 @@ void main() {
       expect(detailsAction, findsOneWidget);
       expect(startChatAction, findsOneWidget);
       expect(
+        find.descendant(
+          of: startChatAction,
+          matching: find.byIcon(desktopStartConversationIcon),
+        ),
+        findsOneWidget,
+      );
+      expect(
         tester.getRect(actionMenu).right,
         closeTo(tester.getRect(menuButton).right, 1),
       );
@@ -2038,7 +2045,7 @@ void main() {
     expect(find.byType(Card), findsNothing);
   });
 
-  testWidgets('bot and chat empty states use their generated illustrations', (
+  testWidgets('desktop chat empty state matches Skill styling and icon', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -2108,7 +2115,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('还没有会话记录'), findsOneWidget);
-      expect(emptyStateAsset(tester), 'assets/images/profile/no_chats_v2.png');
+      final chatEmptyStateFinder = find.byType(DesktopEmptyStateCard);
+      final chatEmptyState = tester.widget<DesktopEmptyStateCard>(
+        chatEmptyStateFinder,
+      );
+      expect(chatEmptyState.icon, desktopStartConversationIcon);
+      expect(chatEmptyState.imageAsset, isNull);
+      expect(chatEmptyState.supportingText, isNull);
+      expect(
+        find.descendant(
+          of: chatEmptyStateFinder,
+          matching: find.byIcon(desktopStartConversationIcon),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: chatEmptyStateFinder, matching: find.byType(Image)),
+        findsNothing,
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -2126,6 +2150,20 @@ void main() {
 
       final emptyState = find.byType(DesktopEmptyStateCard);
       expect(emptyState, findsOneWidget);
+      final emptyStateImage = find.descendant(
+        of: emptyState,
+        matching: find.byType(Image),
+      );
+      final emptyStateImageClip = find.ancestor(
+        of: emptyStateImage,
+        matching: find.byType(ClipRRect),
+      );
+      expect(emptyStateImage, findsOneWidget);
+      expect(emptyStateImageClip, findsOneWidget);
+      expect(
+        tester.widget<ClipRRect>(emptyStateImageClip).borderRadius,
+        desktopAppIconBorderRadius(DesktopEmptyStateCard.imageSize),
+      );
       expect(
         find.descendant(of: emptyState, matching: find.text('点击新建会话创建会话')),
         findsOneWidget,
@@ -2338,7 +2376,7 @@ void main() {
         final newChatButtonFinder =
             find
                 .ancestor(
-                  of: find.byIcon(LucideIcons.squarePen),
+                  of: find.byIcon(desktopStartConversationIcon),
                   matching: find.byType(ShadButton),
                 )
                 .first;
@@ -2355,7 +2393,7 @@ void main() {
           find
               .descendant(
                 of: newChatButtonFinder,
-                matching: find.byIcon(LucideIcons.squarePen),
+                matching: find.byIcon(desktopStartConversationIcon),
               )
               .first,
         );
@@ -2454,7 +2492,7 @@ void main() {
 
       final conversationIconLeft =
           tester.getTopLeft(find.byType(ShadAvatar)).dx;
-      for (final icon in [LucideIcons.squarePen, LucideIcons.bot]) {
+      for (final icon in [desktopStartConversationIcon, LucideIcons.bot]) {
         final iconFinder = find.byIcon(icon).first;
         final buttonFinder =
             find

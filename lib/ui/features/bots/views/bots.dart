@@ -266,10 +266,7 @@ class ContactsPageState extends State<ContactsPage> {
             key: ValueKey('bot-menu-${bot.id}'),
             menuChildren: [
               MenuItemButton(
-                leadingIcon: const Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 17,
-                ),
+                leadingIcon: const Icon(desktopStartConversationIcon, size: 17),
                 onPressed: () => _startChat(bot),
                 child: Text(
                   desktopConversationText(context, S.of(context).startChatting),
@@ -657,7 +654,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     size: ShadButtonSize.sm,
                     onPressed: () => _invokeMenuAction(widget.onStartChat),
                     mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.messageCircle, size: 16),
+                    leading: const Icon(desktopStartConversationIcon, size: 16),
                     child: Text(
                       desktopConversationText(
                         context,
@@ -724,7 +721,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
         child: MenuAnchor(
           menuChildren: [
             MenuItemButton(
-              leadingIcon: const Icon(LucideIcons.messageCircle, size: 16),
+              leadingIcon: const Icon(desktopStartConversationIcon, size: 16),
               onPressed: widget.onStartChat,
               child: Text(
                 desktopConversationText(context, S.of(context).startChatting),

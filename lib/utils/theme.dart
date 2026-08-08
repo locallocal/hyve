@@ -1305,12 +1305,15 @@ class StarsSearchField extends StatelessWidget {
 
 /// Retained name for source compatibility; the visual is intentionally flat.
 class DesktopEmptyStateCard extends StatelessWidget {
+  static const double imageSize = 56;
+
   final IconData icon;
   final String title;
   final String description;
   final String? supportingText;
   final Widget? action;
   final String? imageAsset;
+  final BorderRadius? imageBorderRadius;
 
   const DesktopEmptyStateCard({
     super.key,
@@ -1320,6 +1323,7 @@ class DesktopEmptyStateCard extends StatelessWidget {
     this.supportingText,
     this.action,
     this.imageAsset,
+    this.imageBorderRadius,
   });
 
   @override
@@ -1334,21 +1338,33 @@ class DesktopEmptyStateCard extends StatelessWidget {
       context,
     ).textTheme.bodyMedium?.copyWith(color: tokens.secondaryText);
 
+    Widget buildImage() {
+      final image = Image.asset(
+        imageAsset!,
+        width: imageSize,
+        height: imageSize,
+        cacheWidth: imageSize.toInt() * 2,
+        cacheHeight: imageSize.toInt() * 2,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                _EmptyStateIcon(icon: icon, tokens: tokens),
+      );
+      final radius = imageBorderRadius;
+      return radius == null
+          ? image
+          : ClipRRect(
+            borderRadius: radius,
+            clipBehavior: Clip.antiAlias,
+            child: image,
+          );
+    }
+
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (imageAsset != null) ...[
-          Image.asset(
-            imageAsset!,
-            width: 56,
-            height: 56,
-            cacheWidth: 112,
-            cacheHeight: 112,
-            fit: BoxFit.contain,
-            errorBuilder:
-                (context, error, stackTrace) =>
-                    _EmptyStateIcon(icon: icon, tokens: tokens),
-          ),
+          buildImage(),
           const SizedBox(height: 12),
         ] else ...[
           _EmptyStateIcon(icon: icon, tokens: tokens),

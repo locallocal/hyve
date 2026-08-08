@@ -199,6 +199,33 @@ void main() {
   });
 
   test(
+    'desktop shell system Skill exposes its tool to Agent providers',
+    () async {
+      final shellSkill = _systemShellSkill();
+      final compose = ComposeChatTurn(
+        skillRepository: _FakeSkillRepository(const {}),
+        bindingRepository: _FakeBindingRepository(const []),
+        systemShellSkillLoader: () async => shellSkill,
+      );
+
+      final result = await compose(
+        bot: _bot(),
+        history: const [],
+        userMessage: _message(senderId: 'user-1', content: 'List local files'),
+        currentUserId: 'user-1',
+        skillToolProvider: _FakeSkillProvider(const []),
+      );
+
+      expect(result.requestedToolNames, shellCommandToolNames);
+      expect(result.approvalExemptToolNames, isEmpty);
+      expect(result.activatedSkills.single.id, shellCommandSkillId);
+      expect(result.messages.first.role, 'system');
+      expect(result.messages.first.content, contains('every command requires'));
+      expect(result.messages.first.content, contains(shellSkill.instructions));
+    },
+  );
+
+  test(
     'reuses an activated reference without spending its budget twice',
     () async {
       final auto = _skill(
@@ -565,6 +592,31 @@ SkillContent _skill(
     ),
     instructions: instructions,
     files: files,
+  );
+}
+
+SkillContent _systemShellSkill() {
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return SkillContent(
+    descriptor: SkillDescriptor(
+      id: shellCommandSkillId,
+      name: 'shell-command',
+      description: 'Execute an approved native shell command.',
+      version: '1',
+      scope: SkillScope.bundled,
+      sourceUri: 'asset:///shell-command/SKILL.md',
+      rootPath: 'assets/skills/system/shell-command',
+      contentDigest: shellCommandSkillContentDigest,
+      trustState: SkillTrustState.bundledTrusted,
+      validationStatus: SkillValidationStatus.valid,
+      compatibility: 'Stars desktop',
+      requestedToolNames: shellCommandToolNames,
+      installedAt: timestamp,
+      updatedAt: timestamp,
+    ),
+    instructions:
+        'Every command requires approval. Use the native platform shell.',
+    files: const ['SKILL.md'],
   );
 }
 

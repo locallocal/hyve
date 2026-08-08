@@ -41,7 +41,9 @@ import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/data/services/tools/built_in_tools.dart';
+import 'package:stars/data/services/tools/shell_command_tool.dart';
 import 'package:stars/data/services/tools/system_conversation_history_skill.dart';
+import 'package:stars/data/services/tools/system_shell_skill.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -113,6 +115,7 @@ class AppDependencies {
     required this.composeChatTurn,
     required this.compactConversation,
     required this.systemConversationHistorySkill,
+    required this.systemShellSkill,
     required this.createChat,
     required this.generationRegistry,
     this.skillEcosystemRepository,
@@ -160,6 +163,9 @@ class AppDependencies {
     );
     const aiProviderRepository = AiProviderRepositoryImpl();
     final systemConversationHistorySkill = SystemConversationHistorySkill();
+    final shellCommandTool = createHostShellCommandTool();
+    final systemShellSkill =
+        shellCommandTool == null ? null : SystemShellSkill();
     final compactConversation = CompactConversation(
       messageRepository: messageRepository,
       memoryRepository: conversationMemoryRepository,
@@ -232,8 +238,18 @@ class AppDependencies {
         historySkillAvailable: () => systemConversationHistorySkill.isValid,
       ),
       compactConversation: compactConversation,
+      systemShellSkillLoader:
+          systemShellSkill == null
+              ? null
+              : () async {
+                if (!systemShellSkill.isValid) return null;
+                return systemShellSkill.loadContent();
+              },
     );
-    final toolRegistry = DynamicToolRegistry(createBuiltInTools());
+    final toolRegistry = DynamicToolRegistry([
+      ...createBuiltInTools(),
+      if (shellCommandTool != null) shellCommandTool,
+    ]);
     final mcpCatalogService = McpCatalogService(
       repository: mcpServerRepository,
       client: mcpClient,
@@ -260,6 +276,7 @@ class AppDependencies {
     const toolPolicy = DefaultToolPolicy(
       allowDestructiveWithApproval: true,
       allowSkillScripts: true,
+      allowProcessExecution: true,
     );
     return AppDependencies(
       botRepository: botRepository,
@@ -286,6 +303,7 @@ class AppDependencies {
       composeChatTurn: composeChatTurn,
       compactConversation: compactConversation,
       systemConversationHistorySkill: systemConversationHistorySkill,
+      systemShellSkill: systemShellSkill,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
         messagePersister: messageRepository.upsertMessage,
@@ -363,6 +381,7 @@ class AppDependencies {
   final ComposeChatTurn composeChatTurn;
   final CompactConversation compactConversation;
   final SystemConversationHistorySkill systemConversationHistorySkill;
+  final SystemShellSkill? systemShellSkill;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
   final SkillEcosystemRepository? skillEcosystemRepository;
@@ -379,6 +398,11 @@ class AppDependencies {
       } on Object {
         // A damaged built-in Skill remains unavailable; chat still works with
         // summaries and recent turns.
+      }
+      try {
+        await systemShellSkill?.validate();
+      } on Object {
+        // A damaged Shell Skill fails closed without blocking app startup.
       }
       try {
         await mcpCatalogService.hydrateFromCache();
@@ -456,7 +480,10 @@ class AppDependencies {
     scriptCatalogService: skillScriptCatalogService,
     catalogService: skillCatalogService,
     bundledSkillLoader:
-        () async => [await systemConversationHistorySkill.loadContent()],
+        () async => [
+          await systemConversationHistorySkill.loadContent(),
+          if (systemShellSkill != null) await systemShellSkill!.loadContent(),
+        ],
   );
 
   McpServersViewModel createMcpServersViewModel() => McpServersViewModel(

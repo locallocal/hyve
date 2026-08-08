@@ -156,6 +156,7 @@ final class DefaultToolPolicy implements ToolPolicy {
     this.allowExternalRead = false,
     this.allowDestructiveWithApproval = false,
     this.allowSkillScripts = false,
+    this.allowProcessExecution = false,
   });
 
   final bool allowNetwork;
@@ -163,6 +164,7 @@ final class DefaultToolPolicy implements ToolPolicy {
   final bool allowExternalRead;
   final bool allowDestructiveWithApproval;
   final bool allowSkillScripts;
+  final bool allowProcessExecution;
 
   @override
   ToolPolicyDecision evaluate(
@@ -195,11 +197,17 @@ final class DefaultToolPolicy implements ToolPolicy {
         reason: 'conversation_history_read_only_exempt',
       );
     }
-    if (definition.source == ToolSource.skillScript ||
-        definition.capabilities.contains(ToolCapability.process)) {
+    if (definition.source == ToolSource.skillScript) {
       return allowSkillScripts
           ? const ToolPolicyDecision.requireApproval(
             reason: 'skill_script_requires_approval',
+          )
+          : const ToolPolicyDecision.deny(reason: 'process_execution_disabled');
+    }
+    if (definition.capabilities.contains(ToolCapability.process)) {
+      return allowProcessExecution
+          ? const ToolPolicyDecision.requireApproval(
+            reason: 'process_execution_requires_approval',
           )
           : const ToolPolicyDecision.deny(reason: 'process_execution_disabled');
     }

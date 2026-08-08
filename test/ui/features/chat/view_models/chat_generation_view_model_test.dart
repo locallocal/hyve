@@ -634,6 +634,60 @@ void main() {
         );
       },
     );
+
+    test('shell audit hashes the command and working directory', () async {
+      const command = 'printf do-not-persist';
+      const workingDirectory = '/private/do-not-persist';
+      final tool = _ShellAuditTool();
+      final factory = _AgentProviderFactory(
+        toolName: shellCommandToolName,
+        arguments: const {
+          'command': command,
+          'working_directory': workingDirectory,
+          'timeout_seconds': 8,
+        },
+      );
+      final toolAudits = <MessageToolCall>[];
+      final controller = ChatGenerationViewModel(
+        chatId: 'chat-1',
+        bot: _bot,
+        providerFactory: factory.create,
+        messagePersister: (message) async => message,
+        lastMessageUpdater: (_, _) async {},
+        toolInvocationPersister: (_, _, _, audit) async {
+          toolAudits.add(audit);
+        },
+        toolRegistry: StaticToolRegistry([tool]),
+        toolPolicy: const DefaultToolPolicy(allowProcessExecution: true),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.startText(
+          userMessage: _userMessage(),
+          messages: [ChatMessage(role: 'user', content: 'Run it')],
+          requestedToolNames: shellCommandToolNames,
+        ),
+        isTrue,
+      );
+      await _waitFor(() => controller.snapshot.pendingToolApproval != null);
+      controller.resolveToolApproval(ToolApprovalDecision.allowOnce);
+      await _waitFor(
+        () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+      );
+      await _flushAsyncWork();
+
+      expect(tool.executions, 1);
+      expect(toolAudits, isNotEmpty);
+      for (final audit in toolAudits) {
+        expect(audit.argumentsSummary, contains('"command_hash"'));
+        expect(audit.argumentsSummary, contains('"command_characters":21'));
+        expect(audit.argumentsSummary, contains('"working_directory_hash"'));
+        expect(audit.argumentsSummary, contains('"timeout_seconds":8'));
+        expect(audit.argumentsSummary, isNot(contains(command)));
+        expect(audit.argumentsSummary, isNot(contains(workingDirectory)));
+      }
+    });
   });
 }
 
@@ -779,12 +833,63 @@ final class _ViewModelTool implements ExecutableTool {
   }
 }
 
+final class _ShellAuditTool implements ExecutableTool {
+  @override
+  final ToolDefinition definition = ToolDefinition(
+    name: shellCommandToolName,
+    title: 'Shell command',
+    description: 'Run a native shell command.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {
+        'command': {'type': 'string'},
+        'working_directory': {'type': 'string'},
+        'timeout_seconds': {'type': 'integer'},
+      },
+      'required': ['command'],
+      'additionalProperties': false,
+    },
+    source: ToolSource.builtIn,
+    riskLevel: ToolRiskLevel.destructive,
+    capabilities: const {ToolCapability.process},
+  );
+
+  int executions = 0;
+
+  @override
+  Future<ToolResult> execute(
+    ToolCallRequest call,
+    AgentCancellationToken cancellationToken,
+  ) async {
+    cancellationToken.throwIfCancelled();
+    executions += 1;
+    return ToolResult(callId: call.callId, name: call.name, content: 'done');
+  }
+}
+
 final class _AgentProviderFactory {
-  AiProvider create(Bot bot) => _AgentProvider(bot);
+  _AgentProviderFactory({String? toolName, Map<String, Object?>? arguments})
+    : toolName = toolName ?? 'mcp.notes.save_note',
+      arguments =
+          arguments ??
+          {
+            'value': 'hello',
+            'api_token': 'do-not-persist',
+            'body': List.filled(140, 'x').join(),
+          };
+
+  final String toolName;
+  final Map<String, Object?> arguments;
+
+  AiProvider create(Bot bot) =>
+      _AgentProvider(bot, toolName: toolName, arguments: arguments);
 }
 
 final class _AgentProvider extends AiProvider {
-  _AgentProvider(super.bot);
+  _AgentProvider(super.bot, {required this.toolName, required this.arguments});
+
+  final String toolName;
+  final Map<String, Object?> arguments;
 
   @override
   AiProviderCapabilities get capabilities => const AiProviderCapabilities(
@@ -794,7 +899,7 @@ final class _AgentProvider extends AiProvider {
 
   @override
   AgentModelSession openModelSession(ModelRequest request) {
-    return _ViewModelAgentSession();
+    return _ViewModelAgentSession(toolName: toolName, arguments: arguments);
   }
 
   @override
@@ -804,17 +909,14 @@ final class _AgentProvider extends AiProvider {
 }
 
 final class _ViewModelAgentSession implements AgentModelSession {
+  _ViewModelAgentSession({required this.toolName, required this.arguments});
+
+  final String toolName;
+  final Map<String, Object?> arguments;
+
   @override
   Stream<ModelEvent> start() => Stream.fromIterable([
-    ToolCallRequested(
-      callId: 'save-1',
-      name: 'mcp.notes.save_note',
-      arguments: {
-        'value': 'hello',
-        'api_token': 'do-not-persist',
-        'body': List.filled(140, 'x').join(),
-      },
-    ),
+    ToolCallRequested(callId: 'save-1', name: toolName, arguments: arguments),
     const ModelTurnCompleted(stopReason: 'tool_calls'),
   ]);
 

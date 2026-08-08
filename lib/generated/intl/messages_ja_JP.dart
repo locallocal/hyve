@@ -466,6 +466,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("フィードバックを送信"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("要約済みメッセージ"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("システムプロンプト"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("テスト"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("説明をテスト"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "テーマがダークモードに設定されました",

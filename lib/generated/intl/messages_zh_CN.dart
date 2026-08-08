@@ -669,6 +669,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "supportsSkills": MessageLookupByLibrary.simpleMessage("支持技能"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("系统提示词:"),
     "takePhoto": MessageLookupByLibrary.simpleMessage("拍照"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("测试"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("测试技能描述"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage("已设置为深色模式"),
     "themeSetToLight": MessageLookupByLibrary.simpleMessage("已设置为浅色模式"),

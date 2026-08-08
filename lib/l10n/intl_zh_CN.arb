@@ -875,6 +875,7 @@
     "autoActivationDescription": "让支持的模型根据技能描述按需激活。",
     "autoActivationUnavailable": "当前模型服务仅支持手动使用技能。",
     "testSkillDescription": "测试技能描述",
+    "testSkill": "测试",
     "skillDescriptionTestInput": "示例用户请求",
     "skillDescriptionShouldActivate": "这个示例应当激活技能",
     "runSkillDescriptionTest": "运行测试",

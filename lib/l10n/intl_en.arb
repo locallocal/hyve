@@ -875,6 +875,7 @@
     "autoActivationDescription": "Let supported models activate this Skill from its description.",
     "autoActivationUnavailable": "This provider supports manual Skills only.",
     "testSkillDescription": "Test description",
+    "testSkill": "Test",
     "skillDescriptionTestInput": "Example user request",
     "skillDescriptionShouldActivate": "This example should activate the Skill",
     "runSkillDescriptionTest": "Run test",

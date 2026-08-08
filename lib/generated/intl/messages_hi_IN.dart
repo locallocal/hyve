@@ -581,6 +581,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("प्रतिक्रिया भेजें"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("सारांशित संदेश"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("सिस्टम प्रॉम्प्ट"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("जाँचें"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "विवरण जाँचें",
     ),

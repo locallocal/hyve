@@ -601,6 +601,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Отправить отзыв"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("Сводка сообщений"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Системный промпт"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("Тест"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Проверить описание",
     ),

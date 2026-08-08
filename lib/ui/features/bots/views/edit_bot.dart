@@ -845,35 +845,21 @@ class _EditAIBotPageState extends State<EditBotPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              ExcludeSemantics(
-                child: Text(
-                  strings.autoActivation,
-                  key: ValueKey<String>('bot-skill-auto-${skill.id}'),
-                  style:
-                      widget.embedded
-                          ? DesktopThemeTokens.metaStyle(context)
-                          : Theme.of(context).textTheme.bodySmall,
+              if (enabled && viewModel.supportsAutoActivation) ...[
+                ShadButton.ghost(
+                  key: ValueKey<String>('test-skill-description-${skill.id}'),
+                  size: ShadButtonSize.sm,
+                  width: 0,
+                  onPressed: () => _showSkillDescriptionTest(skill),
+                  leading: const Icon(LucideIcons.flaskConical, size: 14),
+                  child: Text(strings.testSkill),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 8),
+              ],
               switchWidget,
               if (!widget.readOnly) ...[const SizedBox(width: 8), removeButton],
             ],
           ),
-          if (enabled && viewModel.supportsAutoActivation) ...[
-            const SizedBox(height: 10),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: ShadButton.ghost(
-                key: ValueKey<String>('test-skill-description-${skill.id}'),
-                size: ShadButtonSize.sm,
-                width: 0,
-                onPressed: () => _showSkillDescriptionTest(skill),
-                leading: const Icon(LucideIcons.flaskConical, size: 14),
-                child: Text(strings.testSkillDescription),
-              ),
-            ),
-          ],
         ],
       ),
     );

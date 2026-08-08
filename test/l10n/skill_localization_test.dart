@@ -49,6 +49,7 @@ void main() {
     'autoActivationDescription',
     'autoActivationUnavailable',
     'testSkillDescription',
+    'testSkill',
     'skillDescriptionTestInput',
     'skillDescriptionShouldActivate',
     'runSkillDescriptionTest',

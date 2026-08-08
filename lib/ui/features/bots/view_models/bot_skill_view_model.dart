@@ -37,7 +37,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
   final BundledSkillLoader? _bundledSkillLoader;
-  final AiProvider? _skillToolProvider;
+  AiProvider? _skillToolProvider;
   bool _supportsAutoActivation;
   final TestSkillDescription _testSkillDescription;
   final int pageSize;
@@ -157,6 +157,10 @@ final class BotSkillViewModel extends ChangeNotifier {
     _supportsAutoActivation = supported;
     _normalizePages();
     notifyListeners();
+  }
+
+  void updateSkillToolProvider(AiProvider? provider) {
+    _skillToolProvider = provider;
   }
 
   Future<SkillDescriptionTestReport> testDescription({

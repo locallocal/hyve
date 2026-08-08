@@ -620,6 +620,7 @@
     "autoActivationDescription": "Consente ai modelli supportati di attivare questa competenza dalla sua descrizione.",
     "autoActivationUnavailable": "Questo provider supporta solo competenze manuali.",
     "testSkillDescription": "Verifica descrizione",
+    "testSkill": "Verifica",
     "skillDescriptionTestInput": "Esempio di richiesta utente",
     "skillDescriptionShouldActivate": "Questo esempio deve attivare la competenza",
     "runSkillDescriptionTest": "Esegui verifica",

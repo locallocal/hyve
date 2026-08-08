@@ -462,6 +462,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("피드백 제출"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("요약된 메시지"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("시스템 프롬프트"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("테스트"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("설명 테스트"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
       "테마가 다크 모드로 설정되었습니다",

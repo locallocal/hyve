@@ -209,13 +209,22 @@ void main() {
       await tester.pumpWidget(_harness(viewModel));
       await tester.pumpAndSettle();
 
-      expect(find.text('自动激活'), findsOneWidget);
+      final skillRow = find.byKey(
+        const ValueKey<String>('bot-skill-user:release-notes'),
+      );
+      expect(
+        find.descendant(of: skillRow, matching: find.text('自动激活')),
+        findsNothing,
+      );
       expect(find.text('已开启'), findsNothing);
       expect(find.text('已关闭'), findsNothing);
       expect(find.bySemanticsLabel('自动激活'), findsOneWidget);
       expect(find.text('按消息启用'), findsNothing);
       expect(find.text('始终启用'), findsNothing);
-      expect(find.text('测试技能描述'), findsOneWidget);
+      expect(
+        find.descendant(of: skillRow, matching: find.text('测试')),
+        findsOneWidget,
+      );
 
       expect(
         bindingRepository.bindingFor('user:release-notes')?.activationMode,
@@ -225,6 +234,13 @@ void main() {
       final testDescription = find.byKey(
         const ValueKey<String>('test-skill-description-user:release-notes'),
       );
+      final skillToggle = find.byKey(
+        const ValueKey<String>('bot-skill-toggle-user:release-notes'),
+      );
+      expect(
+        tester.getRect(testDescription).right,
+        lessThan(tester.getRect(skillToggle).left),
+      );
       await tester.ensureVisible(testDescription);
       await tester.tap(testDescription);
       await tester.pumpAndSettle();
@@ -233,6 +249,7 @@ void main() {
         find.byKey(const ValueKey<String>('skill-description-test-dialog')),
         findsOneWidget,
       );
+      expect(find.text('测试技能描述'), findsOneWidget);
       expect(find.byType(ShadTextarea), findsOneWidget);
 
       await tester.tap(

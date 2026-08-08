@@ -568,6 +568,10 @@ void main() {
       final tokenMetric = find.byKey(
         const ValueKey<String>('bot-card-token-total-bot-1'),
       );
+      final tokenMetricIcon = find.descendant(
+        of: tokenMetric,
+        matching: find.byIcon(LucideIcons.chartNoAxesColumnIncreasing),
+      );
       final skillMetric = find.byKey(
         const ValueKey<String>('bot-card-skill-count-bot-1'),
       );
@@ -592,12 +596,17 @@ void main() {
       final menuButton = find.byKey(
         const ValueKey<String>('desktop-bot-menu-button-bot-1'),
       );
+      final menuIcon = find.descendant(
+        of: menuButton,
+        matching: find.byIcon(LucideIcons.ellipsis),
+      );
       final footer = find.byKey(
         const ValueKey<String>('desktop-bot-card-footer-bot-1'),
       );
       expect(card, findsOneWidget);
       expect(tester.getSize(card).height, 180);
       expect(tokenMetric, findsOneWidget);
+      expect(tokenMetricIcon, findsOneWidget);
       expect(skillMetric, findsOneWidget);
       expect(mcpMetric, findsOneWidget);
       expect(contextWindowMetric, findsOneWidget);
@@ -606,6 +615,7 @@ void main() {
       expect(botName, findsOneWidget);
       expect(providerAndModel, findsOneWidget);
       expect(menuButton, findsOneWidget);
+      expect(menuIcon, findsOneWidget);
       expect(footer, findsOneWidget);
       final cardRect = tester.getRect(card);
       final avatarRect = tester.getRect(avatar);
@@ -614,6 +624,10 @@ void main() {
       final footerBottomInset = cardRect.bottom - footerRect.bottom;
       expect(iconTopInset, closeTo(19, 0.5));
       expect(footerBottomInset, closeTo(iconTopInset, 0.5));
+      expect(
+        cardRect.right - tester.getRect(menuIcon).right,
+        closeTo(tester.getRect(tokenMetricIcon).left - cardRect.left, 0.5),
+      );
       expect(
         tester.getTopRight(avatar).dx,
         lessThan(tester.getTopLeft(botName).dx),
@@ -3412,13 +3426,46 @@ void main() {
         find.byKey(
           const ValueKey<String>('add-bot-skill-auto-user:Release Notes'),
         ),
-        findsOneWidget,
+        findsNothing,
+      );
+      final selectedSkill = find.byKey(
+        const ValueKey<String>('add-bot-selected-skill-user:Release Notes'),
+      );
+      expect(
+        find.descendant(of: selectedSkill, matching: find.text('自动激活')),
+        findsNothing,
       );
       expect(find.text('已开启'), findsNothing);
       expect(find.text('已关闭'), findsNothing);
       expect(find.bySemanticsLabel('自动激活'), findsOneWidget);
       expect(find.text('按消息启用'), findsNothing);
       expect(find.text('始终启用'), findsNothing);
+      final testSkill = find.byKey(
+        const ValueKey<String>(
+          'test-add-bot-skill-description-user:Release Notes',
+        ),
+      );
+      final skillToggle = find.byKey(
+        const ValueKey<String>('add-bot-skill-toggle-user:Release Notes'),
+      );
+      expect(
+        find.descendant(of: selectedSkill, matching: find.text('测试')),
+        findsOneWidget,
+      );
+      expect(
+        tester.getRect(testSkill).right,
+        lessThan(tester.getRect(skillToggle).left),
+      );
+      await tester.tap(testSkill);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('skill-description-test-dialog')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('cancel-skill-description-test')),
+      );
+      await tester.pumpAndSettle();
       final providerField = find.byKey(
         const ValueKey<String>('add-bot-provider'),
       );

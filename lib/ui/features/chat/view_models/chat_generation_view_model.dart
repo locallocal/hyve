@@ -768,6 +768,8 @@ class ChatGenerationViewModel extends ChangeNotifier
                       .convert(utf8.encode(jsonEncode(invocation.arguments)))
                       .toString(),
             })
+            : invocation.name == shellCommandToolName
+            ? jsonEncode(_shellAuditArguments(invocation.arguments))
             : jsonEncode(_redactAuditValue(invocation.arguments));
     final item = MessageToolCall(
       callId: invocation.callId,
@@ -847,6 +849,20 @@ class ChatGenerationViewModel extends ChangeNotifier
       return '[text:${value.runes.length} chars]';
     }
     return value;
+  }
+
+  Map<String, Object?> _shellAuditArguments(Map<String, Object?> arguments) {
+    final command = arguments['command']?.toString() ?? '';
+    final workingDirectory = arguments['working_directory']?.toString() ?? '';
+    return {
+      'command_hash': sha256.convert(utf8.encode(command)).toString(),
+      'command_characters': command.runes.length,
+      if (workingDirectory.isNotEmpty)
+        'working_directory_hash':
+            sha256.convert(utf8.encode(workingDirectory)).toString(),
+      if (arguments['timeout_seconds'] is int)
+        'timeout_seconds': arguments['timeout_seconds'],
+    };
   }
 
   @override

@@ -8,6 +8,7 @@ export 'message.dart';
 export 'mcp.dart';
 export 'modalities.dart';
 export 'profile.dart';
+export 'shell_command.dart';
 export 'skill.dart';
 export 'skill_ecosystem.dart';
 export 'tool.dart';

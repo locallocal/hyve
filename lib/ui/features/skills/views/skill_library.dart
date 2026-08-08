@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
@@ -633,6 +634,11 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 content: content,
                 onUpdatePolicyChanged:
                     (policy) => viewModel.setUpdatePolicy(skill, policy),
+                onCopyStorageLocation:
+                    () => _copyStorageLocation(
+                      dialogContext,
+                      content.descriptor.rootPath,
+                    ),
               ),
         );
       } else {
@@ -650,7 +656,24 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 content: SizedBox(
                   width: 520,
                   child: SingleChildScrollView(
-                    child: SelectableText(content.instructions),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SkillStorageLocationDetail(
+                          location: content.descriptor.rootPath,
+                          onCopy:
+                              () => _copyStorageLocation(
+                                dialogContext,
+                                content.descriptor.rootPath,
+                              ),
+                        ),
+                        _SkillFilesDetail(files: content.files),
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        SelectableText(content.instructions),
+                      ],
+                    ),
                   ),
                 ),
                 actions: [
@@ -667,6 +690,15 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     } catch (error) {
       if (context.mounted) _showMessage(context, error.toString());
     }
+  }
+
+  Future<void> _copyStorageLocation(
+    BuildContext context,
+    String location,
+  ) async {
+    await Clipboard.setData(ClipboardData(text: location));
+    if (!context.mounted) return;
+    _showMessage(context, S.of(context).skillStorageLocationCopied);
   }
 
   Future<void> _confirmUninstall(
@@ -1049,10 +1081,12 @@ class _SkillDetailsDialog extends StatefulWidget {
   const _SkillDetailsDialog({
     required this.content,
     required this.onUpdatePolicyChanged,
+    required this.onCopyStorageLocation,
   });
 
   final SkillContent content;
   final Future<void> Function(SkillUpdatePolicy policy) onUpdatePolicyChanged;
+  final Future<void> Function() onCopyStorageLocation;
 
   @override
   State<_SkillDetailsDialog> createState() => _SkillDetailsDialogState();
@@ -1166,15 +1200,16 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
                 label: strings.skillDigest,
                 value: skill.contentDigest,
               ),
+              _SkillStorageLocationDetail(
+                location: skill.rootPath,
+                onCopy: widget.onCopyStorageLocation,
+              ),
               if (skill.compatibility.isNotEmpty)
                 _DetailRow(
                   label: strings.skillCompatibility,
                   value: skill.compatibility,
                 ),
-              _DetailRow(
-                label: strings.skillFiles,
-                value: widget.content.files.join('\n'),
-              ),
+              _SkillFilesDetail(files: widget.content.files),
               if (skill.diagnostics.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -1237,6 +1272,112 @@ class _DetailRow extends StatelessWidget {
             child: Text(label, style: ShadTheme.of(context).textTheme.muted),
           ),
           Expanded(child: SelectableText(value)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkillStorageLocationDetail extends StatelessWidget {
+  const _SkillStorageLocationDetail({
+    required this.location,
+    required this.onCopy,
+  });
+
+  final String location;
+  final Future<void> Function() onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const ValueKey<String>('skill-storage-location'),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              S.of(context).skillStorageLocation,
+              style: ShadTheme.of(context).textTheme.muted,
+            ),
+          ),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: SelectableText(location)),
+                const SizedBox(width: 6),
+                IconButton(
+                  key: const ValueKey<String>('copy-skill-storage-location'),
+                  tooltip: S.of(context).copySkillStorageLocation,
+                  onPressed: onCopy,
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 32,
+                    height: 32,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkillFilesDetail extends StatelessWidget {
+  const _SkillFilesDetail({required this.files});
+
+  final List<String> files;
+
+  @override
+  Widget build(BuildContext context) {
+    final mutedStyle = ShadTheme.of(context).textTheme.muted;
+    final iconColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Padding(
+      key: const ValueKey<String>('skill-details-files'),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(S.of(context).skillFiles, style: mutedStyle),
+          ),
+          Expanded(
+            child:
+                files.isEmpty
+                    ? const SelectableText('—')
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final file in files)
+                          Padding(
+                            key: ValueKey<String>('skill-file-$file'),
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Icon(
+                                    Icons.insert_drive_file_outlined,
+                                    size: 16,
+                                    color: iconColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: SelectableText(file)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+          ),
         ],
       ),
     );

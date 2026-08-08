@@ -2846,6 +2846,36 @@ class S {
     );
   }
 
+  /// `Installation location`
+  String get skillStorageLocation {
+    return Intl.message(
+      'Installation location',
+      name: 'skillStorageLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy installation location`
+  String get copySkillStorageLocation {
+    return Intl.message(
+      'Copy installation location',
+      name: 'copySkillStorageLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Installation location copied to clipboard`
+  String get skillStorageLocationCopied {
+    return Intl.message(
+      'Installation location copied to clipboard',
+      name: 'skillStorageLocationCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Compatibility`
   String get skillCompatibility {
     return Intl.message(

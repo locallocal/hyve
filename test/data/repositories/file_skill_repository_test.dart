@@ -75,9 +75,28 @@ void main() {
       expect(first.trustState, SkillTrustState.userReviewed);
       expect(firstRoot.existsSync(), isTrue);
       expect(
+        first.rootPath,
+        startsWith('${temporaryDirectory.path}/support/skills/bundles/'),
+      );
+      expect((await repository.load(first.id)).files, const [
+        'SKILL.md',
+        'references/style.md',
+      ]);
+      expect(
         (await repository.load(first.id)).instructions,
         'First instructions.',
       );
+      expect(
+        (await repository.readResource(
+          first.id,
+          'references/style.md',
+          contentDigest: first.contentDigest,
+        )).content,
+        'Use concise headings.',
+      );
+      await File(
+        '${source.path}/references/style.md',
+      ).writeAsString('Changed after import.');
       expect(
         (await repository.readResource(
           first.id,

@@ -3,6 +3,7 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -279,6 +280,23 @@ void main() {
     tester.view.devicePixelRatio = 1;
 
     final skill = _skill('Release Notes', 'Create polished changelogs');
+    String? clipboardText;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          clipboardText =
+              (call.arguments as Map<Object?, Object?>)['text'] as String?;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
     final viewModel = SkillLibraryViewModel(
       skillRepository: _FakeSkillRepository([skill]),
       pickerRepository: const _FakeSkillPickerRepository(),
@@ -306,10 +324,104 @@ void main() {
 
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.text('Instructions for Release Notes'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-storage-location')),
+        findsOneWidget,
+      );
+      expect(find.text(skill.rootPath), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-details-files')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('copy-skill-storage-location')),
+      );
+      await tester.pump();
+
+      expect(clipboardText, skill.rootPath);
+      expect(find.text('安装位置已复制到剪贴板'), findsOneWidget);
+      for (final file in const [
+        'SKILL.md',
+        'assets/template.txt',
+        'references/tone.md',
+      ]) {
+        expect(
+          find.byKey(ValueKey<String>('skill-file-$file')),
+          findsOneWidget,
+        );
+        expect(find.text(file), findsOneWidget);
+      }
       final detailsTitle = tester.widget<Text>(
         find.byKey(ValueKey<String>('skill-details-title-${skill.id}')),
       );
       expect(detailsTitle.style?.fontSize, pageTitle.style?.fontSize);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('mobile Skill details show copied files and storage location', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+
+    final skill = _skill('Release Notes', 'Create polished changelogs');
+    String? clipboardText;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          clipboardText =
+              (call.arguments as Map<Object?, Object?>)['text'] as String?;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([skill]),
+      pickerRepository: const _FakeSkillPickerRepository(),
+    );
+    addTearDown(viewModel.dispose);
+    try {
+      await viewModel.load();
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(skill.name));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-storage-location')),
+        findsOneWidget,
+      );
+      expect(find.text(skill.rootPath), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-details-files')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('copy-skill-storage-location')),
+      );
+      await tester.pump();
+
+      expect(clipboardText, skill.rootPath);
+      expect(find.text('安装位置已复制到剪贴板'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-file-references/tone.md')),
+        findsOneWidget,
+      );
     } finally {
       debugDefaultTargetPlatformOverride = null;
       tester.view.resetPhysicalSize();
@@ -629,7 +741,7 @@ final class _FakeSkillRepository implements SkillRepository {
     return SkillContent(
       descriptor: skill,
       instructions: 'Instructions for ${skill.name}',
-      files: const ['SKILL.md'],
+      files: const ['SKILL.md', 'assets/template.txt', 'references/tone.md'],
     );
   }
 

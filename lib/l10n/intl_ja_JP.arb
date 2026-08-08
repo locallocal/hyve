@@ -620,6 +620,7 @@
     "autoActivationDescription": "対応モデルが説明に基づいてこのスキルを有効化します。",
     "autoActivationUnavailable": "このプロバイダーは手動スキルのみ対応しています。",
     "testSkillDescription": "説明をテスト",
+    "testSkill": "テスト",
     "skillDescriptionTestInput": "ユーザー依頼の例",
     "skillDescriptionShouldActivate": "この例ではスキルを有効化する",
     "runSkillDescriptionTest": "テストを実行",

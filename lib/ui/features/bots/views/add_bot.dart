@@ -1782,9 +1782,59 @@ class _AddBotPageState extends State<AddBotPage> {
   }
 
   void _syncSelectedModelSkillSupport() {
-    widget.skillViewModel?.updateSupportsAutoActivation(
-      _selectedModelSupportsAutomaticSkillActivation,
-    );
+    final viewModel = widget.skillViewModel;
+    if (viewModel == null) return;
+
+    final model = _modelInfoById(selectedModelController.text);
+    if (model?.supportsAutomaticSkillActivation != true) {
+      viewModel
+        ..updateSkillToolProvider(null)
+        ..updateSupportsAutoActivation(false);
+      return;
+    }
+
+    final dependencies = AppScope.maybeOf(context);
+    if (dependencies == null) {
+      viewModel.updateSupportsAutoActivation(true);
+      return;
+    }
+
+    final providerInfo = providersInfo[providerController.text];
+    final apiType =
+        (providerInfo?['api_type'] as String?) ?? apiTypeController.text.trim();
+    if (apiType.isEmpty) {
+      viewModel
+        ..updateSkillToolProvider(null)
+        ..updateSupportsAutoActivation(false);
+      return;
+    }
+
+    try {
+      final provider = dependencies.aiProviderRepository.create(
+        Bot(
+          id: _botId,
+          name: '',
+          avatar: '',
+          provider: providerController.text,
+          baseURL: baseURLController.text.trim(),
+          apiKey: apiKeyController.text.trim(),
+          apiType: apiType,
+          model: selectedModelController.text,
+          systemPrompt: '',
+          createTimestamp: DateTime.now(),
+          modifyTimestamp: DateTime.now(),
+        ),
+      );
+      viewModel
+        ..updateSkillToolProvider(provider)
+        ..updateSupportsAutoActivation(
+          provider.capabilities.supportsAutomaticSkillActivation,
+        );
+    } on UnsupportedError {
+      viewModel
+        ..updateSkillToolProvider(null)
+        ..updateSupportsAutoActivation(false);
+    }
   }
 
   Widget _buildSystemPromptInput(double? fontSize) {

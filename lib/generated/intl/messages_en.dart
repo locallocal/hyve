@@ -898,6 +898,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "supportsSkills": MessageLookupByLibrary.simpleMessage("Supports Skills"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("System Prompt"),
     "takePhoto": MessageLookupByLibrary.simpleMessage("Camera"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("Test"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Test description",
     ),

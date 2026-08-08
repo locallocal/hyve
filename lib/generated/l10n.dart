@@ -3081,6 +3081,11 @@ class S {
     );
   }
 
+  /// `Test`
+  String get testSkill {
+    return Intl.message('Test', name: 'testSkill', desc: '', args: []);
+  }
+
   /// `Example user request`
   String get skillDescriptionTestInput {
     return Intl.message(

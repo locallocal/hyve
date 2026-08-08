@@ -619,6 +619,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Messaggi riassunti",
     ),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Prompt di sistema:"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("Verifica"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Verifica descrizione",
     ),

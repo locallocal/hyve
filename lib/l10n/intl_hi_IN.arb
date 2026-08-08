@@ -620,6 +620,7 @@
     "autoActivationDescription": "समर्थित मॉडल इस कौशल को उसके विवरण के आधार पर सक्रिय कर सकते हैं।",
     "autoActivationUnavailable": "यह प्रदाता केवल मैन्युअल कौशल का समर्थन करता है।",
     "testSkillDescription": "विवरण जाँचें",
+    "testSkill": "जाँचें",
     "skillDescriptionTestInput": "उदाहरण उपयोगकर्ता अनुरोध",
     "skillDescriptionShouldActivate": "इस उदाहरण से कौशल सक्रिय होना चाहिए",
     "runSkillDescriptionTest": "जाँच चलाएँ",

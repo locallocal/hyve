@@ -4,6 +4,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:stars/ui/features/bots/views/skill_description_test_dialog.dart';
 import 'package:stars/utils/theme.dart';
 
 /// Desktop Skill editor for a Bot that has not been persisted yet.
@@ -164,14 +165,19 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 ),
               ),
               const SizedBox(width: 12),
-              ExcludeSemantics(
-                child: Text(
-                  strings.autoActivation,
-                  key: ValueKey<String>('add-bot-skill-auto-${skill.id}'),
-                  style: DesktopThemeTokens.metaStyle(context),
+              if (enabled && viewModel.supportsAutoActivation) ...[
+                ShadButton.ghost(
+                  key: ValueKey<String>(
+                    'test-add-bot-skill-description-${skill.id}',
+                  ),
+                  size: ShadButtonSize.sm,
+                  width: 0,
+                  onPressed: () => _showSkillDescriptionTest(skill),
+                  leading: const Icon(LucideIcons.flaskConical, size: 14),
+                  child: Text(strings.testSkill),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 8),
+              ],
               Semantics(
                 label: strings.autoActivation,
                 toggled: enabled,
@@ -199,6 +205,30 @@ class _AddBotSkillsState extends State<AddBotSkills> {
         ],
       ),
     );
+  }
+
+  Future<void> _showSkillDescriptionTest(SkillDescriptor skill) async {
+    final testCase = await showSkillDescriptionTestDialog(
+      context: context,
+      skill: skill,
+      desktopMode: true,
+    );
+    if (testCase == null || !mounted) return;
+    try {
+      final report = await viewModel.testDescription(
+        skillId: skill.id,
+        cases: [testCase],
+      );
+      if (!mounted) return;
+      final result = report.results.single;
+      showSnackBar(
+        context,
+        '${S.of(context).skillDescriptionTestResult}: '
+        '${result.activations}/${result.runs}',
+      );
+    } catch (error) {
+      if (mounted) showSnackBar(context, error.toString());
+    }
   }
 
   Widget _buildPagination({

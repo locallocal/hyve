@@ -620,6 +620,7 @@
     "autoActivationDescription": "Permet aux modèles compatibles d’activer cette compétence à partir de sa description.",
     "autoActivationUnavailable": "Ce fournisseur ne prend en charge que les compétences manuelles.",
     "testSkillDescription": "Tester la description",
+    "testSkill": "Tester",
     "skillDescriptionTestInput": "Exemple de demande utilisateur",
     "skillDescriptionShouldActivate": "Cet exemple doit activer la compétence",
     "runSkillDescriptionTest": "Lancer le test",

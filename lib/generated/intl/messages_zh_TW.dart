@@ -505,6 +505,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage("提交反饋"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("已摘要訊息數"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("系統提示詞"),
+    "testSkill": MessageLookupByLibrary.simpleMessage("測試"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("測試技能描述"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage("已設置為深色模式"),
     "themeSetToLight": MessageLookupByLibrary.simpleMessage("已設置為淺色模式"),

@@ -587,6 +587,7 @@ class _DesktopBotCard extends StatefulWidget {
 
 class _DesktopBotCardState extends State<_DesktopBotCard> {
   static const double _menuContentWidth = 184;
+  static const double _menuIconAlignmentOffset = 13;
   static const EdgeInsets _menuPadding = EdgeInsets.symmetric(
     horizontal: 12,
     vertical: 6,
@@ -871,7 +872,10 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                             ),
                             const Spacer(),
                             const SizedBox(width: 8),
-                            _buildActionMenu(context),
+                            Transform.translate(
+                              offset: const Offset(_menuIconAlignmentOffset, 0),
+                              child: _buildActionMenu(context),
+                            ),
                           ],
                         ),
                       ],

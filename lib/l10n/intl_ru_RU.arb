@@ -620,6 +620,7 @@
     "autoActivationDescription": "Поддерживаемые модели могут активировать этот навык по его описанию.",
     "autoActivationUnavailable": "Этот провайдер поддерживает только ручные навыки.",
     "testSkillDescription": "Проверить описание",
+    "testSkill": "Тест",
     "skillDescriptionTestInput": "Пример запроса пользователя",
     "skillDescriptionShouldActivate": "Этот пример должен активировать навык",
     "runSkillDescriptionTest": "Запустить проверку",

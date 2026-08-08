@@ -628,6 +628,7 @@
     "autoActivationDescription": "讓支援的模型依技能描述按需啟用。",
     "autoActivationUnavailable": "目前模型服務僅支援手動使用技能。",
     "testSkillDescription": "測試技能描述",
+    "testSkill": "測試",
     "skillDescriptionTestInput": "範例使用者請求",
     "skillDescriptionShouldActivate": "這個範例應啟用技能",
     "runSkillDescriptionTest": "執行測試",

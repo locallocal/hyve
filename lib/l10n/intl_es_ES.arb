@@ -620,6 +620,7 @@
     "autoActivationDescription": "Permite que los modelos compatibles activen esta habilidad según su descripción.",
     "autoActivationUnavailable": "Este proveedor solo admite habilidades manuales.",
     "testSkillDescription": "Probar descripción",
+    "testSkill": "Probar",
     "skillDescriptionTestInput": "Solicitud de usuario de ejemplo",
     "skillDescriptionShouldActivate": "Este ejemplo debe activar la habilidad",
     "runSkillDescriptionTest": "Ejecutar prueba",

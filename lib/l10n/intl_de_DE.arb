@@ -620,6 +620,7 @@
     "autoActivationDescription": "Unterstützte Modelle können diese Fähigkeit anhand ihrer Beschreibung aktivieren.",
     "autoActivationUnavailable": "Dieser Anbieter unterstützt nur manuelle Fähigkeiten.",
     "testSkillDescription": "Beschreibung testen",
+    "testSkill": "Testen",
     "skillDescriptionTestInput": "Beispielanfrage",
     "skillDescriptionShouldActivate": "Dieses Beispiel soll die Fähigkeit aktivieren",
     "runSkillDescriptionTest": "Test ausführen",

@@ -643,10 +643,6 @@ void main() {
         closeTo(tester.getCenter(contextWindowMetric).dy, 0.5),
       );
       expect(
-        tester.getCenter(contextWindowMetric).dy,
-        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
-      );
-      expect(
         tester.getTopLeft(tokenMetric).dx,
         lessThan(tester.getTopLeft(skillMetric).dx),
       );
@@ -656,7 +652,19 @@ void main() {
       );
       expect(
         tester.getCenter(providerAndModel).dy,
+        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
+      );
+      expect(
+        tester.getCenter(creationTimeMetric).dy,
         closeTo(tester.getCenter(menuButton).dy, 0.5),
+      );
+      expect(
+        tester.getTopRight(providerAndModel).dx,
+        lessThan(tester.getTopLeft(creationTimeMetric).dx),
+      );
+      expect(
+        tester.getTopRight(creationTimeMetric).dx,
+        lessThan(tester.getTopLeft(menuButton).dx),
       );
       expect(
         tester

@@ -840,6 +840,24 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                                         widget.metrics.contextWindowTokens,
                                       ),
                             ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Row(
+                          key: ValueKey<String>(
+                            'desktop-bot-card-footer-${widget.bot.id}',
+                          ),
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                widget.subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.muted,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             _BotCardMetric(
                               key: ValueKey<String>(
                                 'bot-card-creation-time-${widget.bot.id}',
@@ -851,23 +869,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                                 widget.bot.createTimestamp,
                               ),
                             ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Row(
-                          key: ValueKey<String>(
-                            'desktop-bot-card-footer-${widget.bot.id}',
-                          ),
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.muted,
-                              ),
-                            ),
+                            const Spacer(),
                             const SizedBox(width: 8),
                             _buildActionMenu(context),
                           ],

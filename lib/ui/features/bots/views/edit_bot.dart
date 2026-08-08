@@ -433,7 +433,10 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   S.of(context).basicInformation,
                   [
                     _buildNameInput(fontSize),
-                    if (widget.readOnly) _buildCreationTimeDetail(),
+                    if (widget.readOnly) ...[
+                      _buildCreationTimeDetail(),
+                      _buildModificationTimeDetail(),
+                    ],
                   ],
                   sectionKey: const ValueKey<String>(
                     'desktop-bot-basic-section',
@@ -1829,17 +1832,40 @@ class _EditAIBotPageState extends State<EditBotPage> {
   }
 
   Widget _buildCreationTimeDetail() {
-    final localizations = MaterialLocalizations.of(context);
-    final timestamp = widget.bot.createTimestamp.toLocal();
-    final formattedDate = localizations.formatFullDate(timestamp);
-    final formattedTime = localizations.formatTimeOfDay(
-      TimeOfDay.fromDateTime(timestamp),
-      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
-    );
-    return _buildDetailValue(
+    return _buildTimestampDetail(
       key: const ValueKey<String>('bot-detail-creation-time'),
       label: S.of(context).creationTime,
       icon: Icons.schedule_outlined,
+      timestamp: widget.bot.createTimestamp,
+    );
+  }
+
+  Widget _buildModificationTimeDetail() {
+    return _buildTimestampDetail(
+      key: const ValueKey<String>('bot-detail-modification-time'),
+      label: S.of(context).modificationTime,
+      icon: Icons.update_outlined,
+      timestamp: widget.bot.modifyTimestamp,
+    );
+  }
+
+  Widget _buildTimestampDetail({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required DateTime timestamp,
+  }) {
+    final localizations = MaterialLocalizations.of(context);
+    final localTimestamp = timestamp.toLocal();
+    final formattedDate = localizations.formatFullDate(localTimestamp);
+    final formattedTime = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(localTimestamp),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return _buildDetailValue(
+      key: key,
+      label: label,
+      icon: icon,
       value: '$formattedDate $formattedTime',
     );
   }

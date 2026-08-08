@@ -511,6 +511,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Model Context Size",
     ),
     "modelsRetrievedSuccess": m13,
+    "modificationTime": MessageLookupByLibrary.simpleMessage(
+      "Modification Time",
+    ),
     "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
     "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
     "name": MessageLookupByLibrary.simpleMessage("Name"),

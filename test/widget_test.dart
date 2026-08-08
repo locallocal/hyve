@@ -2560,8 +2560,8 @@ void main() {
         Bot.parameterSupportsSkills: true,
         Bot.parameterSupportsMcp: false,
       },
-      createTimestamp: DateTime(2026),
-      modifyTimestamp: DateTime(2026),
+      createTimestamp: DateTime(2025, 1, 2, 9, 30),
+      modifyTimestamp: DateTime(2026, 2, 3, 14, 45),
     );
 
     await tester.pumpWidget(_desktopHarness(currentIndex: 1, bot: bot));
@@ -2688,6 +2688,7 @@ void main() {
     for (final key in [
       'bot-detail-name',
       'bot-detail-creation-time',
+      'bot-detail-modification-time',
       'bot-detail-provider',
       'bot-detail-api-type',
       'bot-detail-base-url',
@@ -2713,7 +2714,21 @@ void main() {
         matching: find.byType(SelectableText),
       ),
     );
-    expect(creationTimeValue.data, contains('2026'));
+    expect(creationTimeValue.data, contains('2025'));
+    final modificationTimeDetail = find.byKey(
+      const ValueKey<String>('bot-detail-modification-time'),
+    );
+    expect(
+      find.descendant(of: modificationTimeDetail, matching: find.text('修改时间')),
+      findsOneWidget,
+    );
+    final modificationTimeValue = tester.widget<SelectableText>(
+      find.descendant(
+        of: modificationTimeDetail,
+        matching: find.byType(SelectableText),
+      ),
+    );
+    expect(modificationTimeValue.data, contains('2026'));
     final contextWindowDetail = find.byKey(
       const ValueKey<String>('bot-detail-model-context-window'),
     );

@@ -614,6 +614,7 @@
     },
     "basicInformation": "Basic Information",
     "creationTime": "Creation Time",
+    "modificationTime": "Modification Time",
     "providerInformation": "Provider Information",
     "modelConfiguration": "Model Configuration",
     "modelContextWindow": "Model Context Size",

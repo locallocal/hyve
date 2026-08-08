@@ -392,6 +392,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "modelConfiguration": MessageLookupByLibrary.simpleMessage("模型配置"),
     "modelContextWindow": MessageLookupByLibrary.simpleMessage("模型上下文大小"),
     "modelsRetrievedSuccess": m13,
+    "modificationTime": MessageLookupByLibrary.simpleMessage("修改时间"),
     "musicGenerated": MessageLookupByLibrary.simpleMessage("音乐已生成"),
     "musicResult": MessageLookupByLibrary.simpleMessage("音乐结果"),
     "name": MessageLookupByLibrary.simpleMessage("名称"),

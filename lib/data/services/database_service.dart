@@ -18,7 +18,7 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 14;
+  static const int databaseVersion = 15;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -104,6 +104,7 @@ class DatabaseService {
     await _createSkillEcosystemSchema(db);
     await _createConversationSkillPinSchema(db);
     await _createMcpSchema(db);
+    await _createConversationMemorySchema(db);
 
     // 创建智能体表
     await db.execute('''
@@ -304,6 +305,15 @@ class DatabaseService {
     if (oldVersion >= 13 && oldVersion < 14 && newVersion >= 14) {
       await _resetMcpSchema(db);
     }
+    if (oldVersion < 15 && newVersion >= 15) {
+      await _createConversationMemorySchema(db);
+      await _addColumnIfMissing(
+        db,
+        'token_usage_records',
+        'operation_kind',
+        "TEXT NOT NULL DEFAULT 'chat_reply'",
+      );
+    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -312,6 +322,7 @@ class DatabaseService {
         message_id TEXT PRIMARY KEY,
         chat_id TEXT NOT NULL DEFAULT '',
         bot_id TEXT NOT NULL DEFAULT '',
+        operation_kind TEXT NOT NULL DEFAULT 'chat_reply',
         token_model TEXT NOT NULL DEFAULT '',
         input_token_count INTEGER NOT NULL DEFAULT 0,
         output_token_count INTEGER NOT NULL DEFAULT 0,
@@ -481,6 +492,76 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS conversation_skill_pins_skill_id_index '
       'ON conversation_skill_pins(skill_id)',
+    );
+  }
+
+  static Future<void> _createConversationMemorySchema(
+    DatabaseExecutor db,
+  ) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_memory_state (
+        chat_id TEXT PRIMARY KEY,
+        revision INTEGER NOT NULL DEFAULT 0,
+        active_summary_id TEXT NOT NULL DEFAULT '',
+        covered_through_message_id TEXT NOT NULL DEFAULT '',
+        auto_memory_enabled INTEGER NOT NULL DEFAULT 1,
+        compaction_status TEXT NOT NULL DEFAULT 'idle',
+        last_error TEXT NOT NULL DEFAULT '',
+        last_compacted_at INTEGER,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_summary_segments (
+        id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        markdown_schema_version INTEGER NOT NULL DEFAULT 1,
+        content_digest TEXT NOT NULL,
+        content_bytes INTEGER NOT NULL DEFAULT 0,
+        source_start_message_id TEXT NOT NULL,
+        source_end_message_id TEXT NOT NULL,
+        source_message_ids TEXT NOT NULL,
+        source_digest TEXT NOT NULL,
+        estimated_token_count INTEGER NOT NULL DEFAULT 0,
+        provider TEXT NOT NULL DEFAULT '',
+        model TEXT NOT NULL DEFAULT '',
+        prompt_version INTEGER NOT NULL DEFAULT 1,
+        base_revision INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS conversation_summary_chat_status_index '
+      'ON conversation_summary_segments(chat_id, status)',
+    );
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_memory_items (
+        id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL,
+        memory_key TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        content TEXT NOT NULL,
+        state TEXT NOT NULL,
+        origin TEXT NOT NULL,
+        importance REAL NOT NULL DEFAULT 0.5,
+        confidence REAL NOT NULL DEFAULT 0.5,
+        source_message_ids TEXT NOT NULL DEFAULT '[]',
+        source_digest TEXT NOT NULL DEFAULT '',
+        expires_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS conversation_memory_chat_key_index '
+      'ON conversation_memory_items(chat_id, memory_key)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS messages_chat_timestamp_message_index '
+      'ON messages(chat_id, timestamp, message_id)',
     );
   }
 

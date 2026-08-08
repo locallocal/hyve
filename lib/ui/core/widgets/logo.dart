@@ -18,42 +18,31 @@ Widget buildProviderLogo(
     );
   }
 
-  final String providerLower = provider.toLowerCase();
+  final String providerLower = provider.trim().toLowerCase();
   if (providerLower == 'custom' || providerLower == '') {
-    return Icon(
-      Icons.smart_toy_rounded,
-      size: size,
-      color: Theme.of(context).colorScheme.onSurface,
-    );
+    return _providerIconFallback(context, size);
   }
 
-  try {
-    return SvgPicture.asset(
-      'assets/images/providers/$providerLower.svg',
-      width: size,
-      height: size,
-      placeholderBuilder:
-          (context) => Icon(
-            Icons.smart_toy_rounded,
-            size: size,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-    );
-  } catch (e) {
-    return Image.asset(
-      'assets/images/providers/$providerLower.png',
-      width: size,
-      height: size,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(
-          Icons.smart_toy_rounded,
-          size: size,
-          color: Theme.of(context).colorScheme.onSurface,
-        );
-      },
-    );
-  }
+  return SvgPicture.asset(
+    'assets/images/providers/$providerLower.svg',
+    width: size,
+    height: size,
+    placeholderBuilder: (context) => _providerIconFallback(context, size),
+    errorBuilder:
+        (context, _, _) => Image.asset(
+          'assets/images/providers/$providerLower.png',
+          width: size,
+          height: size,
+          errorBuilder: (context, _, _) => _providerIconFallback(context, size),
+        ),
+  );
 }
+
+Widget _providerIconFallback(BuildContext context, double size) => Icon(
+  Icons.smart_toy_rounded,
+  size: size,
+  color: Theme.of(context).colorScheme.onSurface,
+);
 
 // 获取提供商对应的主题色
 // 获取提供商对应的主题色

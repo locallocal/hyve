@@ -9,7 +9,10 @@ import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
 import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository.dart';
+import 'package:stars/data/repositories/sqlite_conversation_memory_repository.dart';
+import 'package:stars/data/repositories/sqlite_conversation_history_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
+import 'package:stars/data/repositories/sqlite_model_usage_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_ecosystem_repository.dart';
@@ -18,6 +21,8 @@ import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
 import 'package:stars/data/services/bot_api_key_cipher.dart';
 import 'package:stars/data/services/database_service.dart';
+import 'package:stars/data/services/conversation_summary_storage.dart';
+import 'package:stars/data/services/ai/provider_context_summarizer.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
 import 'package:stars/data/services/mcp/mcp_client_service.dart';
@@ -36,6 +41,7 @@ import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/data/services/tools/built_in_tools.dart';
+import 'package:stars/data/services/tools/system_conversation_history_skill.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -44,9 +50,12 @@ import 'package:stars/domain/repositories/bot_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
+import 'package:stars/domain/repositories/conversation_memory_repository.dart';
+import 'package:stars/domain/repositories/conversation_history_repository.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/domain/repositories/model_usage_repository.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
@@ -55,6 +64,8 @@ import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
+import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
@@ -64,6 +75,7 @@ import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.da
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
@@ -80,6 +92,7 @@ class AppDependencies {
     required this.botRepository,
     required this.chatRepository,
     required this.messageRepository,
+    required this.modelUsageRepository,
     required this.profileRepository,
     required this.feedbackRepository,
     required this.aiProviderRepository,
@@ -89,6 +102,8 @@ class AppDependencies {
     required this.skillPickerRepository,
     required this.botSkillBindingRepository,
     required this.conversationSkillPinRepository,
+    required this.conversationMemoryRepository,
+    required this.conversationHistoryRepository,
     required this.skillRunRepository,
     required this.mcpServerRepository,
     required this.mcpCredentialStore,
@@ -96,6 +111,8 @@ class AppDependencies {
     required this.toolRegistry,
     required this.toolPolicy,
     required this.composeChatTurn,
+    required this.compactConversation,
+    required this.systemConversationHistorySkill,
     required this.createChat,
     required this.generationRegistry,
     this.skillEcosystemRepository,
@@ -109,8 +126,24 @@ class AppDependencies {
     final localDatabase = LocalDatabaseService(
       databaseProvider: () => databaseService.database,
     );
-    final chatRepository = SqliteChatRepository(localDatabase: localDatabase);
+    final conversationSummaryStorage = ConversationSummaryStorage();
+    conversationSummaryStorage.recoverPendingDeletions().ignore();
+    final conversationMemoryRepository = SqliteConversationMemoryRepository(
+      localDatabase: localDatabase,
+      storage: conversationSummaryStorage,
+    );
+    final chatRepository = SqliteChatRepository(
+      localDatabase: localDatabase,
+      conversationMemoryRepository: conversationMemoryRepository,
+      conversationSummaryStorage: conversationSummaryStorage,
+    );
     final messageRepository = SqliteMessageRepository(
+      localDatabase: localDatabase,
+    );
+    final conversationHistoryRepository = SqliteConversationHistoryRepository(
+      messageRepository: messageRepository,
+    );
+    final modelUsageRepository = SqliteModelUsageRepository(
       localDatabase: localDatabase,
     );
     final botApiKeyCipher = SecureBotApiKeyCipher();
@@ -126,6 +159,27 @@ class AppDependencies {
       service: const FeedbackService(),
     );
     const aiProviderRepository = AiProviderRepositoryImpl();
+    final systemConversationHistorySkill = SystemConversationHistorySkill();
+    final compactConversation = CompactConversation(
+      messageRepository: messageRepository,
+      memoryRepository: conversationMemoryRepository,
+      summarizerFactory:
+          (bot) => ProviderContextSummarizer(
+            bot: bot,
+            providerFactory: aiProviderRepository.create,
+          ),
+      usagePersister:
+          (operationId, chatId, bot, usage) => modelUsageRepository.upsert(
+            ModelTokenUsageRecord(
+              messageId: operationId,
+              chatId: chatId,
+              botId: bot.id,
+              timestamp: DateTime.now(),
+              usage: usage,
+              operationKind: 'context_compaction',
+            ),
+          ),
+    );
     final attachmentRepository = AttachmentRepositoryImpl(
       service: AttachmentPickerService(),
     );
@@ -172,6 +226,12 @@ class AppDependencies {
       skillRepository: skillRepository,
       bindingRepository: botSkillBindingRepository,
       mcpServerRepository: mcpServerRepository,
+      prepareConversationContext: PrepareConversationContext(
+        memoryRepository: conversationMemoryRepository,
+        aiProviderRepository: aiProviderRepository,
+        historySkillAvailable: () => systemConversationHistorySkill.isValid,
+      ),
+      compactConversation: compactConversation,
     );
     final toolRegistry = DynamicToolRegistry(createBuiltInTools());
     final mcpCatalogService = McpCatalogService(
@@ -205,6 +265,7 @@ class AppDependencies {
       botRepository: botRepository,
       chatRepository: chatRepository,
       messageRepository: messageRepository,
+      modelUsageRepository: modelUsageRepository,
       profileRepository: profileRepository,
       feedbackRepository: feedbackRepository,
       aiProviderRepository: aiProviderRepository,
@@ -214,6 +275,8 @@ class AppDependencies {
       skillPickerRepository: skillPickerRepository,
       botSkillBindingRepository: botSkillBindingRepository,
       conversationSkillPinRepository: conversationSkillPinRepository,
+      conversationMemoryRepository: conversationMemoryRepository,
+      conversationHistoryRepository: conversationHistoryRepository,
       skillRunRepository: skillRunRepository,
       mcpServerRepository: mcpServerRepository,
       mcpCredentialStore: mcpCredentialStore,
@@ -221,6 +284,8 @@ class AppDependencies {
       toolRegistry: toolRegistry,
       toolPolicy: toolPolicy,
       composeChatTurn: composeChatTurn,
+      compactConversation: compactConversation,
+      systemConversationHistorySkill: systemConversationHistorySkill,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
         messagePersister: messageRepository.upsertMessage,
@@ -228,6 +293,14 @@ class AppDependencies {
         providerFactory: aiProviderRepository.create,
         messageIdFactory: messageRepository.createId,
         skillActivationPersister: skillRunRepository.saveActivations,
+        terminalMessageObserver: (chatId, bot, message, report) async {
+          final action = report?.compressionAction;
+          if (action == ContextCompressionAction.backgroundReady ||
+              action == ContextCompressionAction.synchronous ||
+              action == ContextCompressionAction.fallbackTrim) {
+            await compactConversation(bot: bot, chatId: chatId);
+          }
+        },
         toolInvocationPersister: (runId, chatId, botId, audit) async {
           final now = DateTime.now();
           await skillEcosystemRepository.appendComplianceEvent(
@@ -269,6 +342,7 @@ class AppDependencies {
   final BotRepository botRepository;
   final ChatRepository chatRepository;
   final MessageRepository messageRepository;
+  final ModelUsageRepository modelUsageRepository;
   final ProfileRepository profileRepository;
   final FeedbackRepository feedbackRepository;
   final AiProviderRepository aiProviderRepository;
@@ -278,6 +352,8 @@ class AppDependencies {
   final SkillPickerRepository skillPickerRepository;
   final BotSkillBindingRepository botSkillBindingRepository;
   final ConversationSkillPinRepository conversationSkillPinRepository;
+  final ConversationMemoryRepository conversationMemoryRepository;
+  final ConversationHistoryRepository conversationHistoryRepository;
   final SkillRunRepository skillRunRepository;
   final McpServerRepository mcpServerRepository;
   final McpCredentialStore mcpCredentialStore;
@@ -285,6 +361,8 @@ class AppDependencies {
   final ToolRegistry toolRegistry;
   final ToolPolicy toolPolicy;
   final ComposeChatTurn composeChatTurn;
+  final CompactConversation compactConversation;
+  final SystemConversationHistorySkill systemConversationHistorySkill;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
   final SkillEcosystemRepository? skillEcosystemRepository;
@@ -296,6 +374,12 @@ class AppDependencies {
   StartupViewModel createStartupViewModel() => StartupViewModel(
     profileRepository: profileRepository,
     capabilityInitializer: () async {
+      try {
+        await systemConversationHistorySkill.validate();
+      } on Object {
+        // A damaged built-in Skill remains unavailable; chat still works with
+        // summaries and recent turns.
+      }
       try {
         await mcpCatalogService.hydrateFromCache();
       } on Object {
@@ -415,6 +499,7 @@ class AppDependencies {
     attachmentRepository: attachmentRepository,
     generationRegistry: generationRegistry,
     composeChatTurn: composeChatTurn,
+    conversationHistoryRepository: conversationHistoryRepository,
   );
 
   ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>
@@ -423,4 +508,14 @@ class AppDependencies {
         messageRepository: messageRepository,
         chatRepository: chatRepository,
       );
+
+  ConversationMemoryViewModel createConversationMemoryViewModel(
+    String chatId,
+    Bot bot,
+  ) => ConversationMemoryViewModel(
+    chatId: chatId,
+    bot: bot,
+    repository: conversationMemoryRepository,
+    compactConversation: compactConversation,
+  );
 }

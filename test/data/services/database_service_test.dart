@@ -130,6 +130,56 @@ void main() {
   });
 
   test(
+    'version 15 migration adds conversation Memory and model operations',
+    () async {
+      final database = await databaseFactoryFfi.openDatabase(
+        inMemoryDatabasePath,
+      );
+      addTearDown(database.close);
+      await database.execute('''
+      CREATE TABLE messages (
+        message_id TEXT,
+        chat_id TEXT,
+        timestamp INTEGER
+      )
+    ''');
+      await database.execute('''
+      CREATE TABLE token_usage_records (
+        message_id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL DEFAULT '',
+        bot_id TEXT NOT NULL DEFAULT '',
+        token_model TEXT NOT NULL DEFAULT '',
+        input_token_count INTEGER NOT NULL DEFAULT 0,
+        output_token_count INTEGER NOT NULL DEFAULT 0,
+        total_token_count INTEGER NOT NULL DEFAULT 0,
+        timestamp INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
+      await DatabaseService.migrateSchema(database, 14, 15);
+
+      final tables = await database.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type = 'table'",
+      );
+      expect(
+        tables.map((row) => row['name']),
+        containsAll([
+          'conversation_memory_state',
+          'conversation_summary_segments',
+          'conversation_memory_items',
+        ]),
+      );
+      final usageColumns = await database.rawQuery(
+        'PRAGMA table_info(token_usage_records)',
+      );
+      expect(
+        usageColumns.map((row) => row['name']),
+        contains('operation_kind'),
+      );
+    },
+  );
+
+  test(
     'version 14 replaces MCP state instead of migrating namespaces',
     () async {
       final database = await databaseFactoryFfi.openDatabase(

@@ -245,7 +245,7 @@ void main() {
     expect(persisted.single.tokenUsage.effectiveTotalTokens, 140);
   });
 
-  test('chat deletion retains token usage until bot deletion', () async {
+  test('chat clear retains usage while chat deletion removes it', () async {
     final repository = SqliteMessageRepository(localDatabase: localDatabase);
     final bot = _bot();
     final timestamp = DateTime(2026, 7, 25, 10);
@@ -292,12 +292,11 @@ void main() {
 
     await localDatabase.deleteChat('chat-clear');
 
-    final retained = await repository.getTokenUsageRecordsForChat('chat-clear');
-    expect(retained, hasLength(1));
-    expect(retained.single.usage.effectiveTotalTokens, 120);
+    final deleted = await repository.getTokenUsageRecordsForChat('chat-clear');
+    expect(deleted, isEmpty);
     expect(
       (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
-      120,
+      0,
     );
 
     await botRepository.deleteBot(bot.id);

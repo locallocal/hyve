@@ -7,6 +7,8 @@ import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/skill_catalog.dart';
+import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
+import 'package:stars/domain/use_cases/compact_conversation.dart';
 
 final class PreparedChatTurn {
   PreparedChatTurn({
@@ -18,6 +20,8 @@ final class PreparedChatTurn {
     Set<String> approvalExemptToolNames = const {},
     this.estimatedSkillContextTokens = 0,
     this.preflightTokenUsage = ModelTokenUsage.empty,
+    ContextAssemblyReport? contextAssemblyReport,
+    Set<String> historySummaryReferences = const {},
   }) : messages = List<ChatMessage>.unmodifiable(messages),
        activatedSkills = List<ActivatedSkill>.unmodifiable(activatedSkills),
        activationAttempts = List<SkillActivationAttempt>.unmodifiable(
@@ -27,7 +31,10 @@ final class PreparedChatTurn {
        requestedToolNames = Set<String>.unmodifiable(requestedToolNames),
        approvalExemptToolNames = Set<String>.unmodifiable(
          approvalExemptToolNames,
-       );
+       ),
+       contextAssemblyReport =
+           contextAssemblyReport ?? ContextAssemblyReport.empty,
+       historySummaryReferences = Set.unmodifiable(historySummaryReferences);
 
   final List<ChatMessage> messages;
   final List<ActivatedSkill> activatedSkills;
@@ -37,6 +44,8 @@ final class PreparedChatTurn {
   final Set<String> approvalExemptToolNames;
   final int estimatedSkillContextTokens;
   final ModelTokenUsage preflightTokenUsage;
+  final ContextAssemblyReport contextAssemblyReport;
+  final Set<String> historySummaryReferences;
 }
 
 final class SkillContextBudget {
@@ -74,17 +83,23 @@ final class ComposeChatTurn {
     McpServerRepository? mcpServerRepository,
     SkillCatalog skillCatalog = const SkillCatalog(),
     SkillContextBudget budget = const SkillContextBudget(),
+    PrepareConversationContext? prepareConversationContext,
+    CompactConversation? compactConversation,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
        _mcpServerRepository = mcpServerRepository,
        _skillCatalog = skillCatalog,
-       _budget = budget;
+       _budget = budget,
+       _prepareConversationContext = prepareConversationContext,
+       _compactConversation = compactConversation;
 
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
   final McpServerRepository? _mcpServerRepository;
   final SkillCatalog _skillCatalog;
   final SkillContextBudget _budget;
+  final PrepareConversationContext? _prepareConversationContext;
+  final CompactConversation? _compactConversation;
 
   Future<PreparedChatTurn> call({
     required Bot bot,
@@ -171,17 +186,51 @@ final class ComposeChatTurn {
       state.contents.values.toList(),
       resources: state.resources.values.toList(),
     );
-    final messages = <ChatMessage>[];
-    if (systemPrompt.isNotEmpty) {
-      messages.add(ChatMessage(role: 'system', content: systemPrompt));
+    final contextPreparer = _prepareConversationContext;
+    var preparedContext =
+        contextPreparer == null
+            ? null
+            : await contextPreparer(
+              bot: bot,
+              systemPrompt: systemPrompt,
+              history: history,
+              userMessage: userMessage,
+              currentUserId: currentUserId,
+              providerSupportsHistoryLookup:
+                  provider?.capabilities.supportsAgentLoop ?? false,
+              skillTokens: state.skillTokens + state.resourceTokens,
+            );
+    if (preparedContext?.report.compressionAction ==
+            ContextCompressionAction.synchronous &&
+        _compactConversation != null) {
+      final result = await _compactConversation(
+        bot: bot,
+        chatId: userMessage.chatId,
+      );
+      if (result == ConversationCompactionResult.committed) {
+        preparedContext = await contextPreparer!(
+          bot: bot,
+          systemPrompt: systemPrompt,
+          history: history,
+          userMessage: userMessage,
+          currentUserId: currentUserId,
+          providerSupportsHistoryLookup:
+              provider?.capabilities.supportsAgentLoop ?? false,
+          skillTokens: state.skillTokens + state.resourceTokens,
+        );
+      }
     }
-    messages.addAll(
-      _composeHistory(
-        history: history,
-        userMessage: userMessage,
-        currentUserId: currentUserId,
-      ),
-    );
+    final messages =
+        preparedContext?.messages ??
+        <ChatMessage>[
+          if (systemPrompt.isNotEmpty)
+            ChatMessage(role: 'system', content: systemPrompt),
+          ..._composeHistory(
+            history: history,
+            userMessage: userMessage,
+            currentUserId: currentUserId,
+          ),
+        ];
 
     final mcpTools = await _resolveMcpTools(bot: bot, provider: provider);
 
@@ -195,6 +244,13 @@ final class ComposeChatTurn {
             contentDigest: entry.content.descriptor.contentDigest,
             trigger: entry.trigger,
           ),
+        if (preparedContext?.report.historyLookupAvailable ?? false)
+          const ActivatedSkill(
+            id: conversationHistorySkillId,
+            name: 'conversation-history',
+            contentDigest: conversationHistorySkillContentDigest,
+            trigger: SkillActivationTrigger.model,
+          ),
       ],
       activationAttempts: state.attempts,
       skillToolCalls: state.toolCalls,
@@ -202,10 +258,18 @@ final class ComposeChatTurn {
         for (final entry in state.contents.values)
           ...entry.content.descriptor.requestedToolNames,
         ...mcpTools.requestedNames,
+        if (preparedContext?.report.historyLookupAvailable ?? false)
+          ...conversationHistoryToolNames,
       },
-      approvalExemptToolNames: mcpTools.approvalExemptNames,
+      approvalExemptToolNames: {
+        ...mcpTools.approvalExemptNames,
+        if (preparedContext?.report.historyLookupAvailable ?? false)
+          ...conversationHistoryToolNames,
+      },
       estimatedSkillContextTokens: state.skillTokens + state.resourceTokens,
       preflightTokenUsage: state.preflightTokenUsage,
+      contextAssemblyReport: preparedContext?.report,
+      historySummaryReferences: preparedContext?.summaryReferences ?? const {},
     );
   }
 

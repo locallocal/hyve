@@ -101,6 +101,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "このプロバイダーは手動スキルのみ対応しています。",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage("自動メモリ"),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "自動要約は不正確な場合があります。現在のメッセージが常に優先されます。",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("ボットのアバター"),
     "botDeleted": m1,
@@ -124,6 +128,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "chats": MessageLookupByLibrary.simpleMessage("チャット"),
     "clear": MessageLookupByLibrary.simpleMessage("クリア"),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage("自動メモリを消去"),
     "clearChat": MessageLookupByLibrary.simpleMessage("チャットをクリア"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("チャット履歴をクリア"),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("会話の固定を解除"),
@@ -134,6 +139,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "新しいチャットをクリックして会話を作成",
     ),
     "commandExecutions": MessageLookupByLibrary.simpleMessage("コマンド実行"),
+    "compactNow": MessageLookupByLibrary.simpleMessage("今すぐ圧縮"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage("コンテキストを整理中…"),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("失敗"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage("圧縮状態"),
     "confirm": MessageLookupByLibrary.simpleMessage("確認"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("削除の確認"),
@@ -141,6 +150,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDeleteChat": m8,
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("連絡先情報（任意）"),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage("コンテキストとメモリ"),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage("コンテキストを圧縮しました"),
+    "contextWindow": MessageLookupByLibrary.simpleMessage("コンテキストウィンドウ"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage("会話の要約"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Starsチーム"),
     "customProvider": MessageLookupByLibrary.simpleMessage("カスタムプロバイダー..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("ダークモード"),
@@ -177,6 +190,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("スクリプトを無効化"),
     "edit": MessageLookupByLibrary.simpleMessage("編集"),
     "editBot": MessageLookupByLibrary.simpleMessage("ボットを編集"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("メモリを編集"),
     "editName": MessageLookupByLibrary.simpleMessage("名前を編集"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "応答の取得に失敗しました：サーバーが空の応答を返しました",
@@ -202,6 +216,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "コンテンツの読み込み中にエラーが発生しました。後でもう一度お試しください。",
     ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage("推定使用量"),
     "executionStatus": MessageLookupByLibrary.simpleMessage("実行状態"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "フィードバック内容を入力してください",
@@ -233,21 +248,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "followSystem": MessageLookupByLibrary.simpleMessage("システムに従う"),
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("フォントサイズ"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("フォントサイズが更新されました"),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("忘れる"),
     "generationFailed": MessageLookupByLibrary.simpleMessage("生成に失敗"),
     "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
       "生成に失敗 · 部分回答を保持",
     ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage("ヘルプとフィードバック"),
     "home": MessageLookupByLibrary.simpleMessage("ホーム"),
+    "idle": MessageLookupByLibrary.simpleMessage("待機中"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage("スキルフォルダーをインポート"),
     "importSkillZip": MessageLookupByLibrary.simpleMessage("スキル ZIP をインポート"),
     "importingSkill": MessageLookupByLibrary.simpleMessage("スキルをインポート中…"),
     "inputTokens": MessageLookupByLibrary.simpleMessage("入力トークン"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage("更新をインストール"),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage("生成された要約は検証に失敗しました"),
     "justNow": MessageLookupByLibrary.simpleMessage("たった今"),
     "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("言語設定"),
     "lightMode": MessageLookupByLibrary.simpleMessage("ライトモード"),
+    "manageMemory": MessageLookupByLibrary.simpleMessage("メモリを管理"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("メッセージごと"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "必要なときにメッセージ入力欄からスキルを選択します。",
@@ -257,6 +276,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "MCP サーバーに接続してツールカタログを検出します。ツールはエージェント作成後に設定します。",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("成果物"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "メモリが変更されました。再試行してください",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("訂正"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("決定"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("事実"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("設定"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("未解決の質問"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("タスク"),
     "messageHint": MessageLookupByLibrary.simpleMessage("メッセージを入力..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("スキル"),
     "minutesAgo": m12,
@@ -277,6 +306,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "コンテンツが返されませんでした",
     ),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "利用できる会話の要約はまだありません。",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage("一致するスキルが見つかりません"),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage("モデルが取得されませんでした"),
     "noSkillsInstalled": MessageLookupByLibrary.simpleMessage(
@@ -285,9 +317,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md を含む Agent Skills フォルダーまたは ZIP をインポートしてください。",
     ),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "圧縮できる古いコンテキストが不足しています",
+    ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("出力トークン"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回答"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("生成を一時停止"),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("固定"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "選択したスキルをこの会話に固定",
     ),
@@ -308,6 +344,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("推論完了"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("推論中"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("推論中断"),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("再構築"),
     "refresh": MessageLookupByLibrary.simpleMessage("更新"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage("カタログを更新"),
     "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
@@ -320,9 +357,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("デフォルトに戻す"),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("復元"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("保持された最近のターン"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("テストを実行"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存"),
+    "searchMemory": MessageLookupByLibrary.simpleMessage("メモリを検索"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("スキルを検索"),
     "selectBot": MessageLookupByLibrary.simpleMessage("ボットを選択"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("言語を選択"),
@@ -424,6 +464,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "statusUnknown": MessageLookupByLibrary.simpleMessage("不明"),
     "structuredProcessInfo": MessageLookupByLibrary.simpleMessage("構造化された処理情報"),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("フィードバックを送信"),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage("要約済みメッセージ"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("システムプロンプト"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("説明をテスト"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -451,9 +492,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "typing": MessageLookupByLibrary.simpleMessage("入力中..."),
     "uninstall": MessageLookupByLibrary.simpleMessage("アンインストール"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("スキルをアンインストール"),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("固定解除"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("ファイルをアップロード"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("画像をアップロード"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("ユーザー同意"),
     "version": MessageLookupByLibrary.simpleMessage("バージョン 1.0.0"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("要約を表示"),
   };
 }

@@ -181,6 +181,20 @@ final class DefaultToolPolicy implements ToolPolicy {
         reason: 'bot_mcp_tool_approval_exempt',
       );
     }
+    const historyTools = {
+      'search_conversation_history',
+      'read_conversation_history',
+    };
+    if (definition.source == ToolSource.builtIn &&
+        definition.riskLevel == ToolRiskLevel.readOnly &&
+        definition.capabilities.length == 1 &&
+        definition.capabilities.contains(ToolCapability.localRead) &&
+        historyTools.contains(definition.name) &&
+        context.approvalExemptToolNames.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'conversation_history_read_only_exempt',
+      );
+    }
     if (definition.source == ToolSource.skillScript ||
         definition.capabilities.contains(ToolCapability.process)) {
       return allowSkillScripts
@@ -402,6 +416,47 @@ final class DynamicToolRegistry implements ToolRegistry {
           entry.value.definition,
     ]..sort((left, right) => left.name.compareTo(right.name));
     return List<ToolDefinition>.unmodifiable(definitions);
+  }
+}
+
+/// A request-local overlay used for tools that must capture immutable run data.
+final class OverlayToolRegistry implements ToolRegistry {
+  factory OverlayToolRegistry({
+    required ToolRegistry parent,
+    required Iterable<ExecutableTool> overlayTools,
+  }) {
+    final overlay = <String, ExecutableTool>{};
+    for (final tool in overlayTools) {
+      final name = tool.definition.name;
+      if (overlay.containsKey(name) || parent.find(name) != null) {
+        throw ArgumentError.value(
+          name,
+          'overlayTools',
+          'Tool name is reserved.',
+        );
+      }
+      overlay[name] = tool;
+    }
+    return OverlayToolRegistry._(parent, Map.unmodifiable(overlay));
+  }
+
+  const OverlayToolRegistry._(this._parent, this._overlay);
+
+  final ToolRegistry _parent;
+  final Map<String, ExecutableTool> _overlay;
+
+  @override
+  ExecutableTool? find(String name) => _overlay[name] ?? _parent.find(name);
+
+  @override
+  List<ToolDefinition> list({Set<String> allowedNames = const {}}) {
+    final definitions = [
+      ..._parent.list(allowedNames: allowedNames),
+      for (final entry in _overlay.entries)
+        if (allowedNames.isEmpty || allowedNames.contains(entry.key))
+          entry.value.definition,
+    ]..sort((left, right) => left.name.compareTo(right.name));
+    return List.unmodifiable(definitions);
   }
 }
 

@@ -2,6 +2,8 @@
 export 'bot.dart';
 export 'ai_model_info.dart';
 export 'chat.dart';
+export 'conversation_history.dart';
+export 'conversation_memory.dart';
 export 'message.dart';
 export 'mcp.dart';
 export 'modalities.dart';

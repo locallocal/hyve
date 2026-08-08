@@ -117,6 +117,7 @@ class SqliteMessageRepository implements MessageRepository {
           timestamp: DateTime.fromMillisecondsSinceEpoch(
             _readCount(record['timestamp']),
           ),
+          operationKind: record['operation_kind']?.toString() ?? 'chat_reply',
           usage: ModelTokenUsage(
             model: record['token_model']?.toString() ?? '',
             inputTokens: _readCount(record['input_token_count']),

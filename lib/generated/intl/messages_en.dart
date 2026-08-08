@@ -223,6 +223,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Token share by conversation",
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
+    "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Copy installation location",
+    ),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars Team"),
     "createChatFailed": m23,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
@@ -750,6 +753,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Verified signature",
     ),
     "skillSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "skillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Installation location",
+    ),
+    "skillStorageLocationCopied": MessageLookupByLibrary.simpleMessage(
+      "Installation location copied to clipboard",
+    ),
     "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("Automatic"),
     "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
       "Update available",

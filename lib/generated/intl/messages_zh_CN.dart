@@ -182,6 +182,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "会话 Token 占比",
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("复制 API 密钥"),
+    "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage("复制安装位置"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 团队"),
     "createChatFailed": m23,
     "creatingChat": MessageLookupByLibrary.simpleMessage("正在创建…"),
@@ -565,6 +566,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillSignatureUnsigned": MessageLookupByLibrary.simpleMessage("未签名"),
     "skillSignatureVerified": MessageLookupByLibrary.simpleMessage("签名已验证"),
     "skillSource": MessageLookupByLibrary.simpleMessage("来源"),
+    "skillStorageLocation": MessageLookupByLibrary.simpleMessage("安装位置"),
+    "skillStorageLocationCopied": MessageLookupByLibrary.simpleMessage(
+      "安装位置已复制到剪贴板",
+    ),
     "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("自动"),
     "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage("有可用更新"),
     "skillUpdateManual": MessageLookupByLibrary.simpleMessage("手动"),

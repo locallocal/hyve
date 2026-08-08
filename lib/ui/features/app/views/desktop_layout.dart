@@ -12,7 +12,9 @@ import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
+import 'package:stars/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -87,6 +89,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   GlobalKey<ChatPageState>? _chatPageKey;
   AppDependencies? _dependencies;
   ChatTokenUsageViewModel? _tokenUsageViewModel;
+  ConversationMemoryViewModel? _memoryViewModel;
 
   Bot? get _activeBot => switch (widget.currentIndex) {
     0 => widget.selectedChatBot,
@@ -100,9 +103,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     final dependencies = AppScope.maybeOf(context);
     if (_dependencies == dependencies) return;
     _tokenUsageViewModel?.dispose();
+    _memoryViewModel?.dispose();
     _tokenUsageViewModel = null;
+    _memoryViewModel = null;
     _dependencies = dependencies;
     _replaceTokenUsageViewModel();
+    _replaceMemoryViewModel();
   }
 
   @override
@@ -112,6 +118,9 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       _chatPageKeyId = null;
       _chatPageKey = null;
       _replaceTokenUsageViewModel();
+      _replaceMemoryViewModel();
+    } else if (oldWidget.selectedChatBot != widget.selectedChatBot) {
+      _replaceMemoryViewModel();
     }
     if (widget.currentIndex != 0 && _inspectorOpen) {
       _inspectorOpen = false;
@@ -141,6 +150,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     }
     _inspectorScrollController.dispose();
     _tokenUsageViewModel?.dispose();
+    _memoryViewModel?.dispose();
     super.dispose();
   }
 
@@ -155,6 +165,17 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             : dependencies.createChatTokenUsageViewModel(chatId);
     final viewModel = _tokenUsageViewModel;
     if (viewModel != null) unawaited(viewModel.load());
+  }
+
+  void _replaceMemoryViewModel() {
+    _memoryViewModel?.dispose();
+    final chatId = widget.selectedChatId;
+    final bot = widget.selectedChatBot;
+    final dependencies = _dependencies;
+    _memoryViewModel =
+        chatId == null || bot == null || dependencies == null
+            ? null
+            : dependencies.createConversationMemoryViewModel(chatId, bot);
   }
 
   @override
@@ -1136,6 +1157,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             ),
             if (widget.currentIndex == 0 && _tokenUsageViewModel != null)
               ConversationTokenUsagePanel(viewModel: _tokenUsageViewModel!),
+            if (widget.currentIndex == 0 && _memoryViewModel != null)
+              ConversationMemoryPanel(
+                viewModel: _memoryViewModel!,
+                generationViewModel: _dependencies?.generationRegistry
+                    .maybeViewModel(widget.selectedChatId),
+              ),
           ],
         ],
       ),

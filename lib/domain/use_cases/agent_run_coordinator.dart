@@ -733,6 +733,15 @@ final class AgentRunCoordinator {
     if (result.isError) {
       return result.errorCode.isEmpty ? 'tool_error' : result.errorCode;
     }
+    if (conversationHistoryToolNames.contains(definition.name) &&
+        result.structuredContent is Map) {
+      final structured = result.structuredContent! as Map;
+      return jsonEncode({
+        'count': structured['count'],
+        'truncated': structured['truncated'],
+        'message_ids': structured['message_ids'],
+      });
+    }
     final isPureBuiltIn =
         definition.source == ToolSource.builtIn &&
         definition.capabilities.every(

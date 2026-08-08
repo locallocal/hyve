@@ -3,7 +3,9 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/conversation_history_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/data/services/tools/conversation_history_tools.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 
@@ -17,11 +19,13 @@ class ChatViewModel extends ChangeNotifier {
     required AttachmentRepository attachmentRepository,
     required ChatGenerationRegistry generationRegistry,
     required ComposeChatTurn composeChatTurn,
+    ConversationHistoryRepository? conversationHistoryRepository,
   }) : _messageRepository = messageRepository,
        _chatRepository = chatRepository,
        _aiProviderRepository = aiProviderRepository,
        _attachmentRepository = attachmentRepository,
        _composeChatTurn = composeChatTurn,
+       _conversationHistoryRepository = conversationHistoryRepository,
        generationRegistry = generationRegistry,
        generationViewModel = generationRegistry.viewModelFor(chatId, bot);
 
@@ -32,6 +36,7 @@ class ChatViewModel extends ChangeNotifier {
   final AiProviderRepository _aiProviderRepository;
   final AttachmentRepository _attachmentRepository;
   final ComposeChatTurn _composeChatTurn;
+  final ConversationHistoryRepository? _conversationHistoryRepository;
   final ChatGenerationRegistry generationRegistry;
   final ChatGenerationViewModel generationViewModel;
 
@@ -89,6 +94,19 @@ class ChatViewModel extends ChangeNotifier {
       userMessage: userMessage,
       currentUserId: currentUserId,
     );
+    final historyRepository = _conversationHistoryRepository;
+    final historyTools =
+        preparedTurn.contextAssemblyReport.historyLookupAvailable &&
+                historyRepository != null
+            ? ConversationHistoryToolSession(
+              repository: historyRepository,
+              chatId: chatId,
+              runId: userMessage.runId,
+              resultTokenBudget:
+                  preparedTurn.contextAssemblyReport.historyLookupReserveTokens,
+              initiallyAllowedReferences: preparedTurn.historySummaryReferences,
+            ).createTools()
+            : const <ExecutableTool>[];
     return PreparedTextGeneration(
       userMessage: userMessage,
       messages: preparedTurn.messages,
@@ -98,6 +116,8 @@ class ChatViewModel extends ChangeNotifier {
       preflightTokenUsage: preparedTurn.preflightTokenUsage,
       requestedToolNames: preparedTurn.requestedToolNames,
       approvalExemptToolNames: preparedTurn.approvalExemptToolNames,
+      runScopedTools: historyTools,
+      contextAssemblyReport: preparedTurn.contextAssemblyReport,
     );
   }
 

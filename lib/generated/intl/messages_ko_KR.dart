@@ -99,6 +99,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "이 제공자는 수동 스킬만 지원합니다.",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage("자동 메모리"),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "자동 요약은 부정확할 수 있습니다. 현재 메시지가 항상 우선합니다.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("봇 아바타"),
     "botDeleted": m1,
@@ -120,6 +124,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage("채팅 기록이 지워졌습니다"),
     "chats": MessageLookupByLibrary.simpleMessage("채팅"),
     "clear": MessageLookupByLibrary.simpleMessage("지우기"),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage("자동 메모리 지우기"),
     "clearChat": MessageLookupByLibrary.simpleMessage("채팅 지우기"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("채팅 기록 지우기"),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("대화 고정 해제"),
@@ -130,6 +135,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "새 채팅을 클릭하여 대화를 만드세요",
     ),
     "commandExecutions": MessageLookupByLibrary.simpleMessage("명령 실행"),
+    "compactNow": MessageLookupByLibrary.simpleMessage("지금 압축"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage("컨텍스트 정리 중…"),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("실패"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage("압축 상태"),
     "confirm": MessageLookupByLibrary.simpleMessage("확인"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("삭제 확인"),
@@ -137,6 +146,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDeleteChat": m8,
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("연락처 정보(선택 사항)"),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage("컨텍스트와 메모리"),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage("컨텍스트가 압축되었습니다"),
+    "contextWindow": MessageLookupByLibrary.simpleMessage("컨텍스트 창"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage("대화 요약"),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 팀"),
     "customProvider": MessageLookupByLibrary.simpleMessage("사용자 정의 제공업체..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("다크 모드"),
@@ -173,6 +186,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("스크립트 비활성화"),
     "edit": MessageLookupByLibrary.simpleMessage("편집"),
     "editBot": MessageLookupByLibrary.simpleMessage("봇 편집"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("메모리 편집"),
     "editName": MessageLookupByLibrary.simpleMessage("이름 수정"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "응답을 가져오지 못했습니다: 서버가 빈 응답을 반환했습니다",
@@ -196,6 +210,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "콘텐츠를 로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
     ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage("예상 사용량"),
     "executionStatus": MessageLookupByLibrary.simpleMessage("실행 상태"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "피드백 내용을 입력해 주세요",
@@ -225,21 +240,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "followSystem": MessageLookupByLibrary.simpleMessage("시스템 설정 따르기"),
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("글꼴 크기"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("글꼴 크기가 업데이트되었습니다"),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("잊기"),
     "generationFailed": MessageLookupByLibrary.simpleMessage("생성 실패"),
     "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
       "생성 실패 · 부분 응답 유지",
     ),
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage("도움말 및 피드백"),
     "home": MessageLookupByLibrary.simpleMessage("홈"),
+    "idle": MessageLookupByLibrary.simpleMessage("유휴"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage("스킬 폴더 가져오기"),
     "importSkillZip": MessageLookupByLibrary.simpleMessage("스킬 ZIP 가져오기"),
     "importingSkill": MessageLookupByLibrary.simpleMessage("스킬 가져오는 중…"),
     "inputTokens": MessageLookupByLibrary.simpleMessage("입력 토큰"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage("업데이트 설치"),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage(
+      "생성된 요약이 검증을 통과하지 못했습니다",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("방금"),
     "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("언어 설정"),
     "lightMode": MessageLookupByLibrary.simpleMessage("라이트 모드"),
+    "manageMemory": MessageLookupByLibrary.simpleMessage("메모리 관리"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("메시지별"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "필요할 때 메시지 입력창에서 스킬을 선택하세요.",
@@ -249,6 +270,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "MCP 서버를 연결하고 도구 카탈로그를 검색합니다. 에이전트를 만든 후 도구를 구성하세요.",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("결과물"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "메모리가 변경되었습니다. 다시 시도하세요",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("수정"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("결정"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("사실"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("환경 설정"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("열린 질문"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("작업"),
     "messageHint": MessageLookupByLibrary.simpleMessage("메시지 입력..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("스킬"),
     "minutesAgo": m12,
@@ -267,6 +298,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noBotsAvailable": MessageLookupByLibrary.simpleMessage("사용 가능한 봇이 없습니다"),
     "noChats": MessageLookupByLibrary.simpleMessage("아직 채팅이 없습니다"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("콘텐츠가 반환되지 않음"),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "아직 사용할 수 있는 대화 요약이 없습니다.",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "일치하는 스킬을 찾을 수 없음",
     ),
@@ -275,9 +309,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md가 포함된 Agent Skills 폴더 또는 ZIP을 가져오세요.",
     ),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "압축할 이전 컨텍스트가 충분하지 않습니다",
+    ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("출력 토큰"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("부분 응답"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("생성 일시 중지"),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("고정"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "선택한 스킬을 이 대화에 고정",
     ),
@@ -298,6 +336,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("추론 완료"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("추론 진행 중"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("추론 중단"),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("다시 구축"),
     "refresh": MessageLookupByLibrary.simpleMessage("새로 고침"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage("카탈로그 새로 고침"),
     "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
@@ -310,9 +349,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("기본값으로 재설정"),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("복원"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("유지된 최근 턴"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("테스트 실행"),
     "save": MessageLookupByLibrary.simpleMessage("저장"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("변경사항 저장"),
+    "searchMemory": MessageLookupByLibrary.simpleMessage("메모리 검색"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("스킬 검색"),
     "selectBot": MessageLookupByLibrary.simpleMessage("봇 선택"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("언어 선택"),
@@ -418,6 +460,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "구조화된 프로세스 정보",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("피드백 제출"),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage("요약된 메시지"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("시스템 프롬프트"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage("설명 테스트"),
     "themeSetToDark": MessageLookupByLibrary.simpleMessage(
@@ -445,9 +488,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "typing": MessageLookupByLibrary.simpleMessage("입력 중..."),
     "uninstall": MessageLookupByLibrary.simpleMessage("제거"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("스킬 제거"),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("고정 해제"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("파일 업로드"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("이미지 업로드"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("사용자 동의"),
     "version": MessageLookupByLibrary.simpleMessage("버전 1.0.0"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("요약 보기"),
   };
 }

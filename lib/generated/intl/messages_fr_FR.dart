@@ -106,6 +106,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "Ce fournisseur ne prend en charge que les compétences manuelles.",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage(
+      "Mémoire automatique",
+    ),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "Les résumés automatiques peuvent être inexacts. Le message actuel est toujours prioritaire.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Avatar du Bot"),
     "botDeleted": m1,
@@ -131,6 +137,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "chats": MessageLookupByLibrary.simpleMessage("Discussions"),
     "clear": MessageLookupByLibrary.simpleMessage("Effacer"),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
+      "Effacer la mémoire automatique",
+    ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Effacer la Discussion"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Effacer l\'historique de discussion",
@@ -147,6 +156,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "commandExecutions": MessageLookupByLibrary.simpleMessage(
       "Exécutions de commandes",
     ),
+    "compactNow": MessageLookupByLibrary.simpleMessage("Compresser maintenant"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage(
+      "Organisation du contexte…",
+    ),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("Échec"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage(
+      "État de compression",
+    ),
     "confirm": MessageLookupByLibrary.simpleMessage("Confirmer"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -157,6 +174,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Informations de contact (facultatif)",
+    ),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage(
+      "Contexte et mémoire",
+    ),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage(
+      "Contexte compressé",
+    ),
+    "contextWindow": MessageLookupByLibrary.simpleMessage(
+      "Fenêtre de contexte",
+    ),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage(
+      "Résumé de la conversation",
     ),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Équipe Stars"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
@@ -208,6 +237,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "edit": MessageLookupByLibrary.simpleMessage("Modifier"),
     "editBot": MessageLookupByLibrary.simpleMessage("Modifier le Bot"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("Modifier la mémoire"),
     "editName": MessageLookupByLibrary.simpleMessage("Modifier le Nom"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Échec de récupération de la réponse: le serveur a renvoyé une réponse vide",
@@ -246,6 +276,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "Erreur lors du chargement du contenu, veuillez réessayer plus tard.",
+    ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage(
+      "Utilisation estimée",
     ),
     "executionStatus": MessageLookupByLibrary.simpleMessage("État d’exécution"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
@@ -286,6 +319,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Taille de police mise à jour",
     ),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("Oublier"),
     "generationFailed": MessageLookupByLibrary.simpleMessage(
       "Échec de la génération",
     ),
@@ -296,6 +330,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Aide et Commentaires",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Accueil"),
+    "idle": MessageLookupByLibrary.simpleMessage("Inactif"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage(
       "Importer un dossier de compétences",
     ),
@@ -309,12 +344,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "Installer la mise à jour",
     ),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage(
+      "Le résumé généré n’a pas passé la validation",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("À l\'instant"),
     "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Paramètres de Langue",
     ),
     "lightMode": MessageLookupByLibrary.simpleMessage("Mode Clair"),
+    "manageMemory": MessageLookupByLibrary.simpleMessage("Gérer la mémoire"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("Par message"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Si nécessaire, sélectionnez la compétence dans la zone de message.",
@@ -326,6 +365,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "Connectez des serveurs MCP et découvrez leurs catalogues d’outils. Configurez les outils après avoir créé un agent.",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("Artefact"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "La mémoire a changé ; réessayez",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("Correction"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("Décision"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("Fait"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("Préférence"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("Question ouverte"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("Tâche"),
     "messageHint": MessageLookupByLibrary.simpleMessage("Tapez un message..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Compétences"),
     "minutesAgo": m12,
@@ -352,6 +401,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "Aucun contenu renvoyé",
     ),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "Aucun résumé de la conversation n’est encore disponible.",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "Aucune compétence correspondante trouvée",
     ),
@@ -364,6 +416,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "Importez un dossier Agent Skills ou un fichier ZIP contenant SKILL.md.",
     ),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "Pas assez d’ancien contexte à compresser",
+    ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Jetons de sortie"),
     "partialResponse": MessageLookupByLibrary.simpleMessage(
       "Réponse partielle",
@@ -371,6 +426,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Mettre en pause la génération",
     ),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("Épingler"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "Épingler la sélection pour cette conversation",
     ),
@@ -405,6 +461,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Raisonnement interrompu",
     ),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("Reconstruire"),
     "refresh": MessageLookupByLibrary.simpleMessage("Actualiser"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "Actualiser les catalogues",
@@ -423,12 +480,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Rétablir les paramètres par défaut",
     ),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("Restaurer"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
+      "Tours récents conservés",
+    ),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "Lancer le test",
     ),
     "save": MessageLookupByLibrary.simpleMessage("Enregistrer"),
     "saveChanges": MessageLookupByLibrary.simpleMessage(
       "Enregistrer les modifications",
+    ),
+    "searchMemory": MessageLookupByLibrary.simpleMessage(
+      "Rechercher dans la mémoire",
     ),
     "searchSkills": MessageLookupByLibrary.simpleMessage(
       "Rechercher des compétences",
@@ -569,6 +633,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "submitFeedback": MessageLookupByLibrary.simpleMessage(
       "Soumettre les Commentaires",
     ),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage("Messages résumés"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Invite Système"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Tester la description",
@@ -610,9 +675,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "Désinstaller la compétence",
     ),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("Désépingler"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("Importer un fichier"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("Importer une image"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("Accord Utilisateur"),
     "version": MessageLookupByLibrary.simpleMessage("Version 1.0.0"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("Voir le résumé"),
   };
 }

@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1470,7 +1469,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -4076,6 +4076,291 @@ class S {
     return Intl.message(
       'Install update',
       name: 'installSkillUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Context and memory`
+  String get contextAndMemory {
+    return Intl.message(
+      'Context and memory',
+      name: 'contextAndMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Context window`
+  String get contextWindow {
+    return Intl.message(
+      'Context window',
+      name: 'contextWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Estimated usage`
+  String get estimatedContextUsage {
+    return Intl.message(
+      'Estimated usage',
+      name: 'estimatedContextUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recent turns retained`
+  String get retainedRecentTurns {
+    return Intl.message(
+      'Recent turns retained',
+      name: 'retainedRecentTurns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Messages summarized`
+  String get summarizedTurns {
+    return Intl.message(
+      'Messages summarized',
+      name: 'summarizedTurns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Compaction status`
+  String get compactionStatus {
+    return Intl.message(
+      'Compaction status',
+      name: 'compactionStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Organizing context…`
+  String get compactingContext {
+    return Intl.message(
+      'Organizing context…',
+      name: 'compactingContext',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic memory`
+  String get automaticMemory {
+    return Intl.message(
+      'Automatic memory',
+      name: 'automaticMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View summary`
+  String get viewSummary {
+    return Intl.message(
+      'View summary',
+      name: 'viewSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No conversation summary is available yet.`
+  String get noConversationSummary {
+    return Intl.message(
+      'No conversation summary is available yet.',
+      name: 'noConversationSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage memory`
+  String get manageMemory {
+    return Intl.message(
+      'Manage memory',
+      name: 'manageMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Compact now`
+  String get compactNow {
+    return Intl.message('Compact now', name: 'compactNow', desc: '', args: []);
+  }
+
+  /// `Context compacted`
+  String get contextCompacted {
+    return Intl.message(
+      'Context compacted',
+      name: 'contextCompacted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `There is not enough older context to compact`
+  String get nothingToCompact {
+    return Intl.message(
+      'There is not enough older context to compact',
+      name: 'nothingToCompact',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Memory changed; please retry`
+  String get memoryChangedRetry {
+    return Intl.message(
+      'Memory changed; please retry',
+      name: 'memoryChangedRetry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The generated summary did not pass validation`
+  String get invalidSummary {
+    return Intl.message(
+      'The generated summary did not pass validation',
+      name: 'invalidSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Conversation summary`
+  String get conversationSummary {
+    return Intl.message(
+      'Conversation summary',
+      name: 'conversationSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search memory`
+  String get searchMemory {
+    return Intl.message(
+      'Search memory',
+      name: 'searchMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic summaries can be inaccurate. The current message always takes precedence.`
+  String get automaticSummaryWarning {
+    return Intl.message(
+      'Automatic summaries can be inaccurate. The current message always takes precedence.',
+      name: 'automaticSummaryWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rebuild`
+  String get rebuildMemory {
+    return Intl.message('Rebuild', name: 'rebuildMemory', desc: '', args: []);
+  }
+
+  /// `Clear automatic memory`
+  String get clearAutomaticMemory {
+    return Intl.message(
+      'Clear automatic memory',
+      name: 'clearAutomaticMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pin`
+  String get pinMemory {
+    return Intl.message('Pin', name: 'pinMemory', desc: '', args: []);
+  }
+
+  /// `Unpin`
+  String get unpinMemory {
+    return Intl.message('Unpin', name: 'unpinMemory', desc: '', args: []);
+  }
+
+  /// `Edit memory`
+  String get editMemory {
+    return Intl.message('Edit memory', name: 'editMemory', desc: '', args: []);
+  }
+
+  /// `Restore`
+  String get restoreMemory {
+    return Intl.message('Restore', name: 'restoreMemory', desc: '', args: []);
+  }
+
+  /// `Forget`
+  String get forgetMemory {
+    return Intl.message('Forget', name: 'forgetMemory', desc: '', args: []);
+  }
+
+  /// `Failed`
+  String get compactionFailed {
+    return Intl.message('Failed', name: 'compactionFailed', desc: '', args: []);
+  }
+
+  /// `Idle`
+  String get idle {
+    return Intl.message('Idle', name: 'idle', desc: '', args: []);
+  }
+
+  /// `Fact`
+  String get memoryFact {
+    return Intl.message('Fact', name: 'memoryFact', desc: '', args: []);
+  }
+
+  /// `Preference`
+  String get memoryPreference {
+    return Intl.message(
+      'Preference',
+      name: 'memoryPreference',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Decision`
+  String get memoryDecision {
+    return Intl.message('Decision', name: 'memoryDecision', desc: '', args: []);
+  }
+
+  /// `Task`
+  String get memoryTask {
+    return Intl.message('Task', name: 'memoryTask', desc: '', args: []);
+  }
+
+  /// `Open question`
+  String get memoryQuestion {
+    return Intl.message(
+      'Open question',
+      name: 'memoryQuestion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artifact`
+  String get memoryArtifact {
+    return Intl.message('Artifact', name: 'memoryArtifact', desc: '', args: []);
+  }
+
+  /// `Correction`
+  String get memoryCorrection {
+    return Intl.message(
+      'Correction',
+      name: 'memoryCorrection',
       desc: '',
       args: [],
     );

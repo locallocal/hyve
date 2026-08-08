@@ -3,15 +3,24 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/services/local_database_service.dart';
+import 'package:stars/data/services/conversation_summary_storage.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/domain/repositories/conversation_memory_repository.dart';
 import 'package:stars/utils/utils.dart';
 
 class SqliteChatRepository implements ChatRepository {
-  SqliteChatRepository({required LocalDatabaseService localDatabase})
-    : _localDatabase = localDatabase;
+  SqliteChatRepository({
+    required LocalDatabaseService localDatabase,
+    ConversationMemoryRepository? conversationMemoryRepository,
+    ConversationSummaryStorage? conversationSummaryStorage,
+  }) : _localDatabase = localDatabase,
+       _conversationMemoryRepository = conversationMemoryRepository,
+       _conversationSummaryStorage = conversationSummaryStorage;
 
   final LocalDatabaseService _localDatabase;
+  final ConversationMemoryRepository? _conversationMemoryRepository;
+  final ConversationSummaryStorage? _conversationSummaryStorage;
   final StreamController<List<Chat>> _changes =
       StreamController<List<Chat>>.broadcast();
   List<Chat>? _cache;
@@ -69,12 +78,25 @@ class SqliteChatRepository implements ChatRepository {
 
   @override
   Future<void> deleteChat(String id) async {
-    await _localDatabase.deleteChat(id);
-    _cache = _cache?.where((chat) => chat.id != id).toList();
+    final storage = _conversationSummaryStorage;
+    final staged = await storage?.stageForChatDeletion(id);
     try {
-      await deleteChatDirectory(id);
-    } catch (error) {
-      debugPrint('Failed to delete chat directory for $id: $error');
+      if (storage == null) {
+        await _conversationMemoryRepository?.deleteForChat(id);
+      }
+      await _localDatabase.deleteChat(id);
+    } catch (_) {
+      await staged?.rollback();
+      rethrow;
+    }
+    await staged?.commit();
+    _cache = _cache?.where((chat) => chat.id != id).toList();
+    if (storage == null) {
+      try {
+        await deleteChatDirectory(id);
+      } catch (error) {
+        debugPrint('Failed to delete chat directory for $id: $error');
+      }
     }
     _emit();
   }
@@ -126,7 +148,18 @@ class SqliteChatRepository implements ChatRepository {
   @override
   Future<void> clearHistory(String id) async {
     final timestamp = DateTime.now();
-    await _localDatabase.clearChatHistory(id, timestamp);
+    final storage = _conversationSummaryStorage;
+    final staged = await storage?.stageForChatClear(id);
+    try {
+      if (storage == null) {
+        await _conversationMemoryRepository?.clearForChat(id);
+      }
+      await _localDatabase.clearChatHistory(id, timestamp);
+    } catch (_) {
+      await staged?.rollback();
+      rethrow;
+    }
+    await staged?.commit();
     final cache = _cache;
     if (cache != null) {
       _cache = [

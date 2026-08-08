@@ -144,6 +144,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "This provider supports manual Skills only.",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage("Automatic memory"),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "Automatic summaries can be inaccurate. The current message always takes precedence.",
+    ),
     "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
       "Back to daily usage",
     ),
@@ -190,6 +194,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearAttachments": MessageLookupByLibrary.simpleMessage(
       "Clear attachments",
     ),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
+      "Clear automatic memory",
+    ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Clear Chat"),
     "clearChatFailed": m21,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
@@ -211,6 +218,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "commandExecutions": MessageLookupByLibrary.simpleMessage(
       "Command execution",
     ),
+    "compactNow": MessageLookupByLibrary.simpleMessage("Compact now"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage(
+      "Organizing context…",
+    ),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("Failed"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage(
+      "Compaction status",
+    ),
     "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("Confirm Delete"),
@@ -220,6 +235,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Contact information (optional)",
+    ),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage(
+      "Context and memory",
+    ),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage(
+      "Context compacted",
+    ),
+    "contextWindow": MessageLookupByLibrary.simpleMessage("Context window"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage(
+      "Conversation summary",
     ),
     "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
       "Token share by conversation",
@@ -285,6 +310,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "edit": MessageLookupByLibrary.simpleMessage("Edit"),
     "editBot": MessageLookupByLibrary.simpleMessage("Edit Bot"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("Edit memory"),
     "editName": MessageLookupByLibrary.simpleMessage("Edit Name"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Failed to get response: Server returned empty response",
@@ -321,6 +347,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "Error loading content, please try again later.",
+    ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage(
+      "Estimated usage",
     ),
     "executionStatus": MessageLookupByLibrary.simpleMessage("Execution status"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
@@ -360,6 +389,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Font size updated",
     ),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("Forget"),
     "generateImageFailed": m26,
     "generateMusicFailed": m27,
     "generateSpeechFailed": m28,
@@ -381,6 +411,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "hideSidebar": MessageLookupByLibrary.simpleMessage("Hide Sidebar"),
     "home": MessageLookupByLibrary.simpleMessage("Home"),
     "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
+    "idle": MessageLookupByLibrary.simpleMessage("Idle"),
     "imageAttachment": MessageLookupByLibrary.simpleMessage("Image attachment"),
     "imageResult": MessageLookupByLibrary.simpleMessage("Image result"),
     "imageSavedToGallery": MessageLookupByLibrary.simpleMessage(
@@ -398,6 +429,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "Install update",
     ),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage(
+      "The generated summary did not pass validation",
+    ),
     "itemCount": m30,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Just now"),
@@ -412,6 +446,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "localMcpDisabledDescription": MessageLookupByLibrary.simpleMessage(
       "Local process-based MCP servers remain disabled pending a platform security review.",
     ),
+    "manageMemory": MessageLookupByLibrary.simpleMessage("Manage memory"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("Per message"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Select the Skill from the message composer when needed.",
@@ -520,6 +555,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
       "The MCP server uses an unsupported protocol version.",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("Artifact"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "Memory changed; please retry",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("Correction"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("Decision"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("Fact"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("Preference"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("Open question"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("Task"),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
@@ -562,6 +607,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "No content returned",
     ),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "No conversation summary is available yet.",
+    ),
     "noMatchingBots": MessageLookupByLibrary.simpleMessage(
       "No matching bots found",
     ),
@@ -594,12 +642,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "No token usage recorded",
     ),
     "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "There is not enough older context to compact",
+    ),
     "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
       "Delete this orphaned chat or recreate the missing bot.",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Output tokens"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Partial response"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("Pause generation"),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("Pin"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "Pin selected for this conversation",
     ),
@@ -645,6 +697,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Reasoning interrupted",
     ),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("Rebuild"),
     "referenceAudio": MessageLookupByLibrary.simpleMessage("Reference audio"),
     "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "refreshMcpTools": MessageLookupByLibrary.simpleMessage("Refresh Tools"),
@@ -669,6 +722,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("Restore"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
+      "Recent turns retained",
+    ),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("Run test"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
@@ -685,6 +742,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "searchMcpServers": MessageLookupByLibrary.simpleMessage(
       "Search MCP servers",
     ),
+    "searchMemory": MessageLookupByLibrary.simpleMessage("Search memory"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Search skills"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Select Language"),
@@ -832,6 +890,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Structured process information",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Submit Feedback"),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage(
+      "Messages summarized",
+    ),
     "supported": MessageLookupByLibrary.simpleMessage("Supported"),
     "supportsMcp": MessageLookupByLibrary.simpleMessage("Supports MCP"),
     "supportsSkills": MessageLookupByLibrary.simpleMessage("Supports Skills"),
@@ -887,12 +948,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "unavailableBot": MessageLookupByLibrary.simpleMessage("Unavailable bot"),
     "uninstall": MessageLookupByLibrary.simpleMessage("Uninstall"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("Uninstall Skill"),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("Unpin"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("File"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("Image"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("User Agreement"),
     "version": MessageLookupByLibrary.simpleMessage("Version 1.0.0"),
     "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
     "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("View summary"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
       "Wait for generation to finish before leaving this chat.",
     ),

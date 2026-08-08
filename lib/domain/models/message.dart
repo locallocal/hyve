@@ -183,6 +183,7 @@ class ModelTokenUsageRecord {
     required this.botId,
     required this.timestamp,
     required this.usage,
+    this.operationKind = 'chat_reply',
   });
 
   final String messageId;
@@ -190,6 +191,7 @@ class ModelTokenUsageRecord {
   final String botId;
   final DateTime timestamp;
   final ModelTokenUsage usage;
+  final String operationKind;
 }
 
 class Message {

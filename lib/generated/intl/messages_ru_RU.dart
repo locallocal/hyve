@@ -106,6 +106,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "Этот провайдер поддерживает только ручные навыки.",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage(
+      "Автоматическая память",
+    ),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "Автоматические сводки могут быть неточными. Текущее сообщение всегда имеет приоритет.",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Аватар бота"),
     "botDeleted": m1,
@@ -131,6 +137,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "chats": MessageLookupByLibrary.simpleMessage("Чаты"),
     "clear": MessageLookupByLibrary.simpleMessage("Очистить"),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
+      "Очистить автоматическую память",
+    ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Очистить чат"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Очистить историю чата",
@@ -147,6 +156,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "commandExecutions": MessageLookupByLibrary.simpleMessage(
       "Выполнение команд",
     ),
+    "compactNow": MessageLookupByLibrary.simpleMessage("Сжать сейчас"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage(
+      "Упорядочивание контекста…",
+    ),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("Ошибка"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage(
+      "Состояние сжатия",
+    ),
     "confirm": MessageLookupByLibrary.simpleMessage("Подтвердить"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -157,6 +174,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Контактная информация (необязательно)",
+    ),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage(
+      "Контекст и память",
+    ),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage("Контекст сжат"),
+    "contextWindow": MessageLookupByLibrary.simpleMessage("Окно контекста"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage(
+      "Сводка разговора",
     ),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Команда Stars"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
@@ -204,6 +229,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "edit": MessageLookupByLibrary.simpleMessage("Редактировать"),
     "editBot": MessageLookupByLibrary.simpleMessage("Редактировать бота"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("Изменить память"),
     "editName": MessageLookupByLibrary.simpleMessage("Изменить имя"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "Ошибка получения ответа: сервер вернул пустой ответ",
@@ -240,6 +266,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "Ошибка при загрузке содержимого, пожалуйста, повторите попытку позже.",
+    ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage(
+      "Оценка использования",
     ),
     "executionStatus": MessageLookupByLibrary.simpleMessage(
       "Статус выполнения",
@@ -280,6 +309,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "Размер шрифта обновлен",
     ),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("Забыть"),
     "generationFailed": MessageLookupByLibrary.simpleMessage(
       "Ошибка генерации",
     ),
@@ -290,6 +320,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Помощь и обратная связь",
     ),
     "home": MessageLookupByLibrary.simpleMessage("Главная"),
+    "idle": MessageLookupByLibrary.simpleMessage("Ожидание"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage(
       "Импортировать папку навыка",
     ),
@@ -301,10 +332,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "Установить обновление",
     ),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage(
+      "Созданная сводка не прошла проверку",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("Только что"),
     "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("Настройки языка"),
     "lightMode": MessageLookupByLibrary.simpleMessage("Светлая тема"),
+    "manageMemory": MessageLookupByLibrary.simpleMessage("Управление памятью"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("Для сообщения"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "При необходимости выберите навык в поле сообщения.",
@@ -316,6 +351,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "Подключайте серверы MCP и находите их каталоги инструментов. Настройте инструменты после создания агента.",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("Артефакт"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "Память изменилась; повторите попытку",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("Исправление"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("Решение"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("Факт"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("Предпочтение"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("Открытый вопрос"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("Задача"),
     "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
     "minutesAgo": m12,
@@ -340,6 +385,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "Содержимое не возвращено",
     ),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "Сводка разговора пока недоступна.",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "Подходящие навыки не найдены",
     ),
@@ -352,11 +400,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "Импортируйте папку Agent Skills или ZIP-архив с файлом SKILL.md.",
     ),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно старого контекста для сжатия",
+    ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Выходные токены"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Частичный ответ"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Приостановить генерацию",
     ),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("Закрепить"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "Закрепить выбранное для этого разговора",
     ),
@@ -391,6 +443,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage(
       "Рассуждение прервано",
     ),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("Перестроить"),
     "refresh": MessageLookupByLibrary.simpleMessage("Обновить"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "Обновить каталоги",
@@ -407,11 +460,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Восстановить значения по умолчанию",
     ),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("Восстановить"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
+      "Сохранённые последние ходы",
+    ),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "Запустить проверку",
     ),
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения"),
+    "searchMemory": MessageLookupByLibrary.simpleMessage("Поиск в памяти"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Поиск навыков"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Выбрать бота"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Выбрать язык"),
@@ -541,6 +599,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Структурированная информация о процессе",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("Отправить отзыв"),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage("Сводка сообщений"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Системный промпт"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Проверить описание",
@@ -578,6 +637,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "typing": MessageLookupByLibrary.simpleMessage("Печатает..."),
     "uninstall": MessageLookupByLibrary.simpleMessage("Удалить"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage("Удалить навык"),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("Открепить"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("Загрузить файл"),
     "uploadImage": MessageLookupByLibrary.simpleMessage(
       "Загрузить изображение",
@@ -586,5 +646,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Пользовательское соглашение",
     ),
     "version": MessageLookupByLibrary.simpleMessage("Версия 1.0.0"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("Открыть сводку"),
   };
 }

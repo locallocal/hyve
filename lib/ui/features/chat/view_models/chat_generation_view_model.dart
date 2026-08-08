@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
@@ -148,6 +149,13 @@ typedef ToolInvocationPersister =
       String botId,
       MessageToolCall audit,
     );
+typedef TerminalMessageObserver =
+    Future<void> Function(
+      String chatId,
+      Bot bot,
+      Message message,
+      ContextAssemblyReport? report,
+    );
 typedef TextGenerationPreparer =
     Future<PreparedTextGeneration> Function(Message identifiedUserMessage);
 
@@ -162,6 +170,8 @@ class PreparedTextGeneration {
     this.preflightTokenUsage = ModelTokenUsage.empty,
     this.requestedToolNames = const {},
     this.approvalExemptToolNames = const {},
+    this.runScopedTools = const [],
+    this.contextAssemblyReport,
   });
 
   final Message userMessage;
@@ -172,6 +182,8 @@ class PreparedTextGeneration {
   final ModelTokenUsage preflightTokenUsage;
   final Set<String> requestedToolNames;
   final Set<String> approvalExemptToolNames;
+  final List<ExecutableTool> runScopedTools;
+  final ContextAssemblyReport? contextAssemblyReport;
 }
 
 int _identitySequence = 0;
@@ -202,6 +214,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
     ToolInvocationPersister? toolInvocationPersister,
+    TerminalMessageObserver? terminalMessageObserver,
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
@@ -213,6 +226,7 @@ class ChatGenerationViewModel extends ChangeNotifier
        _messageIdFactory = messageIdFactory,
        _skillActivationPersister = skillActivationPersister,
        _toolInvocationPersister = toolInvocationPersister,
+       _terminalMessageObserver = terminalMessageObserver,
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
        _agentRunLimits = agentRunLimits,
@@ -227,6 +241,7 @@ class ChatGenerationViewModel extends ChangeNotifier
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
   final ToolInvocationPersister? _toolInvocationPersister;
+  final TerminalMessageObserver? _terminalMessageObserver;
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
@@ -246,10 +261,12 @@ class ChatGenerationViewModel extends ChangeNotifier
   AgentCancellationToken? _agentCancellationToken;
   Completer<ToolApprovalDecision>? _toolApprovalCompleter;
   ModelTokenUsage _agentTokenUsage = ModelTokenUsage.empty;
+  ContextAssemblyReport? _contextAssemblyReport;
   Timer? _partialPersistenceTimer;
   Future<void> _partialPersistenceQueue = Future<void>.value();
 
   ChatGenerationSnapshot get snapshot => _snapshot;
+  ContextAssemblyReport? get contextAssemblyReport => _contextAssemblyReport;
   AiProvider get capabilityProvider => _capabilityProvider;
   bool get hasBlockingRun => _snapshot.lifecycle.isRunning;
 
@@ -353,6 +370,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       hasPartialContent: false,
     );
     _preflightTokenUsage = prepared.preflightTokenUsage;
+    _contextAssemblyReport = prepared.contextAssemblyReport;
     _snapshot = _snapshot.copyWith(
       supportsCancellation: provider.supportsCancellation,
       tokenUsage: prepared.preflightTokenUsage,
@@ -413,7 +431,14 @@ class ChatGenerationViewModel extends ChangeNotifier
       return false;
     }
 
-    final agentTools = _toolRegistry.list(
+    final runToolRegistry =
+        prepared.runScopedTools.isEmpty
+            ? _toolRegistry
+            : OverlayToolRegistry(
+              parent: _toolRegistry,
+              overlayTools: prepared.runScopedTools,
+            );
+    final agentTools = runToolRegistry.list(
       allowedNames: prepared.requestedToolNames,
     );
     if (provider.capabilities.supportsAgentLoop && agentTools.isNotEmpty) {
@@ -423,6 +448,7 @@ class ChatGenerationViewModel extends ChangeNotifier
         messages: prepared.messages,
         requestedToolNames: prepared.requestedToolNames,
         approvalExemptToolNames: prepared.approvalExemptToolNames,
+        toolRegistry: runToolRegistry,
       );
     }
 
@@ -644,13 +670,14 @@ class ChatGenerationViewModel extends ChangeNotifier
     required List<ChatMessage> messages,
     required Set<String> requestedToolNames,
     required Set<String> approvalExemptToolNames,
+    required ToolRegistry toolRegistry,
   }) async {
     final cancellationToken = AgentCancellationToken();
     _agentCancellationToken = cancellationToken;
     _snapshot = _snapshot.copyWith(supportsCancellation: true);
     notifyListeners();
     final coordinator = AgentRunCoordinator(
-      toolRegistry: _toolRegistry,
+      toolRegistry: toolRegistry,
       toolPolicy: _toolPolicy,
       approvalHandler: this,
       limits: _agentRunLimits,
@@ -733,7 +760,15 @@ class ChatGenerationViewModel extends ChangeNotifier
 
   void _onToolInvocation(String runId, ToolInvocationRecord invocation) {
     if (!_canReduceProviderEvent(runId)) return;
-    final arguments = jsonEncode(_redactAuditValue(invocation.arguments));
+    final arguments =
+        conversationHistoryToolNames.contains(invocation.name)
+            ? jsonEncode({
+              'query_hash':
+                  sha256
+                      .convert(utf8.encode(jsonEncode(invocation.arguments)))
+                      .toString(),
+            })
+            : jsonEncode(_redactAuditValue(invocation.arguments));
     final item = MessageToolCall(
       callId: invocation.callId,
       name: invocation.name,
@@ -950,6 +985,21 @@ class ChatGenerationViewModel extends ChangeNotifier
           );
         }
       }
+      final observer = _terminalMessageObserver;
+      if (terminalPersisted && observer != null) {
+        unawaited(
+          observer(
+            chatId,
+            _bot,
+            terminalMessage,
+            _contextAssemblyReport,
+          ).catchError((Object observerError, StackTrace stackTrace) {
+            debugPrint(
+              'Failed to run terminal conversation observer: $observerError',
+            );
+          }),
+        );
+      }
     }
 
     if (!_isActiveRun(runId)) {
@@ -1138,6 +1188,7 @@ class ChatGenerationRegistry {
     MessageIdFactory messageIdFactory = _defaultMessageIdFactory,
     SkillActivationPersister? skillActivationPersister,
     ToolInvocationPersister? toolInvocationPersister,
+    TerminalMessageObserver? terminalMessageObserver,
     ToolRegistry? toolRegistry,
     ToolPolicy toolPolicy = const DefaultToolPolicy(),
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
@@ -1149,6 +1200,7 @@ class ChatGenerationRegistry {
        _messageIdFactory = messageIdFactory,
        _skillActivationPersister = skillActivationPersister,
        _toolInvocationPersister = toolInvocationPersister,
+       _terminalMessageObserver = terminalMessageObserver,
        _toolRegistry = toolRegistry ?? StaticToolRegistry(const []),
        _toolPolicy = toolPolicy,
        _agentRunLimits = agentRunLimits,
@@ -1162,6 +1214,7 @@ class ChatGenerationRegistry {
   final MessageIdFactory _messageIdFactory;
   final SkillActivationPersister? _skillActivationPersister;
   final ToolInvocationPersister? _toolInvocationPersister;
+  final TerminalMessageObserver? _terminalMessageObserver;
   final ToolRegistry _toolRegistry;
   final ToolPolicy _toolPolicy;
   final AgentRunLimits _agentRunLimits;
@@ -1179,6 +1232,7 @@ class ChatGenerationRegistry {
         messageIdFactory: _messageIdFactory,
         skillActivationPersister: _skillActivationPersister,
         toolInvocationPersister: _toolInvocationPersister,
+        terminalMessageObserver: _terminalMessageObserver,
         toolRegistry: _toolRegistry,
         toolPolicy: _toolPolicy,
         agentRunLimits: _agentRunLimits,

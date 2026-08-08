@@ -104,6 +104,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoActivationUnavailable": MessageLookupByLibrary.simpleMessage(
       "यह प्रदाता केवल मैन्युअल कौशल का समर्थन करता है।",
     ),
+    "automaticMemory": MessageLookupByLibrary.simpleMessage("स्वचालित स्मृति"),
+    "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
+      "स्वचालित सारांश गलत हो सकते हैं। वर्तमान संदेश हमेशा प्राथमिक है।",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("बॉट अवतार"),
     "botDeleted": m1,
@@ -129,6 +133,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "chats": MessageLookupByLibrary.simpleMessage("चैट्स"),
     "clear": MessageLookupByLibrary.simpleMessage("मिटाएं"),
+    "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
+      "स्वचालित स्मृति साफ़ करें",
+    ),
     "clearChat": MessageLookupByLibrary.simpleMessage("चैट साफ़ करें"),
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "चैट इतिहास साफ़ करें",
@@ -143,6 +150,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "बातचीत बनाने के लिए नई चैट पर क्लिक करें",
     ),
     "commandExecutions": MessageLookupByLibrary.simpleMessage("कमांड निष्पादन"),
+    "compactNow": MessageLookupByLibrary.simpleMessage("अभी संपीड़ित करें"),
+    "compactingContext": MessageLookupByLibrary.simpleMessage(
+      "संदर्भ व्यवस्थित किया जा रहा है…",
+    ),
+    "compactionFailed": MessageLookupByLibrary.simpleMessage("विफल"),
+    "compactionStatus": MessageLookupByLibrary.simpleMessage("संपीड़न स्थिति"),
     "confirm": MessageLookupByLibrary.simpleMessage("पुष्टि करें"),
     "confirmClearChat": m6,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
@@ -153,6 +166,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "संपर्क जानकारी (वैकल्पिक)",
+    ),
+    "contextAndMemory": MessageLookupByLibrary.simpleMessage(
+      "संदर्भ और स्मृति",
+    ),
+    "contextCompacted": MessageLookupByLibrary.simpleMessage(
+      "संदर्भ संपीड़ित हुआ",
+    ),
+    "contextWindow": MessageLookupByLibrary.simpleMessage("संदर्भ विंडो"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage(
+      "वार्तालाप सारांश",
     ),
     "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars टीम"),
     "customProvider": MessageLookupByLibrary.simpleMessage("कस्टम प्रदाता..."),
@@ -198,6 +221,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "edit": MessageLookupByLibrary.simpleMessage("संपादित करें"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
+    "editMemory": MessageLookupByLibrary.simpleMessage("स्मृति संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
       "उत्तर प्राप्त करने में विफल: सर्वर ने खाली प्रतिक्रिया लौटाई",
@@ -239,6 +263,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "errorLoadingContent": MessageLookupByLibrary.simpleMessage(
       "सामग्री लोड करने में त्रुटि, कृपया बाद में पुनः प्रयास करें।",
     ),
+    "estimatedContextUsage": MessageLookupByLibrary.simpleMessage(
+      "अनुमानित उपयोग",
+    ),
     "executionStatus": MessageLookupByLibrary.simpleMessage("निष्पादन स्थिति"),
     "feedbackContentRequired": MessageLookupByLibrary.simpleMessage(
       "कृपया प्रतिक्रिया सामग्री दर्ज करें",
@@ -278,6 +305,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage(
       "फॉन्ट साइज़ अपडेट किया गया",
     ),
+    "forgetMemory": MessageLookupByLibrary.simpleMessage("भूलें"),
     "generationFailed": MessageLookupByLibrary.simpleMessage("जनरेशन विफल"),
     "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
       "जनरेशन विफल · आंशिक उत्तर रखा गया",
@@ -286,6 +314,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "सहायता और प्रतिक्रिया",
     ),
     "home": MessageLookupByLibrary.simpleMessage("होम"),
+    "idle": MessageLookupByLibrary.simpleMessage("निष्क्रिय"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage(
       "कौशल फ़ोल्डर आयात करें",
     ),
@@ -299,10 +328,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "अपडेट इंस्टॉल करें",
     ),
+    "invalidSummary": MessageLookupByLibrary.simpleMessage(
+      "सारांश सत्यापन में विफल रहा",
+    ),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
     "languageChanged": m11,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
+    "manageMemory": MessageLookupByLibrary.simpleMessage(
+      "स्मृति प्रबंधित करें",
+    ),
     "manualActivation": MessageLookupByLibrary.simpleMessage("प्रति संदेश"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
@@ -314,6 +349,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "MCP सर्वर कनेक्ट करें और उनके टूल कैटलॉग खोजें। एजेंट बनाने के बाद टूल कॉन्फ़िगर करें।",
     ),
+    "memoryArtifact": MessageLookupByLibrary.simpleMessage("आर्टिफैक्ट"),
+    "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
+      "स्मृति बदल गई; फिर प्रयास करें",
+    ),
+    "memoryCorrection": MessageLookupByLibrary.simpleMessage("सुधार"),
+    "memoryDecision": MessageLookupByLibrary.simpleMessage("निर्णय"),
+    "memoryFact": MessageLookupByLibrary.simpleMessage("तथ्य"),
+    "memoryPreference": MessageLookupByLibrary.simpleMessage("पसंद"),
+    "memoryQuestion": MessageLookupByLibrary.simpleMessage("खुला प्रश्न"),
+    "memoryTask": MessageLookupByLibrary.simpleMessage("कार्य"),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
     "minutesAgo": m12,
@@ -338,6 +383,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noContentReturned": MessageLookupByLibrary.simpleMessage(
       "कोई सामग्री नहीं मिली",
     ),
+    "noConversationSummary": MessageLookupByLibrary.simpleMessage(
+      "अभी कोई वार्तालाप सारांश उपलब्ध नहीं है।",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "कोई मिलता-जुलता कौशल नहीं मिला",
     ),
@@ -350,9 +398,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md वाला Agent Skills फ़ोल्डर या ZIP आयात करें।",
     ),
+    "nothingToCompact": MessageLookupByLibrary.simpleMessage(
+      "संपीड़ित करने के लिए पर्याप्त पुराना संदर्भ नहीं है",
+    ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("उत्पादन रोकें"),
+    "pinMemory": MessageLookupByLibrary.simpleMessage("पिन करें"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "इस बातचीत के लिए चयनित कौशल पिन करें",
     ),
@@ -377,6 +429,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("तर्क पूर्ण"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
+    "rebuildMemory": MessageLookupByLibrary.simpleMessage("पुनर्निर्माण"),
     "refresh": MessageLookupByLibrary.simpleMessage("ताज़ा करें"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "कैटलॉग रीफ़्रेश करें",
@@ -395,11 +448,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
     "responseError": m18,
+    "restoreMemory": MessageLookupByLibrary.simpleMessage("पुनर्स्थापित करें"),
+    "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
+      "हाल के रखे गए चरण",
+    ),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "जाँच चलाएँ",
     ),
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
+    "searchMemory": MessageLookupByLibrary.simpleMessage("स्मृति खोजें"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("कौशल खोजें"),
     "selectBot": MessageLookupByLibrary.simpleMessage("बॉट चुनें"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("भाषा चुनें"),
@@ -521,6 +579,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "संरचित प्रक्रिया जानकारी",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("प्रतिक्रिया भेजें"),
+    "summarizedTurns": MessageLookupByLibrary.simpleMessage("सारांशित संदेश"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("सिस्टम प्रॉम्प्ट"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "विवरण जाँचें",
@@ -558,9 +617,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "कौशल अनइंस्टॉल करें",
     ),
+    "unpinMemory": MessageLookupByLibrary.simpleMessage("अनपिन करें"),
     "uploadFile": MessageLookupByLibrary.simpleMessage("फ़ाइल अपलोड करें"),
     "uploadImage": MessageLookupByLibrary.simpleMessage("छवि अपलोड करें"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता समझौता"),
     "version": MessageLookupByLibrary.simpleMessage("संस्करण 1.0.0"),
+    "viewSummary": MessageLookupByLibrary.simpleMessage("सारांश देखें"),
   };
 }

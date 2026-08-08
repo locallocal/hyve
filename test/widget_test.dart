@@ -2045,7 +2045,7 @@ void main() {
     expect(find.byType(Card), findsNothing);
   });
 
-  testWidgets('desktop chat empty state matches Skill styling and icon', (
+  testWidgets('desktop bot and chat empty states match Skill styling', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -2068,19 +2068,6 @@ void main() {
     await botViewModel.load();
     await chatViewModel.load();
 
-    String emptyStateAsset(WidgetTester tester) {
-      final image = tester.widget<Image>(
-        find.descendant(
-          of: find.byType(DesktopEmptyStateCard),
-          matching: find.byType(Image),
-        ),
-      );
-      final provider = image.image;
-      final assetProvider =
-          provider is ResizeImage ? provider.imageProvider : provider;
-      return (assetProvider as AssetImage).assetName;
-    }
-
     await _withDesktopPlatform(() async {
       await tester.pumpWidget(
         _shadHarness(
@@ -2097,7 +2084,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('没有可用的智能体'), findsOneWidget);
-      expect(emptyStateAsset(tester), 'assets/images/profile/no_bots_v2.png');
+      final botEmptyStateFinder = find.byType(DesktopEmptyStateCard);
+      final botEmptyState = tester.widget<DesktopEmptyStateCard>(
+        botEmptyStateFinder,
+      );
+      expect(botEmptyState.icon, desktopBotIcon);
+      expect(botEmptyState.imageAsset, isNull);
+      expect(botEmptyState.supportingText, isNull);
+      expect(
+        find.descendant(
+          of: botEmptyStateFinder,
+          matching: find.byIcon(desktopBotIcon),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: botEmptyStateFinder, matching: find.byType(Image)),
+        findsNothing,
+      );
       expect(tester.takeException(), isNull);
 
       await tester.pumpWidget(

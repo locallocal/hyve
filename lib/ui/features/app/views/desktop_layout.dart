@@ -875,7 +875,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                 const SizedBox(height: 6),
                 _SidebarDestination(
                   label: S.of(context).Bots,
-                  icon: LucideIcons.bot,
+                  icon: desktopBotIcon,
                   selected: widget.currentIndex == 1,
                   onTap: () => _selectPage(1),
                 ),

@@ -821,7 +821,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: desktopAppIconBorderRadius(26),
                   child: Image.asset(
                     'assets/icon/app_icon.png',
                     width: 26,
@@ -864,7 +864,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                     expands: true,
                     onPressed: widget.onCreateChat,
                     child: _SidebarButtonContent(
-                      icon: LucideIcons.squarePen,
+                      icon: desktopStartConversationIcon,
                       label: desktopConversationText(
                         context,
                         S.of(context).newChat,
@@ -986,13 +986,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       );
     }
     return DesktopEmptyStateCard(
-      icon: LucideIcons.messageCircle,
+      icon: desktopStartConversationIcon,
       title: desktopConversationText(context, S.of(context).chats),
       description: desktopConversationText(
         context,
         S.of(context).clickToStartChat,
       ),
       imageAsset: 'assets/icon/app_icon.png',
+      imageBorderRadius: desktopAppIconBorderRadius(
+        DesktopEmptyStateCard.imageSize,
+      ),
     );
   }
 
@@ -1290,7 +1293,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                               S.of(context).newChat,
                             ),
                             onPressed: onCreateChat,
-                            icon: LucideIcons.plus,
+                            icon: desktopStartConversationIcon,
                           ),
                         if (onClearChat != null)
                           StarsDesktopIconAction(

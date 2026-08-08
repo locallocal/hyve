@@ -135,7 +135,7 @@ class ChatListPageState extends State<ChatListPage> {
                   onPressed: _openNewChatDialog,
                   height: DesktopThemeTokens.botFormFieldHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  leading: const Icon(LucideIcons.plus, size: 16),
+                  leading: const Icon(desktopStartConversationIcon, size: 16),
                   child: Text(
                     desktopConversationText(context, S.of(context).newChat),
                   ),
@@ -239,11 +239,7 @@ class ChatListPageState extends State<ChatListPage> {
         icon:
             searchQuery.isNotEmpty
                 ? LucideIcons.searchX
-                : LucideIcons.messageCircle,
-        imageAsset:
-            searchQuery.isEmpty
-                ? 'assets/images/profile/no_chats_v2.png'
-                : null,
+                : desktopStartConversationIcon,
         title: desktopConversationText(
           context,
           searchQuery.isNotEmpty
@@ -258,12 +254,7 @@ class ChatListPageState extends State<ChatListPage> {
                   S.of(context).clickToStartChat,
                 ),
         supportingText:
-            searchQuery.isNotEmpty
-                ? S.of(context).chatSearchScope
-                : desktopConversationText(
-                  context,
-                  S.of(context).newChatWorkspaceHint,
-                ),
+            searchQuery.isNotEmpty ? S.of(context).chatSearchScope : null,
         action:
             searchQuery.isEmpty
                 ? null

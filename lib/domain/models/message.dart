@@ -57,12 +57,14 @@ class MessageToolCall {
 
 class MessageCommandExecution {
   const MessageCommandExecution({
+    this.callId = '',
     required this.command,
     this.status = '',
     this.detail = '',
     this.durationMs,
   });
 
+  final String callId;
   final String command;
   final String status;
   final String detail;

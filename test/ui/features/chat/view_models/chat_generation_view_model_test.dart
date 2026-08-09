@@ -635,59 +635,82 @@ void main() {
       },
     );
 
-    test('shell audit hashes the command and working directory', () async {
-      const command = 'printf do-not-persist';
-      const workingDirectory = '/private/do-not-persist';
-      final tool = _ShellAuditTool();
-      final factory = _AgentProviderFactory(
-        toolName: shellCommandToolName,
-        arguments: const {
-          'command': command,
-          'working_directory': workingDirectory,
-          'timeout_seconds': 8,
-        },
-      );
-      final toolAudits = <MessageToolCall>[];
-      final controller = ChatGenerationViewModel(
-        chatId: 'chat-1',
-        bot: _bot,
-        providerFactory: factory.create,
-        messagePersister: (message) async => message,
-        lastMessageUpdater: (_, _) async {},
-        toolInvocationPersister: (_, _, _, audit) async {
-          toolAudits.add(audit);
-        },
-        toolRegistry: StaticToolRegistry([tool]),
-        toolPolicy: const DefaultToolPolicy(allowProcessExecution: true),
-      );
-      addTearDown(controller.dispose);
+    test(
+      'shell command is recorded in process info while audit stays hashed',
+      () async {
+        const command = 'printf detailed-command';
+        const workingDirectory = '/private/shell-workspace';
+        final tool = _ShellAuditTool();
+        final factory = _AgentProviderFactory(
+          toolName: shellCommandToolName,
+          arguments: const {
+            'command': command,
+            'working_directory': workingDirectory,
+            'timeout_seconds': 8,
+          },
+        );
+        final toolAudits = <MessageToolCall>[];
+        final persisted = <Message>[];
+        final controller = ChatGenerationViewModel(
+          chatId: 'chat-1',
+          bot: _bot,
+          providerFactory: factory.create,
+          messagePersister: (message) async {
+            persisted.add(message);
+            return message;
+          },
+          lastMessageUpdater: (_, _) async {},
+          toolInvocationPersister: (_, _, _, audit) async {
+            toolAudits.add(audit);
+          },
+          toolRegistry: StaticToolRegistry([tool]),
+          toolPolicy: const DefaultToolPolicy(allowProcessExecution: true),
+        );
+        addTearDown(controller.dispose);
 
-      expect(
-        await controller.startText(
-          userMessage: _userMessage(),
-          messages: [ChatMessage(role: 'user', content: 'Run it')],
-          requestedToolNames: shellCommandToolNames,
-        ),
-        isTrue,
-      );
-      await _waitFor(() => controller.snapshot.pendingToolApproval != null);
-      controller.resolveToolApproval(ToolApprovalDecision.allowOnce);
-      await _waitFor(
-        () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
-      );
-      await _flushAsyncWork();
+        expect(
+          await controller.startText(
+            userMessage: _userMessage(),
+            messages: [ChatMessage(role: 'user', content: 'Run it')],
+            requestedToolNames: shellCommandToolNames,
+          ),
+          isTrue,
+        );
+        await _waitFor(() => controller.snapshot.pendingToolApproval != null);
+        expect(controller.snapshot.commandExecutions, hasLength(1));
+        expect(controller.snapshot.commandExecutions.single.callId, 'save-1');
+        expect(controller.snapshot.commandExecutions.single.command, command);
+        expect(
+          controller.snapshot.commandExecutions.single.status,
+          ToolInvocationStatus.awaitingApproval.name,
+        );
+        controller.resolveToolApproval(ToolApprovalDecision.allowOnce);
+        await _waitFor(
+          () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+        );
+        await _flushAsyncWork();
 
-      expect(tool.executions, 1);
-      expect(toolAudits, isNotEmpty);
-      for (final audit in toolAudits) {
-        expect(audit.argumentsSummary, contains('"command_hash"'));
-        expect(audit.argumentsSummary, contains('"command_characters":21'));
-        expect(audit.argumentsSummary, contains('"working_directory_hash"'));
-        expect(audit.argumentsSummary, contains('"timeout_seconds":8'));
-        expect(audit.argumentsSummary, isNot(contains(command)));
-        expect(audit.argumentsSummary, isNot(contains(workingDirectory)));
-      }
-    });
+        expect(tool.executions, 1);
+        expect(controller.snapshot.commandExecutions, hasLength(1));
+        expect(controller.snapshot.commandExecutions.single.command, command);
+        expect(
+          controller.snapshot.commandExecutions.single.status,
+          ToolInvocationStatus.succeeded.name,
+        );
+        final assistant = persisted.last;
+        expect(assistant.processInfo.commandExecutions, hasLength(1));
+        expect(assistant.processInfo.commandExecutions.single.command, command);
+        expect(toolAudits, isNotEmpty);
+        for (final audit in toolAudits) {
+          expect(audit.argumentsSummary, contains('"command_hash"'));
+          expect(audit.argumentsSummary, contains('"command_characters":23'));
+          expect(audit.argumentsSummary, contains('"working_directory_hash"'));
+          expect(audit.argumentsSummary, contains('"timeout_seconds":8'));
+          expect(audit.argumentsSummary, isNot(contains(command)));
+          expect(audit.argumentsSummary, isNot(contains(workingDirectory)));
+        }
+      },
+    );
 
     test('add MCP server audit never persists connection secrets', () async {
       const endpoint = 'https://example.com/mcp?credential=do-not-persist';

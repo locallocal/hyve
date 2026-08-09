@@ -4,16 +4,19 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/context_summarizer.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 
 /// Uses an isolated, tool-free provider instance for rolling summaries.
 final class ProviderContextSummarizer implements ContextSummarizer {
   const ProviderContextSummarizer({
     required this.bot,
     required this.providerFactory,
+    this.starsSystemPromptProvider = currentStarsSystemPrompt,
   });
 
   final Bot bot;
   final AiProvider Function(Bot bot) providerFactory;
+  final StarsSystemPromptProvider starsSystemPromptProvider;
 
   @override
   Future<ContextSummaryResult> summarize(ContextSummaryRequest request) async {
@@ -31,7 +34,13 @@ final class ProviderContextSummarizer implements ContextSummarizer {
     );
     final sourceEnvelope = _sourceEnvelope(request);
     await provider.generateText([
-      ChatMessage(role: 'system', content: _summarizerSystemPrompt),
+      ChatMessage(
+        role: 'system',
+        content: prependStarsSystemPrompt(
+          _summarizerSystemPrompt,
+          starsSystemPromptProvider: starsSystemPromptProvider,
+        ),
+      ),
       ChatMessage(role: 'user', content: sourceEnvelope),
     ]);
     if (providerError != null) throw StateError(providerError!);

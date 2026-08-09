@@ -15,6 +15,7 @@ import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.d
 import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
 import 'package:stars/ui/features/chat/views/conversation_memory_panel.dart';
+import 'package:stars/ui/features/chat/views/conversation_model_controls.dart';
 import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -1091,6 +1092,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     EdgeInsetsGeometry? contentPadding,
   }) {
     final bot = _activeBot;
+    final generationViewModel =
+        widget.currentIndex == 0 &&
+                widget.selectedChatId != null &&
+                widget.selectedChatBot != null &&
+                _dependencies != null
+            ? _dependencies!.generationRegistry.viewModelFor(
+              widget.selectedChatId!,
+              widget.selectedChatBot!,
+            )
+            : null;
     final decoration =
         overlay && showHeader
             ? DesktopThemeTokens.overlayInspectorDecoration(context)
@@ -1155,6 +1166,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               label: S.of(context).model,
               value: bot.model.isEmpty ? '—' : bot.model,
             ),
+            if (generationViewModel != null)
+              ConversationModelControls(
+                provider: generationViewModel.capabilityProvider,
+              ),
             if (widget.currentIndex == 0 && _tokenUsageViewModel != null)
               ConversationTokenUsagePanel(viewModel: _tokenUsageViewModel!),
             if (widget.currentIndex == 0 && _memoryViewModel != null)

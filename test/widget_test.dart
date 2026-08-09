@@ -2294,6 +2294,11 @@ void main() {
       final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
       expect(sheet.constraints?.minWidth, DesktopThemeTokens.inspectorWidth);
       expect(sheet.constraints?.maxWidth, DesktopThemeTokens.inspectorWidth);
+      final inspector = find.byKey(
+        const PageStorageKey<String>('desktop-context-inspector'),
+      );
+      final inspectorList = tester.widget<ListView>(inspector);
+      expect(inspectorList.padding, const EdgeInsets.only(top: 12, right: 16));
       final infoRows = find.byType(StarsInspectorInfoRow);
       expect(infoRows, findsNWidgets(3));
       final labelLefts = <double>[];
@@ -2304,10 +2309,15 @@ void main() {
           of: row,
           matching: find.byType(SelectableText),
         );
+        expect(tester.widget<SelectableText>(value).textAlign, TextAlign.right);
         labelLefts.add(tester.getRect(label).left);
         expect(
           tester.getRect(value).right,
           closeTo(tester.getRect(row).right, 0.01),
+        );
+        expect(
+          tester.getRect(inspector).right - tester.getRect(row).right,
+          greaterThanOrEqualTo(16),
         );
       }
       expect(labelLefts[1], closeTo(labelLefts[0], 0.01));

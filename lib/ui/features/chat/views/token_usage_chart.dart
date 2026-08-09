@@ -548,18 +548,15 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: SizedBox(
-                    width: 42,
-                    child: Text(
-                      valueLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
+                SizedBox(
+                  width: 42,
+                  child: Text(
+                    valueLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ),
               ],

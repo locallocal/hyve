@@ -43,9 +43,8 @@ final class SystemMcpInstallerSkill {
         id: mcpInstallerSkillId,
         name: 'mcp-installer',
         description:
-            'Install a Stars MCP server from user-provided Streamable HTTP or '
-            'stdio connection details, store credentials securely, and '
-            'optionally connect it.',
+            'Install Stars MCP servers and inspect installed or '
+            'current-conversation MCP configuration from SQLite.',
         version: '$mcpInstallerSkillPromptVersion',
         scope: SkillScope.bundled,
         sourceUri: 'asset:///$assetPath',
@@ -54,7 +53,7 @@ final class SystemMcpInstallerSkill {
         trustState: SkillTrustState.bundledTrusted,
         validationStatus: SkillValidationStatus.valid,
         compatibility: 'Stars desktop',
-        requestedToolNames: addMcpServerToolNames,
+        requestedToolNames: mcpInstallerToolNames,
         publisherId: 'stars',
         publisherName: 'Stars',
         installedAt: timestamp,

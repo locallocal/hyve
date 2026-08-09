@@ -350,6 +350,64 @@ class LocalDatabaseService {
     return database.query('mcp_servers', orderBy: 'name ASC');
   }
 
+  Future<List<Map<String, Object?>>> queryInstalledMcpInventory({
+    required String query,
+    required int limit,
+  }) async {
+    final database = await _databaseProvider();
+    return database.rawQuery(
+      '''
+      SELECT
+        s.id,
+        s.name,
+        s.transport_type,
+        s.remote_server_name,
+        s.remote_server_version,
+        s.connection_status,
+        s.last_error_code,
+        s.last_connected_at,
+        s.created_at,
+        s.updated_at,
+        COUNT(t.remote_name) AS tool_count
+      FROM mcp_servers AS s
+      LEFT JOIN mcp_tools AS t ON t.server_id = s.id
+      WHERE ? = '' OR instr(lower(s.name), ?) > 0
+      GROUP BY s.id
+      ORDER BY lower(s.name) ASC, s.id ASC
+      LIMIT ?
+    ''',
+      [query, query, limit],
+    );
+  }
+
+  Future<List<Map<String, Object?>>> queryConversationMcpIdentity(
+    String chatId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.rawQuery(
+      '''
+      SELECT
+        c.id AS chat_id,
+        b.id AS bot_id,
+        b.name AS bot_name,
+        b.parameters AS bot_parameters
+      FROM chats AS c
+      JOIN bots AS b ON b.id = c.bot_id
+      WHERE c.id = ?
+      LIMIT 1
+    ''',
+      [chatId],
+    );
+  }
+
+  Future<List<Map<String, Object?>>> loadAllMcpTools() async {
+    final database = await _databaseProvider();
+    return database.query(
+      'mcp_tools',
+      orderBy: 'server_id ASC, remote_name ASC',
+    );
+  }
+
   Future<List<Map<String, Object?>>> loadMcpServer(String id) async {
     final database = await _databaseProvider();
     return database.query(

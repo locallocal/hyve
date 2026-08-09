@@ -6,6 +6,7 @@ import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
+import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
@@ -72,6 +73,43 @@ void main() {
     expect(server.status, McpConnectionStatus.connected);
     expect(credentials.values[server.id]?.accessToken, 'secret-token');
     expect(viewModel.toolsFor(server.id), hasLength(1));
+  });
+
+  test('publishes a server installed through the built-in MCP tool', () async {
+    await viewModel.load();
+    final serverPublished = Completer<void>();
+    viewModel.addListener(() {
+      if (!serverPublished.isCompleted &&
+          viewModel.servers.any((server) => server.name == 'Installed MCP')) {
+        serverPublished.complete();
+      }
+    });
+    final installer = AddMcpServerTool(
+      repository: repository,
+      credentialStore: credentials,
+      connector:
+          (_, _) => throw StateError('Disconnected install must not connect.'),
+      now: () => DateTime(2026, 8, 10, 12),
+      idFactory: (_) => 'mcp-installed',
+    );
+
+    final result = await installer.execute(
+      ToolCallRequest(
+        callId: 'install-mcp',
+        name: addMcpServerToolName,
+        arguments: const {
+          'name': 'Installed MCP',
+          'transport_type': 'streamable_http',
+          'endpoint': 'https://installed.example.com/mcp',
+          'connect': false,
+        },
+      ),
+      AgentCancellationToken(),
+    );
+
+    expect(result.isError, isFalse);
+    await serverPublished.future.timeout(const Duration(seconds: 1));
+    expect(viewModel.servers.single.id, 'mcp-installed');
   });
 
   test('publishes a new server before Tool discovery completes', () async {

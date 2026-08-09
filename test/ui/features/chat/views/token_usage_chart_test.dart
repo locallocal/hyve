@@ -67,6 +67,7 @@ void main() {
         of: metric,
         matching: find.byType(SelectableText),
       );
+      expect(tester.widget<SelectableText>(value).textAlign, TextAlign.right);
       labelLefts.add(tester.getRect(label).left);
       expect(
         tester.getRect(value).right,
@@ -156,7 +157,7 @@ void main() {
     expect(
       tester.getRect(firstDailyBucket).right -
           tester.getRect(firstDailyValue).right,
-      12,
+      closeTo(0, 0.01),
     );
 
     await tester.tap(firstDailyBucket);
@@ -190,7 +191,7 @@ void main() {
     expect(
       tester.getRect(firstHourlyBucket).right -
           tester.getRect(firstHourlyValue).right,
-      12,
+      closeTo(0, 0.01),
     );
     expect(
       find.byKey(const ValueKey<String>('token-usage-back-to-daily')),

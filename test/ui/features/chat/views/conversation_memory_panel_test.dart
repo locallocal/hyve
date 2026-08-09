@@ -80,6 +80,14 @@ void main() {
       const ValueKey<String>('automatic-memory-row'),
     );
     expect(
+      tester.widget<SelectableText>(summarizedTurnsValue).textAlign,
+      TextAlign.right,
+    );
+    expect(
+      tester.widget<SelectableText>(compactionStatusValue).textAlign,
+      TextAlign.right,
+    );
+    expect(
       tester.getRect(compactionStatusValue).center.dx,
       closeTo(tester.getRect(automaticMemorySwitch).center.dx, 0.01),
     );

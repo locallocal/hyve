@@ -638,7 +638,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       sheetContext,
                       overlay: true,
                       showHeader: false,
-                      contentPadding: const EdgeInsets.only(top: 12),
+                      contentPadding: const EdgeInsets.only(top: 12, right: 16),
                     ),
           ),
         );

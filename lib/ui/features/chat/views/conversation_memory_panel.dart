@@ -111,7 +111,7 @@ final class _ConversationMemoryPanelState
             icon: Icons.summarize_outlined,
             label: S.of(context).summarizedTurns,
             valueWidth: _memoryTrailingControlWidth,
-            valueTextAlign: TextAlign.center,
+            valueTextAlign: TextAlign.right,
             value: numberFormat.format(
               viewModel.summary?.metadata.sourceMessageIds.length ?? 0,
             ),
@@ -121,7 +121,7 @@ final class _ConversationMemoryPanelState
             icon: Icons.sync_rounded,
             label: S.of(context).compactionStatus,
             valueWidth: _memoryTrailingControlWidth,
-            valueTextAlign: TextAlign.center,
+            valueTextAlign: TextAlign.right,
             value:
                 viewModel.compacting
                     ? S.of(context).compactingContext

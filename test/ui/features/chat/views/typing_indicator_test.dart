@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
+import 'package:stars/ui/features/chat/views/message_list.dart';
 import 'package:stars/ui/features/chat/views/typing_indicator.dart';
 import 'package:stars/utils/theme.dart';
 
@@ -47,9 +49,132 @@ void main() {
       initialTurns,
     );
   });
+
+  testWidgets(
+    'assistant typing remains visible until text or reasoning starts',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          body: const AssistantTypingIndicator(
+            botName: 'Stars',
+            isResponding: true,
+            streamingResponse: '',
+            reasoningResponse: '',
+            isDesktop: true,
+          ),
+          disableAnimations: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TypingIndicator), findsOneWidget);
+      expect(find.text('Stars正在输入...'), findsOneWidget);
+
+      await tester.pumpWidget(
+        _harness(
+          body: const AssistantTypingIndicator(
+            botName: 'Stars',
+            isResponding: true,
+            streamingResponse: 'answer',
+            reasoningResponse: '',
+            isDesktop: true,
+          ),
+          disableAnimations: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TypingIndicator), findsNothing);
+
+      await tester.pumpWidget(
+        _harness(
+          body: const AssistantTypingIndicator(
+            botName: 'Stars',
+            isResponding: true,
+            streamingResponse: '',
+            reasoningResponse: 'thinking',
+            isDesktop: true,
+          ),
+          disableAnimations: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TypingIndicator), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'structured Tool and Skill activity coexists with assistant typing',
+    (tester) async {
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          body: Column(
+            children: [
+              MessageList(
+                messages: [
+                  Message(
+                    messageId: 'message-1',
+                    turnId: 'turn-1',
+                    runId: 'run-1',
+                    chatId: 'chat-1',
+                    botId: 'bot-1',
+                    senderId: 'me',
+                    content: 'Use the Skill',
+                    timestamp: DateTime(2026),
+                  ),
+                ],
+                scrollController: scrollController,
+                isStreaming: true,
+                streamingResponse: '',
+                streamingProcessInfo: const MessageProcessInfo(
+                  toolCalls: [
+                    MessageToolCall(
+                      callId: 'tool-1',
+                      name: 'mcp.notes.save_note',
+                      status: 'awaitingApproval',
+                    ),
+                  ],
+                  skillActivations: [
+                    MessageSkillActivation(
+                      name: 'notes',
+                      contentDigest: 'digest',
+                      trigger: 'model',
+                    ),
+                  ],
+                ),
+                currentUserId: 'me',
+                isDesktop: true,
+              ),
+              const AssistantTypingIndicator(
+                botName: 'Stars',
+                isResponding: true,
+                streamingResponse: '',
+                reasoningResponse: '',
+                isDesktop: true,
+              ),
+            ],
+          ),
+          disableAnimations: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('desktop-execution-status')),
+        findsOneWidget,
+      );
+      expect(find.byType(TypingIndicator), findsOneWidget);
+      expect(find.text('Stars正在输入...'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
-Widget _harness({bool disableAnimations = false}) {
+Widget _harness({bool disableAnimations = false, Widget? body}) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
@@ -79,8 +204,10 @@ Widget _harness({bool disableAnimations = false}) {
                 ).copyWith(disableAnimations: disableAnimations),
                 child: ShadAppBuilder(child: child!),
               ),
-          home: const Scaffold(
-            body: TypingIndicator(botName: 'Stars', isDesktop: true),
+          home: Scaffold(
+            body:
+                body ??
+                const TypingIndicator(botName: 'Stars', isDesktop: true),
           ),
         ),
   );

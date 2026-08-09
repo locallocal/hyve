@@ -785,11 +785,13 @@ class ChatPageState extends State<ChatPage> {
                   isDesktop: isDesktop,
                   showExecutionStatus: widget.showExecutionStatus,
                 ),
-                if (_isTyping && !_isStreaming)
-                  TypingIndicator(
-                    botName: widget.bot.name,
-                    isDesktop: isDesktop,
-                  ),
+                AssistantTypingIndicator(
+                  botName: widget.bot.name,
+                  isResponding: _isTyping,
+                  streamingResponse: _streamingResponse,
+                  reasoningResponse: _reasoningResponse,
+                  isDesktop: isDesktop,
+                ),
               ],
             );
 

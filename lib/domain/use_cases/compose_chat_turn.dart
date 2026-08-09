@@ -356,7 +356,7 @@ final class ComposeChatTurn {
           ...entry.content.descriptor.requestedToolNames,
         if (systemShellSkill != null) ...shellCommandToolNames,
         if (systemSkillInstallerSkill != null) ...skillInstallerToolNames,
-        if (systemMcpInstallerSkill != null) ...addMcpServerToolNames,
+        if (systemMcpInstallerSkill != null) ...mcpInstallerToolNames,
         ...mcpTools.requestedNames,
         if (preparedContext?.report.historyLookupAvailable ?? false)
           ...conversationHistoryToolNames,
@@ -454,7 +454,7 @@ final class ComposeChatTurn {
         content.descriptor.id != mcpInstallerSkillId ||
         !content.descriptor.isUsable ||
         !content.descriptor.requestedToolNames.containsAll(
-          addMcpServerToolNames,
+          mcpInstallerToolNames,
         )) {
       return null;
     }

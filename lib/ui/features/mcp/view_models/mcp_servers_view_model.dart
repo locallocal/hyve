@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
 import 'package:stars/domain/models/models.dart';
@@ -37,12 +39,17 @@ final class McpServersViewModel extends ChangeNotifier {
   }) : _repository = repository,
        _credentialStore = credentialStore,
        _catalogService = catalogService,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now {
+    _repositoryChangesSubscription = _repository.changes.listen(
+      _handleRepositoryChanges,
+    );
+  }
 
   final McpServerRepository _repository;
   final McpCredentialStore _credentialStore;
   final McpCatalogService _catalogService;
   final DateTime Function() _now;
+  late final StreamSubscription<List<McpServer>> _repositoryChangesSubscription;
 
   List<McpServer> _servers = const [];
   Map<String, List<McpToolDescriptor>> _toolsByServer = const {};
@@ -62,16 +69,22 @@ final class McpServersViewModel extends ChangeNotifier {
   McpStdioProcessInfo? getStdioProcessInfo(String serverId) =>
       _catalogService.getStdioProcessInfo(serverId);
 
+  void _handleRepositoryChanges(List<McpServer> _) {
+    unawaited(_load(clearError: false));
+  }
+
   void clearError() {
     if (_error == null) return;
     _error = null;
     notifyListeners();
   }
 
-  Future<void> load() async {
+  Future<void> load() => _load(clearError: true);
+
+  Future<void> _load({required bool clearError}) async {
     final generation = ++_loadGeneration;
     _isLoading = true;
-    _error = null;
+    if (clearError) _error = null;
     notifyListeners();
     try {
       final servers = await _repository.getServers();
@@ -275,6 +288,12 @@ final class McpServersViewModel extends ChangeNotifier {
     } else {
       await _credentialStore.delete(id);
     }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_repositoryChangesSubscription.cancel());
+    super.dispose();
   }
 }
 

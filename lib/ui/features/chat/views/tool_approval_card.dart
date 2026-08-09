@@ -14,7 +14,8 @@ final class ToolApprovalCard extends StatelessWidget {
     this.desktopMode = false,
   });
 
-  static const _argumentsMaxHeight = 160.0;
+  static const _desktopMaxContentHeight = 360.0;
+  static const _mobileMaxContentHeight = 320.0;
 
   final ToolApprovalRequest request;
   final ValueChanged<ToolApprovalDecision> onDecision;
@@ -28,31 +29,39 @@ final class ToolApprovalCard extends StatelessWidget {
             ? request.definition.name
             : request.definition.title.trim();
     final riskColor = _riskColor(context);
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildHeader(context, strings, toolTitle, riskColor),
-        if (request.definition.description.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            request.definition.description.trim(),
-            style:
-                desktopMode
-                    ? DesktopThemeTokens.bodyStyle(context)
-                    : Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-        if (request.call.arguments.isNotEmpty) ...[
+    final hasDetails =
+        request.definition.description.trim().isNotEmpty ||
+        request.call.arguments.isNotEmpty;
+    final viewportHeight = MediaQuery.sizeOf(context).height;
+    final maxContentHeight =
+        (viewportHeight * (desktopMode ? 0.42 : 0.35))
+            .clamp(
+              140.0,
+              desktopMode ? _desktopMaxContentHeight : _mobileMaxContentHeight,
+            )
+            .toDouble();
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxContentHeight),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(context, strings, toolTitle, riskColor),
+          if (hasDetails)
+            Flexible(
+              child: SingleChildScrollView(
+                key: const ValueKey<String>('tool-approval-scroll'),
+                child: _buildDetails(context, strings),
+              ),
+            ),
           const SizedBox(height: 14),
-          _buildArguments(context, strings),
+          desktopMode
+              ? const ShadSeparator.horizontal()
+              : const Divider(height: 1),
+          const SizedBox(height: 12),
+          _buildActions(context, strings),
         ],
-        const SizedBox(height: 14),
-        desktopMode
-            ? const ShadSeparator.horizontal()
-            : const Divider(height: 1),
-        const SizedBox(height: 12),
-        _buildActions(context, strings),
-      ],
+      ),
     );
 
     return Padding(
@@ -94,6 +103,28 @@ final class ToolApprovalCard extends StatelessWidget {
                   child: content,
                 ),
       ),
+    );
+  }
+
+  Widget _buildDetails(BuildContext context, S strings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (request.definition.description.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            request.definition.description.trim(),
+            style:
+                desktopMode
+                    ? DesktopThemeTokens.bodyStyle(context)
+                    : Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+        if (request.call.arguments.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _buildArguments(context, strings),
+        ],
+      ],
     );
   }
 
@@ -216,19 +247,14 @@ final class ToolApprovalCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: _argumentsMaxHeight),
-          child: SingleChildScrollView(
-            child: SelectableText(
-              summary,
-              key: const ValueKey<String>('tool-approval-arguments'),
-              style: TextStyle(
-                color: foreground,
-                fontFamily: 'monospace',
-                fontSize: 12,
-                height: 1.55,
-              ),
-            ),
+        SelectableText(
+          summary,
+          key: const ValueKey<String>('tool-approval-arguments'),
+          style: TextStyle(
+            color: foreground,
+            fontFamily: 'monospace',
+            fontSize: 12,
+            height: 1.55,
           ),
         ),
       ],

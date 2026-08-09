@@ -306,7 +306,7 @@ void main() {
     },
   );
 
-  test('bound MCP installer Skill exposes its approved write tool', () async {
+  test('bound MCP installer Skill exposes write and inventory tools', () async {
     final mcpInstallerSkill = _systemMcpInstallerSkill();
     final compose = ComposeChatTurn(
       skillRepository: _FakeSkillRepository(const {}),
@@ -327,7 +327,7 @@ void main() {
       skillToolProvider: _FakeSkillProvider(const []),
     );
 
-    expect(result.requestedToolNames, addMcpServerToolNames);
+    expect(result.requestedToolNames, mcpInstallerToolNames);
     expect(result.approvalExemptToolNames, isEmpty);
     expect(result.activatedSkills.single.id, mcpInstallerSkillId);
     expect(
@@ -718,7 +718,7 @@ SkillContent _systemShellSkill() {
       id: shellCommandSkillId,
       name: 'shell-command',
       description: 'Execute an approved native shell command.',
-      version: '1',
+      version: '2',
       scope: SkillScope.bundled,
       sourceUri: 'asset:///shell-command/SKILL.md',
       rootPath: 'assets/skills/system/shell-command',
@@ -776,7 +776,7 @@ SkillContent _systemMcpInstallerSkill() {
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
       compatibility: 'Stars desktop',
-      requestedToolNames: addMcpServerToolNames,
+      requestedToolNames: mcpInstallerToolNames,
       installedAt: timestamp,
       updatedAt: timestamp,
     ),

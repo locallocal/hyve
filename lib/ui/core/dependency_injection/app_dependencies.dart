@@ -4,6 +4,7 @@ import 'package:stars/data/repositories/feedback_repository_impl.dart';
 import 'package:stars/data/repositories/legal_document_repository_impl.dart';
 import 'package:stars/data/repositories/file_skill_repository.dart';
 import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
+import 'package:stars/data/repositories/sqlite_mcp_inventory_repository.dart';
 import 'package:stars/data/repositories/skill_picker_repository_impl.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
@@ -65,6 +66,7 @@ import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/domain/repositories/model_usage_repository.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
@@ -116,6 +118,7 @@ class AppDependencies {
     required this.conversationHistoryRepository,
     required this.skillRunRepository,
     required this.mcpServerRepository,
+    required this.mcpInventoryRepository,
     required this.mcpCredentialStore,
     required this.mcpCatalogService,
     required this.toolRegistry,
@@ -270,6 +273,9 @@ class AppDependencies {
     final mcpServerRepository = SqliteMcpServerRepository(
       localDatabase: localDatabase,
     );
+    final mcpInventoryRepository = SqliteMcpInventoryRepository(
+      localDatabase: localDatabase,
+    );
     final mcpCredentialStore = SecureMcpCredentialStore();
     final mcpClient = McpClientService(
       transports: [
@@ -352,6 +358,7 @@ class AppDependencies {
       conversationHistoryRepository: conversationHistoryRepository,
       skillRunRepository: skillRunRepository,
       mcpServerRepository: mcpServerRepository,
+      mcpInventoryRepository: mcpInventoryRepository,
       mcpCredentialStore: mcpCredentialStore,
       mcpCatalogService: mcpCatalogService,
       toolRegistry: toolRegistry,
@@ -434,6 +441,7 @@ class AppDependencies {
   final ConversationHistoryRepository conversationHistoryRepository;
   final SkillRunRepository skillRunRepository;
   final McpServerRepository mcpServerRepository;
+  final McpInventoryRepository mcpInventoryRepository;
   final McpCredentialStore mcpCredentialStore;
   final McpCatalogService mcpCatalogService;
   final ToolRegistry toolRegistry;
@@ -601,6 +609,7 @@ class AppDependencies {
     generationRegistry: generationRegistry,
     composeChatTurn: composeChatTurn,
     conversationHistoryRepository: conversationHistoryRepository,
+    mcpInventoryRepository: mcpInventoryRepository,
     skillInventoryRepository: skillInventoryRepository,
   );
 

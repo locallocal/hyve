@@ -11,13 +11,16 @@ void main() {
     final content = await skill.loadContent();
 
     expect(skill.isValid, isTrue);
-    expect(skill.promptVersion, 1);
+    expect(skill.promptVersion, 2);
     expect(skill.contentDigest, hasLength(64));
     expect(content.descriptor.id, mcpInstallerSkillId);
     expect(content.descriptor.name, 'mcp-installer');
     expect(content.descriptor.scope, SkillScope.bundled);
     expect(content.descriptor.trustState, SkillTrustState.bundledTrusted);
-    expect(content.descriptor.requestedToolNames, addMcpServerToolNames);
+    expect(content.descriptor.requestedToolNames, mcpInstallerToolNames);
+    expect(content.instructions, contains('list_installed_mcp_servers'));
+    expect(content.instructions, contains('list_current_conversation_mcp'));
+    expect(content.instructions, contains('SQLite'));
     expect(content.instructions, contains('streamable_http'));
     expect(content.instructions, contains('stdio'));
     expect(content.instructions, contains('never overwrites'));

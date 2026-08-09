@@ -137,11 +137,73 @@ void main() {
     await tester.pump();
     expect(decisions, [ToolApprovalDecision.allowOnce]);
   });
+
+  testWidgets('long desktop approval stays within the chat workspace', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(974, 750);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _desktopHarness(
+        constrainedWorkspace: true,
+        request: ToolApprovalRequest(
+          runId: 'run-long',
+          call: ToolCallRequest(
+            callId: 'call-long',
+            name: 'run_long_tool',
+            arguments: {
+              'command': List.filled(80, 'very-long-argument').join(' '),
+            },
+          ),
+          definition: ToolDefinition(
+            name: 'run_long_tool',
+            title: 'Run long Tool',
+            description: List.filled(
+              80,
+              'This Tool has a deliberately long approval description.',
+            ).join(' '),
+            inputSchema: const {
+              'type': 'object',
+              'properties': {
+                'command': {'type': 'string'},
+              },
+              'required': ['command'],
+              'additionalProperties': false,
+            },
+            source: ToolSource.builtIn,
+            riskLevel: ToolRiskLevel.write,
+            capabilities: const {ToolCapability.process},
+          ),
+          reason: 'process_requires_approval',
+        ),
+        onDecision: (_) {},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.byKey(const ValueKey<String>('tool-approval-scroll')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .getBottomRight(
+            find.byKey(const ValueKey<String>('approve-tool-call')),
+          )
+          .dy,
+      lessThanOrEqualTo(750),
+    );
+  });
 }
 
 Widget _desktopHarness({
   required ToolApprovalRequest request,
   required ValueChanged<ToolApprovalDecision> onDecision,
+  bool constrainedWorkspace = false,
 }) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -167,11 +229,24 @@ Widget _desktopHarness({
           ],
           builder: (context, child) => ShadAppBuilder(child: child!),
           home: Scaffold(
-            body: ToolApprovalCard(
-              request: request,
-              desktopMode: true,
-              onDecision: onDecision,
-            ),
+            body:
+                constrainedWorkspace
+                    ? Column(
+                      children: [
+                        const Expanded(child: SizedBox()),
+                        ToolApprovalCard(
+                          request: request,
+                          desktopMode: true,
+                          onDecision: onDecision,
+                        ),
+                        const SizedBox(height: 180),
+                      ],
+                    )
+                    : ToolApprovalCard(
+                      request: request,
+                      desktopMode: true,
+                      onDecision: onDecision,
+                    ),
           ),
         ),
   );

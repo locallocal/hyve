@@ -76,7 +76,10 @@ final class SkillPackageStorageService {
           await _extractZip(File(source.path), staging);
           break;
       }
-      final skillRoot = await _locateSkillRoot(staging);
+      final skillRoot = await _locateSkillRoot(
+        staging,
+        subdirectory: source.subdirectory,
+      );
       return StagedSkillPackage(
         stagingDirectory: staging,
         skillRoot: skillRoot,
@@ -341,7 +344,10 @@ final class SkillPackageStorageService {
     }
   }
 
-  Future<Directory> _locateSkillRoot(Directory staging) async {
+  Future<Directory> _locateSkillRoot(
+    Directory staging, {
+    required String subdirectory,
+  }) async {
     final matches = <File>[];
     await for (final entity in staging.list(
       recursive: true,
@@ -353,6 +359,28 @@ final class SkillPackageStorageService {
     }
     if (matches.isEmpty) {
       throw const SkillInstallException('导入内容中没有 SKILL.md。');
+    }
+    final selectedSubdirectory = _normalizeSubdirectory(subdirectory);
+    if (selectedSubdirectory.isNotEmpty) {
+      final selected =
+          matches.where((match) {
+            final relative = path.posix.joinAll(
+              path
+                  .relative(match.parent.path, from: staging.path)
+                  .split(path.separator),
+            );
+            if (relative == selectedSubdirectory) return true;
+            final segments = relative.split('/');
+            return segments.length > 1 &&
+                segments.skip(1).join('/') == selectedSubdirectory;
+          }).toList();
+      if (selected.isEmpty) {
+        throw const SkillInstallException('指定的 Skill 子目录中没有 SKILL.md。');
+      }
+      if (selected.length > 1) {
+        throw const SkillInstallException('指定的 Skill 子目录不唯一。');
+      }
+      return selected.single.parent;
     }
     if (matches.length > 1) {
       throw const SkillInstallException('一次只能导入一个 Skill。');
@@ -370,6 +398,24 @@ final class SkillPackageStorageService {
       throw const SkillInstallException('SKILL.md 必须位于导入根目录或单一顶层目录中。');
     }
     return root;
+  }
+
+  String _normalizeSubdirectory(String value) {
+    final trimmed = value.trim().replaceAll('\\', '/');
+    if (trimmed.isEmpty) return '';
+    final normalized = path.posix.normalize(trimmed);
+    final segments = normalized.split('/');
+    if (value.contains('\u0000') ||
+        path.posix.isAbsolute(normalized) ||
+        normalized == '.' ||
+        normalized == '..' ||
+        normalized.startsWith('../') ||
+        segments.any((segment) => segment.isEmpty || segment == '..') ||
+        segments.length > maxPathDepth ||
+        RegExp(r'^[a-zA-Z]:').hasMatch(normalized)) {
+      throw const SkillInstallException('Skill 子目录必须是安全的包内相对路径。');
+    }
+    return normalized;
   }
 
   Future<Directory> _verifiedBundleRoot(String rootPath) async {

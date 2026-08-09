@@ -254,6 +254,39 @@ void main() {
   });
 
   test(
+    'bound Skill installer exposes install and SQLite inventory tools',
+    () async {
+      final installerSkill = _systemSkillInstallerSkill();
+      final compose = ComposeChatTurn(
+        skillRepository: _FakeSkillRepository(const {}),
+        bindingRepository: _FakeBindingRepository([
+          _binding(skillInstallerSkillId),
+        ]),
+        bundledSkillLoader: () async => [installerSkill],
+      );
+
+      final result = await compose(
+        bot: _bot(),
+        history: const [],
+        userMessage: _message(
+          senderId: 'user-1',
+          content: 'Install this Skill from GitHub',
+        ),
+        currentUserId: 'user-1',
+        skillToolProvider: _FakeSkillProvider(const []),
+      );
+
+      expect(result.requestedToolNames, skillInstallerToolNames);
+      expect(result.approvalExemptToolNames, isEmpty);
+      expect(result.activatedSkills.single.id, skillInstallerSkillId);
+      expect(
+        result.messages.first.content,
+        contains(installerSkill.instructions),
+      );
+    },
+  );
+
+  test(
     'reuses an activated reference without spending its budget twice',
     () async {
       final auto = _skill(
@@ -644,6 +677,31 @@ SkillContent _systemShellSkill() {
     ),
     instructions:
         'Every command requires approval. Use the native platform shell.',
+    files: const ['SKILL.md'],
+  );
+}
+
+SkillContent _systemSkillInstallerSkill() {
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return SkillContent(
+    descriptor: SkillDescriptor(
+      id: skillInstallerSkillId,
+      name: 'skill-installer',
+      description: 'Install a validated Stars Skill package.',
+      version: '2',
+      scope: SkillScope.bundled,
+      sourceUri: 'asset:///skill-installer/SKILL.md',
+      rootPath: 'assets/skills/system/skill-installer',
+      contentDigest: skillInstallerSkillContentDigest,
+      trustState: SkillTrustState.bundledTrusted,
+      validationStatus: SkillValidationStatus.valid,
+      compatibility: 'Stars desktop',
+      requestedToolNames: skillInstallerToolNames,
+      installedAt: timestamp,
+      updatedAt: timestamp,
+    ),
+    instructions:
+        'Use install_skill only after explicit approval. Pass source_type and source.',
     files: const ['SKILL.md'],
   );
 }

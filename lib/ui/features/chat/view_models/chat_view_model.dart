@@ -6,6 +6,8 @@ import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_history_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/data/services/tools/conversation_history_tools.dart';
+import 'package:stars/data/services/tools/skill_inventory_tools.dart';
+import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 
@@ -20,12 +22,14 @@ class ChatViewModel extends ChangeNotifier {
     required ChatGenerationRegistry generationRegistry,
     required ComposeChatTurn composeChatTurn,
     ConversationHistoryRepository? conversationHistoryRepository,
+    SkillInventoryRepository? skillInventoryRepository,
   }) : _messageRepository = messageRepository,
        _chatRepository = chatRepository,
        _aiProviderRepository = aiProviderRepository,
        _attachmentRepository = attachmentRepository,
        _composeChatTurn = composeChatTurn,
        _conversationHistoryRepository = conversationHistoryRepository,
+       _skillInventoryRepository = skillInventoryRepository,
        generationRegistry = generationRegistry,
        generationViewModel = generationRegistry.viewModelFor(chatId, bot);
 
@@ -37,6 +41,7 @@ class ChatViewModel extends ChangeNotifier {
   final AttachmentRepository _attachmentRepository;
   final ComposeChatTurn _composeChatTurn;
   final ConversationHistoryRepository? _conversationHistoryRepository;
+  final SkillInventoryRepository? _skillInventoryRepository;
   final ChatGenerationRegistry generationRegistry;
   final ChatGenerationViewModel generationViewModel;
 
@@ -107,6 +112,17 @@ class ChatViewModel extends ChangeNotifier {
               initiallyAllowedReferences: preparedTurn.historySummaryReferences,
             ).createTools()
             : const <ExecutableTool>[];
+    final inventoryRepository = _skillInventoryRepository;
+    final inventoryTools =
+        inventoryRepository != null &&
+                preparedTurn.requestedToolNames.any(
+                  skillInventoryToolNames.contains,
+                )
+            ? SkillInventoryToolSession(
+              repository: inventoryRepository,
+              chatId: chatId,
+            ).createTools()
+            : const <ExecutableTool>[];
     return PreparedTextGeneration(
       userMessage: userMessage,
       messages: preparedTurn.messages,
@@ -116,7 +132,7 @@ class ChatViewModel extends ChangeNotifier {
       preflightTokenUsage: preparedTurn.preflightTokenUsage,
       requestedToolNames: preparedTurn.requestedToolNames,
       approvalExemptToolNames: preparedTurn.approvalExemptToolNames,
-      runScopedTools: historyTools,
+      runScopedTools: [...historyTools, ...inventoryTools],
       contextAssemblyReport: preparedTurn.contextAssemblyReport,
     );
   }

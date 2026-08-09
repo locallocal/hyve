@@ -107,6 +107,7 @@ flutter:
     - assets/images/providers/
     - assets/images/profile/
     - assets/skills/system/conversation-history/
+    - assets/skills/system/mcp-installer/
     - assets/skills/system/skill-installer/
     - assets/skills/system/shell-command/
   # To add assets to your application, add an assets section, like this:

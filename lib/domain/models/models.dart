@@ -6,6 +6,7 @@ export 'conversation_history.dart';
 export 'conversation_memory.dart';
 export 'message.dart';
 export 'mcp.dart';
+export 'mcp_installer.dart';
 export 'modalities.dart';
 export 'profile.dart';
 export 'shell_command.dart';

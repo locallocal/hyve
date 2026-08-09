@@ -612,6 +612,8 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
     final configuration = _configuredByKey[key];
     final enabled = configuration != null;
     final title = tool.title.isEmpty ? tool.remoteName : tool.title;
+    final enabledStatus =
+        enabled ? S.of(context).skillEnabled : S.of(context).skillDisabled;
     final enableSwitch =
         widget.embedded
             ? ShadSwitch(
@@ -627,19 +629,26 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                         _setEnabled(tool, value);
                         refresh(() {});
                       },
+              label: Text(enabledStatus),
             )
-            : Switch(
-              key: ValueKey<String>(
-                'bot-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
-              ),
-              value: enabled,
-              onChanged:
-                  widget.readOnly
-                      ? null
-                      : (value) {
-                        _setEnabled(tool, value);
-                        refresh(() {});
-                      },
+            : Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(enabledStatus),
+                Switch(
+                  key: ValueKey<String>(
+                    'bot-mcp-tool-toggle-${tool.serverId}-${tool.remoteName}',
+                  ),
+                  value: enabled,
+                  onChanged:
+                      widget.readOnly
+                          ? null
+                          : (value) {
+                            _setEnabled(tool, value);
+                            refresh(() {});
+                          },
+                ),
+              ],
             );
     final approvalSwitch =
         widget.embedded
@@ -681,6 +690,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       key: ValueKey<String>('bot-mcp-tool-${tool.serverId}-${tool.remoteName}'),
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             tool.annotations.destructiveHint
@@ -693,6 +703,9 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
           const SizedBox(width: 9),
           Expanded(
             child: Column(
+              key: ValueKey<String>(
+                'bot-mcp-tool-description-${tool.serverId}-${tool.remoteName}',
+              ),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title),
@@ -708,16 +721,19 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                           ? DesktopThemeTokens.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 4),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: approvalSwitch,
-                ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          enableSwitch,
+          const SizedBox(width: 16),
+          Wrap(
+            key: ValueKey<String>(
+              'bot-mcp-tool-controls-${tool.serverId}-${tool.remoteName}',
+            ),
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
+            children: [enableSwitch, approvalSwitch],
+          ),
         ],
       ),
     );

@@ -62,13 +62,49 @@ void main() {
     final toolToggle = find.byKey(
       const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
     );
+    final noApprovalToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-no-approval-server-1-search'),
+    );
+    final toolRow = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-server-1-search'),
+    );
+    final toolDescription = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-description-server-1-search'),
+    );
+    final toolControls = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-controls-server-1-search'),
+    );
+    final disabledStatus = find.descendant(
+      of: toolRow,
+      matching: find.text('已关闭'),
+    );
     await tester.ensureVisible(toolToggle);
     expect(tester.widget<Switch>(toolToggle).value, isFalse);
+    expect(disabledStatus, findsOneWidget);
+    expect(
+      (tester.getCenter(toolToggle).dy - tester.getCenter(noApprovalToggle).dy)
+          .abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(
+      tester.getRect(toolToggle).right,
+      lessThan(tester.getRect(noApprovalToggle).left),
+    );
+    expect(
+      (tester.getCenter(toolDescription).dy - tester.getCenter(toolControls).dy)
+          .abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(
+      tester.getRect(toolDescription).right,
+      lessThan(tester.getRect(toolControls).left),
+    );
     await tester.tap(toolToggle);
     await tester.pump();
 
-    final noApprovalToggle = find.byKey(
-      const ValueKey<String>('bot-mcp-tool-no-approval-server-1-search'),
+    expect(
+      find.descendant(of: toolRow, matching: find.text('已开启')),
+      findsOneWidget,
     );
     expect(tester.widget<Switch>(noApprovalToggle).value, isFalse);
     await tester.tap(noApprovalToggle);
@@ -424,10 +460,54 @@ void main() {
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
 
+    final searchToolRow = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-server-1-search'),
+    );
+    final searchToolToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
+    );
+    final searchNoApprovalToggle = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-no-approval-server-1-search'),
+    );
+    final searchToolDescription = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-description-server-1-search'),
+    );
+    final searchToolControls = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-controls-server-1-search'),
+    );
+    expect(
+      find.descendant(of: searchToolRow, matching: find.text('已关闭')),
+      findsOneWidget,
+    );
+    expect(
+      (tester.getCenter(searchToolToggle).dy -
+              tester.getCenter(searchNoApprovalToggle).dy)
+          .abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(
+      tester.getRect(searchToolToggle).right,
+      lessThan(tester.getRect(searchNoApprovalToggle).left),
+    );
+    expect(
+      (tester.getCenter(searchToolDescription).dy -
+              tester.getCenter(searchToolControls).dy)
+          .abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(
+      tester.getRect(searchToolDescription).right,
+      lessThan(tester.getRect(searchToolControls).left),
+    );
+
     await tester.tap(
       find.byKey(const ValueKey<String>('bot-mcp-tools-toggle-all-server-1')),
     );
     await tester.pump();
+    expect(
+      find.descendant(of: searchToolRow, matching: find.text('已开启')),
+      findsOneWidget,
+    );
     await tester.tap(
       find.byKey(
         const ValueKey<String>('bot-mcp-tools-no-approval-all-server-1'),

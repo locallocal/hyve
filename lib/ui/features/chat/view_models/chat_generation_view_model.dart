@@ -770,6 +770,8 @@ class ChatGenerationViewModel extends ChangeNotifier
             })
             : invocation.name == shellCommandToolName
             ? jsonEncode(_shellAuditArguments(invocation.arguments))
+            : invocation.name == addMcpServerToolName
+            ? jsonEncode(_addMcpServerAuditArguments(invocation.arguments))
             : jsonEncode(_redactAuditValue(invocation.arguments));
     final item = MessageToolCall(
       callId: invocation.callId,
@@ -862,6 +864,29 @@ class ChatGenerationViewModel extends ChangeNotifier
             sha256.convert(utf8.encode(workingDirectory)).toString(),
       if (arguments['timeout_seconds'] is int)
         'timeout_seconds': arguments['timeout_seconds'],
+    };
+  }
+
+  Map<String, Object?> _addMcpServerAuditArguments(
+    Map<String, Object?> arguments,
+  ) {
+    final endpoint = arguments['endpoint']?.toString() ?? '';
+    final command = arguments['command']?.toString() ?? '';
+    final commandArguments = arguments['arguments'];
+    final environment = arguments['environment'];
+    final accessToken = arguments['access_token']?.toString() ?? '';
+    return {
+      'name': arguments['name']?.toString() ?? '',
+      'transport_type': arguments['transport_type']?.toString() ?? '',
+      if (endpoint.isNotEmpty)
+        'endpoint_hash': sha256.convert(utf8.encode(endpoint)).toString(),
+      'auth_type': arguments['auth_type']?.toString() ?? 'none',
+      'credential_provided': accessToken.isNotEmpty,
+      if (command.isNotEmpty)
+        'command_hash': sha256.convert(utf8.encode(command)).toString(),
+      'argument_count': commandArguments is List ? commandArguments.length : 0,
+      'environment_variable_count': environment is Map ? environment.length : 0,
+      'connect': arguments['connect'] is bool ? arguments['connect'] : true,
     };
   }
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Installer"
+  short_description: "Install a Stars MCP server from supplied connection details"
+  default_prompt: "Use $mcp-installer to install this MCP server from the connection details I provide."

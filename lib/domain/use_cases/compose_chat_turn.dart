@@ -135,6 +135,7 @@ final class ComposeChatTurn {
           descriptors.containsKey(binding.skillId) &&
           binding.skillId != shellCommandSkillId &&
           binding.skillId != skillInstallerSkillId &&
+          binding.skillId != mcpInstallerSkillId &&
           binding.skillId != conversationHistorySkillId &&
           !state.contents.containsKey(binding.skillId),
     );
@@ -216,11 +217,22 @@ final class ComposeChatTurn {
         systemSkillInstallerSkill == null
             ? 0
             : _estimateTokens(systemSkillInstallerSkill.instructions);
+    final systemMcpInstallerSkill = _loadSystemMcpInstallerSkill(
+      provider,
+      state,
+      enabledSkillIds,
+      reservedTokens: systemShellSkillTokens + systemSkillInstallerTokens,
+    );
+    final systemMcpInstallerTokens =
+        systemMcpInstallerSkill == null
+            ? 0
+            : _estimateTokens(systemMcpInstallerSkill.instructions);
     final totalSkillTokens =
         state.skillTokens +
         state.resourceTokens +
         systemShellSkillTokens +
-        systemSkillInstallerTokens;
+        systemSkillInstallerTokens +
+        systemMcpInstallerTokens;
     final activePromptSkills = [
       ...state.contents.values,
       if (systemShellSkill != null)
@@ -230,12 +242,18 @@ final class ComposeChatTurn {
           content: systemSkillInstallerSkill,
           trigger: SkillActivationTrigger.model,
         ),
+      if (systemMcpInstallerSkill != null)
+        (
+          content: systemMcpInstallerSkill,
+          trigger: SkillActivationTrigger.model,
+        ),
     ];
     final systemPrompt = _composeSystemPrompt(
       bot.systemPrompt,
       activePromptSkills,
       resources: state.resources.values.toList(),
-      processToolsAvailable: systemShellSkill != null,
+      processToolsAvailable:
+          systemShellSkill != null || systemMcpInstallerSkill != null,
     );
     final contextPreparer = _prepareConversationContext;
     var preparedContext =
@@ -311,6 +329,13 @@ final class ComposeChatTurn {
             contentDigest: systemSkillInstallerSkill.descriptor.contentDigest,
             trigger: SkillActivationTrigger.model,
           ),
+        if (systemMcpInstallerSkill != null)
+          ActivatedSkill(
+            id: systemMcpInstallerSkill.descriptor.id,
+            name: systemMcpInstallerSkill.descriptor.name,
+            contentDigest: systemMcpInstallerSkill.descriptor.contentDigest,
+            trigger: SkillActivationTrigger.model,
+          ),
         if (preparedContext?.report.historyLookupAvailable ?? false)
           const ActivatedSkill(
             id: conversationHistorySkillId,
@@ -326,6 +351,7 @@ final class ComposeChatTurn {
           ...entry.content.descriptor.requestedToolNames,
         if (systemShellSkill != null) ...shellCommandToolNames,
         if (systemSkillInstallerSkill != null) ...skillInstallerToolNames,
+        if (systemMcpInstallerSkill != null) ...addMcpServerToolNames,
         ...mcpTools.requestedNames,
         if (preparedContext?.report.historyLookupAvailable ?? false)
           ...conversationHistoryToolNames,
@@ -396,6 +422,34 @@ final class ComposeChatTurn {
         !content.descriptor.isUsable ||
         !content.descriptor.requestedToolNames.containsAll(
           skillInstallerToolNames,
+        )) {
+      return null;
+    }
+    final tokens = _estimateTokens(content.instructions);
+    if (tokens > _budget.maxTokensPerSkill ||
+        state.skillTokens + reservedTokens + tokens >
+            _budget.maxSkillContextTokens) {
+      return null;
+    }
+    return content;
+  }
+
+  SkillContent? _loadSystemMcpInstallerSkill(
+    AiProvider? provider,
+    _TurnSkillState state,
+    Set<String> enabledSkillIds, {
+    required int reservedTokens,
+  }) {
+    if (provider?.capabilities.supportsAgentLoop != true ||
+        !enabledSkillIds.contains(mcpInstallerSkillId)) {
+      return null;
+    }
+    final content = state.bundledContents[mcpInstallerSkillId];
+    if (content == null ||
+        content.descriptor.id != mcpInstallerSkillId ||
+        !content.descriptor.isUsable ||
+        !content.descriptor.requestedToolNames.containsAll(
+          addMcpServerToolNames,
         )) {
       return null;
     }

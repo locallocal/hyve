@@ -286,6 +286,36 @@ void main() {
     },
   );
 
+  test('bound MCP installer Skill exposes its approved write tool', () async {
+    final mcpInstallerSkill = _systemMcpInstallerSkill();
+    final compose = ComposeChatTurn(
+      skillRepository: _FakeSkillRepository(const {}),
+      bindingRepository: _FakeBindingRepository([
+        _binding(mcpInstallerSkillId),
+      ]),
+      bundledSkillLoader: () async => [mcpInstallerSkill],
+    );
+
+    final result = await compose(
+      bot: _bot(),
+      history: const [],
+      userMessage: _message(
+        senderId: 'user-1',
+        content: 'Add this Streamable HTTP MCP server',
+      ),
+      currentUserId: 'user-1',
+      skillToolProvider: _FakeSkillProvider(const []),
+    );
+
+    expect(result.requestedToolNames, addMcpServerToolNames);
+    expect(result.approvalExemptToolNames, isEmpty);
+    expect(result.activatedSkills.single.id, mcpInstallerSkillId);
+    expect(
+      result.messages.first.content,
+      contains(mcpInstallerSkill.instructions),
+    );
+  });
+
   test(
     'reuses an activated reference without spending its budget twice',
     () async {
@@ -702,6 +732,31 @@ SkillContent _systemSkillInstallerSkill() {
     ),
     instructions:
         'Use install_skill only after explicit approval. Pass source_type and source.',
+    files: const ['SKILL.md'],
+  );
+}
+
+SkillContent _systemMcpInstallerSkill() {
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return SkillContent(
+    descriptor: SkillDescriptor(
+      id: mcpInstallerSkillId,
+      name: 'mcp-installer',
+      description: 'Install a configured Stars MCP server.',
+      version: '1',
+      scope: SkillScope.bundled,
+      sourceUri: 'asset:///mcp-installer/SKILL.md',
+      rootPath: 'assets/skills/system/mcp-installer',
+      contentDigest: mcpInstallerSkillContentDigest,
+      trustState: SkillTrustState.bundledTrusted,
+      validationStatus: SkillValidationStatus.valid,
+      compatibility: 'Stars desktop',
+      requestedToolNames: addMcpServerToolNames,
+      installedAt: timestamp,
+      updatedAt: timestamp,
+    ),
+    instructions:
+        'Use add_mcp_server only with user-provided connection details.',
     files: const ['SKILL.md'],
   );
 }

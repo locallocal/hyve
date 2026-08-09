@@ -43,11 +43,13 @@ import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/data/services/tools/built_in_tools.dart';
+import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
 import 'package:stars/data/services/tools/shell_command_tool.dart';
 import 'package:stars/data/services/tools/skill_installer_tool.dart';
 import 'package:stars/data/services/tools/system_conversation_history_skill.dart';
 import 'package:stars/data/services/tools/system_shell_skill.dart';
 import 'package:stars/data/services/tools/system_skill_installer_skill.dart';
+import 'package:stars/data/services/tools/system_mcp_installer_skill.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -121,6 +123,7 @@ class AppDependencies {
     required this.composeChatTurn,
     required this.compactConversation,
     required this.systemConversationHistorySkill,
+    required this.systemMcpInstallerSkill,
     required this.systemShellSkill,
     required this.systemSkillInstallerSkill,
     required this.bundledSkillLoader,
@@ -171,6 +174,7 @@ class AppDependencies {
     );
     const aiProviderRepository = AiProviderRepositoryImpl();
     final systemConversationHistorySkill = SystemConversationHistorySkill();
+    final systemMcpInstallerSkill = SystemMcpInstallerSkill();
     final systemSkillInstallerSkill = SystemSkillInstallerSkill();
     final shellCommandTool = createHostShellCommandTool();
     final systemShellSkill =
@@ -194,6 +198,11 @@ class AppDependencies {
         contents.add(await systemSkillInstallerSkill.loadContent());
       } on Object {
         // Skill installation fails closed if its built-in Skill is damaged.
+      }
+      try {
+        contents.add(await systemMcpInstallerSkill.loadContent());
+      } on Object {
+        // MCP installation fails closed if its built-in Skill is damaged.
       }
       return List<SkillContent>.unmodifiable(contents);
     }
@@ -291,6 +300,16 @@ class AppDependencies {
       client: mcpClient,
       toolRegistry: toolRegistry,
     );
+    final addMcpServerTool = AddMcpServerTool(
+      repository: mcpServerRepository,
+      credentialStore: mcpCredentialStore,
+      connector:
+          (serverId, cancellationToken) => mcpCatalogService.refreshServer(
+            serverId,
+            cancellationToken: cancellationToken,
+          ),
+    );
+    toolRegistry.replaceDynamicSource('system-mcp', [addMcpServerTool]);
     final skillScriptCatalogService = SkillScriptCatalogService(
       skillRepository: skillRepository,
       ecosystemRepository: skillEcosystemRepository,
@@ -340,6 +359,7 @@ class AppDependencies {
       composeChatTurn: composeChatTurn,
       compactConversation: compactConversation,
       systemConversationHistorySkill: systemConversationHistorySkill,
+      systemMcpInstallerSkill: systemMcpInstallerSkill,
       systemShellSkill: systemShellSkill,
       systemSkillInstallerSkill: systemSkillInstallerSkill,
       bundledSkillLoader: loadBundledSkills,
@@ -421,6 +441,7 @@ class AppDependencies {
   final ComposeChatTurn composeChatTurn;
   final CompactConversation compactConversation;
   final SystemConversationHistorySkill systemConversationHistorySkill;
+  final SystemMcpInstallerSkill systemMcpInstallerSkill;
   final SystemShellSkill? systemShellSkill;
   final SystemSkillInstallerSkill systemSkillInstallerSkill;
   final BundledSkillLoader bundledSkillLoader;
@@ -450,6 +471,11 @@ class AppDependencies {
         await systemSkillInstallerSkill.validate();
       } on Object {
         // A damaged installer Skill fails closed without blocking startup.
+      }
+      try {
+        await systemMcpInstallerSkill.validate();
+      } on Object {
+        // A damaged MCP installer Skill fails closed without blocking startup.
       }
       try {
         await mcpCatalogService.hydrateFromCache();

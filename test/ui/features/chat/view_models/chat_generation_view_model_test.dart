@@ -688,6 +688,70 @@ void main() {
         expect(audit.argumentsSummary, isNot(contains(workingDirectory)));
       }
     });
+
+    test('add MCP server audit never persists connection secrets', () async {
+      const endpoint = 'https://example.com/mcp?credential=do-not-persist';
+      const command = '/private/do-not-persist/server';
+      final tool = _AddMcpServerAuditTool();
+      final factory = _AgentProviderFactory(
+        toolName: addMcpServerToolName,
+        arguments: const {
+          'name': 'Private MCP',
+          'transport_type': 'stdio',
+          'endpoint': endpoint,
+          'auth_type': 'oauth_access_token',
+          'access_token': 'do-not-persist-token',
+          'command': command,
+          'arguments': ['--token', 'do-not-persist-argument'],
+          'environment': {'CUSTOM_CREDENTIAL': 'do-not-persist-environment'},
+          'connect': true,
+        },
+      );
+      final toolAudits = <MessageToolCall>[];
+      final controller = ChatGenerationViewModel(
+        chatId: 'chat-1',
+        bot: _bot,
+        providerFactory: factory.create,
+        messagePersister: (message) async => message,
+        lastMessageUpdater: (_, _) async {},
+        toolInvocationPersister: (_, _, _, audit) async {
+          toolAudits.add(audit);
+        },
+        toolRegistry: StaticToolRegistry([tool]),
+        toolPolicy: const DefaultToolPolicy(allowProcessExecution: true),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.startText(
+          userMessage: _userMessage(),
+          messages: [ChatMessage(role: 'user', content: 'Add it')],
+          requestedToolNames: addMcpServerToolNames,
+        ),
+        isTrue,
+      );
+      await _waitFor(() => controller.snapshot.pendingToolApproval != null);
+      controller.resolveToolApproval(ToolApprovalDecision.allowOnce);
+      await _waitFor(
+        () => controller.snapshot.lifecycle == ChatRunLifecycle.completed,
+      );
+      await _flushAsyncWork();
+
+      expect(tool.executions, 1);
+      expect(toolAudits, isNotEmpty);
+      for (final audit in toolAudits) {
+        expect(audit.argumentsSummary, contains('"endpoint_hash"'));
+        expect(audit.argumentsSummary, contains('"command_hash"'));
+        expect(audit.argumentsSummary, contains('"argument_count":2'));
+        expect(
+          audit.argumentsSummary,
+          contains('"environment_variable_count":1'),
+        );
+        expect(audit.argumentsSummary, isNot(contains(endpoint)));
+        expect(audit.argumentsSummary, isNot(contains(command)));
+        expect(audit.argumentsSummary, isNot(contains('do-not-persist')));
+      }
+    });
   });
 }
 
@@ -864,6 +928,31 @@ final class _ShellAuditTool implements ExecutableTool {
     cancellationToken.throwIfCancelled();
     executions += 1;
     return ToolResult(callId: call.callId, name: call.name, content: 'done');
+  }
+}
+
+final class _AddMcpServerAuditTool implements ExecutableTool {
+  @override
+  final ToolDefinition definition = ToolDefinition(
+    name: addMcpServerToolName,
+    title: 'Add MCP server',
+    description: 'Add an MCP server.',
+    inputSchema: const {'type': 'object', 'additionalProperties': true},
+    source: ToolSource.builtIn,
+    riskLevel: ToolRiskLevel.write,
+    capabilities: const {ToolCapability.localWrite, ToolCapability.process},
+  );
+
+  int executions = 0;
+
+  @override
+  Future<ToolResult> execute(
+    ToolCallRequest call,
+    AgentCancellationToken cancellationToken,
+  ) async {
+    cancellationToken.throwIfCancelled();
+    executions += 1;
+    return ToolResult(callId: call.callId, name: call.name, content: 'added');
   }
 }
 

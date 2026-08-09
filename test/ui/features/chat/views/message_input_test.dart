@@ -130,65 +130,7 @@ void main() {
       expect(find.text('技能'), findsNothing);
     });
 
-    testWidgets('web search mirrors empty and ready send button styles', (
-      tester,
-    ) async {
-      final controller = TextEditingController();
-      addTearDown(controller.dispose);
-      final provider = _FakeProvider(_bot, supportsWebSearch: true);
-
-      await _pumpMessageInput(
-        tester,
-        controller: controller,
-        provider: provider,
-      );
-
-      ShadButton button(String label) =>
-          tester.widget<ShadButton>(find.widgetWithText(ShadButton, label));
-
-      Opacity webSearchOpacity() => tester.widget<Opacity>(
-        find
-            .ancestor(
-              of: find.widgetWithText(ShadButton, '联网搜索'),
-              matching: find.byType(Opacity),
-            )
-            .first,
-      );
-
-      var sendButton = button('发送');
-      var webSearchButton = button('联网搜索');
-      expect(sendButton.enabled, isFalse);
-      expect(webSearchButton.variant, ShadButtonVariant.primary);
-      expect(webSearchButton.backgroundColor, sendButton.backgroundColor);
-      expect(webSearchButton.hoverBackgroundColor, sendButton.backgroundColor);
-      expect(
-        webSearchButton.pressedBackgroundColor,
-        sendButton.backgroundColor,
-      );
-      expect(webSearchOpacity().opacity, 0.5);
-      expect(
-        tester.getSize(find.widgetWithText(ShadButton, '联网搜索')).height,
-        36,
-      );
-
-      await tester.tap(find.widgetWithText(ShadButton, '联网搜索'));
-      await tester.pump();
-      await _focusAndEnterText(tester, 'Hello');
-
-      sendButton = button('发送');
-      webSearchButton = button('联网搜索');
-      expect(provider.getWebSearch(), isTrue);
-      expect(sendButton.enabled, isTrue);
-      expect(webSearchButton.variant, sendButton.variant);
-      expect(webSearchButton.backgroundColor, sendButton.backgroundColor);
-      expect(webSearchButton.foregroundColor, sendButton.foregroundColor);
-      expect(webSearchButton.hoverBackgroundColor, isNull);
-      expect(webSearchOpacity().opacity, 1);
-    });
-
-    testWidgets('deep thinking matches the web search control style', (
-      tester,
-    ) async {
+    testWidgets('does not show model capability controls', (tester) async {
       final controller = TextEditingController();
       addTearDown(controller.dispose);
       final provider = _FakeProvider(
@@ -203,53 +145,8 @@ void main() {
         provider: provider,
       );
 
-      ShadButton button(String label) =>
-          tester.widget<ShadButton>(find.widgetWithText(ShadButton, label));
-
-      double opacity(String label) =>
-          tester
-              .widget<Opacity>(
-                find
-                    .ancestor(
-                      of: find.widgetWithText(ShadButton, label),
-                      matching: find.byType(Opacity),
-                    )
-                    .first,
-              )
-              .opacity;
-
-      void expectMatchingStyles() {
-        final webSearch = button('联网搜索');
-        final deepThinking = button('深度思考');
-        expect(deepThinking.variant, webSearch.variant);
-        expect(deepThinking.backgroundColor, webSearch.backgroundColor);
-        expect(deepThinking.foregroundColor, webSearch.foregroundColor);
-        expect(
-          deepThinking.hoverBackgroundColor,
-          webSearch.hoverBackgroundColor,
-        );
-        expect(
-          deepThinking.pressedBackgroundColor,
-          webSearch.pressedBackgroundColor,
-        );
-        expect(
-          tester.getSize(find.widgetWithText(ShadButton, '深度思考')),
-          tester.getSize(find.widgetWithText(ShadButton, '联网搜索')),
-        );
-        expect(opacity('深度思考'), opacity('联网搜索'));
-      }
-
-      expectMatchingStyles();
-      expect(opacity('深度思考'), 0.5);
-
-      await tester.tap(find.widgetWithText(ShadButton, '联网搜索'));
-      await tester.tap(find.widgetWithText(ShadButton, '深度思考'));
-      await tester.pump();
-
-      expect(provider.getWebSearch(), isTrue);
-      expect(provider.getDeepThinking(), isTrue);
-      expectMatchingStyles();
-      expect(opacity('深度思考'), 1);
+      expect(find.text('联网搜索'), findsNothing);
+      expect(find.text('深度思考'), findsNothing);
     });
 
     testWidgets('Shift+Enter does not send', (tester) async {

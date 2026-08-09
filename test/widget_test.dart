@@ -2894,13 +2894,25 @@ void main() {
     final systemPromptDetail = find.byKey(
       const ValueKey<String>('bot-detail-system-prompt'),
     );
+    final systemPromptLabel = find.descendant(
+      of: systemPromptDetail,
+      matching: find.text('系统提示词'),
+    );
     final systemPromptValue = find.descendant(
       of: systemPromptDetail,
       matching: find.text(systemPrompt),
     );
     expect(
       tester.getSize(systemPromptValue).width,
-      lessThanOrEqualTo(DesktopThemeTokens.settingsRowValueMaxWidth),
+      greaterThan(DesktopThemeTokens.settingsRowValueMaxWidth),
+    );
+    expect(
+      tester.getTopLeft(systemPromptValue).dy,
+      greaterThan(tester.getBottomLeft(systemPromptLabel).dy),
+    );
+    expect(
+      tester.getTopLeft(systemPromptValue).dx,
+      tester.getTopLeft(systemPromptLabel).dx,
     );
 
     final apiKeyDetail = find.byKey(

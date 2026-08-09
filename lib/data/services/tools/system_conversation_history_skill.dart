@@ -43,7 +43,8 @@ final class SystemConversationHistorySkill {
         id: conversationHistorySkillId,
         name: 'conversation-history',
         description:
-            'Search and read exact messages from the current conversation.',
+            'Search and read exact persisted messages from the current '
+            'conversation through read-only, parameterized SQLite queries.',
         version: '$conversationHistorySkillPromptVersion',
         scope: SkillScope.bundled,
         sourceUri: 'asset:///$assetPath',

@@ -133,6 +133,41 @@ void main() {
     },
   );
 
+  test('tool schemas describe SQLite lookup fields explicitly', () {
+    final session = ConversationHistoryToolSession(
+      repository: SqliteConversationHistoryRepository(
+        messageRepository: messages,
+      ),
+      chatId: 'chat_1',
+      runId: 'run_1',
+    );
+    final definitions = {
+      for (final tool in session.createTools())
+        tool.definition.name: tool.definition,
+    };
+    final search = definitions[searchConversationHistoryToolName]!;
+    final read = definitions[readConversationHistoryToolName]!;
+
+    expect(search.description, contains('parameterized SQLite'));
+    expect(read.description, contains('persisted messages'));
+    for (final entry
+        in <ToolDefinition, List<String>>{
+          search: ['query', 'role', 'after', 'before', 'limit', 'cursor'],
+          read: ['references', 'surrounding_turns', 'cursor'],
+        }.entries) {
+      final properties =
+          entry.key.inputSchema['properties']! as Map<String, Object?>;
+      for (final fieldName in entry.value) {
+        final field = properties[fieldName]! as Map<String, Object?>;
+        expect(
+          field['description'],
+          isNotEmpty,
+          reason: '${entry.key.name}.$fieldName should be documented',
+        );
+      }
+    }
+  });
+
   test('only exact reserved history tools receive the approval exemption', () {
     final session = ConversationHistoryToolSession(
       repository: SqliteConversationHistoryRepository(

@@ -233,19 +233,46 @@ final class SearchConversationHistoryTool implements ExecutableTool {
   @override
   ToolDefinition get definition => ToolDefinition(
     name: searchConversationHistoryToolName,
-    description: 'Search exact messages in the current conversation.',
+    description:
+        'Run a read-only, parameterized SQLite search over persisted messages '
+        'in the current conversation. Returns candidate message and turn '
+        'references; call read_conversation_history for exact content.',
     inputSchema: const {
       'type': 'object',
       'properties': {
-        'query': {'type': 'string', 'maxLength': 256},
+        'query': {
+          'type': 'string',
+          'maxLength': 256,
+          'description':
+              'Required 1-256 character lexical clue from message content; '
+              'this is text data, not SQL.',
+        },
         'role': {
           'type': 'string',
           'enum': ['any', 'user', 'assistant'],
+          'description': 'Optional sender-role filter. Defaults to any.',
         },
-        'after': {'type': 'string', 'format': 'date-time'},
-        'before': {'type': 'string', 'format': 'date-time'},
-        'limit': {'type': 'integer', 'minimum': 1, 'maximum': 12},
-        'cursor': {'type': 'string'},
+        'after': {
+          'type': 'string',
+          'format': 'date-time',
+          'description': 'Optional inclusive ISO-8601 lower time bound.',
+        },
+        'before': {
+          'type': 'string',
+          'format': 'date-time',
+          'description': 'Optional exclusive ISO-8601 upper time bound.',
+        },
+        'limit': {
+          'type': 'integer',
+          'minimum': 1,
+          'maximum': 12,
+          'description': 'Maximum candidate hits to return. Defaults to 8.',
+        },
+        'cursor': {
+          'type': 'string',
+          'description':
+              'Opaque next_cursor returned by the same search parameters.',
+        },
       },
       'required': ['query'],
       'additionalProperties': false,
@@ -274,7 +301,8 @@ final class ReadConversationHistoryTool implements ExecutableTool {
   ToolDefinition get definition => ToolDefinition(
     name: readConversationHistoryToolName,
     description:
-        'Read exact messages or complete turns located in this conversation.',
+        'Read exact persisted messages or complete turns from the current '
+        'conversation using references returned by search_conversation_history.',
     inputSchema: const {
       'type': 'object',
       'properties': {
@@ -283,9 +311,22 @@ final class ReadConversationHistoryTool implements ExecutableTool {
           'minItems': 1,
           'maxItems': 8,
           'items': {'type': 'string'},
+          'description':
+              'Required 1-8 turn:<turn_id> or message:<message_id> values '
+              'returned by this run\'s search.',
         },
-        'surrounding_turns': {'type': 'integer', 'minimum': 0, 'maximum': 1},
-        'cursor': {'type': 'string'},
+        'surrounding_turns': {
+          'type': 'integer',
+          'minimum': 0,
+          'maximum': 1,
+          'description':
+              'Include zero or one adjacent turn on each side. Defaults to 0.',
+        },
+        'cursor': {
+          'type': 'string',
+          'description':
+              'Opaque next_cursor returned by the same read request.',
+        },
       },
       'required': ['references'],
       'additionalProperties': false,

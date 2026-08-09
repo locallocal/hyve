@@ -760,6 +760,10 @@ class ChatGenerationViewModel extends ChangeNotifier
 
   void _onToolInvocation(String runId, ToolInvocationRecord invocation) {
     if (!_canReduceProviderEvent(runId)) return;
+    final detail =
+        invocation.errorCode.isNotEmpty
+            ? invocation.errorCode
+            : invocation.resultSummary;
     final arguments =
         conversationHistoryToolNames.contains(invocation.name)
             ? jsonEncode({
@@ -779,10 +783,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       title: invocation.title,
       mcpServerName: invocation.mcpServerName,
       status: invocation.status.name,
-      detail:
-          invocation.errorCode.isNotEmpty
-              ? invocation.errorCode
-              : invocation.resultSummary,
+      detail: detail,
       source: invocation.source.name,
       riskLevel: invocation.riskLevel.name,
       argumentsSummary: _truncateAuditText(arguments),
@@ -800,7 +801,26 @@ class ChatGenerationViewModel extends ChangeNotifier
     } else {
       calls[index] = item;
     }
-    _snapshot = _snapshot.copyWith(toolCalls: calls);
+    final commandExecutions = List<MessageCommandExecution>.of(
+      _snapshot.commandExecutions,
+    );
+    final commandExecution = _shellCommandExecution(invocation, detail: detail);
+    if (commandExecution != null) {
+      final commandIndex = commandExecutions.indexWhere(
+        (existing) =>
+            existing.callId.isNotEmpty &&
+            existing.callId == commandExecution.callId,
+      );
+      if (commandIndex < 0) {
+        commandExecutions.add(commandExecution);
+      } else {
+        commandExecutions[commandIndex] = commandExecution;
+      }
+    }
+    _snapshot = _snapshot.copyWith(
+      toolCalls: calls,
+      commandExecutions: commandExecutions,
+    );
     notifyListeners();
     _schedulePartialPersistence(runId);
     final persister = _toolInvocationPersister;
@@ -820,6 +840,22 @@ class ChatGenerationViewModel extends ChangeNotifier
     const maxCharacters = 512;
     if (value.runes.length <= maxCharacters) return value;
     return '${String.fromCharCodes(value.runes.take(maxCharacters - 1))}…';
+  }
+
+  MessageCommandExecution? _shellCommandExecution(
+    ToolInvocationRecord invocation, {
+    required String detail,
+  }) {
+    if (invocation.name != shellCommandToolName) return null;
+    final command = invocation.arguments['command'];
+    if (command is! String || command.trim().isEmpty) return null;
+    return MessageCommandExecution(
+      callId: invocation.callId,
+      command: command,
+      status: invocation.status.name,
+      detail: detail,
+      durationMs: invocation.durationMs,
+    );
   }
 
   Object? _redactAuditValue(Object? value, {String key = ''}) {

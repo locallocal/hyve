@@ -299,6 +299,7 @@ MessageToolCall _toolCallFromMap(Map<String, Object?> values) {
 Map<String, Object?> _commandExecutionToMap(
   MessageCommandExecution execution,
 ) => {
+  'call_id': execution.callId,
   'command': execution.command,
   'status': execution.status,
   'detail': execution.detail,
@@ -307,6 +308,7 @@ Map<String, Object?> _commandExecutionToMap(
 
 MessageCommandExecution _commandExecutionFromMap(Map<String, Object?> values) {
   return MessageCommandExecution(
+    callId: _string(values['call_id']),
     command: _string(values['command']),
     status: _string(values['status']),
     detail: _string(values['detail']),

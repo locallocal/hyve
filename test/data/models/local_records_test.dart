@@ -85,6 +85,32 @@ void main() {
     expect(call.durationMs, 12);
   });
 
+  test('shell command execution survives process info serialization', () {
+    const info = MessageProcessInfo(
+      commandExecutions: [
+        MessageCommandExecution(
+          callId: 'shell-1',
+          command: 'git status --short && dart analyze',
+          status: 'succeeded',
+          detail: 'completed',
+          durationMs: 240,
+        ),
+      ],
+    );
+
+    final restored =
+        MessageProcessInfoRecord.fromRaw(
+          jsonEncode(MessageProcessInfoRecord.fromDomain(info).values),
+        ).toDomain();
+    final execution = restored.commandExecutions.single;
+
+    expect(execution.callId, 'shell-1');
+    expect(execution.command, 'git status --short && dart analyze');
+    expect(execution.status, 'succeeded');
+    expect(execution.detail, 'completed');
+    expect(execution.durationMs, 240);
+  });
+
   test('local records preserve core domain model fields', () {
     final timestamp = DateTime.fromMillisecondsSinceEpoch(1770000000123);
     final bot = Bot(

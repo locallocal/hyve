@@ -1385,6 +1385,43 @@ void main() {
     expect(find.textContaining('输出 Token'), findsNothing);
   });
 
+  testWidgets('execution status shows the detailed shell command', (
+    tester,
+  ) async {
+    const command = 'git status --short && dart analyze';
+    await tester.pumpWidget(
+      _shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => const Scaffold(
+              body: ProcessInfoSection(
+                processInfo: MessageProcessInfo(
+                  commandExecutions: [
+                    MessageCommandExecution(
+                      callId: 'shell-1',
+                      command: command,
+                      status: 'succeeded',
+                      durationMs: 240,
+                    ),
+                  ],
+                ),
+                isDesktop: true,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(command).hitTestable(), findsNothing);
+    await tester.tap(find.text('执行状态'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('命令执行').hitTestable(), findsOneWidget);
+    expect(find.text(command).hitTestable(), findsOneWidget);
+    expect(find.text('已完成').hitTestable(), findsOneWidget);
+    expect(find.text('耗时 240ms').hitTestable(), findsOneWidget);
+  });
+
   testWidgets(
     'desktop merges user Skill activations into the response execution status',
     (tester) async {

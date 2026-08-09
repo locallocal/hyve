@@ -1360,6 +1360,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     required String value,
     Widget? trailing,
     TextAlign textAlign = TextAlign.end,
+    bool valueOnNewLine = false,
   }) {
     final materialTheme = Theme.of(context);
     final displayValue = value.trim().isEmpty ? '—' : value;
@@ -1394,6 +1395,62 @@ class _EditAIBotPageState extends State<EditBotPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final useSettingsRowLayout = constraints.maxWidth >= 600;
+          if (valueOnNewLine) {
+            return Padding(
+              padding:
+                  useSettingsRowLayout
+                      ? DesktopThemeTokens.settingsRowPadding
+                      : EdgeInsets.symmetric(
+                        horizontal: widget.embedded ? 8 : 0,
+                        vertical: 8,
+                      ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight:
+                      useSettingsRowLayout
+                          ? DesktopThemeTokens.settingsRowMinHeight
+                          : 0,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    leading,
+                    SizedBox(
+                      width:
+                          widget.embedded
+                              ? DesktopThemeTokens.settingsRowIconGap
+                              : 16,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(child: Text(label, style: labelStyle)),
+                              if (trailing != null) ...[
+                                const SizedBox(width: 8),
+                                trailing,
+                              ],
+                            ],
+                          ),
+                          SizedBox(height: useSettingsRowLayout ? 6 : 2),
+                          SizedBox(
+                            width: double.infinity,
+                            child: SelectableText(
+                              displayValue,
+                              textAlign: TextAlign.start,
+                              style: valueStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           if (useSettingsRowLayout) {
             return Padding(
               padding: DesktopThemeTokens.settingsRowPadding,
@@ -2156,6 +2213,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
         icon: Icons.subject_rounded,
         value: systemPromptController.text,
         textAlign: TextAlign.start,
+        valueOnNewLine: true,
       );
     }
     if (widget.embedded) {

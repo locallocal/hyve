@@ -13,7 +13,7 @@ void main() {
       final content = await skill.loadContent();
 
       expect(skill.isValid, isTrue);
-      expect(skill.promptVersion, 1);
+      expect(skill.promptVersion, 2);
       expect(skill.contentDigest, hasLength(64));
       expect(content.descriptor.id, conversationHistorySkillId);
       expect(content.descriptor.scope, SkillScope.bundled);
@@ -22,7 +22,10 @@ void main() {
         content.descriptor.requestedToolNames,
         conversationHistoryToolNames,
       );
-      expect(content.instructions, contains('Query conversation history'));
+      expect(content.instructions, contains('parameterized SQL'));
+      expect(content.instructions, contains('message_id'));
+      expect(content.instructions, contains('surrounding_turns'));
+      expect(conversationHistorySkillPolicy, contains('SQLite database'));
       expect(content.files, ['SKILL.md']);
     },
   );

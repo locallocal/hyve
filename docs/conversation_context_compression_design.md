@@ -310,11 +310,11 @@ scope。建议的 front matter：
 ```yaml
 ---
 name: conversation-history
-description: Search and read exact messages from the current conversation.
+description: Search and read exact persisted messages from the current conversation through read-only, parameterized SQLite queries.
 allowed-tools: search_conversation_history read_conversation_history
 metadata:
   scope: system
-  prompt-version: 1
+  prompt-version: 2
 ---
 ```
 

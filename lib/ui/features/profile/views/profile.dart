@@ -543,67 +543,44 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildDesktopProfileRow(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      child: Row(
-        children: [
-          ShadTooltip(
-            builder: (context) => Text(S.of(context).changeAvatar),
-            child: ShadButton.ghost(
-              width: 56,
-              height: 56,
-              padding: EdgeInsets.zero,
-              onPressed: _pickImage,
-              child: Semantics(
-                label: S.of(context).changeAvatar,
-                image: true,
-                child: CircleAvatar(
-                  radius: 28,
-                  backgroundColor: DesktopThemeTokens.secondarySurface(context),
-                  backgroundImage: _buildAvatarImageProvider(),
-                ),
-              ),
+    return _buildDesktopSettingRow(
+      context,
+      key: const ValueKey<String>('profile-name-setting'),
+      leading: ShadTooltip(
+        builder: (context) => Text(S.of(context).changeAvatar),
+        child: ShadButton.ghost(
+          width: 56,
+          height: 56,
+          padding: EdgeInsets.zero,
+          onPressed: _pickImage,
+          child: Semantics(
+            label: S.of(context).changeAvatar,
+            image: true,
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: DesktopThemeTokens.secondarySurface(context),
+              backgroundImage: _buildAvatarImageProvider(),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _name,
-                  style: DesktopThemeTokens.bodyStyle(
-                    context,
-                  )?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  S.of(context).name,
-                  style: DesktopThemeTokens.metaStyle(context),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          ShadButton.outline(
-            onPressed: _showEditNameDialog,
-            leading: const Icon(Icons.edit_outlined, size: 16),
-            child: Text(S.of(context).editName),
-          ),
-        ],
+        ),
       ),
+      title: S.of(context).name,
+      value: _name,
+      onTap: _showEditNameDialog,
     );
   }
 
   Widget _buildDesktopSettingRow(
     BuildContext context, {
     Key? key,
-    required IconData icon,
+    IconData? icon,
+    Widget? leading,
     required String title,
     String? subtitle,
     String? value,
     required VoidCallback onTap,
   }) {
+    assert(icon != null || leading != null);
     return Semantics(
       button: true,
       label: title,
@@ -623,12 +600,17 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Row(
             children: [
               SizedBox(
-                width: DesktopThemeTokens.settingsRowIconSlotWidth,
-                child: Icon(
-                  icon,
-                  size: DesktopThemeTokens.settingsRowIconSize,
-                  color: DesktopThemeTokens.mutedText(context),
-                ),
+                width:
+                    leading == null
+                        ? DesktopThemeTokens.settingsRowIconSlotWidth
+                        : 56,
+                child:
+                    leading ??
+                    Icon(
+                      icon,
+                      size: DesktopThemeTokens.settingsRowIconSize,
+                      color: DesktopThemeTokens.mutedText(context),
+                    ),
               ),
               const SizedBox(width: DesktopThemeTokens.settingsRowIconGap),
               Expanded(

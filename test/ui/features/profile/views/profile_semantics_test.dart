@@ -96,6 +96,50 @@ void main() {
     }
   });
 
+  testWidgets('desktop name uses a setting row and keeps the edit dialog', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    try {
+      await tester.pumpWidget(_profileHarness());
+      await tester.pumpAndSettle();
+
+      final nameButton = find.byKey(
+        const ValueKey<String>('profile-name-setting'),
+      );
+      final themeButton = find.ancestor(
+        of: find.text('浅色模式'),
+        matching: find.byType(ShadButton),
+      );
+      final nameChevron = find.descendant(
+        of: nameButton,
+        matching: find.byIcon(Icons.chevron_right_rounded),
+      );
+
+      expect(nameButton, findsOneWidget);
+      expect(nameChevron, findsOneWidget);
+      expect(find.text('修改名称'), findsNothing);
+      expect(
+        tester.getRect(nameButton).left,
+        closeTo(tester.getRect(themeButton).left, 1),
+      );
+      expect(
+        tester.getRect(nameButton).right,
+        closeTo(tester.getRect(themeButton).right, 1),
+      );
+
+      await tester.tap(nameButton);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(find.text('修改名称'), findsOneWidget);
+      expect(find.byType(ShadInput), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('desktop section titles match bot detail title size', (
     tester,
   ) async {

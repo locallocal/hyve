@@ -74,6 +74,114 @@ class LocalDatabaseService {
     );
   }
 
+  Future<List<Map<String, Object?>>> queryInstalledSkillInventory({
+    required String query,
+    required int limit,
+  }) async {
+    final database = await _databaseProvider();
+    return database.rawQuery(
+      '''
+      SELECT
+        s.id,
+        s.name,
+        s.description,
+        s.version,
+        s.scope,
+        s.trust_state,
+        s.validation_status,
+        s.signature_status,
+        s.installed_at,
+        s.updated_at,
+        COUNT(DISTINCT b.bot_id) AS bound_bot_count,
+        COUNT(DISTINCT CASE WHEN b.enabled = 1 THEN b.bot_id END)
+          AS enabled_bot_count
+      FROM skills AS s
+      LEFT JOIN bot_skill_bindings AS b ON b.skill_id = s.id
+      WHERE ? = ''
+        OR instr(lower(s.name), ?) > 0
+        OR instr(lower(s.description), ?) > 0
+      GROUP BY s.id
+      ORDER BY lower(s.name) ASC, s.id ASC
+      LIMIT ?
+    ''',
+      [query, query, query, limit],
+    );
+  }
+
+  Future<List<Map<String, Object?>>> queryConversationSkillInventory(
+    String chatId,
+  ) async {
+    final database = await _databaseProvider();
+    return database.rawQuery(
+      '''
+      WITH current_chat AS (
+        SELECT id AS chat_id, bot_id
+        FROM chats
+        WHERE id = ?
+        LIMIT 1
+      ),
+      skill_ids AS (
+        SELECT b.skill_id
+        FROM bot_skill_bindings AS b
+        JOIN current_chat AS c ON c.bot_id = b.bot_id
+        UNION
+        SELECT p.skill_id
+        FROM conversation_skill_pins AS p
+        JOIN current_chat AS c ON c.chat_id = p.chat_id
+      )
+      SELECT
+        ids.skill_id AS id,
+        COALESCE(
+          s.name,
+          CASE
+            WHEN instr(ids.skill_id, ':') > 0
+              THEN substr(ids.skill_id, instr(ids.skill_id, ':') + 1)
+            ELSE ids.skill_id
+          END
+        ) AS name,
+        COALESCE(s.version, '') AS version,
+        COALESCE(
+          s.scope,
+          CASE WHEN ids.skill_id LIKE 'system:%' THEN 'bundled' ELSE '' END
+        ) AS scope,
+        CASE WHEN s.id IS NULL THEN 0 ELSE 1 END AS installed,
+        CASE WHEN ids.skill_id LIKE 'system:%' THEN 1 ELSE 0 END AS bundled,
+        CASE
+          WHEN s.id IS NOT NULL OR ids.skill_id LIKE 'system:%' THEN 1
+          ELSE 0
+        END AS available,
+        COALESCE(b.enabled, 0) AS configured_enabled,
+        CASE WHEN p.skill_id IS NULL THEN 0 ELSE 1 END
+          AS pinned_to_conversation,
+        COALESCE(b.activation_mode, '') AS activation_mode,
+        COALESCE(b.priority, 0) AS priority,
+        COALESCE((
+          SELECT a.status
+          FROM skill_activations AS a
+          WHERE a.chat_id = c.chat_id AND a.skill_id = ids.skill_id
+          ORDER BY a.started_at DESC, a.id DESC
+          LIMIT 1
+        ), '') AS last_activation_status,
+        (
+          SELECT a.started_at
+          FROM skill_activations AS a
+          WHERE a.chat_id = c.chat_id AND a.skill_id = ids.skill_id
+          ORDER BY a.started_at DESC, a.id DESC
+          LIMIT 1
+        ) AS last_activated_at
+      FROM skill_ids AS ids
+      CROSS JOIN current_chat AS c
+      LEFT JOIN skills AS s ON s.id = ids.skill_id
+      LEFT JOIN bot_skill_bindings AS b
+        ON b.bot_id = c.bot_id AND b.skill_id = ids.skill_id
+      LEFT JOIN conversation_skill_pins AS p
+        ON p.chat_id = c.chat_id AND p.skill_id = ids.skill_id
+      ORDER BY configured_enabled DESC, priority DESC, lower(name) ASC, id ASC
+    ''',
+      [chatId],
+    );
+  }
+
   Future<void> upsertSkill(Map<String, Object?> values) async {
     final database = await _databaseProvider();
     await database.insert(

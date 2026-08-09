@@ -134,6 +134,7 @@ final class ComposeChatTurn {
       (binding) =>
           descriptors.containsKey(binding.skillId) &&
           binding.skillId != shellCommandSkillId &&
+          binding.skillId != skillInstallerSkillId &&
           binding.skillId != conversationHistorySkillId &&
           !state.contents.containsKey(binding.skillId),
     );
@@ -196,21 +197,39 @@ final class ComposeChatTurn {
       state,
       enabledSkillIds,
     );
+    final systemShellSkillTokens =
+        systemShellSkill == null
+            ? 0
+            : _estimateTokens(systemShellSkill.instructions);
+    final systemSkillInstallerSkill = _loadSystemSkillInstallerSkill(
+      provider,
+      state,
+      enabledSkillIds,
+      reservedTokens: systemShellSkillTokens,
+    );
     final conversationHistorySkillEnabled =
         enabledSkillIds.contains(conversationHistorySkillId) &&
         _isValidConversationHistorySkill(
           bundledContents[conversationHistorySkillId],
         );
-    final systemShellSkillTokens =
-        systemShellSkill == null
+    final systemSkillInstallerTokens =
+        systemSkillInstallerSkill == null
             ? 0
-            : _estimateTokens(systemShellSkill.instructions);
+            : _estimateTokens(systemSkillInstallerSkill.instructions);
     final totalSkillTokens =
-        state.skillTokens + state.resourceTokens + systemShellSkillTokens;
+        state.skillTokens +
+        state.resourceTokens +
+        systemShellSkillTokens +
+        systemSkillInstallerTokens;
     final activePromptSkills = [
       ...state.contents.values,
       if (systemShellSkill != null)
         (content: systemShellSkill, trigger: SkillActivationTrigger.model),
+      if (systemSkillInstallerSkill != null)
+        (
+          content: systemSkillInstallerSkill,
+          trigger: SkillActivationTrigger.model,
+        ),
     ];
     final systemPrompt = _composeSystemPrompt(
       bot.systemPrompt,
@@ -285,6 +304,13 @@ final class ComposeChatTurn {
             contentDigest: systemShellSkill.descriptor.contentDigest,
             trigger: SkillActivationTrigger.model,
           ),
+        if (systemSkillInstallerSkill != null)
+          ActivatedSkill(
+            id: systemSkillInstallerSkill.descriptor.id,
+            name: systemSkillInstallerSkill.descriptor.name,
+            contentDigest: systemSkillInstallerSkill.descriptor.contentDigest,
+            trigger: SkillActivationTrigger.model,
+          ),
         if (preparedContext?.report.historyLookupAvailable ?? false)
           const ActivatedSkill(
             id: conversationHistorySkillId,
@@ -299,6 +325,7 @@ final class ComposeChatTurn {
         for (final entry in state.contents.values)
           ...entry.content.descriptor.requestedToolNames,
         if (systemShellSkill != null) ...shellCommandToolNames,
+        if (systemSkillInstallerSkill != null) ...skillInstallerToolNames,
         ...mcpTools.requestedNames,
         if (preparedContext?.report.historyLookupAvailable ?? false)
           ...conversationHistoryToolNames,
@@ -348,6 +375,34 @@ final class ComposeChatTurn {
     final tokens = _estimateTokens(content.instructions);
     if (tokens > _budget.maxTokensPerSkill ||
         state.skillTokens + tokens > _budget.maxSkillContextTokens) {
+      return null;
+    }
+    return content;
+  }
+
+  SkillContent? _loadSystemSkillInstallerSkill(
+    AiProvider? provider,
+    _TurnSkillState state,
+    Set<String> enabledSkillIds, {
+    required int reservedTokens,
+  }) {
+    if (provider?.capabilities.supportsAgentLoop != true ||
+        !enabledSkillIds.contains(skillInstallerSkillId)) {
+      return null;
+    }
+    final content = state.bundledContents[skillInstallerSkillId];
+    if (content == null ||
+        content.descriptor.id != skillInstallerSkillId ||
+        !content.descriptor.isUsable ||
+        !content.descriptor.requestedToolNames.containsAll(
+          skillInstallerToolNames,
+        )) {
+      return null;
+    }
+    final tokens = _estimateTokens(content.instructions);
+    if (tokens > _budget.maxTokensPerSkill ||
+        state.skillTokens + reservedTokens + tokens >
+            _budget.maxSkillContextTokens) {
       return null;
     }
     return content;

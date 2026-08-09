@@ -112,6 +112,72 @@ Do work.
     );
   });
 
+  test('selects one nested Skill from a repository ZIP', () async {
+    final zipFile = File('${temporaryDirectory.path}/repository.zip');
+    final archive =
+        Archive()
+          ..addFile(
+            ArchiveFile.string('repository-main/skills/alpha/SKILL.md', '''
+---
+name: alpha
+description: Alpha Skill.
+---
+Run alpha.
+'''),
+          )
+          ..addFile(
+            ArchiveFile.string('repository-main/skills/beta/SKILL.md', '''
+---
+name: beta
+description: Beta Skill.
+---
+Run beta.
+'''),
+          );
+    await zipFile.writeAsBytes(ZipEncoder().encodeBytes(archive));
+
+    final staged = await service.stage(
+      SkillImportSource(
+        kind: SkillImportKind.zipArchive,
+        path: zipFile.path,
+        subdirectory: 'skills/beta',
+      ),
+    );
+
+    expect(staged.skillRoot.path, endsWith('/repository-main/skills/beta'));
+    expect(
+      await File('${staged.skillRoot.path}/SKILL.md').readAsString(),
+      contains('name: beta'),
+    );
+    await service.cleanup(staged);
+  });
+
+  test('rejects an unsafe Skill subdirectory', () async {
+    final zipFile = File('${temporaryDirectory.path}/safe.zip');
+    final archive =
+        Archive()..addFile(
+          ArchiveFile.string('safe/SKILL.md', '''
+---
+name: safe
+description: Safe Skill.
+---
+Run safely.
+'''),
+        );
+    await zipFile.writeAsBytes(ZipEncoder().encodeBytes(archive));
+
+    await expectLater(
+      service.stage(
+        SkillImportSource(
+          kind: SkillImportKind.zipArchive,
+          path: zipFile.path,
+          subdirectory: '../safe',
+        ),
+      ),
+      throwsA(isA<SkillInstallException>()),
+    );
+  });
+
   test(
     'detached signature does not change the signed content digest',
     () async {

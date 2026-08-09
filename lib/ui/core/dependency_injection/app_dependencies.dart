@@ -16,6 +16,7 @@ import 'package:stars/data/repositories/sqlite_model_usage_repository.dart';
 import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_ecosystem_repository.dart';
+import 'package:stars/data/repositories/sqlite_skill_inventory_repository.dart';
 import 'package:stars/data/services/feedback_service.dart';
 import 'package:stars/data/services/attachment_picker_service.dart';
 import 'package:stars/data/services/asset_text_service.dart';
@@ -36,14 +37,17 @@ import 'package:stars/data/services/skills/skill_picker_service.dart';
 import 'package:stars/data/services/skills/linux_bubblewrap_skill_sandbox.dart';
 import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
 import 'package:stars/data/services/skills/skill_catalog_service.dart';
+import 'package:stars/data/services/skills/skill_installation_service.dart';
 import 'package:stars/data/services/skills/skill_organization_policy_bundle_service.dart';
 import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
 import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/data/services/skills/skill_signature_service.dart';
 import 'package:stars/data/services/tools/built_in_tools.dart';
 import 'package:stars/data/services/tools/shell_command_tool.dart';
+import 'package:stars/data/services/tools/skill_installer_tool.dart';
 import 'package:stars/data/services/tools/system_conversation_history_skill.dart';
 import 'package:stars/data/services/tools/system_shell_skill.dart';
+import 'package:stars/data/services/tools/system_skill_installer_skill.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
@@ -63,6 +67,7 @@ import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
@@ -101,6 +106,7 @@ class AppDependencies {
     required this.attachmentRepository,
     required this.legalDocumentRepository,
     required this.skillRepository,
+    required this.skillInventoryRepository,
     required this.skillPickerRepository,
     required this.botSkillBindingRepository,
     required this.conversationSkillPinRepository,
@@ -116,6 +122,7 @@ class AppDependencies {
     required this.compactConversation,
     required this.systemConversationHistorySkill,
     required this.systemShellSkill,
+    required this.systemSkillInstallerSkill,
     required this.bundledSkillLoader,
     required this.createChat,
     required this.generationRegistry,
@@ -164,6 +171,7 @@ class AppDependencies {
     );
     const aiProviderRepository = AiProviderRepositoryImpl();
     final systemConversationHistorySkill = SystemConversationHistorySkill();
+    final systemSkillInstallerSkill = SystemSkillInstallerSkill();
     final shellCommandTool = createHostShellCommandTool();
     final systemShellSkill =
         shellCommandTool == null ? null : SystemShellSkill();
@@ -181,6 +189,11 @@ class AppDependencies {
         }
       } on Object {
         // Shell execution fails closed if its built-in Skill is damaged.
+      }
+      try {
+        contents.add(await systemSkillInstallerSkill.loadContent());
+      } on Object {
+        // Skill installation fails closed if its built-in Skill is damaged.
       }
       return List<SkillContent>.unmodifiable(contents);
     }
@@ -224,6 +237,15 @@ class AppDependencies {
         ecosystemRepository: skillEcosystemRepository,
       ),
     );
+    final skillInventoryRepository = SqliteSkillInventoryRepository(
+      localDatabase: localDatabase,
+    );
+    final skillInstallerTool = SkillInstallerTool(
+      installation: SkillInstallationService(
+        skillRepository: skillRepository,
+        endpointPolicy: SkillCatalogEndpointPolicy(),
+      ),
+    );
     const skillPickerRepository = SkillPickerRepositoryImpl(
       service: SkillPickerService(),
     );
@@ -262,6 +284,7 @@ class AppDependencies {
     final toolRegistry = DynamicToolRegistry([
       ...createBuiltInTools(),
       if (shellCommandTool != null) shellCommandTool,
+      skillInstallerTool,
     ]);
     final mcpCatalogService = McpCatalogService(
       repository: mcpServerRepository,
@@ -302,6 +325,7 @@ class AppDependencies {
       attachmentRepository: attachmentRepository,
       legalDocumentRepository: legalDocumentRepository,
       skillRepository: skillRepository,
+      skillInventoryRepository: skillInventoryRepository,
       skillPickerRepository: skillPickerRepository,
       botSkillBindingRepository: botSkillBindingRepository,
       conversationSkillPinRepository: conversationSkillPinRepository,
@@ -317,6 +341,7 @@ class AppDependencies {
       compactConversation: compactConversation,
       systemConversationHistorySkill: systemConversationHistorySkill,
       systemShellSkill: systemShellSkill,
+      systemSkillInstallerSkill: systemSkillInstallerSkill,
       bundledSkillLoader: loadBundledSkills,
       createChat: CreateChat(chatRepository: chatRepository),
       generationRegistry: ChatGenerationRegistry(
@@ -381,6 +406,7 @@ class AppDependencies {
   final AttachmentRepository attachmentRepository;
   final LegalDocumentRepository legalDocumentRepository;
   final SkillRepository skillRepository;
+  final SkillInventoryRepository skillInventoryRepository;
   final SkillPickerRepository skillPickerRepository;
   final BotSkillBindingRepository botSkillBindingRepository;
   final ConversationSkillPinRepository conversationSkillPinRepository;
@@ -396,6 +422,7 @@ class AppDependencies {
   final CompactConversation compactConversation;
   final SystemConversationHistorySkill systemConversationHistorySkill;
   final SystemShellSkill? systemShellSkill;
+  final SystemSkillInstallerSkill systemSkillInstallerSkill;
   final BundledSkillLoader bundledSkillLoader;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
@@ -418,6 +445,11 @@ class AppDependencies {
         await systemShellSkill?.validate();
       } on Object {
         // A damaged Shell Skill fails closed without blocking app startup.
+      }
+      try {
+        await systemSkillInstallerSkill.validate();
+      } on Object {
+        // A damaged installer Skill fails closed without blocking startup.
       }
       try {
         await mcpCatalogService.hydrateFromCache();
@@ -543,6 +575,7 @@ class AppDependencies {
     generationRegistry: generationRegistry,
     composeChatTurn: composeChatTurn,
     conversationHistoryRepository: conversationHistoryRepository,
+    skillInventoryRepository: skillInventoryRepository,
   );
 
   ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>

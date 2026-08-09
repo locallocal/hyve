@@ -11,4 +11,6 @@ export 'profile.dart';
 export 'shell_command.dart';
 export 'skill.dart';
 export 'skill_ecosystem.dart';
+export 'skill_installer.dart';
+export 'skill_inventory.dart';
 export 'tool.dart';

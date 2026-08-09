@@ -169,6 +169,7 @@ final class SkillImportSource {
     this.catalogEntryId = '',
     this.expectedContentDigest = '',
     this.expectedArchiveDigest = '',
+    this.subdirectory = '',
     this.publisherId = '',
     this.expectedName = '',
     this.expectedVersion = '',
@@ -181,6 +182,7 @@ final class SkillImportSource {
   final String catalogEntryId;
   final String expectedContentDigest;
   final String expectedArchiveDigest;
+  final String subdirectory;
   final String publisherId;
   final String expectedName;
   final String expectedVersion;

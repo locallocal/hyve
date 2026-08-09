@@ -6,6 +6,7 @@ import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/skill_catalog.dart';
 import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
@@ -86,6 +87,8 @@ final class ComposeChatTurn {
     PrepareConversationContext? prepareConversationContext,
     CompactConversation? compactConversation,
     BundledSkillLoader? bundledSkillLoader,
+    StarsSystemPromptProvider starsSystemPromptProvider =
+        currentStarsSystemPrompt,
   }) : _skillRepository = skillRepository,
        _bindingRepository = bindingRepository,
        _mcpServerRepository = mcpServerRepository,
@@ -93,7 +96,8 @@ final class ComposeChatTurn {
        _budget = budget,
        _prepareConversationContext = prepareConversationContext,
        _compactConversation = compactConversation,
-       _bundledSkillLoader = bundledSkillLoader;
+       _bundledSkillLoader = bundledSkillLoader,
+       _starsSystemPromptProvider = starsSystemPromptProvider;
 
   final SkillRepository _skillRepository;
   final BotSkillBindingRepository _bindingRepository;
@@ -103,6 +107,7 @@ final class ComposeChatTurn {
   final PrepareConversationContext? _prepareConversationContext;
   final CompactConversation? _compactConversation;
   final BundledSkillLoader? _bundledSkillLoader;
+  final StarsSystemPromptProvider _starsSystemPromptProvider;
 
   Future<PreparedChatTurn> call({
     required Bot bot,
@@ -879,7 +884,10 @@ ${entry.content.instructions.trim()}
 ${resource.content.trim()}
 </skill_resource>''');
     }
-    return sections.join('\n\n');
+    return prependStarsSystemPrompt(
+      sections.join('\n\n'),
+      starsSystemPromptProvider: _starsSystemPromptProvider,
+    );
   }
 
   List<ChatMessage> _composeHistory({

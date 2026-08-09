@@ -7,6 +7,7 @@ import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 
 void main() {
@@ -42,6 +43,7 @@ void main() {
     final compose = ComposeChatTurn(
       skillRepository: skillRepository,
       bindingRepository: bindingRepository,
+      starsSystemPromptProvider: _testStarsSystemPrompt,
     );
 
     final result = await compose(
@@ -63,6 +65,9 @@ void main() {
       'user',
     ]);
     final systemPrompt = result.messages.first.content;
+    expect(systemPrompt, startsWith('<stars_application_context>'));
+    expect(systemPrompt, contains('Operating system type: TestOS'));
+    expect(systemPrompt, contains('Operating system version: 1.2.3'));
     expect(systemPrompt, contains('You are a helpful assistant.'));
     expect(systemPrompt, contains('Selected instructions.'));
     expect(systemPrompt, isNot(contains('Always instructions.')));
@@ -75,6 +80,10 @@ void main() {
       'user:selected',
       'user:ignored',
     ]);
+    expect(
+      provider.session.request?.messages.first.content,
+      startsWith('<stars_application_context>'),
+    );
     expect(result.requestedToolNames, {'calculate'});
   });
 
@@ -194,8 +203,12 @@ void main() {
     );
 
     expect(result.activatedSkills, isEmpty);
-    expect(result.messages.single.role, 'user');
-    expect(result.messages.single.content, 'Use auto');
+    expect(result.messages.map((message) => message.role), ['system', 'user']);
+    expect(
+      result.messages.first.content,
+      startsWith('<stars_application_context>'),
+    );
+    expect(result.messages.last.content, 'Use auto');
   });
 
   test(
@@ -249,7 +262,14 @@ void main() {
 
       expect(result.requestedToolNames, isEmpty);
       expect(result.activatedSkills, isEmpty);
-      expect(result.messages.single.role, 'user');
+      expect(result.messages.map((message) => message.role), [
+        'system',
+        'user',
+      ]);
+      expect(
+        result.messages.first.content,
+        startsWith('<stars_application_context>'),
+      );
     }
   });
 
@@ -419,7 +439,12 @@ void main() {
 
     expect(result.activatedSkills, isEmpty);
     expect(result.activationAttempts, isEmpty);
-    expect(result.messages.single.content, 'Question');
+    expect(result.messages.map((message) => message.role), ['system', 'user']);
+    expect(
+      result.messages.first.content,
+      startsWith('<stars_application_context>'),
+    );
+    expect(result.messages.last.content, 'Question');
   });
 
   test('records automatic Skill provider timeouts explicitly', () async {
@@ -998,3 +1023,8 @@ final class _FakeBindingRepository implements BotSkillBindingRepository {
   @override
   Future<void> save(BotSkillBinding binding) => throw UnimplementedError();
 }
+
+String _testStarsSystemPrompt() => buildStarsSystemPrompt(
+  operatingSystem: 'TestOS',
+  operatingSystemVersion: '1.2.3',
+);

@@ -2,12 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/test_skill_description.dart';
 
 void main() {
   test('runs should-trigger and should-not-trigger cases repeatedly', () async {
     final provider = _DescriptionProvider();
-    final report = await const TestSkillDescription()(
+    final report = await const TestSkillDescription(
+      starsSystemPromptProvider: _testStarsSystemPrompt,
+    )(
       provider: provider,
       skill: _skill,
       cases: const [
@@ -26,6 +29,19 @@ void main() {
     expect(report.results.map((result) => result.activations), [3, 0]);
     expect(report.passed, isTrue);
     expect(provider.closedSessions, 6);
+    expect(provider.requests, hasLength(6));
+    expect(
+      provider.requests.every(
+        (request) => request.messages.first.content.startsWith(
+          '<stars_application_context>',
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      provider.requests.first.messages.first.content,
+      contains('Use activate_skill only when the available Skill is relevant.'),
+    );
   });
 
   test('rejects legacy providers instead of text-marker fallback', () async {
@@ -46,6 +62,7 @@ final class _DescriptionProvider extends AiProvider {
   _DescriptionProvider() : super(_bot);
 
   var closedSessions = 0;
+  final requests = <SkillToolSessionRequest>[];
 
   @override
   AiProviderCapabilities get capabilities => const AiProviderCapabilities(
@@ -55,6 +72,7 @@ final class _DescriptionProvider extends AiProvider {
 
   @override
   SkillToolSession openSkillToolSession(SkillToolSessionRequest request) {
+    requests.add(request);
     final shouldActivate = request.messages.last.content.contains('release');
     return _DescriptionSession(
       shouldActivate: shouldActivate,
@@ -133,4 +151,9 @@ final _skill = SkillDescriptor(
   compatibility: '',
   installedAt: DateTime(2026),
   updatedAt: DateTime(2026),
+);
+
+String _testStarsSystemPrompt() => buildStarsSystemPrompt(
+  operatingSystem: 'TestOS',
+  operatingSystemVersion: '1.2.3',
 );

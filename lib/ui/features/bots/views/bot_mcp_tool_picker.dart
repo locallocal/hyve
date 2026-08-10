@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/utils/mcp_tool_search.dart';
 import 'package:stars/utils/theme.dart';
 
 typedef BotMcpCatalog =
@@ -9,6 +10,15 @@ typedef BotMcpCatalog =
       List<McpServer> servers,
       Map<String, List<McpToolDescriptor>> toolsByServer,
     });
+
+typedef _BotMcpToolBatchActionsBuilder =
+    Widget Function(
+      List<McpToolDescriptor> tools, {
+      required StateSetter refresh,
+    });
+
+typedef _BotMcpToolRowBuilder =
+    Widget Function(McpToolDescriptor tool, {required StateSetter refresh});
 
 /// Selects MCP Servers for a Bot and configures their individual Tools.
 class BotMcpToolPicker extends StatefulWidget {
@@ -40,8 +50,6 @@ class BotMcpToolPicker extends StatefulWidget {
 }
 
 class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
-  static const _toolListMaxHeight = 360.0;
-
   late Set<McpToolConfiguration> _configurations;
 
   @override
@@ -408,23 +416,27 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       await showShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => StatefulBuilder(
-              builder:
-                  (dialogContext, refresh) => ShadDialog(
-                    key: ValueKey<String>('bot-mcp-tools-dialog-$serverId'),
-                    title: Text(title),
-                    description: Text(description),
-                    constraints: const BoxConstraints(maxWidth: 680),
-                    actions: [
-                      ShadButton.outline(
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        child: Text(
-                          MaterialLocalizations.of(context).closeButtonLabel,
-                        ),
-                      ),
-                    ],
-                    child: _buildToolListViewport(tools, refresh: refresh),
+            (dialogContext) => ShadDialog(
+              key: ValueKey<String>('bot-mcp-tools-dialog-$serverId'),
+              title: Text(title),
+              description: Text(description),
+              constraints: const BoxConstraints(maxWidth: 680),
+              actions: [
+                ShadButton.outline(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    MaterialLocalizations.of(context).closeButtonLabel,
                   ),
+                ),
+              ],
+              child: _BotMcpToolListViewport(
+                serverId: serverId,
+                tools: tools,
+                embedded: widget.embedded,
+                readOnly: widget.readOnly,
+                buildBatchActions: _buildToolBatchActions,
+                buildToolRow: _buildToolRow,
+              ),
             ),
       );
       return;
@@ -433,79 +445,27 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
     await showDialog<void>(
       context: context,
       builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (dialogContext, refresh) => AlertDialog(
-                  key: ValueKey<String>('bot-mcp-tools-dialog-$serverId'),
-                  title: Text(title),
-                  content: SizedBox(
-                    width: 560,
-                    child: _buildToolListViewport(tools, refresh: refresh),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(
-                        MaterialLocalizations.of(context).closeButtonLabel,
-                      ),
-                    ),
-                  ],
-                ),
+          (dialogContext) => AlertDialog(
+            key: ValueKey<String>('bot-mcp-tools-dialog-$serverId'),
+            title: Text(title),
+            content: SizedBox(
+              width: 560,
+              child: _BotMcpToolListViewport(
+                serverId: serverId,
+                tools: tools,
+                embedded: widget.embedded,
+                readOnly: widget.readOnly,
+                buildBatchActions: _buildToolBatchActions,
+                buildToolRow: _buildToolRow,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(MaterialLocalizations.of(context).closeButtonLabel),
+              ),
+            ],
           ),
-    );
-  }
-
-  Widget _buildToolListViewport(
-    List<McpToolDescriptor> tools, {
-    required StateSetter refresh,
-  }) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: _toolListMaxHeight),
-      child: SingleChildScrollView(
-        child: _buildToolList(tools, refresh: refresh),
-      ),
-    );
-  }
-
-  Widget _buildToolList(
-    List<McpToolDescriptor> tools, {
-    required StateSetter refresh,
-  }) {
-    if (tools.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text(
-          S.of(context).noMcpToolsDiscovered,
-          textAlign: TextAlign.center,
-          style:
-              widget.embedded
-                  ? DesktopThemeTokens.metaStyle(context)
-                  : Theme.of(context).textTheme.bodySmall,
-        ),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!widget.readOnly) ...[
-            _buildToolBatchActions(tools, refresh: refresh),
-            const SizedBox(height: 8),
-            widget.embedded
-                ? const ShadSeparator.horizontal()
-                : const Divider(height: 1),
-          ],
-          for (var index = 0; index < tools.length; index++) ...[
-            _buildToolRow(tools[index], refresh: refresh),
-            if (index != tools.length - 1)
-              widget.embedded
-                  ? const ShadSeparator.horizontal()
-                  : const Divider(height: 1),
-          ],
-        ],
-      ),
     );
   }
 
@@ -833,5 +793,148 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
     next[key] = current.copyWith(requiresApproval: !exempt);
     _configurations = Set<McpToolConfiguration>.unmodifiable(next.values);
     widget.onChanged(_configurations);
+  }
+}
+
+class _BotMcpToolListViewport extends StatefulWidget {
+  const _BotMcpToolListViewport({
+    required this.serverId,
+    required this.tools,
+    required this.embedded,
+    required this.readOnly,
+    required this.buildBatchActions,
+    required this.buildToolRow,
+  });
+
+  final String serverId;
+  final List<McpToolDescriptor> tools;
+  final bool embedded;
+  final bool readOnly;
+  final _BotMcpToolBatchActionsBuilder buildBatchActions;
+  final _BotMcpToolRowBuilder buildToolRow;
+
+  @override
+  State<_BotMcpToolListViewport> createState() =>
+      _BotMcpToolListViewportState();
+}
+
+class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
+  static const _toolListMaxHeight = 360.0;
+
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  String _query = '';
+
+  @override
+  void didUpdateWidget(covariant _BotMcpToolListViewport oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.serverId != widget.serverId) {
+      _searchController.clear();
+      _query = '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _search(String query) {
+    if (_query == query) return;
+    setState(() => _query = query);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchFocusNode.requestFocus();
+    if (_query.isNotEmpty) setState(() => _query = '');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = S.of(context);
+    final tools = widget.tools;
+    if (tools.isEmpty) {
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: _toolListMaxHeight),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            strings.noMcpToolsDiscovered,
+            textAlign: TextAlign.center,
+            style:
+                widget.embedded
+                    ? DesktopThemeTokens.metaStyle(context)
+                    : Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      );
+    }
+
+    final filteredTools = filterMcpTools(tools, _query);
+    return SizedBox(
+      height: _toolListMaxHeight,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              StarsSearchField(
+                key: ValueKey<String>('bot-mcp-tool-search-${widget.serverId}'),
+                hintText: strings.searchMcpTools,
+                semanticLabel: strings.searchMcpTools,
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: _search,
+                insetFocusRing: widget.embedded,
+                suffixIcon:
+                    _query.isEmpty
+                        ? null
+                        : IconButton(
+                          key: ValueKey<String>(
+                            'clear-bot-mcp-tool-search-${widget.serverId}',
+                          ),
+                          tooltip: strings.clearSearch,
+                          onPressed: _clearSearch,
+                          icon: const Icon(LucideIcons.x, size: 16),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+              ),
+              const SizedBox(height: 12),
+              if (filteredTools.isEmpty)
+                StarsSearchEmptyState(
+                  key: ValueKey<String>(
+                    'bot-mcp-tool-search-empty-${widget.serverId}',
+                  ),
+                  message: strings.noMatchingMcpTools,
+                  clearLabel: strings.clearSearch,
+                  onClear: _clearSearch,
+                )
+              else ...[
+                if (!widget.readOnly) ...[
+                  widget.buildBatchActions(tools, refresh: setState),
+                  const SizedBox(height: 8),
+                  widget.embedded
+                      ? const ShadSeparator.horizontal()
+                      : const Divider(height: 1),
+                ],
+                for (var index = 0; index < filteredTools.length; index++) ...[
+                  widget.buildToolRow(filteredTools[index], refresh: setState),
+                  if (index != filteredTools.length - 1)
+                    widget.embedded
+                        ? const ShadSeparator.horizontal()
+                        : const Divider(height: 1),
+                ],
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

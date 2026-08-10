@@ -3291,6 +3291,26 @@ class S {
     );
   }
 
+  /// `Search tools`
+  String get searchMcpTools {
+    return Intl.message(
+      'Search tools',
+      name: 'searchMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No matching tools found`
+  String get noMatchingMcpTools {
+    return Intl.message(
+      'No matching tools found',
+      name: 'noMatchingMcpTools',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add MCP Server`
   String get addMcpServer {
     return Intl.message(

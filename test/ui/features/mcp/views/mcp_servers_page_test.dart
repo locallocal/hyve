@@ -319,6 +319,93 @@ void main() {
       );
       expect(detailsTitle.style, pageTitle.style);
 
+      final toolSearch = find.descendant(
+        of: find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-search-github'),
+        ),
+        matching: find.byType(EditableText),
+      );
+      expect(toolSearch, findsOneWidget);
+      final searchField = find.byKey(
+        const ValueKey<String>('desktop-mcp-tool-search-github'),
+      );
+      final toolCard = find.byKey(
+        const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+      );
+      final detailsScrollable =
+          find
+              .ancestor(of: searchField, matching: find.byType(Scrollable))
+              .first;
+      final scrollPosition =
+          tester.state<ScrollableState>(detailsScrollable).position;
+      final searchRectBeforeFocus = tester.getRect(searchField);
+      final toolCardRectBeforeFocus = tester.getRect(toolCard);
+      final scrollOffsetBeforeFocus = scrollPosition.pixels;
+
+      await tester.tap(toolSearch);
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(searchField), searchRectBeforeFocus);
+      expect(tester.getRect(toolCard), toolCardRectBeforeFocus);
+      expect(scrollPosition.pixels, scrollOffsetBeforeFocus);
+      await tester.enterText(toolSearch, '仓库');
+      await tester.pump();
+      final searchRect = tester.getRect(searchField);
+      expect(toolCard, findsOneWidget);
+      final toolCardRect = tester.getRect(toolCard);
+      expect(searchRect, searchRectBeforeFocus);
+      expect(toolCardRect, toolCardRectBeforeFocus);
+      expect(scrollPosition.pixels, scrollOffsetBeforeFocus);
+      expect(searchRect.left, toolCardRect.left);
+      expect(searchRect.right, toolCardRect.right);
+      final shadInput = tester.widget<ShadInput>(
+        find.descendant(
+          of: find.byKey(
+            const ValueKey<String>('desktop-mcp-tool-search-github'),
+          ),
+          matching: find.byType(ShadInput),
+        ),
+      );
+      expect(shadInput.decoration?.focusedBorder?.top?.width, 1);
+      expect(shadInput.decoration?.secondaryFocusedBorder?.hasBorder, isFalse);
+      expect(
+        find.descendant(
+          of: searchField,
+          matching: find.byKey(
+            const ValueKey<String>('stars-search-inset-focus-ring'),
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.enterText(toolSearch, 'missing tool');
+      await tester.pump();
+      expect(tester.getRect(searchField), searchRectBeforeFocus);
+      expect(scrollPosition.pixels, scrollOffsetBeforeFocus);
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsNothing,
+      );
+      expect(find.text('未找到匹配的工具'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('clear-desktop-mcp-tool-search-github'),
+        ),
+      );
+      await tester.pump();
+      expect(tester.getRect(searchField), searchRectBeforeFocus);
+      expect(tester.getRect(toolCard), toolCardRectBeforeFocus);
+      expect(scrollPosition.pixels, scrollOffsetBeforeFocus);
+      expect(
+        find.byKey(
+          const ValueKey<String>('desktop-mcp-tool-github-search_issues'),
+        ),
+        findsOneWidget,
+      );
+
       await tester.tap(find.text('关闭'), kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
       expect(
@@ -518,6 +605,93 @@ void main() {
       await tester.pump();
       expect(githubCard, findsOneWidget);
       expect(filesystemCard, findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('mobile MCP details filter Tools and clear the query', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+
+    final now = DateTime.utc(2026, 8, 10);
+    final server = McpServer(
+      id: 'github',
+      name: 'GitHub',
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://example.com/github/mcp'),
+      ),
+      status: McpConnectionStatus.connected,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final repository = _FakeMcpServerRepository(
+      servers: [server],
+      toolsByServer: {
+        server.id: [
+          McpToolDescriptor(
+            serverId: server.id,
+            remoteName: 'search_issues',
+            title: '搜索议题',
+            description: '搜索仓库中的议题。',
+            inputSchema: const {
+              'type': 'object',
+              'properties': <String, Object?>{},
+            },
+            updatedAt: now,
+          ),
+        ],
+      },
+    );
+    final viewModel = McpServersViewModel(
+      repository: repository,
+      credentialStore: const _UnusedCredentialStore(),
+      catalogService: McpCatalogService(
+        repository: repository,
+        client: const _UnusedMcpClient(),
+        toolRegistry: DynamicToolRegistry(const []),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('mobile-mcp-server-title-github')),
+      );
+      await tester.pumpAndSettle();
+
+      final toolSearch = find.descendant(
+        of: find.byKey(const ValueKey<String>('mobile-mcp-tool-search-github')),
+        matching: find.byType(EditableText),
+      );
+      expect(toolSearch, findsOneWidget);
+      expect(find.text('搜索议题'), findsOneWidget);
+
+      await tester.enterText(toolSearch, 'mcp.github.search_issues');
+      await tester.pump();
+      expect(find.text('搜索议题'), findsOneWidget);
+
+      await tester.enterText(toolSearch, 'not found');
+      await tester.pump();
+      expect(find.text('搜索议题'), findsNothing);
+      expect(find.text('未找到匹配的工具'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('clear-mobile-mcp-tool-search-github'),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('搜索议题'), findsOneWidget);
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;

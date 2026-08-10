@@ -468,6 +468,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
       "未找到匹配的 MCP 服务器",
     ),
+    "noMatchingMcpTools": MessageLookupByLibrary.simpleMessage("未找到匹配的工具"),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage("未找到匹配的技能"),
     "noMcpServers": MessageLookupByLibrary.simpleMessage("尚无 MCP 服务器"),
     "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
@@ -551,6 +552,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "searchBots": MessageLookupByLibrary.simpleMessage("搜索智能体"),
     "searchChats": MessageLookupByLibrary.simpleMessage("搜索会话"),
     "searchMcpServers": MessageLookupByLibrary.simpleMessage("搜索 MCP 服务器"),
+    "searchMcpTools": MessageLookupByLibrary.simpleMessage("搜索工具"),
     "searchMemory": MessageLookupByLibrary.simpleMessage("搜索记忆"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("搜索技能"),
     "selectBot": MessageLookupByLibrary.simpleMessage("选择智能体"),

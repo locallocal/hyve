@@ -1379,6 +1379,47 @@ class _StarsInsetFocusRing extends StatelessWidget {
   }
 }
 
+class StarsSearchEmptyState extends StatelessWidget {
+  const StarsSearchEmptyState({
+    super.key,
+    required this.message,
+    required this.clearLabel,
+    required this.onClear,
+  });
+
+  final String message;
+  final String clearLabel;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Icon(
+            LucideIcons.search,
+            size: 28,
+            color: DesktopThemeTokens.mutedText(context),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: DesktopThemeTokens.bodyStyle(context),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(LucideIcons.x, size: 16),
+            label: Text(clearLabel),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Retained name for source compatibility; the visual is intentionally flat.
 class DesktopEmptyStateCard extends StatelessWidget {
   static const double imageSize = 56;

@@ -24,6 +24,7 @@ void main() {
     await tester.pumpWidget(
       _editHarness(
         bot: _bot(supportsMcp: true),
+        includeSecondTool: true,
         onSaved: (bot) async => saved = bot,
       ),
     );
@@ -58,6 +59,38 @@ void main() {
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
+
+    final toolSearch = find.descendant(
+      of: find.byKey(const ValueKey<String>('bot-mcp-tool-search-server-1')),
+      matching: find.byType(EditableText),
+    );
+    expect(toolSearch, findsOneWidget);
+    await tester.enterText(toolSearch, 'Fetch');
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-search')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-fetch')),
+      findsOneWidget,
+    );
+
+    await tester.enterText(toolSearch, 'missing tool');
+    await tester.pump();
+    expect(find.text('未找到匹配的工具'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('clear-bot-mcp-tool-search-server-1')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-search')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-fetch')),
+      findsOneWidget,
+    );
 
     final toolToggle = find.byKey(
       const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
@@ -356,6 +389,7 @@ void main() {
       _editHarness(
         bot: _bot(supportsMcp: true, serverIds: const {'server-1'}),
         readOnly: true,
+        includeSecondTool: true,
         onSaved: (bot) async => saved = bot,
       ),
     );
@@ -378,6 +412,26 @@ void main() {
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
+
+    final toolSearch = find.descendant(
+      of: find.byKey(const ValueKey<String>('bot-mcp-tool-search-server-1')),
+      matching: find.byType(EditableText),
+    );
+    expect(toolSearch, findsOneWidget);
+    await tester.enterText(toolSearch, 'mcp.server-1.fetch');
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-search')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-fetch')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('clear-bot-mcp-tool-search-server-1')),
+    );
+    await tester.pump();
 
     final toolToggle = find.byKey(
       const ValueKey<String>('bot-mcp-tool-toggle-server-1-search'),
@@ -459,6 +513,49 @@ void main() {
     await tester.ensureVisible(selectedServer);
     await tester.tap(selectedServer);
     await tester.pumpAndSettle();
+
+    final toolSearchField = find.byKey(
+      const ValueKey<String>('bot-mcp-tool-search-server-1'),
+    );
+    final toolSearch = find.descendant(
+      of: toolSearchField,
+      matching: find.byType(EditableText),
+    );
+    expect(toolSearch, findsOneWidget);
+    final searchRect = tester.getRect(toolSearchField);
+    final toolDialog = find.byKey(
+      const ValueKey<String>('bot-mcp-tools-dialog-server-1'),
+    );
+    final dialogRect = tester.getRect(toolDialog);
+    await tester.tap(toolSearch);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(toolDialog), dialogRect);
+    expect(tester.getRect(toolSearchField), searchRect);
+    expect(
+      find.descendant(
+        of: toolSearchField,
+        matching: find.byKey(
+          const ValueKey<String>('stars-search-inset-focus-ring'),
+        ),
+      ),
+      findsOneWidget,
+    );
+    await tester.enterText(toolSearch, 'mcp.server-1.fetch');
+    await tester.pump();
+    expect(tester.getRect(toolSearchField), searchRect);
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-search')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('bot-mcp-tool-server-1-fetch')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('clear-bot-mcp-tool-search-server-1')),
+    );
+    await tester.pump();
+    expect(tester.getRect(toolSearchField), searchRect);
 
     final searchToolRow = find.byKey(
       const ValueKey<String>('bot-mcp-tool-server-1-search'),

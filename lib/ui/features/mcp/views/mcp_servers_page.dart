@@ -5,6 +5,7 @@ import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:stars/utils/mcp_tool_search.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -504,32 +505,6 @@ String _mcpConnectionSummary(McpServer server) {
   };
 }
 
-List<McpToolDescriptor> _filterMcpTools(
-  List<McpToolDescriptor> tools,
-  String query,
-) {
-  final terms = query
-      .trim()
-      .toLowerCase()
-      .split(RegExp(r'\s+'))
-      .where((term) => term.isNotEmpty)
-      .toList(growable: false);
-  if (terms.isEmpty) return tools;
-
-  return tools
-      .where((tool) {
-        final searchableText =
-            [
-              tool.title,
-              tool.remoteName,
-              tool.canonicalName,
-              tool.description,
-            ].join('\n').toLowerCase();
-        return terms.every(searchableText.contains);
-      })
-      .toList(growable: false);
-}
-
 IconData _mcpStatusIcon(McpConnectionStatus status) => switch (status) {
   McpConnectionStatus.connected => Icons.cloud_done_outlined,
   McpConnectionStatus.connecting => Icons.cloud_sync_outlined,
@@ -893,7 +868,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
     final tokens = StarsDesktopTokens.of(context);
     final server = widget.server;
     final tools = widget.tools;
-    final filteredTools = _filterMcpTools(tools, _query);
+    final filteredTools = filterMcpTools(tools, _query);
     final statusColor = switch (server.status) {
       McpConnectionStatus.connected => tokens.success,
       McpConnectionStatus.connecting => tokens.warning,
@@ -995,10 +970,12 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
                   style: DesktopThemeTokens.metaStyle(context),
                 )
               else if (filteredTools.isEmpty)
-                _McpToolSearchEmpty(
+                StarsSearchEmptyState(
                   key: ValueKey<String>(
                     'desktop-mcp-tool-search-empty-${server.id}',
                   ),
+                  message: strings.noMatchingMcpTools,
+                  clearLabel: strings.clearSearch,
                   onClear: _clearSearch,
                 )
               else
@@ -1213,41 +1190,6 @@ class _DesktopMcpToolCard extends StatelessWidget {
   }
 }
 
-class _McpToolSearchEmpty extends StatelessWidget {
-  const _McpToolSearchEmpty({super.key, required this.onClear});
-
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = S.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        children: [
-          Icon(
-            LucideIcons.search,
-            size: 28,
-            color: DesktopThemeTokens.mutedText(context),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            strings.noMatchingMcpTools,
-            textAlign: TextAlign.center,
-            style: DesktopThemeTokens.bodyStyle(context),
-          ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: onClear,
-            icon: const Icon(LucideIcons.x, size: 16),
-            label: Text(strings.clearSearch),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ServerCard extends StatefulWidget {
   const _ServerCard({
     required this.server,
@@ -1311,7 +1253,7 @@ class _ServerCardState extends State<_ServerCard> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final filteredTools = _filterMcpTools(tools, _query);
+    final filteredTools = filterMcpTools(tools, _query);
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -1407,10 +1349,12 @@ class _ServerCardState extends State<_ServerCard> {
               ),
             ),
             if (filteredTools.isEmpty)
-              _McpToolSearchEmpty(
+              StarsSearchEmptyState(
                 key: ValueKey<String>(
                   'mobile-mcp-tool-search-empty-${server.id}',
                 ),
+                message: S.of(context).noMatchingMcpTools,
+                clearLabel: S.of(context).clearSearch,
                 onClear: _clearSearch,
               )
             else

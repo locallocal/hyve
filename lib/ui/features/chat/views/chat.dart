@@ -75,6 +75,7 @@ class ChatPageState extends State<ChatPage> {
   final List<File> _selectedImages = [];
   final List<File> _selectedFiles = [];
   List<Message> _messages = [];
+  int _messageRevision = 0;
   String _streamingResponse = '';
   String _reasoningResponse = '';
   ModelTokenUsage _streamingTokenUsage = ModelTokenUsage.empty;
@@ -84,8 +85,6 @@ class ChatPageState extends State<ChatPage> {
   final List<MessageSkillActivation> _skillActivations = [];
   bool _followLatest = true;
   bool _showJumpToLatest = false;
-  bool _isPositioningInitialMessages = false;
-  int _initialPositionRequest = 0;
   String? _generationError;
   String? _handledTerminalRunId;
   String? _pendingDraftText;
@@ -141,6 +140,7 @@ class ChatPageState extends State<ChatPage> {
         _handledTerminalRunId != snapshot.runId;
     final submittedUserMessage = snapshot.submittedUserMessage;
     var addedSubmittedUser = false;
+    var messagesChanged = false;
 
     if (snapshot.userPersisted && submittedUserMessage != null) {
       final index = _messages.indexWhere(
@@ -152,18 +152,22 @@ class ChatPageState extends State<ChatPage> {
           (left, right) => left.timestamp.compareTo(right.timestamp),
         );
         addedSubmittedUser = true;
-      } else {
+        messagesChanged = true;
+      } else if (!identical(_messages[index], submittedUserMessage)) {
         _messages[index] = submittedUserMessage;
+        messagesChanged = true;
       }
     }
 
     if (isNewTerminal) {
       _handledTerminalRunId = snapshot.runId;
       if (!snapshot.userPersisted) {
+        final previousLength = _messages.length;
         _messages.removeWhere(
           (message) =>
               message.turnId == snapshot.turnId && message.runId.isEmpty,
         );
+        messagesChanged = messagesChanged || _messages.length != previousLength;
         _restorePendingDraft();
       } else {
         _clearPendingDraft();
@@ -173,11 +177,13 @@ class ChatPageState extends State<ChatPage> {
             (message) => message.messageId == terminalMessage.messageId,
           )) {
         _messages.add(terminalMessage);
+        messagesChanged = true;
       }
       _chatViewModel.notifyChatListChanged();
     }
 
     setState(() {
+      if (messagesChanged) _messageRevision += 1;
       _isTyping = snapshot.lifecycle.isRunning;
       _isStreaming =
           snapshot.lifecycle.isRunning &&
@@ -221,10 +227,22 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _loadMessages() async {
-    _initialPositionRequest++;
+    final cachedMessages = _chatViewModel.cachedMessages;
+    if (cachedMessages != null) {
+      final mergedMessages = _mergeLoadedMessages(cachedMessages);
+      setState(() {
+        _messages = mergedMessages;
+        _messageRevision += 1;
+        _isLoading = false;
+        _historyError = null;
+        _followLatest = true;
+        _showJumpToLatest = false;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
-      _isPositioningInitialMessages = false;
       _historyError = null;
     });
 
@@ -235,27 +253,19 @@ class ChatPageState extends State<ChatPage> {
       if (historyError != null) throw historyError;
       if (!mounted) return;
       final mergedMessages = _mergeLoadedMessages(messages);
-      final shouldPositionAtLatest = mergedMessages.isNotEmpty;
       setState(() {
         _messages = mergedMessages;
+        _messageRevision += 1;
         _isLoading = false;
-        _isPositioningInitialMessages = shouldPositionAtLatest;
         _followLatest = true;
         _showJumpToLatest = false;
       });
-      if (shouldPositionAtLatest) {
-        _positionInitialMessagesAtLatest();
-      } else {
-        _initialPositionRequest++;
-      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _isPositioningInitialMessages = false;
         _historyError = error.toString();
       });
-      _initialPositionRequest++;
     }
   }
 
@@ -330,7 +340,7 @@ class ChatPageState extends State<ChatPage> {
     if (!_scrollController.hasClients) return;
 
     final nearLatest =
-        _scrollController.position.extentAfter <= _followLatestThreshold;
+        _scrollController.position.extentBefore <= _followLatestThreshold;
     if (_followLatest == nearLatest && _showJumpToLatest == !nearLatest) {
       return;
     }
@@ -348,7 +358,7 @@ class ChatPageState extends State<ChatPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
 
-      final target = _scrollController.position.maxScrollExtent;
+      final target = _scrollController.position.minScrollExtent;
       if (animate) {
         _scrollController.animateTo(
           target,
@@ -358,33 +368,6 @@ class ChatPageState extends State<ChatPage> {
       } else {
         _scrollController.jumpTo(target);
       }
-    });
-  }
-
-  void _positionInitialMessagesAtLatest() {
-    final request = ++_initialPositionRequest;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || request != _initialPositionRequest) return;
-      if (!_scrollController.hasClients) {
-        setState(() => _isPositioningInitialMessages = false);
-        return;
-      }
-
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      // The first jump causes the lazily built tail to be laid out. Correct
-      // once more before revealing it so variable-height messages cannot
-      // briefly expose the start of the conversation.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || request != _initialPositionRequest) return;
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-        setState(() {
-          _isPositioningInitialMessages = false;
-          _followLatest = true;
-          _showJumpToLatest = false;
-        });
-      });
     });
   }
 
@@ -495,6 +478,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(userMessage);
+          _messageRevision += 1;
           _messageController.clear();
           _generationError = null;
           _streamingResponse = '';
@@ -522,9 +506,11 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           if (optimisticMessageId != null) {
+            final previousLength = _messages.length;
             _messages.removeWhere(
               (message) => message.messageId == optimisticMessageId,
             );
+            if (_messages.length != previousLength) _messageRevision += 1;
           }
           _restorePendingDraft();
           _generationError = error.toString();
@@ -774,6 +760,7 @@ class ChatPageState extends State<ChatPage> {
               children: [
                 MessageList(
                   messages: _messages,
+                  messageRevision: _messageRevision,
                   scrollController: _scrollController,
                   isStreaming: _isStreaming,
                   streamingResponse: _streamingResponse,
@@ -795,31 +782,10 @@ class ChatPageState extends State<ChatPage> {
               ],
             );
 
-    final isPositioningInitialMessages = _isPositioningInitialMessages;
     return Stack(
       children: [
-        Positioned.fill(
-          child: IgnorePointer(
-            ignoring: isPositioningInitialMessages,
-            child: Opacity(
-              opacity: isPositioningInitialMessages ? 0 : 1,
-              child: conversation,
-            ),
-          ),
-        ),
-        if (isPositioningInitialMessages)
-          Positioned.fill(
-            child: Center(
-              key: const ValueKey<String>('chat-initial-scroll-positioning'),
-              child:
-                  isDesktop
-                      ? const SizedBox(width: 120, child: ShadProgress())
-                      : const CircularProgressIndicator(),
-            ),
-          ),
-        if (!isPositioningInitialMessages &&
-            _showJumpToLatest &&
-            _messages.isNotEmpty)
+        Positioned.fill(child: conversation),
+        if (_showJumpToLatest && _messages.isNotEmpty)
           Positioned(
             right: isDesktop ? 20 : 12,
             bottom: _isTyping ? 60 : 12,
@@ -916,6 +882,7 @@ class ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       setState(() {
         _messages = [];
+        _messageRevision += 1;
         _historyError = null;
         _composerFocusToken += 1;
       });
@@ -1076,6 +1043,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(userMessage);
+          _messageRevision += 1;
           _selectedImages.clear();
           _messageController.clear();
         });
@@ -1125,6 +1093,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(persistedBot);
+          _messageRevision += 1;
         });
         _scheduleScrollToLatest(animate: true);
       }
@@ -1142,8 +1111,11 @@ class ChatPageState extends State<ChatPage> {
       _resetProcessTracking();
       if (mounted) {
         setState(() {
+          var messagesChanged = false;
           if (!userPersisted) {
+            final previousLength = _messages.length;
             _messages.removeWhere((message) => message.runId == runId);
+            messagesChanged = _messages.length != previousLength;
             if (_messageController.text.isEmpty) {
               _messageController.text = prompt;
             }
@@ -1155,7 +1127,9 @@ class ChatPageState extends State<ChatPage> {
                 (message) => message.messageId == failedMessage.messageId,
               )) {
             _messages.add(failedMessage);
+            messagesChanged = true;
           }
+          if (messagesChanged) _messageRevision += 1;
           _generationError = S.of(context).generateImageFailed(e.toString());
         });
       }
@@ -1193,6 +1167,7 @@ class ChatPageState extends State<ChatPage> {
       );
       setState(() {
         _messages.add(userMessage);
+        _messageRevision += 1;
         _messageController.clear();
       });
       await _chatViewModel.upsertMessage(userMessage);
@@ -1249,6 +1224,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(persistedBot);
+          _messageRevision += 1;
         });
         _scheduleScrollToLatest(animate: true);
       }
@@ -1266,8 +1242,11 @@ class ChatPageState extends State<ChatPage> {
       _resetProcessTracking();
       if (mounted) {
         setState(() {
+          var messagesChanged = false;
           if (!userPersisted) {
+            final previousLength = _messages.length;
             _messages.removeWhere((message) => message.runId == runId);
+            messagesChanged = _messages.length != previousLength;
             if (_messageController.text.isEmpty) {
               _messageController.text = prompt;
             }
@@ -1276,7 +1255,9 @@ class ChatPageState extends State<ChatPage> {
                 (message) => message.messageId == failedMessage.messageId,
               )) {
             _messages.add(failedMessage);
+            messagesChanged = true;
           }
+          if (messagesChanged) _messageRevision += 1;
           _generationError = S.of(context).generateSpeechFailed(e.toString());
         });
       }
@@ -1329,6 +1310,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(userMessage);
+          _messageRevision += 1;
           _messageController.clear();
           _selectedFiles.clear();
         });
@@ -1375,6 +1357,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(persistedBot);
+          _messageRevision += 1;
         });
         _scheduleScrollToLatest(animate: true);
       }
@@ -1392,8 +1375,11 @@ class ChatPageState extends State<ChatPage> {
       _resetProcessTracking();
       if (mounted) {
         setState(() {
+          var messagesChanged = false;
           if (!userPersisted) {
+            final previousLength = _messages.length;
             _messages.removeWhere((message) => message.runId == runId);
+            messagesChanged = _messages.length != previousLength;
             if (_messageController.text.isEmpty) {
               _messageController.text = prompt;
             }
@@ -1405,7 +1391,9 @@ class ChatPageState extends State<ChatPage> {
                 (message) => message.messageId == failedMessage.messageId,
               )) {
             _messages.add(failedMessage);
+            messagesChanged = true;
           }
+          if (messagesChanged) _messageRevision += 1;
           _generationError = S.of(context).generateMusicFailed(e.toString());
         });
       }
@@ -1453,6 +1441,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(userMessage);
+          _messageRevision += 1;
           _messageController.clear();
           _selectedImages.clear();
         });
@@ -1500,6 +1489,7 @@ class ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _messages.add(persistedBot);
+          _messageRevision += 1;
         });
         _scheduleScrollToLatest(animate: true);
       }
@@ -1517,8 +1507,11 @@ class ChatPageState extends State<ChatPage> {
       _resetProcessTracking();
       if (mounted) {
         setState(() {
+          var messagesChanged = false;
           if (!userPersisted) {
+            final previousLength = _messages.length;
             _messages.removeWhere((message) => message.runId == runId);
+            messagesChanged = _messages.length != previousLength;
             if (_messageController.text.isEmpty) {
               _messageController.text = prompt;
             }
@@ -1530,7 +1523,9 @@ class ChatPageState extends State<ChatPage> {
                 (message) => message.messageId == failedMessage.messageId,
               )) {
             _messages.add(failedMessage);
+            messagesChanged = true;
           }
+          if (messagesChanged) _messageRevision += 1;
           _generationError = S.of(context).generateVideoFailed(e.toString());
         });
       }

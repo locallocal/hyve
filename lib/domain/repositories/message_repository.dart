@@ -23,3 +23,11 @@ abstract interface class MessageRepository {
 
   Future<void> deleteMessages(String chatId);
 }
+
+/// Optional synchronous access to an already-loaded conversation.
+///
+/// UI code can use this capability to restore a recently opened chat without
+/// showing a loading frame or decoding the same database rows again.
+abstract interface class CachedMessageRepository implements MessageRepository {
+  List<Message>? peekMessages(String chatId);
+}

@@ -55,6 +55,13 @@ class ChatViewModel extends ChangeNotifier {
   bool _isLoading = false;
 
   List<Message> get messages => _messages;
+  List<Message>? get cachedMessages {
+    final repository = _messageRepository;
+    return repository is CachedMessageRepository
+        ? repository.peekMessages(chatId)
+        : null;
+  }
+
   Object? get historyError => _historyError;
   bool get isLoading => _isLoading;
 

@@ -2,13 +2,20 @@ import 'package:sqflite/sqflite.dart';
 
 typedef DatabaseProvider = Future<Database> Function();
 
-/// Stateless boundary around sqflite. Repositories never open databases or
-/// assemble cross-table transactions themselves.
+/// Boundary around sqflite. Repositories never open databases or assemble
+/// cross-table transactions themselves.
 class LocalDatabaseService {
-  const LocalDatabaseService({required DatabaseProvider databaseProvider})
+  LocalDatabaseService({required DatabaseProvider databaseProvider})
     : _databaseProvider = databaseProvider;
 
   final DatabaseProvider _databaseProvider;
+  final Map<String, int> _messageRevisions = <String, int>{};
+
+  int messageRevision(String chatId) => _messageRevisions[chatId] ?? 0;
+
+  void _advanceMessageRevision(String chatId) {
+    _messageRevisions[chatId] = messageRevision(chatId) + 1;
+  }
 
   Future<List<Map<String, Object?>>> loadBots() async {
     final database = await _databaseProvider();
@@ -629,6 +636,7 @@ class LocalDatabaseService {
       );
       await transaction.delete('chats', where: 'id = ?', whereArgs: [id]);
     });
+    _advanceMessageRevision(id);
   }
 
   Future<void> updateChatPreview(
@@ -669,6 +677,7 @@ class LocalDatabaseService {
         whereArgs: [id],
       );
     });
+    _advanceMessageRevision(id);
   }
 
   Future<List<Map<String, Object?>>> loadMessages(String chatId) async {
@@ -1042,15 +1051,26 @@ class LocalDatabaseService {
     await database.transaction((transaction) async {
       await _upsertMessageAndTokenUsage(transaction, values);
     });
+    final chatId = values['chat_id']?.toString();
+    if (chatId != null && chatId.isNotEmpty) _advanceMessageRevision(chatId);
   }
 
   Future<void> upsertMessages(Iterable<Map<String, Object?>> records) async {
+    final rows = records.toList(growable: false);
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
-      for (final values in records) {
+      for (final values in rows) {
         await _upsertMessageAndTokenUsage(transaction, values);
       }
     });
+    final chatIds = <String>{
+      for (final values in rows)
+        if ((values['chat_id']?.toString() ?? '').isNotEmpty)
+          values['chat_id']!.toString(),
+    };
+    for (final chatId in chatIds) {
+      _advanceMessageRevision(chatId);
+    }
   }
 
   Future<void> upsertModelUsage(Map<String, Object?> values) async {
@@ -1069,6 +1089,7 @@ class LocalDatabaseService {
       where: 'chat_id = ?',
       whereArgs: [chatId],
     );
+    _advanceMessageRevision(chatId);
   }
 
   Future<List<Map<String, Object?>>> loadProfiles() async {

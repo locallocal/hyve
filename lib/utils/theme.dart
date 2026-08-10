@@ -1228,7 +1228,8 @@ class StarsSearchField extends StatelessWidget {
     this.enabled = true,
     this.autofocus = false,
     this.suffixIcon,
-  });
+    this.insetFocusRing = false,
+  }) : assert(!insetFocusRing || focusNode != null);
 
   final String hintText;
   final TextEditingController? controller;
@@ -1240,9 +1241,85 @@ class StarsSearchField extends StatelessWidget {
   final bool autofocus;
   final Widget? suffixIcon;
 
+  /// Paints the Shad focus border inside the field bounds so an ancestor clip
+  /// cannot cover it. Material search fields already paint their focus border
+  /// inside their bounds.
+  final bool insetFocusRing;
+
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
+    Widget field;
+    if (shadTheme == null) {
+      field = TextField(
+        controller: controller,
+        focusNode: focusNode,
+        enabled: enabled,
+        autofocus: autofocus,
+        textInputAction: TextInputAction.search,
+        textAlignVertical: TextAlignVertical.center,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        style: Theme.of(context).textTheme.bodyMedium,
+        decoration: DesktopThemeTokens.searchDecoration(
+          context,
+          hintText: hintText,
+          suffixIcon: suffixIcon,
+        ),
+      );
+    } else {
+      field = ShadInput(
+        controller: controller,
+        focusNode: focusNode,
+        enabled: enabled,
+        autofocus: autofocus,
+        decoration:
+            insetFocusRing
+                ? ShadDecoration(
+                  focusedBorder: ShadBorder.all(
+                    color: shadTheme.colorScheme.ring,
+                    width: 1,
+                    radius: shadTheme.radius,
+                  ),
+                  secondaryFocusedBorder: ShadBorder.none,
+                )
+                : null,
+        textInputAction: TextInputAction.search,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        placeholder: Text(hintText),
+        leading: Padding(
+          padding: const EdgeInsetsDirectional.only(end: 8),
+          child: SizedBox(
+            width: 16,
+            height: 30,
+            child: Icon(
+              LucideIcons.search,
+              size: 16,
+              color: shadTheme.colorScheme.mutedForeground,
+            ),
+          ),
+        ),
+        trailing:
+            suffixIcon == null
+                ? null
+                : SizedBox.square(dimension: 30, child: suffixIcon),
+        alignment: Alignment.centerLeft,
+        placeholderAlignment: Alignment.centerLeft,
+        constraints: const BoxConstraints(
+          minHeight: DesktopThemeTokens.botFormFieldHeight,
+        ),
+      );
+      if (insetFocusRing) {
+        field = _StarsInsetFocusRing(
+          focusNode: focusNode!,
+          color: shadTheme.colorScheme.ring,
+          borderRadius: shadTheme.radius,
+          child: field,
+        );
+      }
+    }
+
     return Semantics(
       container: true,
       textField: true,
@@ -1252,53 +1329,52 @@ class StarsSearchField extends StatelessWidget {
         constraints: const BoxConstraints(
           minHeight: DesktopThemeTokens.botFormFieldHeight,
         ),
-        child:
-            shadTheme == null
-                ? TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  enabled: enabled,
-                  autofocus: autofocus,
-                  textInputAction: TextInputAction.search,
-                  textAlignVertical: TextAlignVertical.center,
-                  onChanged: onChanged,
-                  onSubmitted: onSubmitted,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  decoration: DesktopThemeTokens.searchDecoration(
-                    context,
-                    hintText: hintText,
-                    suffixIcon: suffixIcon,
-                  ),
-                )
-                : ShadInput(
-                  controller: controller,
-                  focusNode: focusNode,
-                  enabled: enabled,
-                  autofocus: autofocus,
-                  textInputAction: TextInputAction.search,
-                  onChanged: onChanged,
-                  onSubmitted: onSubmitted,
-                  placeholder: Text(hintText),
-                  leading: Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: SizedBox(
-                      width: 16,
-                      height: 30,
-                      child: Icon(
-                        LucideIcons.search,
-                        size: 16,
-                        color: shadTheme.colorScheme.mutedForeground,
-                      ),
+        child: field,
+      ),
+    );
+  }
+}
+
+class _StarsInsetFocusRing extends StatelessWidget {
+  const _StarsInsetFocusRing({
+    required this.focusNode,
+    required this.color,
+    required this.borderRadius,
+    required this.child,
+  });
+
+  final FocusNode focusNode;
+  final Color color;
+  final BorderRadiusGeometry borderRadius;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: focusNode,
+      child: child,
+      builder: (context, child) {
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            child!,
+            if (focusNode.hasFocus)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: const ValueKey<String>(
+                      'stars-search-inset-focus-ring',
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: color, width: 2),
+                      borderRadius: borderRadius,
                     ),
                   ),
-                  trailing: suffixIcon,
-                  alignment: Alignment.centerLeft,
-                  placeholderAlignment: Alignment.centerLeft,
-                  constraints: const BoxConstraints(
-                    minHeight: DesktopThemeTokens.botFormFieldHeight,
-                  ),
                 ),
-      ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

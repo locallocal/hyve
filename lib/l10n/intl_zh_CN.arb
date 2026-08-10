@@ -899,6 +899,8 @@
     "disableAllMcpToolNoApproval": "全部关闭免确认",
     "searchMcpServers": "搜索 MCP 服务器",
     "noMatchingMcpServers": "未找到匹配的 MCP 服务器",
+    "searchMcpTools": "搜索工具",
+    "noMatchingMcpTools": "未找到匹配的工具",
     "addMcpServer": "添加 MCP 服务器",
     "removeMcpServer": "移除 MCP 服务器",
     "remoteMcpOnly": "仅支持远程 MCP",

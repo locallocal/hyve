@@ -619,6 +619,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
       "No matching MCP servers found",
     ),
+    "noMatchingMcpTools": MessageLookupByLibrary.simpleMessage(
+      "No matching tools found",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "No matching skills found",
     ),
@@ -742,6 +745,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "searchMcpServers": MessageLookupByLibrary.simpleMessage(
       "Search MCP servers",
     ),
+    "searchMcpTools": MessageLookupByLibrary.simpleMessage("Search tools"),
     "searchMemory": MessageLookupByLibrary.simpleMessage("Search memory"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("Search skills"),
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),

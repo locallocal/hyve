@@ -899,6 +899,8 @@
     "disableAllMcpToolNoApproval": "Disable no confirmation for all",
     "searchMcpServers": "Search MCP servers",
     "noMatchingMcpServers": "No matching MCP servers found",
+    "searchMcpTools": "Search tools",
+    "noMatchingMcpTools": "No matching tools found",
     "addMcpServer": "Add MCP Server",
     "removeMcpServer": "Remove MCP Server",
     "remoteMcpOnly": "Remote MCP only",

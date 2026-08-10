@@ -179,9 +179,15 @@
     "@appDescription": {
         "description": "앱 설명"
     },
-    "copyright": "© 2025 Stars 팀",
+    "copyright": "© {year} Stars 팀",
     "@copyright": {
-        "description": "저작권 정보"
+        "description": "저작권 정보",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "사용자 동의",
     "@userAgreement": {

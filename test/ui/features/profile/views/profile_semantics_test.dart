@@ -169,6 +169,55 @@ void main() {
     }
   });
 
+  testWidgets('desktop about dialog groups app and legal information', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    try {
+      await tester.pumpWidget(_profileHarness());
+      await tester.pumpAndSettle();
+
+      final aboutEntry = find.byKey(const ValueKey<String>('profile-about'));
+      await tester.scrollUntilVisible(
+        aboutEntry,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(aboutEntry);
+      await tester.pumpAndSettle();
+
+      final aboutDialog = find.byKey(
+        const ValueKey<String>('profile-about-dialog'),
+      );
+      final brandCard = find.byKey(
+        const ValueKey<String>('profile-about-brand-card'),
+      );
+      expect(aboutDialog, findsOneWidget);
+      expect(find.byType(ShadDialog), findsOneWidget);
+      expect(brandCard, findsOneWidget);
+      expect(
+        find.descendant(of: brandCard, matching: find.byType(StarsLogo)),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('profile-about-version')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('profile-about-user-agreement')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('profile-about-privacy-policy')),
+        findsOneWidget,
+      );
+      expect(find.text('© ${DateTime.now().year} Stars 团队'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('desktop general setting persists execution status visibility', (
     tester,
   ) async {
@@ -296,6 +345,43 @@ void main() {
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('mobile about dialog uses the shared responsive content', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1;
+    try {
+      await tester.pumpWidget(_profileHarness());
+      await tester.pumpAndSettle();
+
+      final aboutEntry = find.byKey(const ValueKey<String>('profile-about'));
+      await tester.scrollUntilVisible(
+        aboutEntry,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(aboutEntry);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('profile-about-brand-card')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('profile-about-description')),
+        findsOneWidget,
+      );
+      expect(find.text('© ${DateTime.now().year} Stars 团队'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     }
   });
 

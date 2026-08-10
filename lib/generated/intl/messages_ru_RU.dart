@@ -45,28 +45,30 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m9(name) =>
       "Удалить ${name}? Привязки к ботам также будут удалены.";
 
-  static String m10(name) =>
+  static String m10(year) => "© ${year} Команда Stars";
+
+  static String m11(name) =>
       "Разрешить ${name} зарегистрировать объявленные скрипты как инструменты. Каждый вызов потребует подтверждения.";
 
-  static String m11(language) => "Язык изменен на ${language}";
+  static String m12(language) => "Язык изменен на ${language}";
 
-  static String m12(minutes) => "${minutes} минут назад";
+  static String m13(minutes) => "${minutes} минут назад";
 
-  static String m13(count) => "Успешно получено ${count} моделей";
+  static String m14(count) => "Успешно получено ${count} моделей";
 
-  static String m14(count) => "${count} запусков команд";
+  static String m15(count) => "${count} запусков команд";
 
-  static String m15(duration) => "Длительность ${duration}";
+  static String m16(duration) => "Длительность ${duration}";
 
-  static String m16(count) => "${count} изменений файлов";
+  static String m17(count) => "${count} изменений файлов";
 
-  static String m17(count) => "${count} вызовов инструментов";
+  static String m18(count) => "${count} вызовов инструментов";
 
-  static String m18(error) => "Ошибка получения ответа: ${error}";
+  static String m19(error) => "Ошибка получения ответа: ${error}";
 
-  static String m19(error) => "Не удалось импортировать навык: ${error}";
+  static String m20(error) => "Не удалось импортировать навык: ${error}";
 
-  static String m20(duration) => "Размышление завершено · ${duration}";
+  static String m21(duration) => "Размышление завершено · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -183,7 +185,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "conversationSummary": MessageLookupByLibrary.simpleMessage(
       "Сводка разговора",
     ),
-    "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Команда Stars"),
+    "copyright": m10,
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Пользовательский провайдер...",
     ),
@@ -243,7 +245,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Включить скрипты",
     ),
-    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsDescription": m11,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "Включить изолированные скрипты?",
     ),
@@ -336,7 +338,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Созданная сводка не прошла проверку",
     ),
     "justNow": MessageLookupByLibrary.simpleMessage("Только что"),
-    "languageChanged": m11,
+    "languageChanged": m12,
     "languageSettings": MessageLookupByLibrary.simpleMessage("Настройки языка"),
     "lightMode": MessageLookupByLibrary.simpleMessage("Светлая тема"),
     "manageMemory": MessageLookupByLibrary.simpleMessage("Управление памятью"),
@@ -363,9 +365,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryTask": MessageLookupByLibrary.simpleMessage("Задача"),
     "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
-    "minutesAgo": m12,
+    "minutesAgo": m13,
     "model": MessageLookupByLibrary.simpleMessage("Модель"),
-    "modelsRetrievedSuccess": m13,
+    "modelsRetrievedSuccess": m14,
     "name": MessageLookupByLibrary.simpleMessage("Имя"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Имя обновлено"),
     "newChat": MessageLookupByLibrary.simpleMessage("Новый чат"),
@@ -422,13 +424,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Политика конфиденциальности",
     ),
-    "processCommandCount": m14,
-    "processDuration": m15,
-    "processFileCount": m16,
+    "processCommandCount": m15,
+    "processDuration": m16,
+    "processFileCount": m17,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Информация о процессе",
     ),
-    "processToolCount": m17,
+    "processToolCount": m18,
     "profile": MessageLookupByLibrary.simpleMessage("Профиль"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Поделитесь своими предложениями и отзывами",
@@ -459,7 +461,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "Восстановить значения по умолчанию",
     ),
-    "responseError": m18,
+    "responseError": m19,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("Восстановить"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "Сохранённые последние ходы",
@@ -501,7 +503,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Включён"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Файлы"),
-    "skillImportFailed": m19,
+    "skillImportFailed": m20,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Навык импортирован",
     ),
@@ -618,7 +620,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Размышление завершено",
     ),
-    "thinkingCompletedWithDuration": m20,
+    "thinkingCompletedWithDuration": m21,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Размышление…"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "Разрешено один раз",

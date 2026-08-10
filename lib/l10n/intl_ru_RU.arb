@@ -179,9 +179,15 @@
     "@appDescription": {
         "description": "Описание приложения"
     },
-    "copyright": "© 2025 Команда Stars",
+    "copyright": "© {year} Команда Stars",
     "@copyright": {
-        "description": "Информация об авторских правах"
+        "description": "Информация об авторских правах",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "Пользовательское соглашение",
     "@userAgreement": {

@@ -32,7 +32,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "已删除与 ${botName} 的聊天";
 
-  static String m21(error) => "清空聊天记录失败：${error}";
+  static String m22(error) => "清空聊天记录失败：${error}";
 
   static String m6(botName) => "确定要清空与 \"${botName}\" 的所有聊天记录吗？此操作不可恢复。";
 
@@ -40,55 +40,57 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m8(botName) => "删除聊天会清空所有的聊天记录，确定要删除与 ${botName} 的聊天吗？";
 
-  static String m22(name) => "确定删除“${name}”？缓存的工具目录和安全凭据也会一并移除。";
+  static String m23(name) => "确定删除“${name}”？缓存的工具目录和安全凭据也会一并移除。";
 
   static String m9(name) => "确定卸载技能“${name}”？相关智能体绑定也会被移除。";
 
-  static String m23(error) => "创建聊天失败：${error}";
+  static String m10(year) => "© ${year} Stars 团队";
 
-  static String m24(error) => "删除会话失败：${error}";
+  static String m24(error) => "创建聊天失败：${error}";
 
-  static String m10(name) => "允许“${name}”将已声明的脚本注册为工具。每次调用仍需审批，并在桌面沙箱中运行。";
+  static String m25(error) => "删除会话失败：${error}";
 
-  static String m25(count) => "${count} 个文件";
+  static String m11(name) => "允许“${name}”将已声明的脚本注册为工具。每次调用仍需审批，并在桌面沙箱中运行。";
 
-  static String m26(error) => "生成图片失败: ${error}";
+  static String m26(count) => "${count} 个文件";
 
-  static String m27(error) => "生成音乐失败：${error}";
+  static String m27(error) => "生成图片失败: ${error}";
 
-  static String m28(error) => "生成语音失败：${error}";
+  static String m28(error) => "生成音乐失败：${error}";
 
-  static String m29(error) => "生成视频失败：${error}";
+  static String m29(error) => "生成语音失败：${error}";
 
-  static String m30(count) => "${count} 项";
+  static String m30(error) => "生成视频失败：${error}";
 
-  static String m11(language) => "语言已设置为${language}";
+  static String m31(count) => "${count} 项";
 
-  static String m31(error) => "MCP 连接失败：${error}";
+  static String m12(language) => "语言已设置为${language}";
 
-  static String m32(count) => "${count} 个（值已隐藏）";
+  static String m32(error) => "MCP 连接失败：${error}";
 
-  static String m12(minutes) => "${minutes}分钟前";
+  static String m33(count) => "${count} 个（值已隐藏）";
 
-  static String m13(count) => "成功获取${count}个模型";
+  static String m13(minutes) => "${minutes}分钟前";
 
-  static String m14(count) => "${count} 次命令执行";
+  static String m14(count) => "成功获取${count}个模型";
 
-  static String m15(duration) => "耗时 ${duration}";
+  static String m15(count) => "${count} 次命令执行";
 
-  static String m16(count) => "${count} 条文件状态";
+  static String m16(duration) => "耗时 ${duration}";
 
-  static String m17(count) => "${count} 次工具调用";
+  static String m17(count) => "${count} 条文件状态";
 
-  static String m18(error) => "获取回复失败: ${error}";
+  static String m18(count) => "${count} 次工具调用";
 
-  static String m33(error) => "保存图片失败：${error}";
+  static String m19(error) => "获取回复失败: ${error}";
 
-  static String m34(error) => "分享图片失败：${error}";
+  static String m34(error) => "保存图片失败：${error}";
 
-  static String m19(error) => "技能导入失败：${error}";
+  static String m35(error) => "分享图片失败：${error}";
 
-  static String m20(duration) => "思考完成 · ${duration}";
+  static String m20(error) => "技能导入失败：${error}";
+
+  static String m21(duration) => "思考完成 · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -167,7 +169,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearAttachments": MessageLookupByLibrary.simpleMessage("清空附件"),
     "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage("清除自动记忆"),
     "clearChat": MessageLookupByLibrary.simpleMessage("清空聊天"),
-    "clearChatFailed": m21,
+    "clearChatFailed": m22,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("清空聊天记录"),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除会话固定技能"),
     "clearSearch": MessageLookupByLibrary.simpleMessage("清除搜索"),
@@ -186,7 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDelete": MessageLookupByLibrary.simpleMessage("确认删除"),
     "confirmDeleteBot": m7,
     "confirmDeleteChat": m8,
-    "confirmDeleteMcpServer": m22,
+    "confirmDeleteMcpServer": m23,
     "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("联系方式（可选）"),
     "contextAndMemory": MessageLookupByLibrary.simpleMessage("上下文与记忆"),
@@ -198,8 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("复制 API 密钥"),
     "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage("复制安装位置"),
-    "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 团队"),
-    "createChatFailed": m23,
+    "copyright": m10,
+    "createChatFailed": m24,
     "creatingChat": MessageLookupByLibrary.simpleMessage("正在创建…"),
     "creationTime": MessageLookupByLibrary.simpleMessage("创建时间"),
     "customProvider": MessageLookupByLibrary.simpleMessage("自定义供应商..."),
@@ -212,7 +214,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("删除"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("删除智能体"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("删除聊天"),
-    "deleteChatFailed": m24,
+    "deleteChatFailed": m25,
     "deleteMcpServer": MessageLookupByLibrary.simpleMessage("删除 MCP 服务器"),
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage("关于与法律信息"),
     "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
@@ -251,7 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部开启工具"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("启用脚本"),
-    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsDescription": m11,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "启用隔离的技能脚本？",
     ),
@@ -278,7 +280,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelList": MessageLookupByLibrary.simpleMessage("获取模型列表"),
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage("请先获取模型列表"),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("文件附件"),
-    "fileCount": m25,
+    "fileCount": m26,
     "fileResult": MessageLookupByLibrary.simpleMessage("文件结果"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("文件状态"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("音乐"),
@@ -291,10 +293,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("文字大小"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("文字大小已更新"),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("遗忘"),
-    "generateImageFailed": m26,
-    "generateMusicFailed": m27,
-    "generateSpeechFailed": m28,
-    "generateVideoFailed": m29,
+    "generateImageFailed": m27,
+    "generateMusicFailed": m28,
+    "generateSpeechFailed": m29,
+    "generateVideoFailed": m30,
     "generatedImage": MessageLookupByLibrary.simpleMessage("图片已生成"),
     "generating": MessageLookupByLibrary.simpleMessage("正在生成…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage("正在生成图片，请稍候..."),
@@ -321,10 +323,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputTokens": MessageLookupByLibrary.simpleMessage("输入 Token"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage("安装更新"),
     "invalidSummary": MessageLookupByLibrary.simpleMessage("生成的摘要未通过校验"),
-    "itemCount": m30,
+    "itemCount": m31,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("回到最新"),
     "justNow": MessageLookupByLibrary.simpleMessage("刚刚"),
-    "languageChanged": m11,
+    "languageChanged": m12,
     "languageSettings": MessageLookupByLibrary.simpleMessage("语言设置"),
     "lightMode": MessageLookupByLibrary.simpleMessage("浅色模式"),
     "linkOpenFailed": MessageLookupByLibrary.simpleMessage("无法打开此链接。"),
@@ -353,7 +355,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpConnected": MessageLookupByLibrary.simpleMessage("已连接"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("连接中"),
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage("连接错误"),
-    "mcpConnectionFailed": m31,
+    "mcpConnectionFailed": m32,
     "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("连接配置"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("未连接"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage("Streamable HTTP 端点"),
@@ -361,7 +363,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "每行填写一个 KEY=VALUE。内容保存在操作系统安全凭据存储中；编辑时留空可保留现有值。",
     ),
-    "mcpHiddenEnvironmentVariableCount": m32,
+    "mcpHiddenEnvironmentVariableCount": m33,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "远程 MCP 端点必须使用 HTTPS。",
     ),
@@ -433,11 +435,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "messageCopied": MessageLookupByLibrary.simpleMessage("消息已复制到剪贴板"),
     "messageHint": MessageLookupByLibrary.simpleMessage("输入消息..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("技能"),
-    "minutesAgo": m12,
+    "minutesAgo": m13,
     "model": MessageLookupByLibrary.simpleMessage("模型"),
     "modelConfiguration": MessageLookupByLibrary.simpleMessage("模型配置"),
     "modelContextWindow": MessageLookupByLibrary.simpleMessage("模型上下文大小"),
-    "modelsRetrievedSuccess": m13,
+    "modelsRetrievedSuccess": m14,
     "modificationTime": MessageLookupByLibrary.simpleMessage("修改时间"),
     "musicGenerated": MessageLookupByLibrary.simpleMessage("音乐已生成"),
     "musicResult": MessageLookupByLibrary.simpleMessage("音乐结果"),
@@ -511,11 +513,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("预览文字效果"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("隐私政策"),
-    "processCommandCount": m14,
-    "processDuration": m15,
-    "processFileCount": m16,
+    "processCommandCount": m15,
+    "processDuration": m16,
+    "processFileCount": m17,
     "processInformation": MessageLookupByLibrary.simpleMessage("过程信息"),
-    "processToolCount": m17,
+    "processToolCount": m18,
     "profile": MessageLookupByLibrary.simpleMessage("我的"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("提供您的意见和建议"),
     "provider": MessageLookupByLibrary.simpleMessage("供应商"),
@@ -537,7 +539,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyCancelled": MessageLookupByLibrary.simpleMessage("已取消回复"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回复"),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("恢复默认"),
-    "responseError": m18,
+    "responseError": m19,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("恢复"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("保留的最近轮次"),
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
@@ -546,7 +548,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("保存并连接"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("保存修改"),
     "saveImage": MessageLookupByLibrary.simpleMessage("保存图片"),
-    "saveImageFailed": m33,
+    "saveImageFailed": m34,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage("保存到相册失败"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("保存中..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("搜索智能体"),
@@ -563,7 +565,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("发送"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "shareImage": MessageLookupByLibrary.simpleMessage("分享图片"),
-    "shareImageFailed": m34,
+    "shareImageFailed": m35,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "来自 Stars 的图片",
     ),
@@ -585,7 +587,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("已关闭"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("已开启"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("文件"),
-    "skillImportFailed": m19,
+    "skillImportFailed": m20,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("技能已导入"),
     "skillLibrary": MessageLookupByLibrary.simpleMessage("技能"),
     "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
@@ -678,7 +680,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "themeSetToSystem": MessageLookupByLibrary.simpleMessage("已设置为跟随系统主题"),
     "themeSettings": MessageLookupByLibrary.simpleMessage("主题设置"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("思考完成"),
-    "thinkingCompletedWithDuration": m20,
+    "thinkingCompletedWithDuration": m21,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("正在思考…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token 用量"),
     "tokens": MessageLookupByLibrary.simpleMessage("Token"),

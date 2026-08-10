@@ -364,6 +364,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   S.of(context).about,
                   S.of(context).version,
                   _showCustomAboutDialog,
+                  key: const ValueKey<String>('profile-about'),
                 ),
               ],
             ),
@@ -478,6 +479,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     _buildDesktopSettingRow(
                       context,
+                      key: const ValueKey<String>('profile-about'),
                       icon: Icons.info_outline_rounded,
                       title: S.of(context).about,
                       subtitle: S.of(context).version,
@@ -1290,13 +1292,141 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // 显示自定义关于对话框
+  Widget _buildAboutContent(
+    BuildContext dialogContext, {
+    required bool embedded,
+  }) {
+    final strings = S.of(dialogContext);
+    final tokens = StarsDesktopTokens.of(dialogContext);
+    final titleStyle =
+        embedded
+            ? ShadTheme.of(dialogContext).textTheme.h4
+            : Theme.of(
+              dialogContext,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600);
+    final bodyStyle =
+        embedded
+            ? DesktopThemeTokens.bodyStyle(dialogContext)
+            : Theme.of(dialogContext).textTheme.bodyMedium;
+    final mutedStyle =
+        embedded
+            ? ShadTheme.of(dialogContext).textTheme.muted
+            : Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
+              color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+            );
+
+    void openLegalPage(VoidCallback openPage) {
+      Navigator.pop(dialogContext);
+      openPage();
+    }
+
+    return SizedBox(
+      width: 440,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              key: const ValueKey<String>('profile-about-brand-card'),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: tokens.controlFill,
+                border: Border.all(color: tokens.separator),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const StarsLogo(size: 60),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          desktopConversationText(
+                            dialogContext,
+                            strings.appTitle,
+                          ),
+                          style: titleStyle,
+                        ),
+                        const SizedBox(height: 8),
+                        ShadBadge.outline(
+                          key: const ValueKey<String>('profile-about-version'),
+                          child: Text(strings.version),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              desktopConversationText(dialogContext, strings.appDescription),
+              key: const ValueKey<String>('profile-about-description'),
+              style: bodyStyle,
+              textAlign: TextAlign.start,
+            ),
+            const SizedBox(height: 14),
+            Divider(height: 1, color: tokens.separator),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (embedded)
+                  ShadButton.link(
+                    key: const ValueKey<String>('profile-about-user-agreement'),
+                    onPressed: () => openLegalPage(_openUserAgreementPage),
+                    leading: const Icon(Icons.description_outlined, size: 16),
+                    child: Text(strings.userAgreement),
+                  )
+                else
+                  TextButton.icon(
+                    key: const ValueKey<String>('profile-about-user-agreement'),
+                    onPressed: () => openLegalPage(_openUserAgreementPage),
+                    icon: const Icon(Icons.description_outlined, size: 17),
+                    label: Text(strings.userAgreement),
+                  ),
+                if (embedded)
+                  ShadButton.link(
+                    key: const ValueKey<String>('profile-about-privacy-policy'),
+                    onPressed: () => openLegalPage(_openPrivacyPolicyPage),
+                    leading: const Icon(Icons.privacy_tip_outlined, size: 16),
+                    child: Text(strings.privacyPolicy),
+                  )
+                else
+                  TextButton.icon(
+                    key: const ValueKey<String>('profile-about-privacy-policy'),
+                    onPressed: () => openLegalPage(_openPrivacyPolicyPage),
+                    icon: const Icon(Icons.privacy_tip_outlined, size: 17),
+                    label: Text(strings.privacyPolicy),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              strings.copyright(DateTime.now().year),
+              key: const ValueKey<String>('profile-about-copyright'),
+              style: mutedStyle,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showCustomAboutDialog() {
     if (isDesktopPlatform(context)) {
       showShadDialog<void>(
         context: context,
         builder:
             (dialogContext) => ShadDialog(
+              key: const ValueKey<String>('profile-about-dialog'),
               title: Text(S.of(dialogContext).aboutApp),
               actions: [
                 ShadButton(
@@ -1304,66 +1434,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Text(S.of(dialogContext).confirm),
                 ),
               ],
-              child: SizedBox(
-                width: 440,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const StarsLogo(size: 60),
-                      const SizedBox(height: 20),
-                      Text(
-                        desktopConversationText(
-                          dialogContext,
-                          S.of(dialogContext).appTitle,
-                        ),
-                        style: ShadTheme.of(dialogContext).textTheme.h4,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        S.of(dialogContext).version,
-                        style: ShadTheme.of(dialogContext).textTheme.muted,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        desktopConversationText(
-                          dialogContext,
-                          S.of(dialogContext).appDescription,
-                        ),
-                        textAlign: TextAlign.start,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        S.of(dialogContext).copyright,
-                        style: ShadTheme.of(dialogContext).textTheme.muted,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        children: [
-                          ShadButton.link(
-                            onPressed: () {
-                              Navigator.pop(dialogContext);
-                              _openUserAgreementPage();
-                            },
-                            child: Text(S.of(dialogContext).userAgreement),
-                          ),
-                          ShadButton.link(
-                            onPressed: () {
-                              Navigator.pop(dialogContext);
-                              _openPrivacyPolicyPage();
-                            },
-                            child: Text(S.of(dialogContext).privacyPolicy),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              child: _buildAboutContent(dialogContext, embedded: true),
             ),
       );
       return;
@@ -1372,6 +1443,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder:
           (context) => AlertDialog(
+            key: const ValueKey<String>('profile-about-dialog'),
             title: Center(
               child: Text(
                 S.of(context).aboutApp,
@@ -1381,84 +1453,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const StarsLogo(size: 60),
-                const SizedBox(height: 24),
-                Text(
-                  desktopConversationText(context, S.of(context).appTitle),
-                  style: TextStyle(
-                    fontSize: _fontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  S.of(context).version,
-                  style: TextStyle(fontSize: _fontSize - 2),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  desktopConversationText(
-                    context,
-                    S.of(context).appDescription,
-                  ),
-                  style: TextStyle(fontSize: _fontSize),
-                  textAlign: TextAlign.start,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  S.of(context).copyright,
-                  style: TextStyle(fontSize: _fontSize),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (context) => const UserAgreementPage(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        S.of(context).userAgreement,
-                        style: TextStyle(
-                          fontSize: _fontSize,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (context) => const PrivacyPolicyPage(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        S.of(context).privacyPolicy,
-                        style: TextStyle(
-                          fontSize: _fontSize,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            content: SingleChildScrollView(
+              child: _buildAboutContent(context, embedded: false),
             ),
             actions: [
               TextButton(

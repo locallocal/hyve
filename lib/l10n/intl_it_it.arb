@@ -179,9 +179,15 @@
     "@appDescription": {
         "description": "Descrizione app"
     },
-    "copyright": "© 2025 Team Stars",
+    "copyright": "© {year} Team Stars",
     "@copyright": {
-        "description": "Informazioni copyright"
+        "description": "Informazioni copyright",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "Accordo utente",
     "@userAgreement": {

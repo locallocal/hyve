@@ -45,29 +45,31 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m9(name) =>
       "Desinstalar ${name}? Os vínculos com bots também serão removidos.";
 
-  static String m10(name) =>
+  static String m10(year) => "© ${year} Equipe Stars";
+
+  static String m11(name) =>
       "Permitir que ${name} registre os scripts declarados como ferramentas. Cada chamada ainda exigirá aprovação.";
 
-  static String m11(language) => "Idioma alterado para ${language}";
+  static String m12(language) => "Idioma alterado para ${language}";
 
-  static String m12(minutes) => "há ${minutes} minutos";
+  static String m13(minutes) => "há ${minutes} minutos";
 
-  static String m13(count) => "${count} modelos recuperados com sucesso";
+  static String m14(count) => "${count} modelos recuperados com sucesso";
 
-  static String m14(count) => "${count} execuções de comando";
+  static String m15(count) => "${count} execuções de comando";
 
-  static String m15(duration) => "Duração ${duration}";
+  static String m16(duration) => "Duração ${duration}";
 
-  static String m16(count) => "${count} alterações de arquivo";
+  static String m17(count) => "${count} alterações de arquivo";
 
-  static String m17(count) => "${count} chamadas de ferramenta";
+  static String m18(count) => "${count} chamadas de ferramenta";
 
-  static String m18(error) => "Falha ao obter resposta: ${error}";
+  static String m19(error) => "Falha ao obter resposta: ${error}";
 
-  static String m19(error) =>
+  static String m20(error) =>
       "Não foi possível importar a habilidade: ${error}";
 
-  static String m20(duration) => "Pensamento concluído · ${duration}";
+  static String m21(duration) => "Pensamento concluído · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -184,7 +186,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "conversationSummary": MessageLookupByLibrary.simpleMessage(
       "Resumo da conversa",
     ),
-    "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Equipe Stars"),
+    "copyright": m10,
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Provedor personalizado...",
     ),
@@ -244,7 +246,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Ativar scripts",
     ),
-    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsDescription": m11,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "Ativar scripts isolados?",
     ),
@@ -343,7 +345,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "O resumo gerado não passou na validação",
     ),
     "justNow": MessageLookupByLibrary.simpleMessage("Agora mesmo"),
-    "languageChanged": m11,
+    "languageChanged": m12,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Configurações de idioma",
     ),
@@ -376,9 +378,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Digite uma mensagem...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
-    "minutesAgo": m12,
+    "minutesAgo": m13,
     "model": MessageLookupByLibrary.simpleMessage("Modelo"),
-    "modelsRetrievedSuccess": m13,
+    "modelsRetrievedSuccess": m14,
     "name": MessageLookupByLibrary.simpleMessage("Nome"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Nome atualizado"),
     "newChat": MessageLookupByLibrary.simpleMessage("Nova conversa"),
@@ -433,13 +435,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidade",
     ),
-    "processCommandCount": m14,
-    "processDuration": m15,
-    "processFileCount": m16,
+    "processCommandCount": m15,
+    "processDuration": m16,
+    "processFileCount": m17,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Informações do processo",
     ),
-    "processToolCount": m17,
+    "processToolCount": m18,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Forneça suas sugestões e feedback",
@@ -470,7 +472,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Interrompido · Resposta parcial mantida",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Restaurar padrão"),
-    "responseError": m18,
+    "responseError": m19,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("Restaurar"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "Turnos recentes mantidos",
@@ -516,7 +518,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Desativada"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Ativada"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Arquivos"),
-    "skillImportFailed": m19,
+    "skillImportFailed": m20,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Habilidade importada",
     ),
@@ -635,7 +637,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Pensamento concluído",
     ),
-    "thinkingCompletedWithDuration": m20,
+    "thinkingCompletedWithDuration": m21,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "Permitido uma vez",

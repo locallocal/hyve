@@ -179,9 +179,15 @@
     "@appDescription": {
         "description": "Description de l'application"
     },
-    "copyright": "© 2025 Équipe Stars",
+    "copyright": "© {year} Équipe Stars",
     "@copyright": {
-        "description": "Informations sur le droit d'auteur"
+        "description": "Informations sur le droit d'auteur",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "Accord Utilisateur",
     "@userAgreement": {

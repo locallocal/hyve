@@ -178,9 +178,15 @@
     "@appDescription": {
         "description": "應用描述"
     },
-    "copyright": "© 2025 Stars 團隊",
+    "copyright": "© {year} Stars 團隊",
     "@copyright": {
-        "description": "版權信息"
+        "description": "版權信息",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "用戶協議",
     "@userAgreement": {

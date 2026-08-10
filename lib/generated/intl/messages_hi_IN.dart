@@ -45,28 +45,30 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m9(name) =>
       "${name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।";
 
-  static String m10(name) =>
+  static String m10(year) => "© ${year} Stars टीम";
+
+  static String m11(name) =>
       "${name} को घोषित स्क्रिप्ट टूल के रूप में पंजीकृत करने दें। हर कॉल को फिर भी स्वीकृति चाहिए।";
 
-  static String m11(language) => "भाषा ${language} में बदली गई";
+  static String m12(language) => "भाषा ${language} में बदली गई";
 
-  static String m12(minutes) => "${minutes} मिनट पहले";
+  static String m13(minutes) => "${minutes} मिनट पहले";
 
-  static String m13(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+  static String m14(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
 
-  static String m14(count) => "${count} कमांड निष्पादन";
+  static String m15(count) => "${count} कमांड निष्पादन";
 
-  static String m15(duration) => "अवधि ${duration}";
+  static String m16(duration) => "अवधि ${duration}";
 
-  static String m16(count) => "${count} फ़ाइल बदलाव";
+  static String m17(count) => "${count} फ़ाइल बदलाव";
 
-  static String m17(count) => "${count} टूल कॉल";
+  static String m18(count) => "${count} टूल कॉल";
 
-  static String m18(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m19(error) => "उत्तर प्राप्त करने में विफल: ${error}";
 
-  static String m19(error) => "कौशल आयात नहीं हो सका: ${error}";
+  static String m20(error) => "कौशल आयात नहीं हो सका: ${error}";
 
-  static String m20(duration) => "सोचना पूर्ण · ${duration}";
+  static String m21(duration) => "सोचना पूर्ण · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -177,7 +179,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "conversationSummary": MessageLookupByLibrary.simpleMessage(
       "वार्तालाप सारांश",
     ),
-    "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars टीम"),
+    "copyright": m10,
     "customProvider": MessageLookupByLibrary.simpleMessage("कस्टम प्रदाता..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("डार्क मोड"),
     "deepThinking": MessageLookupByLibrary.simpleMessage("गहन चिंतन"),
@@ -235,7 +237,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट सक्षम करें",
     ),
-    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsDescription": m11,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "अलग की गई कौशल स्क्रिप्ट सक्षम करें?",
     ),
@@ -332,7 +334,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "सारांश सत्यापन में विफल रहा",
     ),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
-    "languageChanged": m11,
+    "languageChanged": m12,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
     "manageMemory": MessageLookupByLibrary.simpleMessage(
@@ -361,9 +363,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryTask": MessageLookupByLibrary.simpleMessage("कार्य"),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
-    "minutesAgo": m12,
+    "minutesAgo": m13,
     "model": MessageLookupByLibrary.simpleMessage("मॉडल"),
-    "modelsRetrievedSuccess": m13,
+    "modelsRetrievedSuccess": m14,
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
@@ -414,13 +416,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
-    "processCommandCount": m14,
-    "processDuration": m15,
-    "processFileCount": m16,
+    "processCommandCount": m15,
+    "processDuration": m16,
+    "processFileCount": m17,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "प्रक्रिया जानकारी",
     ),
-    "processToolCount": m17,
+    "processToolCount": m18,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
@@ -447,7 +449,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
-    "responseError": m18,
+    "responseError": m19,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("पुनर्स्थापित करें"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "हाल के रखे गए चरण",
@@ -487,7 +489,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("चालू"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
-    "skillImportFailed": m19,
+    "skillImportFailed": m20,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "कौशल आयात किया गया",
     ),
@@ -596,7 +598,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
-    "thinkingCompletedWithDuration": m20,
+    "thinkingCompletedWithDuration": m21,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "एक बार अनुमति",

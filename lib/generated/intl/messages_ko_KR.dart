@@ -44,28 +44,30 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m9(name) => "${name} 스킬을 제거할까요? 봇 연결도 함께 삭제됩니다.";
 
-  static String m10(name) =>
+  static String m10(year) => "© ${year} Stars 팀";
+
+  static String m11(name) =>
       "${name}에서 선언된 스크립트를 도구로 등록하도록 허용합니다. 각 호출에는 계속 승인이 필요합니다.";
 
-  static String m11(language) => "언어가 ${language}(으)로 설정되었습니다";
+  static String m12(language) => "언어가 ${language}(으)로 설정되었습니다";
 
-  static String m12(minutes) => "${minutes}분 전";
+  static String m13(minutes) => "${minutes}분 전";
 
-  static String m13(count) => "${count}개의 모델을 성공적으로 검색했습니다";
+  static String m14(count) => "${count}개의 모델을 성공적으로 검색했습니다";
 
-  static String m14(count) => "명령 실행 ${count}회";
+  static String m15(count) => "명령 실행 ${count}회";
 
-  static String m15(duration) => "소요 시간 ${duration}";
+  static String m16(duration) => "소요 시간 ${duration}";
 
-  static String m16(count) => "파일 변경 ${count}건";
+  static String m17(count) => "파일 변경 ${count}건";
 
-  static String m17(count) => "도구 호출 ${count}회";
+  static String m18(count) => "도구 호출 ${count}회";
 
-  static String m18(error) => "응답을 가져오지 못했습니다: ${error}";
+  static String m19(error) => "응답을 가져오지 못했습니다: ${error}";
 
-  static String m19(error) => "스킬을 가져올 수 없습니다: ${error}";
+  static String m20(error) => "스킬을 가져올 수 없습니다: ${error}";
 
-  static String m20(duration) => "생각 완료 · ${duration}";
+  static String m21(duration) => "생각 완료 · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -150,7 +152,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "contextCompacted": MessageLookupByLibrary.simpleMessage("컨텍스트가 압축되었습니다"),
     "contextWindow": MessageLookupByLibrary.simpleMessage("컨텍스트 창"),
     "conversationSummary": MessageLookupByLibrary.simpleMessage("대화 요약"),
-    "copyright": MessageLookupByLibrary.simpleMessage("© 2025 Stars 팀"),
+    "copyright": m10,
     "customProvider": MessageLookupByLibrary.simpleMessage("사용자 정의 제공업체..."),
     "darkMode": MessageLookupByLibrary.simpleMessage("다크 모드"),
     "deepThinking": MessageLookupByLibrary.simpleMessage("심층 사고"),
@@ -196,7 +198,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("모든 도구 켜기"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("스크립트 활성화"),
-    "enableSkillScriptsDescription": m10,
+    "enableSkillScriptsDescription": m11,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "격리된 스킬 스크립트를 활성화할까요?",
     ),
@@ -257,7 +259,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "생성된 요약이 검증을 통과하지 못했습니다",
     ),
     "justNow": MessageLookupByLibrary.simpleMessage("방금"),
-    "languageChanged": m11,
+    "languageChanged": m12,
     "languageSettings": MessageLookupByLibrary.simpleMessage("언어 설정"),
     "lightMode": MessageLookupByLibrary.simpleMessage("라이트 모드"),
     "manageMemory": MessageLookupByLibrary.simpleMessage("메모리 관리"),
@@ -282,9 +284,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryTask": MessageLookupByLibrary.simpleMessage("작업"),
     "messageHint": MessageLookupByLibrary.simpleMessage("메시지 입력..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("스킬"),
-    "minutesAgo": m12,
+    "minutesAgo": m13,
     "model": MessageLookupByLibrary.simpleMessage("모델"),
-    "modelsRetrievedSuccess": m13,
+    "modelsRetrievedSuccess": m14,
     "name": MessageLookupByLibrary.simpleMessage("이름"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("이름이 업데이트되었습니다"),
     "newChat": MessageLookupByLibrary.simpleMessage("새 채팅"),
@@ -325,11 +327,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("텍스트 효과 미리보기"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("개인정보 처리방침"),
-    "processCommandCount": m14,
-    "processDuration": m15,
-    "processFileCount": m16,
+    "processCommandCount": m15,
+    "processDuration": m16,
+    "processFileCount": m17,
     "processInformation": MessageLookupByLibrary.simpleMessage("프로세스 정보"),
-    "processToolCount": m17,
+    "processToolCount": m18,
     "profile": MessageLookupByLibrary.simpleMessage("프로필"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("의견과 제안을 제공해 주세요"),
     "provider": MessageLookupByLibrary.simpleMessage("제공자"),
@@ -348,7 +350,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "중지됨 · 부분 응답 유지",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("기본값으로 재설정"),
-    "responseError": m18,
+    "responseError": m19,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("복원"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("유지된 최근 턴"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage("테스트 실행"),
@@ -382,7 +384,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("꺼짐"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("켜짐"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("파일"),
-    "skillImportFailed": m19,
+    "skillImportFailed": m20,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("스킬을 가져왔습니다"),
     "skillLibrary": MessageLookupByLibrary.simpleMessage("스킬"),
     "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
@@ -475,7 +477,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("테마 설정"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("생각 완료"),
-    "thinkingCompletedWithDuration": m20,
+    "thinkingCompletedWithDuration": m21,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("생각 중…"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage("한 번 허용"),
     "toolApprovalDenied": MessageLookupByLibrary.simpleMessage("거부됨"),

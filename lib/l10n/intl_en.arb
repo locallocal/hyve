@@ -178,9 +178,15 @@
     "@appDescription": {
         "description": "App description"
     },
-    "copyright": "© 2025 Stars Team",
+    "copyright": "© {year} Stars Team",
     "@copyright": {
-        "description": "Copyright information"
+        "description": "Copyright information",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "User Agreement",
     "@userAgreement": {

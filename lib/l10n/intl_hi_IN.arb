@@ -179,9 +179,15 @@
     "@appDescription": {
         "description": "एप्लयन विवरण"
     },
-    "copyright": "© 2025 Stars टीम",
+    "copyright": "© {year} Stars टीम",
     "@copyright": {
-        "description": "कॉपीराइट जानकारी"
+        "description": "कॉपीराइट जानकारी",
+        "placeholders": {
+            "year": {
+                "type": "int",
+                "example": "2026"
+            }
+        }
     },
     "userAgreement": "उपयोगकर्ता समझौता",
     "@userAgreement": {

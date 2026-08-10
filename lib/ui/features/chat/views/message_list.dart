@@ -17,7 +17,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MessageList extends StatelessWidget {
+class MessageList extends StatefulWidget {
   final List<Message> messages;
   final ScrollController scrollController;
   final bool isStreaming;
@@ -29,6 +29,7 @@ class MessageList extends StatelessWidget {
   final String? reasoningResponse;
   final bool isDesktop;
   final bool showExecutionStatus;
+  final int messageRevision;
 
   const MessageList({
     super.key,
@@ -43,10 +44,47 @@ class MessageList extends StatelessWidget {
     this.reasoningResponse = '',
     this.isDesktop = false,
     this.showExecutionStatus = true,
+    this.messageRevision = 0,
   });
 
   @override
-  Widget build(BuildContext context) {
+  State<MessageList> createState() => _MessageListState();
+}
+
+class _MessageListState extends State<MessageList> {
+  late List<MessageProcessInfo> _displayedProcessInfo;
+  List<MessageSkillActivation> _streamingSkillActivations = const [];
+  List<MessageToolCall> _streamingSkillToolCalls = const [];
+
+  List<Message> get messages => widget.messages;
+  ScrollController get scrollController => widget.scrollController;
+  bool get isStreaming => widget.isStreaming;
+  String get streamingResponse => widget.streamingResponse;
+  MessageProcessInfo get streamingProcessInfo => widget.streamingProcessInfo;
+  ModelTokenUsage get streamingTokenUsage => widget.streamingTokenUsage;
+  String get currentUserId => widget.currentUserId;
+  bool? get deepThinking => widget.deepThinking;
+  String? get reasoningResponse => widget.reasoningResponse;
+  bool get isDesktop => widget.isDesktop;
+  bool get showExecutionStatus => widget.showExecutionStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _indexMessagePresentation();
+  }
+
+  @override
+  void didUpdateWidget(covariant MessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.messageRevision != widget.messageRevision ||
+        oldWidget.currentUserId != widget.currentUserId ||
+        !identical(oldWidget.messages, widget.messages)) {
+      _indexMessagePresentation();
+    }
+  }
+
+  void _indexMessagePresentation() {
     final displayedProcessInfo = <MessageProcessInfo>[
       for (final message in messages) message.processInfo,
     ];
@@ -94,10 +132,17 @@ class MessageList extends StatelessWidget {
     }
     streamingSkillActivations = pendingSkillActivations;
     streamingSkillToolCalls = pendingSkillToolCalls;
+    _displayedProcessInfo = displayedProcessInfo;
+    _streamingSkillActivations = streamingSkillActivations;
+    _streamingSkillToolCalls = streamingSkillToolCalls;
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: ListView.builder(
         controller: scrollController,
+        reverse: true,
         itemCount: messages.length + (isStreaming ? 1 : 0),
         padding: EdgeInsets.fromLTRB(
           0,
@@ -106,7 +151,7 @@ class MessageList extends StatelessWidget {
           isDesktop ? 36 : 8,
         ),
         itemBuilder: (context, index) {
-          if (isStreaming && index == messages.length) {
+          if (isStreaming && index == 0) {
             return RepaintBoundary(
               key: const ValueKey<String>('streaming-message'),
               child: _buildMessageRow(
@@ -122,12 +167,12 @@ class MessageList extends StatelessWidget {
                       streamingProcessInfo,
                       _mergeToolCalls(
                         streamingProcessInfo.toolCalls,
-                        streamingSkillToolCalls,
+                        _streamingSkillToolCalls,
                       ),
                     ),
                     _mergeSkillActivations(
                       streamingProcessInfo.skillActivations,
-                      streamingSkillActivations,
+                      _streamingSkillActivations,
                     ),
                   ),
                   tokenUsage: streamingTokenUsage,
@@ -138,13 +183,15 @@ class MessageList extends StatelessWidget {
             );
           }
 
-          final message = messages[index];
+          final messageIndex =
+              messages.length - 1 - index + (isStreaming ? 1 : 0);
+          final message = messages[messageIndex];
           final isMe = message.senderId == currentUserId;
           final bubble = _MessageBubble(
             isCurrentUser: isMe,
             isDesktop: isDesktop,
             reasoning: message.reasoning,
-            processInfo: displayedProcessInfo[index],
+            processInfo: _displayedProcessInfo[messageIndex],
             tokenUsage: message.tokenUsage,
             showExecutionStatus: showExecutionStatus && !isMe,
             content: message.content,
@@ -159,7 +206,7 @@ class MessageList extends StatelessWidget {
           return RepaintBoundary(
             key: ValueKey<String>(
               message.messageId.isEmpty
-                  ? 'legacy-${message.timestamp.microsecondsSinceEpoch}-$index'
+                  ? 'legacy-${message.timestamp.microsecondsSinceEpoch}-$messageIndex'
                   : message.messageId,
             ),
             child: _buildMessageRow(

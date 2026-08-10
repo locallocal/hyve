@@ -2,12 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/ui/features/chat/views/message_list.dart';
 import 'package:stars/utils/theme.dart';
 
 void main() {
+  testWidgets('message list starts at the latest lazily built messages', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 600);
+    addTearDown(tester.view.reset);
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    final messages = [
+      for (var index = 0; index < 500; index++)
+        Message(
+          messageId: 'message-$index',
+          chatId: 'chat-1',
+          botId: 'bot-1',
+          senderId: 'bot-1',
+          content: 'content-$index',
+          timestamp: DateTime(2026).add(Duration(seconds: index)),
+        ),
+    ];
+
+    await tester.pumpWidget(
+      _messageListHarness(
+        MessageList(
+          messages: messages,
+          scrollController: scrollController,
+          isStreaming: false,
+          streamingResponse: '',
+          currentUserId: 'me',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.widget<ListView>(find.byType(ListView)).reverse, isTrue);
+    expect(find.text('content-499'), findsOneWidget);
+    expect(find.text('content-0'), findsNothing);
+    expect(scrollController.offset, 0);
+  });
+
   testWidgets('desktop reasoning icon rotates while the model is thinking', (
     tester,
   ) async {
@@ -53,6 +93,20 @@ void main() {
       initialTurns,
     );
   });
+}
+
+Widget _messageListHarness(Widget child) {
+  return MaterialApp(
+    locale: const Locale('zh', 'CN'),
+    supportedLocales: supportedLocales,
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      S.delegate,
+    ],
+    home: Scaffold(body: Column(children: [child])),
+  );
 }
 
 Widget _harness({required bool isStreaming, bool disableAnimations = false}) {

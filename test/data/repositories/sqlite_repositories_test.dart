@@ -75,6 +75,52 @@ void main() {
     expect(await botRepository.getBots(forceRefresh: true), hasLength(1));
   });
 
+  test(
+    'message history cache stays coherent across writes and clears',
+    () async {
+      final repository = SqliteMessageRepository(localDatabase: localDatabase);
+      final bot = _bot();
+      final timestamp = DateTime(2026, 8, 10, 10);
+      await botRepository.addBot(bot);
+      await localDatabase.insertChat(
+        ChatRecord.fromDomain(
+          Chat(
+            id: 'chat-cache',
+            botId: bot.id,
+            lastMessageTimestamp: timestamp,
+            createTimestamp: timestamp,
+            modifyTimestamp: timestamp,
+          ),
+        ).values,
+      );
+      final original = Message(
+        messageId: 'message-cache',
+        turnId: 'turn-cache',
+        chatId: 'chat-cache',
+        botId: bot.id,
+        senderId: 'me',
+        content: 'before',
+        timestamp: timestamp,
+      );
+      await repository.upsertMessage(original);
+
+      final firstLoad = await repository.getMessages('chat-cache');
+      final cachedLoad = await repository.getMessages('chat-cache');
+      expect(cachedLoad, same(firstLoad));
+      expect(repository.peekMessages('chat-cache'), same(firstLoad));
+
+      await repository.upsertMessage(original.copyWith(content: 'after'));
+      final updatedLoad = await repository.getMessages('chat-cache');
+      expect(updatedLoad, isNot(same(firstLoad)));
+      expect(updatedLoad.single.content, 'after');
+      expect(repository.peekMessages('chat-cache'), same(updatedLoad));
+
+      await localDatabase.clearChatHistory('chat-cache', timestamp);
+      expect(repository.peekMessages('chat-cache'), isNull);
+      expect(await repository.getMessages('chat-cache'), isEmpty);
+    },
+  );
+
   test('bot update persists every field with millisecond timestamps', () async {
     final original = _bot();
     await botRepository.addBot(original);

@@ -24,6 +24,7 @@ void main() {
     await tester.pumpWidget(
       _editHarness(
         bot: _bot(supportsMcp: true),
+        includeSecondServer: true,
         includeSecondTool: true,
         onSaved: (bot) async => saved = bot,
       ),
@@ -32,6 +33,48 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
     await tester.pumpAndSettle();
+    final serverSearch = find.descendant(
+      of: find.byKey(const ValueKey<String>('bot-mcp-server-search')),
+      matching: find.byType(EditableText),
+    );
+    expect(serverSearch, findsOneWidget);
+    await tester.enterText(serverSearch, 'Analytics');
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-1')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-2')),
+      findsOneWidget,
+    );
+    await tester.enterText(serverSearch, 'missing server');
+    await tester.pump();
+    expect(find.text('未找到匹配的 MCP 服务器'), findsOneWidget);
+    final emptyServerSearch = find.byKey(
+      const ValueKey<String>('bot-mcp-server-search-empty'),
+    );
+    expect(emptyServerSearch, findsOneWidget);
+    expect(
+      tester.widget<Padding>(emptyServerSearch).padding,
+      const EdgeInsets.symmetric(vertical: 20),
+    );
+    expect(
+      find.descendant(of: emptyServerSearch, matching: find.byType(TextButton)),
+      findsNothing,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('clear-bot-mcp-server-search')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-2')),
+      findsOneWidget,
+    );
     final availableServer = find.byKey(
       const ValueKey<String>('available-bot-mcp-server-server-1'),
     );
@@ -456,6 +499,7 @@ void main() {
     await tester.pumpWidget(
       _addHarness(
         enableMcp: true,
+        includeSecondServer: true,
         includeSecondTool: true,
         onAdded: (bot, _) async => added = bot,
       ),
@@ -486,6 +530,62 @@ void main() {
     await tester.ensureVisible(mcpSection);
     await tester.tap(find.byKey(const ValueKey<String>('add-bot-mcp-server')));
     await tester.pumpAndSettle();
+    final serverSearchField = find.byKey(
+      const ValueKey<String>('bot-mcp-server-search'),
+    );
+    final serverSearch = find.descendant(
+      of: serverSearchField,
+      matching: find.byType(EditableText),
+    );
+    expect(serverSearch, findsOneWidget);
+    final serverDialog = find.byKey(
+      const ValueKey<String>('bot-add-mcp-server-dialog'),
+    );
+    final serverDialogRect = tester.getRect(serverDialog);
+    final serverSearchRect = tester.getRect(serverSearchField);
+    await tester.tap(serverSearch);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(serverDialog), serverDialogRect);
+    expect(tester.getRect(serverSearchField), serverSearchRect);
+    expect(
+      find.descendant(
+        of: serverSearchField,
+        matching: find.byKey(
+          const ValueKey<String>('stars-search-inset-focus-ring'),
+        ),
+      ),
+      findsOneWidget,
+    );
+    await tester.enterText(serverSearch, 'mcp.server-2.search');
+    await tester.pump();
+    expect(tester.getRect(serverDialog), serverDialogRect);
+    expect(tester.getRect(serverSearchField), serverSearchRect);
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-1')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('available-bot-mcp-server-server-2')),
+      findsOneWidget,
+    );
+    await tester.enterText(serverSearch, 'missing server');
+    await tester.pump();
+    final emptyServerSearch = find.byKey(
+      const ValueKey<String>('bot-mcp-server-search-empty'),
+    );
+    expect(emptyServerSearch, findsOneWidget);
+    expect(find.text('未找到匹配的 MCP 服务器'), findsOneWidget);
+    expect(tester.getRect(serverDialog), serverDialogRect);
+    expect(
+      find.descendant(of: emptyServerSearch, matching: find.byType(TextButton)),
+      findsNothing,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('clear-bot-mcp-server-search')),
+    );
+    await tester.pump();
+    expect(tester.getRect(serverDialog), serverDialogRect);
+    expect(tester.getRect(serverSearchField), serverSearchRect);
     final availableServer = find.byKey(
       const ValueKey<String>('available-bot-mcp-server-server-1'),
     );
@@ -684,9 +784,11 @@ Widget _editHarness({
   required Bot bot,
   required Future<void> Function(Bot) onSaved,
   bool readOnly = false,
+  bool includeSecondServer = false,
   bool includeSecondTool = false,
 }) {
   final server = _server();
+  final secondServer = _server(id: 'server-2', name: 'Analytics');
   return MaterialApp(
     locale: const Locale('zh', 'CN'),
     supportedLocales: supportedLocales,
@@ -702,13 +804,14 @@ Widget _editHarness({
       readOnly: readOnly,
       mcpCatalogLoader:
           () async => (
-            servers: [server],
+            servers: [server, if (includeSecondServer) secondServer],
             toolsByServer: {
               server.id: [
                 _tool(server),
                 if (includeSecondTool)
                   _tool(server, remoteName: 'fetch', title: 'Fetch'),
               ],
+              if (includeSecondServer) secondServer.id: [_tool(secondServer)],
             },
           ),
       onBotUpdated: onSaved,
@@ -720,9 +823,11 @@ Widget _editHarness({
 Widget _addHarness({
   required Future<void> Function(Bot, List<BotSkillBinding>) onAdded,
   bool enableMcp = false,
+  bool includeSecondServer = false,
   bool includeSecondTool = false,
 }) {
   final server = _server();
+  final secondServer = _server(id: 'server-2', name: 'Analytics');
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
@@ -763,13 +868,15 @@ Widget _addHarness({
                     : null,
             mcpCatalogLoader:
                 () async => (
-                  servers: [server],
+                  servers: [server, if (includeSecondServer) secondServer],
                   toolsByServer: {
                     server.id: [
                       _tool(server),
                       if (includeSecondTool)
                         _tool(server, remoteName: 'fetch', title: 'Fetch'),
                     ],
+                    if (includeSecondServer)
+                      secondServer.id: [_tool(secondServer)],
                   },
                 ),
             onBotAdded: onAdded,
@@ -803,11 +910,11 @@ Bot _bot({
   modifyTimestamp: DateTime(2026),
 );
 
-McpServer _server() => McpServer(
-  id: 'server-1',
-  name: 'Docs',
+McpServer _server({String id = 'server-1', String name = 'Docs'}) => McpServer(
+  id: id,
+  name: name,
   transport: McpStreamableHttpServerTransport(
-    endpoint: Uri.parse('https://mcp.example.test/docs'),
+    endpoint: Uri.parse('https://mcp.example.test/$id'),
   ),
   status: McpConnectionStatus.connected,
   createdAt: DateTime(2026),

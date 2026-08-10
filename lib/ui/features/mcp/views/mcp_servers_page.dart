@@ -5,7 +5,7 @@ import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
-import 'package:stars/utils/mcp_tool_search.dart';
+import 'package:stars/utils/mcp_search.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -283,29 +283,11 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   List<McpServer> get _filteredServers {
-    final normalized = _query.trim().toLowerCase();
-    if (normalized.isEmpty) return _viewModel.servers;
-    return _viewModel.servers
-        .where((server) {
-          final tools = _viewModel.toolsFor(server.id);
-          final searchableText =
-              [
-                server.name,
-                _mcpConnectionSummary(server),
-                server.transport.type.name,
-                server.status.name,
-                server.remoteServerName,
-                server.remoteServerVersion,
-                for (final tool in tools) ...[
-                  tool.remoteName,
-                  tool.title,
-                  tool.description,
-                  tool.canonicalName,
-                ],
-              ].join('\n').toLowerCase();
-          return searchableText.contains(normalized);
-        })
-        .toList(growable: false);
+    return filterMcpServers(
+      _viewModel.servers,
+      _query,
+      toolsForServer: _viewModel.toolsFor,
+    );
   }
 
   void _search(String query) {
@@ -493,16 +475,6 @@ class _McpServersPageState extends State<McpServersPage> {
             );
     if (confirmed == true) await _viewModel.deleteServer(server);
   }
-}
-
-String _mcpConnectionSummary(McpServer server) {
-  return switch (server.transport) {
-    McpStreamableHttpServerTransport(:final endpoint) => endpoint.toString(),
-    McpStdioServerTransport(:final command, :final arguments) => [
-      command,
-      ...arguments,
-    ].where((part) => part.isNotEmpty).join(' '),
-  };
 }
 
 IconData _mcpStatusIcon(McpConnectionStatus status) => switch (status) {
@@ -751,7 +723,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                 ],
               ),
               description: Text(
-                _mcpConnectionSummary(widget.server),
+                mcpConnectionSummary(widget.server),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -885,7 +857,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
         style: DesktopThemeTokens.pageTitleStyle(context),
       ),
       description: Text(
-        _mcpConnectionSummary(server),
+        mcpConnectionSummary(server),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
@@ -1273,7 +1245,7 @@ class _ServerCardState extends State<_ServerCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _mcpConnectionSummary(server),
+              mcpConnectionSummary(server),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/mcp_tool_search.dart';
+import 'package:stars/utils/mcp_search.dart';
 import 'package:stars/utils/theme.dart';
 
 typedef BotMcpCatalog =
@@ -278,6 +278,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
         context: context,
         builder:
             (dialogContext) => ShadDialog(
+              key: const ValueKey<String>('bot-add-mcp-server-dialog'),
               title: Text(S.of(context).addMcpServer),
               description: Text(S.of(context).botMcpToolsDescription),
               constraints: const BoxConstraints(maxWidth: 620),
@@ -287,7 +288,12 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   child: Text(S.of(context).cancel),
                 ),
               ],
-              child: _buildAvailableServerList(dialogContext),
+              child: _BotMcpServerSearchList(
+                servers: _availableServers,
+                toolsByServer: widget.toolsByServer,
+                embedded: widget.embedded,
+                onSelected: (serverId) => _addServer(dialogContext, serverId),
+              ),
             ),
       );
       return;
@@ -297,10 +303,16 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
+            key: const ValueKey<String>('bot-add-mcp-server-dialog'),
             title: Text(S.of(context).addMcpServer),
             content: SizedBox(
               width: 520,
-              child: _buildAvailableServerList(dialogContext),
+              child: _BotMcpServerSearchList(
+                servers: _availableServers,
+                toolsByServer: widget.toolsByServer,
+                embedded: widget.embedded,
+                onSelected: (serverId) => _addServer(dialogContext, serverId),
+              ),
             ),
             actions: [
               TextButton(
@@ -309,101 +321,6 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
               ),
             ],
           ),
-    );
-  }
-
-  Widget _buildAvailableServerList(BuildContext dialogContext) {
-    final strings = S.of(context);
-    final availableServers = _availableServers;
-    if (availableServers.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Text(
-          strings.noMatchingMcpServers,
-          textAlign: TextAlign.center,
-          style:
-              widget.embedded
-                  ? DesktopThemeTokens.metaStyle(context)
-                  : Theme.of(context).textTheme.bodySmall,
-        ),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var index = 0; index < availableServers.length; index++) ...[
-            Padding(
-              key: ValueKey<String>(
-                'available-bot-mcp-server-${availableServers[index].id}',
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          availableServers[index].name,
-                          style:
-                              widget.embedded
-                                  ? ShadTheme.of(context).textTheme.small
-                                  : Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${_toolsFor(availableServers[index].id).length} '
-                          '${strings.mcpTools}',
-                          style:
-                              widget.embedded
-                                  ? DesktopThemeTokens.metaStyle(context)
-                                  : Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (widget.embedded)
-                    ShadButton(
-                      key: ValueKey<String>(
-                        'select-bot-mcp-server-${availableServers[index].id}',
-                      ),
-                      size: ShadButtonSize.sm,
-                      width: 0,
-                      onPressed:
-                          () => _addServer(
-                            dialogContext,
-                            availableServers[index].id,
-                          ),
-                      leading: const Icon(LucideIcons.plus, size: 14),
-                      child: Text(strings.addMcpServer),
-                    )
-                  else
-                    FilledButton.tonalIcon(
-                      key: ValueKey<String>(
-                        'select-bot-mcp-server-${availableServers[index].id}',
-                      ),
-                      onPressed:
-                          () => _addServer(
-                            dialogContext,
-                            availableServers[index].id,
-                          ),
-                      icon: const Icon(Icons.add_rounded, size: 17),
-                      label: Text(strings.addMcpServer),
-                    ),
-                ],
-              ),
-            ),
-            if (index != availableServers.length - 1)
-              widget.embedded
-                  ? const ShadSeparator.horizontal()
-                  : const Divider(height: 1),
-          ],
-        ],
-      ),
     );
   }
 
@@ -793,6 +710,201 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
     next[key] = current.copyWith(requiresApproval: !exempt);
     _configurations = Set<McpToolConfiguration>.unmodifiable(next.values);
     widget.onChanged(_configurations);
+  }
+}
+
+class _BotMcpServerSearchList extends StatefulWidget {
+  const _BotMcpServerSearchList({
+    required this.servers,
+    required this.toolsByServer,
+    required this.embedded,
+    required this.onSelected,
+  });
+
+  final List<McpServer> servers;
+  final Map<String, List<McpToolDescriptor>> toolsByServer;
+  final bool embedded;
+  final ValueChanged<String> onSelected;
+
+  @override
+  State<_BotMcpServerSearchList> createState() =>
+      _BotMcpServerSearchListState();
+}
+
+class _BotMcpServerSearchListState extends State<_BotMcpServerSearchList> {
+  static const _serverListHeight = 360.0;
+
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  List<McpToolDescriptor> _toolsFor(String serverId) =>
+      (widget.toolsByServer[serverId] ?? const <McpToolDescriptor>[])
+          .where((tool) => tool.isSupportedByClient)
+          .toList(growable: false);
+
+  void _search(String query) {
+    if (_query == query) return;
+    setState(() => _query = query);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchFocusNode.requestFocus();
+    if (_query.isNotEmpty) setState(() => _query = '');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = S.of(context);
+    final filteredServers = filterMcpServers(
+      widget.servers,
+      _query,
+      toolsForServer: _toolsFor,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: SizedBox(
+        height: _serverListHeight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            StarsSearchField(
+              key: const ValueKey<String>('bot-mcp-server-search'),
+              hintText: strings.searchMcpServers,
+              semanticLabel: strings.searchMcpServers,
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: _search,
+              insetFocusRing: widget.embedded,
+              suffixIcon:
+                  _query.isEmpty
+                      ? null
+                      : IconButton(
+                        key: const ValueKey<String>(
+                          'clear-bot-mcp-server-search',
+                        ),
+                        tooltip: strings.clearSearch,
+                        onPressed: _clearSearch,
+                        icon: const Icon(LucideIcons.x, size: 16),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child:
+                  filteredServers.isEmpty
+                      ? SingleChildScrollView(
+                        child: Padding(
+                          key: const ValueKey<String>(
+                            'bot-mcp-server-search-empty',
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            strings.noMatchingMcpServers,
+                            textAlign: TextAlign.center,
+                            style:
+                                widget.embedded
+                                    ? DesktopThemeTokens.metaStyle(context)
+                                    : Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      )
+                      : ListView.separated(
+                        itemCount: filteredServers.length,
+                        separatorBuilder:
+                            (context, index) =>
+                                widget.embedded
+                                    ? const ShadSeparator.horizontal()
+                                    : const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final server = filteredServers[index];
+                          return Padding(
+                            key: ValueKey<String>(
+                              'available-bot-mcp-server-${server.id}',
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        server.name,
+                                        style:
+                                            widget.embedded
+                                                ? ShadTheme.of(
+                                                  context,
+                                                ).textTheme.small
+                                                : Theme.of(
+                                                  context,
+                                                ).textTheme.titleSmall,
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${_toolsFor(server.id).length} '
+                                        '${strings.mcpTools}',
+                                        style:
+                                            widget.embedded
+                                                ? DesktopThemeTokens.metaStyle(
+                                                  context,
+                                                )
+                                                : Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                if (widget.embedded)
+                                  ShadButton(
+                                    key: ValueKey<String>(
+                                      'select-bot-mcp-server-${server.id}',
+                                    ),
+                                    size: ShadButtonSize.sm,
+                                    width: 0,
+                                    onPressed:
+                                        () => widget.onSelected(server.id),
+                                    leading: const Icon(
+                                      LucideIcons.plus,
+                                      size: 14,
+                                    ),
+                                    child: Text(strings.addMcpServer),
+                                  )
+                                else
+                                  FilledButton.tonalIcon(
+                                    key: ValueKey<String>(
+                                      'select-bot-mcp-server-${server.id}',
+                                    ),
+                                    onPressed:
+                                        () => widget.onSelected(server.id),
+                                    icon: const Icon(
+                                      Icons.add_rounded,
+                                      size: 17,
+                                    ),
+                                    label: Text(strings.addMcpServer),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

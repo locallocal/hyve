@@ -617,7 +617,7 @@ class ChatPageState extends State<ChatPage> {
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   DesktopThemeTokens.formPagePadding.left,
-                  24,
+                  0,
                   DesktopThemeTokens.formPagePadding.right,
                   0,
                 ),

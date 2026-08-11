@@ -1252,13 +1252,14 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
             ].where((value) => value.isNotEmpty).join(' · ');
 
     return Container(
+      key: const ValueKey<String>('desktop-unified-toolbar'),
       height: DesktopThemeTokens.toolbarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: DesktopThemeTokens.toolbarSurface(context),
         border: Border(
           bottom: BorderSide(
-            width: isChat ? 1 : 0,
+            width: 0,
             color: DesktopThemeTokens.divider(context),
           ),
         ),

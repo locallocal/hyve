@@ -20,10 +20,10 @@ void main() {
       messageRepository: _FakeMessageRepository([
         _message(DateTime(2026, 7, 24, 10), 120, 30),
         _message(DateTime(2026, 7, 24, 15), 40, 10),
-        _message(DateTime(2026, 7, 25, 8), 80, 20),
+        _message(DateTime(2026, 7, 26, 8), 80, 20),
       ]),
       chatRepository: _FakeChatRepository(),
-      now: () => DateTime(2026, 7, 25, 8, 30),
+      now: () => DateTime(2026, 7, 26, 8, 30),
     );
     addTearDown(viewModel.dispose);
     await viewModel.load();
@@ -155,6 +155,10 @@ void main() {
     );
     expect(firstDailyValue, findsOneWidget);
     expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-25')),
+      findsNothing,
+    );
+    expect(
       tester.getRect(firstDailyBucket).right -
           tester.getRect(firstDailyValue).right,
       closeTo(0, 0.01),
@@ -169,8 +173,16 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey<String>('token-usage-bucket-hour-23')),
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-11')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-15')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-23')),
+      findsNothing,
     );
     final firstHourlyBar = find.byKey(
       const ValueKey<String>('token-usage-bar-hour-10'),
@@ -217,12 +229,12 @@ void main() {
 
     expect(find.text('每日用量'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-25')),
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-26')),
       findsOneWidget,
     );
 
     await tester.tap(
-      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-25')),
+      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-26')),
     );
     await tester.pump();
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -46,6 +47,76 @@ void main() {
     expect(find.text('content-499'), findsOneWidget);
     expect(find.text('content-0'), findsNothing);
     expect(scrollController.offset, 0);
+  });
+
+  testWidgets('assistant code blocks copy only their command or code', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(600, 800);
+    addTearDown(tester.view.reset);
+    final clipboardWrites = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') clipboardWrites.add(call);
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    final message = Message(
+      messageId: 'assistant-code',
+      chatId: 'chat-1',
+      botId: 'bot-1',
+      senderId: 'bot-1',
+      content: '''Run the command:
+
+```bash
+flutter test test/widget_test.dart
+```
+
+Then use this code:
+
+```dart
+void main() => print('done');
+```''',
+      timestamp: DateTime(2026, 8, 11),
+    );
+
+    await tester.pumpWidget(
+      _messageListHarness(
+        MessageList(
+          messages: [message],
+          scrollController: scrollController,
+          isStreaming: false,
+          streamingResponse: '',
+          currentUserId: 'me',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('bash'), findsOneWidget);
+    expect(find.text('dart'), findsOneWidget);
+    final copyButtons = find.byKey(
+      const ValueKey<String>('message-code-copy-button'),
+    );
+    expect(copyButtons, findsNWidgets(2));
+
+    await tester.tap(copyButtons.at(1));
+    await tester.pump();
+
+    expect(clipboardWrites, hasLength(1));
+    expect(clipboardWrites.single.arguments, {
+      'text': "void main() => print('done');",
+    });
   });
 
   testWidgets('desktop reasoning icon rotates while the model is thinking', (

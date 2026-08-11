@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -475,6 +476,168 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
   }
 }
 
+class _CopyableCodeBlockBuilder extends MarkdownElementBuilder {
+  _CopyableCodeBlockBuilder({required this.isDesktop, required this.textStyle});
+
+  final bool isDesktop;
+  final TextStyle textStyle;
+  String _language = '';
+
+  @override
+  void visitElementBefore(md.Element element) {
+    _language = _codeBlockLanguage(element);
+  }
+
+  @override
+  Widget visitText(md.Text text, TextStyle? preferredStyle) {
+    return _CopyableCodeBlock(
+      source: _codeBlockSource(text.text),
+      language: _language,
+      isDesktop: isDesktop,
+      textStyle: textStyle,
+    );
+  }
+}
+
+class _CopyableCodeBlock extends StatefulWidget {
+  const _CopyableCodeBlock({
+    required this.source,
+    required this.language,
+    required this.isDesktop,
+    required this.textStyle,
+  });
+
+  final String source;
+  final String language;
+  final bool isDesktop;
+  final TextStyle textStyle;
+
+  @override
+  State<_CopyableCodeBlock> createState() => _CopyableCodeBlockState();
+}
+
+class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _copyCode() async {
+    if (widget.source.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: widget.source));
+    if (!mounted) return;
+    ShadSonner.maybeOf(context)?.show(
+      ShadToast(
+        title: Text(S.of(context).messageCopied),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final copyLabel = MaterialLocalizations.of(context).copyButtonLabel;
+    final language = widget.language.trim();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.04),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: widget.isDesktop ? 12 : 10,
+              right: widget.isDesktop ? 6 : 4,
+              top: 2,
+              bottom: 2,
+            ),
+            child: Row(
+              children: [
+                if (language.isNotEmpty)
+                  Expanded(
+                    child: Text(
+                      language,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: StarsDesktopTheme.mutedText(context),
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
+                IconButton(
+                  key: const ValueKey<String>('message-code-copy-button'),
+                  tooltip: copyLabel,
+                  onPressed: widget.source.isEmpty ? null : _copyCode,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 32,
+                    height: 32,
+                  ),
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
+                    LucideIcons.copy,
+                    size: 16,
+                    color: StarsDesktopTheme.mutedText(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: StarsDesktopTheme.borderColor(context),
+        ),
+        Scrollbar(
+          controller: _scrollController,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.all(widget.isDesktop ? 12 : 10),
+            child: SelectableText(
+              widget.source,
+              key: const ValueKey<String>('message-code-block-content'),
+              style: widget.textStyle,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _codeBlockSource(String source) =>
+    source.replaceFirst(RegExp(r'\n$'), '');
+
+String _codeBlockLanguage(md.Element element) {
+  final children = element.children;
+  if (children == null) return '';
+
+  for (final child in children) {
+    if (child is! md.Element || child.tag != 'code') continue;
+    final classes =
+        child.attributes['class']?.split(RegExp(r'\s+')) ?? const [];
+    for (final className in classes) {
+      if (className.startsWith('language-')) {
+        return className.substring('language-'.length);
+      }
+    }
+  }
+  return '';
+}
+
 class _MessageBubble extends StatelessWidget {
   final bool isCurrentUser;
   final bool isDesktop;
@@ -544,6 +707,20 @@ class _MessageBubble extends StatelessWidget {
           MarkdownBody(
             data: content,
             selectable: true,
+            builders:
+                isCurrentUser
+                    ? const <String, MarkdownElementBuilder>{}
+                    : <String, MarkdownElementBuilder>{
+                      'pre': _CopyableCodeBlockBuilder(
+                        isDesktop: isDesktop,
+                        textStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontFamily: 'monospace',
+                          fontSize: fontSize - 1,
+                          height: 1.55,
+                        ),
+                      ),
+                    },
             onTapLink:
                 (text, href, title) =>
                     unawaited(_openMarkdownLink(context, href)),
@@ -849,6 +1026,7 @@ class _MessageBubble extends StatelessWidget {
       code: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
         backgroundColor: StarsDesktopTheme.elevatedSurface(context),
+        fontFamily: 'monospace',
         fontSize: fontSize - 1,
       ),
       a: TextStyle(

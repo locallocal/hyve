@@ -629,11 +629,6 @@ class LocalDatabaseService {
         whereArgs: [id],
       );
       await _deleteConversationMemory(transaction, id);
-      await transaction.delete(
-        'token_usage_records',
-        where: 'chat_id = ?',
-        whereArgs: [id],
-      );
       await transaction.delete('chats', where: 'id = ?', whereArgs: [id]);
     });
     _advanceMessageRevision(id);

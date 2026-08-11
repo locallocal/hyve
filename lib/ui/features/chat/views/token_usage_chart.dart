@@ -22,6 +22,9 @@ class ConversationTokenUsagePanel extends StatelessWidget {
       builder: (context, _) {
         final hourly = viewModel.granularity == TokenUsageGranularity.hour;
         final selectedDay = viewModel.selectedDay;
+        final populatedBuckets = viewModel.visibleBuckets
+            .where((bucket) => bucket.usage.hasData)
+            .toList(growable: false);
         return Column(
           key: const ValueKey<String>('conversation-token-usage-panel'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,7 +51,7 @@ class ConversationTokenUsagePanel extends StatelessWidget {
               ),
               TokenUsageTimelineSection(
                 dailyBuckets: viewModel.dailyBuckets,
-                visibleBuckets: viewModel.visibleBuckets,
+                visibleBuckets: populatedBuckets,
                 granularity: viewModel.granularity,
                 selectedDay: selectedDay,
                 onShowDaily: viewModel.showDaily,

@@ -169,7 +169,7 @@ final class ComposeChatTurn {
       try {
         await _resolveAutomaticSkills(
           provider: provider,
-          botPrompt: bot.systemPrompt,
+          bot: bot,
           history: history,
           userMessage: userMessage,
           currentUserId: currentUserId,
@@ -256,6 +256,8 @@ final class ComposeChatTurn {
     final systemPrompt = _composeSystemPrompt(
       bot.systemPrompt,
       activePromptSkills,
+      bot: bot,
+      conversationId: userMessage.chatId,
       resources: state.resources.values.toList(),
       processToolsAvailable:
           systemShellSkill != null || systemMcpInstallerSkill != null,
@@ -524,7 +526,7 @@ final class ComposeChatTurn {
 
   Future<void> _resolveAutomaticSkills({
     required AiProvider provider,
-    required String botPrompt,
+    required Bot bot,
     required List<Message> history,
     required Message userMessage,
     required String currentUserId,
@@ -533,8 +535,10 @@ final class ComposeChatTurn {
     required _TurnSkillState state,
   }) async {
     final initialPrompt = _composeSystemPrompt(
-      botPrompt,
+      bot.systemPrompt,
       state.contents.values.toList(),
+      bot: bot,
+      conversationId: userMessage.chatId,
       catalog: catalog,
     );
     final initialMessages = <ChatMessage>[
@@ -851,11 +855,19 @@ ${references.isEmpty ? '' : '<available_references>\n$references\n</available_re
   String _composeSystemPrompt(
     String botPrompt,
     List<({SkillContent content, SkillActivationTrigger trigger})> skills, {
+    required Bot bot,
+    required String conversationId,
     List<SkillCatalogEntry> catalog = const [],
     List<SkillResourceContent> resources = const [],
     bool processToolsAvailable = false,
   }) {
-    final sections = <String>[];
+    final sections = <String>[
+      buildStarsConversationContext(
+        agentId: bot.id,
+        agentName: bot.name,
+        conversationId: conversationId,
+      ),
+    ];
     if (botPrompt.trim().isNotEmpty) sections.add(botPrompt.trim());
     if (skills.isNotEmpty || catalog.isNotEmpty || resources.isNotEmpty) {
       sections.add('''

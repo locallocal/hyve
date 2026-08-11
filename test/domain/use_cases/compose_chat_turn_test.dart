@@ -68,6 +68,18 @@ void main() {
     expect(systemPrompt, startsWith('<stars_application_context>'));
     expect(systemPrompt, contains('Operating system type: TestOS'));
     expect(systemPrompt, contains('Operating system version: 1.2.3'));
+    expect(systemPrompt, contains('<stars_conversation_context>'));
+    expect(systemPrompt, contains('Agent ID: bot-1'));
+    expect(systemPrompt, contains('Agent name: Assistant'));
+    expect(systemPrompt, contains('Current conversation ID: chat-1'));
+    expect(
+      '<stars_conversation_context>'.allMatches(systemPrompt),
+      hasLength(1),
+    );
+    expect(
+      systemPrompt.indexOf('</stars_conversation_context>'),
+      lessThan(systemPrompt.indexOf('You are a helpful assistant.')),
+    );
     expect(systemPrompt, contains('You are a helpful assistant.'));
     expect(systemPrompt, contains('Selected instructions.'));
     expect(systemPrompt, isNot(contains('Always instructions.')));
@@ -83,6 +95,10 @@ void main() {
     expect(
       provider.session.request?.messages.first.content,
       startsWith('<stars_application_context>'),
+    );
+    expect(
+      provider.session.request?.messages.first.content,
+      contains('Current conversation ID: chat-1'),
     );
     expect(result.requestedToolNames, {'calculate'});
   });

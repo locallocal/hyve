@@ -35,6 +35,24 @@ void main() {
     );
     expect(prompt, endsWith('Existing assistant instructions.'));
   });
+
+  test('safely describes the current agent and conversation identity', () {
+    final prompt = buildStarsConversationContext(
+      agentId: 'agent<1>',
+      agentName: 'Research & Review',
+      conversationId: 'chat>2',
+    );
+
+    expect(prompt, startsWith('<stars_conversation_context>'));
+    expect(
+      prompt,
+      contains('Application-provided runtime identity for the current turn.'),
+    );
+    expect(prompt, contains('Agent ID: agent&lt;1&gt;'));
+    expect(prompt, contains('Agent name: Research &amp; Review'));
+    expect(prompt, contains('Current conversation ID: chat&gt;2'));
+    expect(prompt, endsWith('</stars_conversation_context>'));
+  });
 }
 
 String _testStarsSystemPrompt() => buildStarsSystemPrompt(

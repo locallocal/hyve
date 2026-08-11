@@ -588,9 +588,12 @@ void main() {
       );
       final avatar = find.descendant(
         of: card,
-        matching: find.byType(CircleAvatar),
+        matching: find.byType(ShadAvatar),
       );
       final botName = find.descendant(of: card, matching: find.text('测试智能体'));
+      final identity = find.byKey(
+        const ValueKey<String>('bot-card-identity-bot-1'),
+      );
       final providerAndModel = find.descendant(
         of: card,
         matching: find.text('OpenAI · gpt-test'),
@@ -614,6 +617,12 @@ void main() {
       final usageFeatures = find.byKey(
         const ValueKey<String>('bot-card-usage-features-bot-1'),
       );
+      final informationPanel = find.byKey(
+        const ValueKey<String>('bot-card-information-panel-bot-1'),
+      );
+      final informationDivider = find.byKey(
+        const ValueKey<String>('bot-card-information-divider-bot-1'),
+      );
       expect(card, findsOneWidget);
       expect(tester.getSize(card).height, 200);
       expect(tokenMetric, findsOneWidget);
@@ -624,6 +633,7 @@ void main() {
       expect(creationTimeMetric, findsOneWidget);
       expect(avatar, findsOneWidget);
       expect(botName, findsOneWidget);
+      expect(identity, findsOneWidget);
       expect(providerAndModel, findsOneWidget);
       expect(menuButton, findsOneWidget);
       expect(menuIcon, findsOneWidget);
@@ -631,6 +641,17 @@ void main() {
       expect(modelFeatures, findsOneWidget);
       expect(usageFeatures, findsOneWidget);
       expect(modalities, findsOneWidget);
+      expect(informationPanel, findsOneWidget);
+      expect(informationDivider, findsOneWidget);
+      expect(
+        tester.widget<Container>(informationPanel).decoration,
+        BoxDecoration(
+          color: DesktopThemeTokens.controlFill(
+            tester.element(informationPanel),
+          ),
+          borderRadius: DesktopThemeTokens.controlRadius,
+        ),
+      );
       final inputModalities = find.byKey(
         const ValueKey<String>('bot-card-modalities-bot-1-input'),
       );
@@ -745,11 +766,11 @@ void main() {
       final footerRect = tester.getRect(footer);
       final iconTopInset = avatarRect.top - cardRect.top;
       final footerBottomInset = cardRect.bottom - footerRect.bottom;
-      expect(iconTopInset, closeTo(19, 0.5));
-      expect(footerBottomInset, closeTo(iconTopInset, 0.5));
+      expect(iconTopInset, greaterThanOrEqualTo(18));
+      expect(footerBottomInset, closeTo(19, 0.5));
       expect(
         cardRect.right - tester.getRect(menuIcon).right,
-        closeTo(tester.getRect(tokenMetricIcon).left - cardRect.left, 0.5),
+        closeTo(avatarRect.left - cardRect.left, 0.5),
       );
       expect(
         tester.getTopRight(avatar).dx,
@@ -757,21 +778,27 @@ void main() {
       );
       expect(
         tester.getCenter(avatar).dy,
-        closeTo(tester.getCenter(botName).dy, 0.5),
+        closeTo(tester.getCenter(identity).dy, 0.5),
+      );
+      expect(
+        tester.getTopLeft(informationPanel).dy -
+            tester.getBottomLeft(avatar).dy,
+        greaterThanOrEqualTo(12),
       );
       expect(
         tester.getTopLeft(contextWindowMetric).dy -
-            tester.getBottomLeft(avatar).dy,
-        closeTo(10, 0.5),
+            tester.getTopLeft(informationPanel).dy,
+        closeTo(9, 0.5),
       );
       expect(
-        tester.getTopLeft(avatar).dx,
-        closeTo(tester.getTopLeft(contextWindowMetric).dx, 0.5),
+        tester.getTopLeft(contextWindowMetric).dx -
+            tester.getTopLeft(avatar).dx,
+        closeTo(10, 0.5),
       );
       expect(
         tester.getTopLeft(tokenMetric).dy -
             tester.getBottomLeft(contextWindowMetric).dy,
-        closeTo(8, 0.5),
+        closeTo(17, 0.5),
       );
       expect(
         tester.getTopLeft(tokenMetric).dx,
@@ -802,20 +829,20 @@ void main() {
         lessThan(tester.getTopLeft(mcpMetric).dx),
       );
       expect(
-        tester.getCenter(providerAndModel).dy,
-        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
+        tester.getTopLeft(providerAndModel).dx,
+        closeTo(tester.getTopLeft(botName).dx, 0.5),
       );
       expect(
-        tester.getCenter(creationTimeMetric).dy,
-        closeTo(tester.getCenter(menuButton).dy, 0.5),
+        tester.getTopLeft(providerAndModel).dy,
+        greaterThan(tester.getBottomLeft(botName).dy),
       );
       expect(
-        tester.getTopRight(providerAndModel).dx,
-        lessThan(tester.getTopLeft(creationTimeMetric).dx),
+        tester.getCenter(menuButton).dy,
+        closeTo(tester.getCenter(avatar).dy, 0.5),
       );
       expect(
-        tester.getTopRight(creationTimeMetric).dx,
-        lessThan(tester.getTopLeft(menuButton).dx),
+        tester.getTopLeft(creationTimeMetric).dx,
+        closeTo(tester.getTopLeft(avatar).dx, 0.5),
       );
       expect(
         tester
@@ -975,6 +1002,19 @@ void main() {
       expect(addBotButtonWidget.size, isNull);
       expect(addBotButtonWidget.height, isNull);
       expect(tester.getSize(addBotButton).height, 40);
+
+      tester.view.physicalSize = const Size(800, 800);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getRect(informationPanel).left,
+        greaterThan(tester.getRect(card).left),
+      );
+      expect(
+        tester.getRect(informationPanel).right,
+        lessThan(tester.getRect(card).right),
+      );
     });
   });
 
@@ -1078,7 +1118,7 @@ void main() {
       );
       expect(
         tester.getCenter(menuButton).dy,
-        greaterThan(tester.getCenter(card).dy),
+        lessThan(tester.getCenter(card).dy),
       );
 
       await tester.tap(card);

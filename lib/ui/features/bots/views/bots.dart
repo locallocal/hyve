@@ -751,181 +751,208 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                 onSecondaryTapDown: (details) {
                   controller.open(position: details.localPosition);
                 },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 140),
-                  transform:
-                      _hovered
-                          ? (Matrix4.identity()..translateByDouble(0, -2, 0, 1))
-                          : Matrix4.identity(),
-                  child: ShadCard(
-                    key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),
-                    padding: const EdgeInsets.all(18),
-                    backgroundColor: _hovered ? theme.colorScheme.accent : null,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 22,
-                              backgroundColor: getFrostedProviderColor(
-                                widget.bot.provider,
-                                Theme.of(context).colorScheme.primary,
-                              ),
-                              backgroundImage:
-                                  widget.bot.avatar.isNotEmpty
-                                      ? FileImage(File(widget.bot.avatar))
-                                      : null,
-                              child:
-                                  widget.bot.avatar.isEmpty
-                                      ? buildProviderLogo(
-                                        context,
-                                        '',
-                                        widget.bot.provider,
-                                        22,
-                                      )
-                                      : null,
+                child: ShadCard(
+                  key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),
+                  padding: const EdgeInsets.all(18),
+                  backgroundColor: _hovered ? theme.colorScheme.accent : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ShadAvatar(
+                            widget.bot.avatar.isEmpty
+                                ? null
+                                : File(widget.bot.avatar),
+                            size: const Size.square(44),
+                            backgroundColor: getFrostedProviderColor(
+                              widget.bot.provider,
+                              Theme.of(context).colorScheme.primary,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                widget.bot.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.h4,
-                              ),
+                            placeholder: buildProviderLogo(
+                              context,
+                              '',
+                              widget.bot.provider,
+                              22,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          key: ValueKey<String>(
-                            'bot-card-model-features-${widget.bot.id}',
                           ),
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _BotCardMetric(
-                                key: ValueKey<String>(
-                                  'bot-card-context-window-${widget.bot.id}',
-                                ),
-                                icon: Icons.data_array_rounded,
-                                name: S.of(context).modelContextWindow,
-                                value:
-                                    widget.metrics.contextWindowTokens == null
-                                        ? '—'
-                                        : numberFormat.format(
-                                          widget.metrics.contextWindowTokens,
-                                        ),
-                                separatorKey: ValueKey<String>(
-                                  'bot-card-context-window-separator-${widget.bot.id}',
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: ModelModalitiesView(
-                                inputModalities: widget.metrics.inputModalities,
-                                outputModalities:
-                                    widget.metrics.outputModalities,
-                                keyPrefix:
-                                    'bot-card-modalities-${widget.bot.id}',
-                                density: ModelModalitiesDensity.compact,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          key: ValueKey<String>(
-                            'bot-card-usage-features-${widget.bot.id}',
-                          ),
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _BotCardMetric(
-                                key: ValueKey<String>(
-                                  'bot-card-token-total-${widget.bot.id}',
-                                ),
-                                icon: LucideIcons.chartNoAxesColumnIncreasing,
-                                name: S.of(context).totalTokens,
-                                value: numberFormat.format(
-                                  widget
-                                      .metrics
-                                      .tokenUsage
-                                      .effectiveTotalTokens,
-                                ),
-                                separatorKey: ValueKey<String>(
-                                  'bot-card-token-total-separator-${widget.bot.id}',
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: _BotCardMetric(
-                                key: ValueKey<String>(
-                                  'bot-card-skill-count-${widget.bot.id}',
-                                ),
-                                icon: LucideIcons.wrench,
-                                name: S.of(context).botSkills,
-                                value: '${widget.metrics.skillCount}',
-                                separatorKey: ValueKey<String>(
-                                  'bot-card-skill-count-separator-${widget.bot.id}',
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: _BotCardMetric(
-                                key: ValueKey<String>(
-                                  'bot-card-mcp-count-${widget.bot.id}',
-                                ),
-                                icon: Icons.hub_outlined,
-                                name: S.of(context).mcpServers,
-                                value: '${mcpServerNames.length}',
-                                separatorKey: ValueKey<String>(
-                                  'bot-card-mcp-count-separator-${widget.bot.id}',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Row(
-                          key: ValueKey<String>(
-                            'desktop-bot-card-footer-${widget.bot.id}',
-                          ),
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                widget.subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.muted,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _BotCardMetric(
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
                               key: ValueKey<String>(
-                                'bot-card-creation-time-${widget.bot.id}',
+                                'bot-card-identity-${widget.bot.id}',
                               ),
-                              icon: Icons.schedule_outlined,
-                              name: S.of(context).creationTime,
-                              value: formatTimestamp(
-                                context,
-                                widget.bot.createTimestamp,
-                              ),
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.bot.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.h4,
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  widget.subtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.muted,
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            const SizedBox(width: 8),
-                            Transform.translate(
-                              offset: const Offset(_menuIconAlignmentOffset, 0),
-                              child: _buildActionMenu(context),
+                          ),
+                          const SizedBox(width: 8),
+                          Transform.translate(
+                            offset: const Offset(_menuIconAlignmentOffset, 0),
+                            child: _buildActionMenu(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        key: ValueKey<String>(
+                          'bot-card-information-panel-${widget.bot.id}',
+                        ),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: DesktopThemeTokens.controlFill(context),
+                          borderRadius: DesktopThemeTokens.controlRadius,
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              key: ValueKey<String>(
+                                'bot-card-model-features-${widget.bot.id}',
+                              ),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _BotCardMetric(
+                                    key: ValueKey<String>(
+                                      'bot-card-context-window-${widget.bot.id}',
+                                    ),
+                                    icon: Icons.data_array_rounded,
+                                    name: S.of(context).modelContextWindow,
+                                    value:
+                                        widget.metrics.contextWindowTokens ==
+                                                null
+                                            ? '—'
+                                            : numberFormat.format(
+                                              widget
+                                                  .metrics
+                                                  .contextWindowTokens,
+                                            ),
+                                    separatorKey: ValueKey<String>(
+                                      'bot-card-context-window-separator-${widget.bot.id}',
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: ModelModalitiesView(
+                                    inputModalities:
+                                        widget.metrics.inputModalities,
+                                    outputModalities:
+                                        widget.metrics.outputModalities,
+                                    keyPrefix:
+                                        'bot-card-modalities-${widget.bot.id}',
+                                    density: ModelModalitiesDensity.compact,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              key: ValueKey<String>(
+                                'bot-card-information-divider-${widget.bot.id}',
+                              ),
+                              width: double.infinity,
+                              height: 1,
+                              color: DesktopThemeTokens.divider(context),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              key: ValueKey<String>(
+                                'bot-card-usage-features-${widget.bot.id}',
+                              ),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _BotCardMetric(
+                                    key: ValueKey<String>(
+                                      'bot-card-token-total-${widget.bot.id}',
+                                    ),
+                                    icon:
+                                        LucideIcons.chartNoAxesColumnIncreasing,
+                                    name: S.of(context).totalTokens,
+                                    value: numberFormat.format(
+                                      widget
+                                          .metrics
+                                          .tokenUsage
+                                          .effectiveTotalTokens,
+                                    ),
+                                    separatorKey: ValueKey<String>(
+                                      'bot-card-token-total-separator-${widget.bot.id}',
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _BotCardMetric(
+                                    key: ValueKey<String>(
+                                      'bot-card-skill-count-${widget.bot.id}',
+                                    ),
+                                    icon: LucideIcons.wrench,
+                                    name: S.of(context).botSkills,
+                                    value: '${widget.metrics.skillCount}',
+                                    separatorKey: ValueKey<String>(
+                                      'bot-card-skill-count-separator-${widget.bot.id}',
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _BotCardMetric(
+                                    key: ValueKey<String>(
+                                      'bot-card-mcp-count-${widget.bot.id}',
+                                    ),
+                                    icon: Icons.hub_outlined,
+                                    name: S.of(context).mcpServers,
+                                    value: '${mcpServerNames.length}',
+                                    separatorKey: ValueKey<String>(
+                                      'bot-card-mcp-count-separator-${widget.bot.id}',
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        key: ValueKey<String>(
+                          'desktop-bot-card-footer-${widget.bot.id}',
+                        ),
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _BotCardMetric(
+                            key: ValueKey<String>(
+                              'bot-card-creation-time-${widget.bot.id}',
+                            ),
+                            icon: Icons.schedule_outlined,
+                            name: S.of(context).creationTime,
+                            value: formatTimestamp(
+                              context,
+                              widget.bot.createTimestamp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),

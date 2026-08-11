@@ -134,6 +134,11 @@ void main() {
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.text('修改名称'), findsOneWidget);
       expect(find.byType(ShadInput), findsOneWidget);
+      _expectDesktopDialogCloseAligned(
+        tester,
+        dialogKey: 'profile-edit-name-dialog',
+        closeKey: 'profile-edit-name-close',
+      );
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
@@ -194,6 +199,11 @@ void main() {
       );
       expect(aboutDialog, findsOneWidget);
       expect(find.byType(ShadDialog), findsOneWidget);
+      _expectDesktopDialogCloseAligned(
+        tester,
+        dialogKey: 'profile-about-dialog',
+        closeKey: 'profile-about-close',
+      );
       expect(brandCard, findsOneWidget);
       expect(
         find.descendant(of: brandCard, matching: find.byType(StarsLogo)),
@@ -419,6 +429,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
+      _expectDesktopDialogCloseAligned(
+        tester,
+        dialogKey: 'profile-theme-dialog',
+        closeKey: 'profile-theme-close',
+      );
       expect(options, findsOneWidget);
       expect(systemOption, findsOneWidget);
       expect(lightOption, findsOneWidget);
@@ -511,6 +526,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
+      _expectDesktopDialogCloseAligned(
+        tester,
+        dialogKey: 'profile-language-dialog',
+        closeKey: 'profile-language-close',
+      );
       expect(find.byType(ShadRadioGroup<String>), findsNothing);
       expect(options, findsOneWidget);
       expect(chineseOption, findsOneWidget);
@@ -555,6 +575,32 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     }
   });
+}
+
+void _expectDesktopDialogCloseAligned(
+  WidgetTester tester, {
+  required String dialogKey,
+  required String closeKey,
+}) {
+  final dialog = find.byKey(ValueKey<String>(dialogKey));
+  final close = find.byKey(ValueKey<String>(closeKey));
+  expect(dialog, findsOneWidget);
+  expect(close, findsOneWidget);
+  final dialogSurface =
+      find.ancestor(of: close, matching: find.byType(Stack)).first;
+  expect(tester.getSize(close), const Size.square(44));
+  expect(
+    find.descendant(of: close, matching: find.byIcon(LucideIcons.x)),
+    findsOneWidget,
+  );
+  expect(
+    tester.getRect(dialogSurface).right - tester.getRect(close).right,
+    closeTo(8, 0.01),
+  );
+  expect(
+    tester.getRect(close).top - tester.getRect(dialogSurface).top,
+    closeTo(12, 0.01),
+  );
 }
 
 Widget _profileHarness({

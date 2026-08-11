@@ -8,6 +8,7 @@ import 'package:stars/domain/models/provider_catalog.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/add_bot_skills.dart';
@@ -792,19 +793,13 @@ class _AddBotPageState extends State<AddBotPage> {
             ),
           ),
           const SizedBox(width: 8),
-          ShadTooltip(
-            builder:
-                (context) =>
-                    Text(MaterialLocalizations.of(context).closeButtonTooltip),
-            child: ShadIconButton.ghost(
-              enabled: !_isSubmitting,
-              onPressed:
-                  _isSubmitting ? null : () => Navigator.of(context).pop(),
-              width: 36,
-              height: 36,
-              iconSize: 17,
-              icon: const Icon(Icons.close_rounded),
-            ),
+          StarsDesktopIconAction(
+            key: const ValueKey<String>('add-bot-close'),
+            icon: LucideIcons.x,
+            iconSize: 18,
+            label: MaterialLocalizations.of(context).closeButtonTooltip,
+            enabled: !_isSubmitting,
+            onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
           ),
         ],
       ),

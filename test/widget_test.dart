@@ -506,6 +506,8 @@ void main() {
       systemPrompt: '',
       parameters: const {
         Bot.parameterContextWindowTokens: 128000,
+        Bot.parameterInputModalities: ['text', 'image', 'audio'],
+        Bot.parameterOutputModalities: ['text'],
         Bot.parameterMcpServers: ['mcp-search', 'mcp-docs'],
         Bot.parameterMcpTools: [
           {
@@ -603,8 +605,17 @@ void main() {
       final footer = find.byKey(
         const ValueKey<String>('desktop-bot-card-footer-bot-1'),
       );
+      final modalities = find.byKey(
+        const ValueKey<String>('bot-card-modalities-bot-1'),
+      );
+      final modelFeatures = find.byKey(
+        const ValueKey<String>('bot-card-model-features-bot-1'),
+      );
+      final usageFeatures = find.byKey(
+        const ValueKey<String>('bot-card-usage-features-bot-1'),
+      );
       expect(card, findsOneWidget);
-      expect(tester.getSize(card).height, 180);
+      expect(tester.getSize(card).height, 200);
       expect(tokenMetric, findsOneWidget);
       expect(tokenMetricIcon, findsOneWidget);
       expect(skillMetric, findsOneWidget);
@@ -617,6 +628,118 @@ void main() {
       expect(menuButton, findsOneWidget);
       expect(menuIcon, findsOneWidget);
       expect(footer, findsOneWidget);
+      expect(modelFeatures, findsOneWidget);
+      expect(usageFeatures, findsOneWidget);
+      expect(modalities, findsOneWidget);
+      final inputModalities = find.byKey(
+        const ValueKey<String>('bot-card-modalities-bot-1-input'),
+      );
+      final outputModalities = find.byKey(
+        const ValueKey<String>('bot-card-modalities-bot-1-output'),
+      );
+      expect(inputModalities, findsOneWidget);
+      expect(outputModalities, findsOneWidget);
+      final inputDirectionIcon = find.descendant(
+        of: modalities,
+        matching: find.byIcon(Icons.input_rounded),
+      );
+      final outputDirectionIcon = find.descendant(
+        of: modalities,
+        matching: find.byIcon(Icons.output_rounded),
+      );
+      expect(inputDirectionIcon, findsOneWidget);
+      expect(outputDirectionIcon, findsOneWidget);
+      expect(
+        find.descendant(
+          of: modalities,
+          matching: find.byIcon(Icons.text_fields_rounded),
+        ),
+        findsNWidgets(2),
+      );
+      expect(
+        find.descendant(
+          of: modalities,
+          matching: find.byIcon(Icons.image_outlined),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: modalities,
+          matching: find.byIcon(Icons.audio_file_outlined),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: modalities, matching: find.textContaining('文本')),
+        findsNothing,
+      );
+      expect(
+        tester.getCenter(inputModalities).dy,
+        closeTo(tester.getCenter(outputModalities).dy, 0.01),
+      );
+      expect(
+        tester.getTopLeft(contextWindowMetric).dy,
+        closeTo(tester.getTopLeft(inputModalities).dy, 0.01),
+      );
+      for (final direction in ['output', 'input']) {
+        final group =
+            direction == 'output' ? outputModalities : inputModalities;
+        final directionIcon = find.descendant(
+          of: group,
+          matching: find.byIcon(
+            direction == 'output' ? Icons.output_rounded : Icons.input_rounded,
+          ),
+        );
+        final separator = find.byKey(
+          ValueKey<String>('bot-card-modalities-bot-1-$direction-separator'),
+        );
+        final textFeature = find.byKey(
+          ValueKey<String>('bot-card-modalities-bot-1-$direction-value-text'),
+        );
+        expect(separator, findsOneWidget);
+        expect(
+          tester.getRect(directionIcon).right,
+          lessThan(tester.getRect(separator).left),
+        );
+        expect(
+          tester.getRect(separator).right,
+          lessThan(tester.getRect(textFeature).left),
+        );
+      }
+      final contextFeatureIcon = find.descendant(
+        of: contextWindowMetric,
+        matching: find.byIcon(Icons.data_array_rounded),
+      );
+      final contextWindowSeparator = find.byKey(
+        const ValueKey<String>('bot-card-context-window-separator-bot-1'),
+      );
+      final contextWindowValue = find.descendant(
+        of: contextWindowMetric,
+        matching: find.byType(Text),
+      );
+      final inputAudioFeature = find.byKey(
+        const ValueKey<String>('bot-card-modalities-bot-1-input-value-audio'),
+      );
+      expect(contextWindowSeparator, findsOneWidget);
+      expect(
+        tester.getRect(contextFeatureIcon).right,
+        lessThan(tester.getRect(contextWindowSeparator).left),
+      );
+      expect(
+        tester.getRect(contextWindowSeparator).right,
+        lessThan(tester.getRect(contextWindowValue).left),
+      );
+      expect(
+        tester.getRect(inputDirectionIcon).left -
+            tester.getRect(contextWindowValue).right,
+        greaterThanOrEqualTo(24),
+      );
+      expect(
+        tester.getRect(outputDirectionIcon).left -
+            tester.getRect(inputAudioFeature).right,
+        greaterThanOrEqualTo(24),
+      );
       final cardRect = tester.getRect(card);
       final avatarRect = tester.getRect(avatar);
       final footerRect = tester.getRect(footer);
@@ -637,12 +760,30 @@ void main() {
         closeTo(tester.getCenter(botName).dy, 0.5),
       );
       expect(
-        tester.getTopLeft(tokenMetric).dy - tester.getBottomLeft(avatar).dy,
+        tester.getTopLeft(contextWindowMetric).dy -
+            tester.getBottomLeft(avatar).dy,
         closeTo(10, 0.5),
       );
       expect(
         tester.getTopLeft(avatar).dx,
-        closeTo(tester.getTopLeft(tokenMetric).dx, 0.5),
+        closeTo(tester.getTopLeft(contextWindowMetric).dx, 0.5),
+      );
+      expect(
+        tester.getTopLeft(tokenMetric).dy -
+            tester.getBottomLeft(contextWindowMetric).dy,
+        closeTo(8, 0.5),
+      );
+      expect(
+        tester.getTopLeft(tokenMetric).dx,
+        closeTo(tester.getTopLeft(contextWindowMetric).dx, 0.5),
+      );
+      expect(
+        tester.getTopLeft(skillMetric).dx,
+        closeTo(tester.getTopLeft(inputModalities).dx, 0.5),
+      );
+      expect(
+        tester.getTopLeft(mcpMetric).dx,
+        closeTo(tester.getTopLeft(outputModalities).dx, 0.5),
       );
       expect(
         tester.getCenter(tokenMetric).dy,
@@ -651,10 +792,6 @@ void main() {
       expect(
         tester.getCenter(skillMetric).dy,
         closeTo(tester.getCenter(mcpMetric).dy, 0.5),
-      );
-      expect(
-        tester.getCenter(mcpMetric).dy,
-        closeTo(tester.getCenter(contextWindowMetric).dy, 0.5),
       );
       expect(
         tester.getTopLeft(tokenMetric).dx,
@@ -757,10 +894,6 @@ void main() {
             .message,
         '创建时间',
       );
-      expect(
-        find.descendant(of: tokenMetric, matching: find.byType(Container)),
-        findsNothing,
-      );
       final tokenIcon = find.descendant(
         of: tokenMetric,
         matching: find.byIcon(LucideIcons.chartNoAxesColumnIncreasing),
@@ -781,6 +914,31 @@ void main() {
         of: creationTimeMetric,
         matching: find.byIcon(Icons.schedule_outlined),
       );
+      final usageMetrics = [tokenMetric, skillMetric, mcpMetric];
+      final usageIcons = [tokenIcon, skillIcon, mcpIcon];
+      final usageSeparatorKeys = [
+        'bot-card-token-total-separator-bot-1',
+        'bot-card-skill-count-separator-bot-1',
+        'bot-card-mcp-count-separator-bot-1',
+      ];
+      for (var index = 0; index < usageMetrics.length; index += 1) {
+        final separator = find.byKey(
+          ValueKey<String>(usageSeparatorKeys[index]),
+        );
+        final value = find.descendant(
+          of: usageMetrics[index],
+          matching: find.byType(Text),
+        );
+        expect(separator, findsOneWidget);
+        expect(
+          tester.getRect(usageIcons[index]).right,
+          lessThan(tester.getRect(separator).left),
+        );
+        expect(
+          tester.getRect(separator).right,
+          lessThan(tester.getRect(value).left),
+        );
+      }
       final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
       addTearDown(mouse.removePointer);
       await mouse.addPointer(location: Offset.zero);
@@ -2278,6 +2436,10 @@ void main() {
       apiType: Bot.apiTypeOpenAI,
       model: 'gpt-test',
       systemPrompt: '',
+      parameters: const {
+        Bot.parameterInputModalities: ['text', 'image', 'audio'],
+        Bot.parameterOutputModalities: ['text'],
+      },
       createTimestamp: DateTime(2026),
       modifyTimestamp: DateTime(2026),
     );
@@ -2300,7 +2462,7 @@ void main() {
       final inspectorList = tester.widget<ListView>(inspector);
       expect(inspectorList.padding, const EdgeInsets.only(top: 12, right: 16));
       final infoRows = find.byType(StarsInspectorInfoRow);
-      expect(infoRows, findsNWidgets(3));
+      expect(infoRows, findsNWidgets(5));
       final labelLefts = <double>[];
       for (var index = 0; index < 3; index += 1) {
         final row = infoRows.at(index);
@@ -2322,6 +2484,46 @@ void main() {
       }
       expect(labelLefts[1], closeTo(labelLefts[0], 0.01));
       expect(labelLefts[2], closeTo(labelLefts[0], 0.01));
+      final inputModalities = find.byKey(
+        const ValueKey<String>('conversation-model-modalities-input'),
+      );
+      final outputModalities = find.byKey(
+        const ValueKey<String>('conversation-model-modalities-output'),
+      );
+      expect(inputModalities, findsOneWidget);
+      expect(outputModalities, findsOneWidget);
+      expect(
+        find.descendant(
+          of: inputModalities,
+          matching: find.byIcon(Icons.text_fields_rounded),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: inputModalities,
+          matching: find.byIcon(Icons.image_outlined),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: inputModalities,
+          matching: find.byIcon(Icons.audio_file_outlined),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: outputModalities,
+          matching: find.byIcon(Icons.text_fields_rounded),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: inputModalities, matching: find.text('文本')),
+        findsNothing,
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -2686,6 +2888,8 @@ void main() {
       systemPrompt: systemPrompt,
       parameters: const {
         Bot.parameterContextWindowTokens: 128000,
+        Bot.parameterInputModalities: ['text', 'image', 'audio'],
+        Bot.parameterOutputModalities: ['text'],
         Bot.parameterSupportsSkills: true,
         Bot.parameterSupportsMcp: false,
       },
@@ -2824,6 +3028,8 @@ void main() {
       'bot-detail-api-key',
       'bot-detail-model',
       'bot-detail-model-context-window',
+      'bot-detail-model-modalities-input',
+      'bot-detail-model-modalities-output',
       'bot-detail-supports-skills',
       'bot-detail-supports-mcp',
       'bot-detail-system-prompt',
@@ -2875,6 +3081,72 @@ void main() {
           )
           .data,
       contains('128'),
+    );
+    final inputModalities = find.byKey(
+      const ValueKey<String>('bot-detail-model-modalities-input'),
+    );
+    final outputModalities = find.byKey(
+      const ValueKey<String>('bot-detail-model-modalities-output'),
+    );
+    expect(
+      find.descendant(of: inputModalities, matching: find.text('输入')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: inputModalities,
+        matching: find.byIcon(Icons.text_fields_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: inputModalities,
+        matching: find.byIcon(Icons.image_outlined),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: inputModalities,
+        matching: find.byIcon(Icons.audio_file_outlined),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: outputModalities, matching: find.text('输出')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: outputModalities,
+        matching: find.byIcon(Icons.text_fields_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: inputModalities, matching: find.text('文本')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: inputModalities, matching: find.byTooltip('图片')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getRect(inputModalities).left,
+      closeTo(tester.getRect(contextWindowDetail).left, 0.01),
+    );
+    expect(
+      tester.getRect(outputModalities).left,
+      closeTo(tester.getRect(contextWindowDetail).left, 0.01),
+    );
+    expect(
+      tester.getRect(inputModalities).right,
+      closeTo(tester.getRect(contextWindowDetail).right, 0.01),
+    );
+    expect(
+      tester.getRect(outputModalities).right,
+      closeTo(tester.getRect(contextWindowDetail).right, 0.01),
     );
     final supportsSkillsDetail = find.byKey(
       const ValueKey<String>('bot-detail-supports-skills'),
@@ -3003,6 +3275,10 @@ void main() {
       apiType: Bot.apiTypeOpenAI,
       model: 'gpt-test',
       systemPrompt: 'Be helpful',
+      parameters: const {
+        Bot.parameterInputModalities: ['text', 'image'],
+        Bot.parameterOutputModalities: ['text'],
+      },
       createTimestamp: DateTime(2026),
       modifyTimestamp: DateTime(2026),
     );
@@ -3088,6 +3364,11 @@ void main() {
     expect(updatedBot?.baseURL, bot.baseURL);
     expect(updatedBot?.apiKey, bot.apiKey);
     expect(updatedBot?.model, bot.model);
+    expect(updatedBot?.configuredInputModalities, [
+      InputModality.text,
+      InputModality.image,
+    ]);
+    expect(updatedBot?.configuredOutputModalities, [OutputModality.text]);
   });
 
   testWidgets('desktop bot save button shows saving and saved states', (

@@ -6,6 +6,7 @@ import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:stars/ui/core/widgets/model_modalities.dart';
 import 'package:stars/ui/features/bots/views/add_bot.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
@@ -233,7 +234,7 @@ class ContactsPageState extends State<ContactsPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
-              mainAxisExtent: 180,
+              mainAxisExtent: 200,
             ),
             itemCount: filteredBots.length,
             itemBuilder: (context, index) {
@@ -798,48 +799,93 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 16,
-                          runSpacing: 8,
+                        Row(
+                          key: ValueKey<String>(
+                            'bot-card-model-features-${widget.bot.id}',
+                          ),
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _BotCardMetric(
-                              key: ValueKey<String>(
-                                'bot-card-token-total-${widget.bot.id}',
-                              ),
-                              icon: LucideIcons.chartNoAxesColumnIncreasing,
-                              name: S.of(context).totalTokens,
-                              value: numberFormat.format(
-                                widget.metrics.tokenUsage.effectiveTotalTokens,
+                            Expanded(
+                              child: _BotCardMetric(
+                                key: ValueKey<String>(
+                                  'bot-card-context-window-${widget.bot.id}',
+                                ),
+                                icon: Icons.data_array_rounded,
+                                name: S.of(context).modelContextWindow,
+                                value:
+                                    widget.metrics.contextWindowTokens == null
+                                        ? '—'
+                                        : numberFormat.format(
+                                          widget.metrics.contextWindowTokens,
+                                        ),
+                                separatorKey: ValueKey<String>(
+                                  'bot-card-context-window-separator-${widget.bot.id}',
+                                ),
                               ),
                             ),
-                            _BotCardMetric(
-                              key: ValueKey<String>(
-                                'bot-card-skill-count-${widget.bot.id}',
+                            Expanded(
+                              flex: 2,
+                              child: ModelModalitiesView(
+                                inputModalities: widget.metrics.inputModalities,
+                                outputModalities:
+                                    widget.metrics.outputModalities,
+                                keyPrefix:
+                                    'bot-card-modalities-${widget.bot.id}',
+                                density: ModelModalitiesDensity.compact,
                               ),
-                              icon: LucideIcons.wrench,
-                              name: S.of(context).botSkills,
-                              value: '${widget.metrics.skillCount}',
                             ),
-                            _BotCardMetric(
-                              key: ValueKey<String>(
-                                'bot-card-mcp-count-${widget.bot.id}',
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          key: ValueKey<String>(
+                            'bot-card-usage-features-${widget.bot.id}',
+                          ),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _BotCardMetric(
+                                key: ValueKey<String>(
+                                  'bot-card-token-total-${widget.bot.id}',
+                                ),
+                                icon: LucideIcons.chartNoAxesColumnIncreasing,
+                                name: S.of(context).totalTokens,
+                                value: numberFormat.format(
+                                  widget
+                                      .metrics
+                                      .tokenUsage
+                                      .effectiveTotalTokens,
+                                ),
+                                separatorKey: ValueKey<String>(
+                                  'bot-card-token-total-separator-${widget.bot.id}',
+                                ),
                               ),
-                              icon: Icons.hub_outlined,
-                              name: S.of(context).mcpServers,
-                              value: '${mcpServerNames.length}',
                             ),
-                            _BotCardMetric(
-                              key: ValueKey<String>(
-                                'bot-card-context-window-${widget.bot.id}',
+                            Expanded(
+                              child: _BotCardMetric(
+                                key: ValueKey<String>(
+                                  'bot-card-skill-count-${widget.bot.id}',
+                                ),
+                                icon: LucideIcons.wrench,
+                                name: S.of(context).botSkills,
+                                value: '${widget.metrics.skillCount}',
+                                separatorKey: ValueKey<String>(
+                                  'bot-card-skill-count-separator-${widget.bot.id}',
+                                ),
                               ),
-                              icon: Icons.data_array_rounded,
-                              name: S.of(context).modelContextWindow,
-                              value:
-                                  widget.metrics.contextWindowTokens == null
-                                      ? '—'
-                                      : numberFormat.format(
-                                        widget.metrics.contextWindowTokens,
-                                      ),
+                            ),
+                            Expanded(
+                              child: _BotCardMetric(
+                                key: ValueKey<String>(
+                                  'bot-card-mcp-count-${widget.bot.id}',
+                                ),
+                                icon: Icons.hub_outlined,
+                                name: S.of(context).mcpServers,
+                                value: '${mcpServerNames.length}',
+                                separatorKey: ValueKey<String>(
+                                  'bot-card-mcp-count-separator-${widget.bot.id}',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -989,20 +1035,86 @@ class _BotListItemState extends State<_BotListItem> {
                             : DesktopThemeTokens.mutedText(context),
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  '${S.of(context).modelContextWindow} $contextWindow · '
-                  '${S.of(context).totalTokens} ${numberFormat.format(widget.metrics.tokenUsage.effectiveTotalTokens)} · '
-                  '${S.of(context).botSkills} ${widget.metrics.skillCount} · '
-                  '${S.of(context).mcpServers} ${widget.metrics.mcpServerNames.length}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: metaStyle?.copyWith(
-                    color:
-                        widget.isSelected
-                            ? Colors.white
-                            : DesktopThemeTokens.mutedText(context),
+                const SizedBox(height: 4),
+                Row(
+                  key: ValueKey<String>(
+                    'bot-list-model-features-${widget.bot.id}',
                   ),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _BotCardMetric(
+                        key: ValueKey<String>(
+                          'bot-list-context-window-${widget.bot.id}',
+                        ),
+                        icon: Icons.data_array_rounded,
+                        name: S.of(context).modelContextWindow,
+                        value: contextWindow,
+                        separatorKey: ValueKey<String>(
+                          'bot-list-context-window-separator-${widget.bot.id}',
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ModelModalitiesView(
+                        inputModalities: widget.metrics.inputModalities,
+                        outputModalities: widget.metrics.outputModalities,
+                        keyPrefix: 'bot-list-modalities-${widget.bot.id}',
+                        density: ModelModalitiesDensity.compact,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  key: ValueKey<String>(
+                    'bot-list-usage-features-${widget.bot.id}',
+                  ),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _BotCardMetric(
+                        key: ValueKey<String>(
+                          'bot-list-token-total-${widget.bot.id}',
+                        ),
+                        icon: LucideIcons.chartNoAxesColumnIncreasing,
+                        name: S.of(context).totalTokens,
+                        value: numberFormat.format(
+                          widget.metrics.tokenUsage.effectiveTotalTokens,
+                        ),
+                        separatorKey: ValueKey<String>(
+                          'bot-list-token-total-separator-${widget.bot.id}',
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: _BotCardMetric(
+                        key: ValueKey<String>(
+                          'bot-list-skill-count-${widget.bot.id}',
+                        ),
+                        icon: LucideIcons.wrench,
+                        name: S.of(context).botSkills,
+                        value: '${widget.metrics.skillCount}',
+                        separatorKey: ValueKey<String>(
+                          'bot-list-skill-count-separator-${widget.bot.id}',
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: _BotCardMetric(
+                        key: ValueKey<String>(
+                          'bot-list-mcp-count-${widget.bot.id}',
+                        ),
+                        icon: Icons.hub_outlined,
+                        name: S.of(context).mcpServers,
+                        value: '${widget.metrics.mcpServerNames.length}',
+                        separatorKey: ValueKey<String>(
+                          'bot-list-mcp-count-separator-${widget.bot.id}',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1023,11 +1135,13 @@ class _BotCardMetric extends StatelessWidget {
     required this.icon,
     required this.name,
     required this.value,
+    this.separatorKey,
   });
 
   final IconData icon;
   final String name;
   final String value;
+  final Key? separatorKey;
 
   @override
   Widget build(BuildContext context) {
@@ -1044,7 +1158,18 @@ class _BotCardMetric extends StatelessWidget {
               color: DesktopThemeTokens.mutedText(context),
             ),
           ),
-          const SizedBox(width: 5),
+          if (separatorKey == null)
+            const SizedBox(width: 5)
+          else ...[
+            const SizedBox(width: 6),
+            Container(
+              key: separatorKey,
+              width: 1,
+              height: 14,
+              color: DesktopThemeTokens.divider(context),
+            ),
+            const SizedBox(width: 6),
+          ],
           Text(value, style: DesktopThemeTokens.metaStyle(context)),
         ],
       ),

@@ -1,6 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1469,8 +1470,7 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc:
-          'Disabled primary action label while a request is running and cannot be cancelled',
+      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -1541,6 +1541,81 @@ class S {
     return Intl.message(
       'Model Context Size',
       name: 'modelContextWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Input`
+  String get modelInputModalities {
+    return Intl.message(
+      'Input',
+      name: 'modelInputModalities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Output`
+  String get modelOutputModalities {
+    return Intl.message(
+      'Output',
+      name: 'modelOutputModalities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Text`
+  String get modalityText {
+    return Intl.message('Text', name: 'modalityText', desc: '', args: []);
+  }
+
+  /// `Image`
+  String get modalityImage {
+    return Intl.message('Image', name: 'modalityImage', desc: '', args: []);
+  }
+
+  /// `File`
+  String get modalityFile {
+    return Intl.message('File', name: 'modalityFile', desc: '', args: []);
+  }
+
+  /// `Audio`
+  String get modalityAudio {
+    return Intl.message('Audio', name: 'modalityAudio', desc: '', args: []);
+  }
+
+  /// `Video`
+  String get modalityVideo {
+    return Intl.message('Video', name: 'modalityVideo', desc: '', args: []);
+  }
+
+  /// `Realtime`
+  String get modalityRealtime {
+    return Intl.message(
+      'Realtime',
+      name: 'modalityRealtime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Speech`
+  String get modalitySpeech {
+    return Intl.message('Speech', name: 'modalitySpeech', desc: '', args: []);
+  }
+
+  /// `Music`
+  String get modalityMusic {
+    return Intl.message('Music', name: 'modalityMusic', desc: '', args: []);
+  }
+
+  /// `Multimodal`
+  String get modalityMulti {
+    return Intl.message(
+      'Multimodal',
+      name: 'modalityMulti',
       desc: '',
       args: [],
     );

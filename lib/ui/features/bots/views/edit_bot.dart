@@ -9,6 +9,7 @@ import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:stars/ui/core/widgets/model_modalities.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
@@ -78,6 +79,8 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _resolvedInitialMcpCapability = false;
   bool _startedLoadingModelInfo = false;
   AiModelInfo? _modelInfo;
+  List<InputModality> _providerInputModalities = const [InputModality.text];
+  List<OutputModality> _providerOutputModalities = const [OutputModality.text];
 
   @override
   void initState() {
@@ -155,7 +158,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
         !_startedLoadingModelInfo &&
         (widget.bot.configuredContextWindowTokens == null ||
             widget.bot.configuredSupportsSkills == null ||
-            widget.bot.configuredSupportsMcp == null)) {
+            widget.bot.configuredSupportsMcp == null ||
+            widget.bot.configuredInputModalities == null ||
+            widget.bot.configuredOutputModalities == null)) {
       _startedLoadingModelInfo = true;
       unawaited(
         _loadModelInfo(
@@ -165,14 +170,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     if (!_resolvedInitialMcpCapability) {
       _resolvedInitialMcpCapability = true;
-      final supportsMcp =
-          dependencies.aiProviderRepository.create(widget.bot).supportMcp();
+      final provider = dependencies.aiProviderRepository.create(widget.bot);
+      final supportsMcp = provider.supportMcp();
+      _providerInputModalities = provider.getInputModalites();
+      _providerOutputModalities = provider.getOutputModalites();
       final supportsAutomaticSkillActivation =
           widget.bot.configuredSupportsAutomaticSkillActivation ??
-          dependencies.aiProviderRepository
-              .create(widget.bot)
-              .capabilities
-              .supportsAutomaticSkillActivation;
+          provider.capabilities.supportsAutomaticSkillActivation;
       _initialModelSupportsMcp = supportsMcp;
       _initialModelSupportsAutomaticSkillActivation =
           supportsAutomaticSkillActivation;
@@ -468,6 +472,36 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     _buildModelsInput(fontSize),
                     if (widget.readOnly) ...[
                       _buildModelContextWindowDetail(),
+                      _buildModelModalitiesDetail(
+                        key: const ValueKey<String>(
+                          'bot-detail-model-modalities-input',
+                        ),
+                        label: S.of(context).modelInputModalities,
+                        icon: Icons.input_rounded,
+                        value: ModelInputModalityIcons(
+                          modalities: _resolvedInputModalities,
+                          keyPrefix: 'bot-detail-input-modality',
+                          alignment:
+                              widget.embedded
+                                  ? WrapAlignment.end
+                                  : WrapAlignment.start,
+                        ),
+                      ),
+                      _buildModelModalitiesDetail(
+                        key: const ValueKey<String>(
+                          'bot-detail-model-modalities-output',
+                        ),
+                        label: S.of(context).modelOutputModalities,
+                        icon: Icons.output_rounded,
+                        value: ModelOutputModalityIcons(
+                          modalities: _resolvedOutputModalities,
+                          keyPrefix: 'bot-detail-output-modality',
+                          alignment:
+                              widget.embedded
+                                  ? WrapAlignment.end
+                                  : WrapAlignment.start,
+                        ),
+                      ),
                       _buildModelCapabilityDetail(
                         key: const ValueKey<String>(
                           'bot-detail-supports-skills',
@@ -1277,6 +1311,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     }
     final navigator = Navigator.of(context);
     final keepsOriginalModel =
+        widget.embedded ||
         selectedModelController.text.trim() == widget.bot.model;
     final updatedBot = Bot(
       id: widget.bot.id,
@@ -1307,6 +1342,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
             widget.bot.configuredContextWindowTokens != null)
           Bot.parameterContextWindowTokens:
               widget.bot.configuredContextWindowTokens,
+        if (keepsOriginalModel && widget.bot.configuredInputModalities != null)
+          Bot.parameterInputModalities: [
+            for (final modality in widget.bot.configuredInputModalities!)
+              modality.value,
+          ],
+        if (keepsOriginalModel && widget.bot.configuredOutputModalities != null)
+          Bot.parameterOutputModalities: [
+            for (final modality in widget.bot.configuredOutputModalities!)
+              modality.value,
+          ],
         Bot.parameterMcpServers:
             _modelSupportsMcp
                 ? (_mcpServerIds.toList()..sort())
@@ -1358,6 +1403,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     required String label,
     required IconData icon,
     required String value,
+    Widget? valueWidget,
     Widget? trailing,
     TextAlign textAlign = TextAlign.end,
     bool valueOnNewLine = false,
@@ -1437,11 +1483,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           SizedBox(height: useSettingsRowLayout ? 6 : 2),
                           SizedBox(
                             width: double.infinity,
-                            child: SelectableText(
-                              displayValue,
-                              textAlign: TextAlign.start,
-                              style: valueStyle,
-                            ),
+                            child:
+                                valueWidget ??
+                                SelectableText(
+                                  displayValue,
+                                  textAlign: TextAlign.start,
+                                  style: valueStyle,
+                                ),
                           ),
                         ],
                       ),
@@ -1472,11 +1520,13 @@ class _EditAIBotPageState extends State<EditBotPage> {
                       constraints: const BoxConstraints(
                         maxWidth: DesktopThemeTokens.settingsRowValueMaxWidth,
                       ),
-                      child: SelectableText(
-                        displayValue,
-                        textAlign: textAlign,
-                        style: valueStyle,
-                      ),
+                      child:
+                          valueWidget ??
+                          SelectableText(
+                            displayValue,
+                            textAlign: textAlign,
+                            style: valueStyle,
+                          ),
                     ),
                     if (trailing != null) ...[
                       const SizedBox(width: 8),
@@ -1512,11 +1562,12 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           children: [
                             Text(label, style: labelStyle),
                             const SizedBox(height: 2),
-                            SelectableText(
-                              displayValue,
-                              textAlign: TextAlign.start,
-                              style: valueStyle,
-                            ),
+                            valueWidget ??
+                                SelectableText(
+                                  displayValue,
+                                  textAlign: TextAlign.start,
+                                  style: valueStyle,
+                                ),
                           ],
                         ),
                       ),
@@ -1930,6 +1981,28 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool? get _resolvedSupportsMcp =>
       _modelInfo?.supportsMcp ?? widget.bot.configuredSupportsMcp;
 
+  List<InputModality> get _resolvedInputModalities =>
+      List<InputModality>.unmodifiable(
+        _modelInfo?.inputModalities.isNotEmpty == true
+            ? _modelInfo!.inputModalities
+            : widget.bot.configuredInputModalities?.isNotEmpty == true
+            ? widget.bot.configuredInputModalities!
+            : _providerInputModalities.isNotEmpty
+            ? _providerInputModalities
+            : const [InputModality.text],
+      );
+
+  List<OutputModality> get _resolvedOutputModalities =>
+      List<OutputModality>.unmodifiable(
+        _modelInfo?.outputModalities.isNotEmpty == true
+            ? _modelInfo!.outputModalities
+            : widget.bot.configuredOutputModalities?.isNotEmpty == true
+            ? widget.bot.configuredOutputModalities!
+            : _providerOutputModalities.isNotEmpty
+            ? _providerOutputModalities
+            : const [OutputModality.text],
+      );
+
   Widget _buildModelContextWindowDetail() {
     final contextWindowTokens = _resolvedContextWindowTokens;
     final value =
@@ -1942,6 +2015,21 @@ class _EditAIBotPageState extends State<EditBotPage> {
       label: S.of(context).modelContextWindow,
       icon: Icons.data_array_rounded,
       value: value,
+    );
+  }
+
+  Widget _buildModelModalitiesDetail({
+    required Key key,
+    required String label,
+    required IconData icon,
+    required Widget value,
+  }) {
+    return _buildDetailValue(
+      key: key,
+      label: label,
+      icon: icon,
+      value: '',
+      valueWidget: value,
     );
   }
 

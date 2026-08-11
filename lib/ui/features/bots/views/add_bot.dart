@@ -424,6 +424,16 @@ class _AddBotPageState extends State<AddBotPage> {
         if (selectedModelInfo?.contextWindowTokens != null)
           Bot.parameterContextWindowTokens:
               selectedModelInfo!.contextWindowTokens,
+        if (selectedModelInfo?.inputModalities.isNotEmpty == true)
+          Bot.parameterInputModalities: [
+            for (final modality in selectedModelInfo!.inputModalities)
+              modality.value,
+          ],
+        if (selectedModelInfo?.outputModalities.isNotEmpty == true)
+          Bot.parameterOutputModalities: [
+            for (final modality in selectedModelInfo!.outputModalities)
+              modality.value,
+          ],
         Bot.parameterMcpServers:
             _selectedModelSupportsMcp
                 ? (_mcpServerIds.toList()..sort())

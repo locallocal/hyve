@@ -573,6 +573,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "messageHint": MessageLookupByLibrary.simpleMessage("Type a message..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Skills"),
     "minutesAgo": m13,
+    "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
+    "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
+    "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
+    "modalityMulti": MessageLookupByLibrary.simpleMessage("Multimodal"),
+    "modalityMusic": MessageLookupByLibrary.simpleMessage("Music"),
+    "modalityRealtime": MessageLookupByLibrary.simpleMessage("Realtime"),
+    "modalitySpeech": MessageLookupByLibrary.simpleMessage("Speech"),
+    "modalityText": MessageLookupByLibrary.simpleMessage("Text"),
+    "modalityVideo": MessageLookupByLibrary.simpleMessage("Video"),
     "model": MessageLookupByLibrary.simpleMessage("Model"),
     "modelConfiguration": MessageLookupByLibrary.simpleMessage(
       "Model Configuration",
@@ -580,6 +589,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "modelContextWindow": MessageLookupByLibrary.simpleMessage(
       "Model Context Size",
     ),
+    "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
+    "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
     "modelsRetrievedSuccess": m14,
     "modificationTime": MessageLookupByLibrary.simpleMessage(
       "Modification Time",

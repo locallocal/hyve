@@ -24,6 +24,24 @@ Operating system version: ${_xmlText(normalizedVersion)}
 </stars_application_context>''';
 }
 
+/// Builds the stable runtime identity for one conversation turn.
+///
+/// Keeping identifiers in a dedicated application-owned section prevents
+/// them from being confused with the assistant's editable instructions.
+String buildStarsConversationContext({
+  required String agentId,
+  required String agentName,
+  required String conversationId,
+}) {
+  return '''
+<stars_conversation_context>
+Purpose: Application-provided runtime identity for the current turn.
+Agent ID: ${_xmlText(_valueOrUnknown(agentId))}
+Agent name: ${_xmlText(_valueOrUnknown(agentName))}
+Current conversation ID: ${_xmlText(_valueOrUnknown(conversationId))}
+</stars_conversation_context>''';
+}
+
 String prependStarsSystemPrompt(
   String existingPrompt, {
   StarsSystemPromptProvider starsSystemPromptProvider =

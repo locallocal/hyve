@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1300,6 +1299,26 @@ class S {
     return Intl.message('General', name: 'desktopGeneral', desc: '', args: []);
   }
 
+  /// `System prompt`
+  String get applicationInjectedPrompt {
+    return Intl.message(
+      'System prompt',
+      name: 'applicationInjectedPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.`
+  String get applicationInjectedPromptDescription {
+    return Intl.message(
+      'Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.',
+      name: 'applicationInjectedPromptDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Help & Support`
   String get desktopHelpAndSupport {
     return Intl.message(
@@ -1470,7 +1489,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }

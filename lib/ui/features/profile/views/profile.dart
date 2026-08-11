@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/utils/utils.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
@@ -22,6 +23,7 @@ class ProfilePage extends StatefulWidget {
     this.onProfileSaved,
     this.viewModel,
     this.avatarPicker,
+    this.applicationPromptProvider,
     required this.onOpenSkillLibrary,
     required this.onOpenMcpServers,
   });
@@ -31,6 +33,7 @@ class ProfilePage extends StatefulWidget {
   final Future<void> Function(Profile profile)? onProfileSaved;
   final ProfileViewModel? viewModel;
   final Future<String?> Function()? avatarPicker;
+  final String Function()? applicationPromptProvider;
   final VoidCallback onOpenSkillLibrary;
   final VoidCallback onOpenMcpServers;
 
@@ -85,6 +88,9 @@ class _ProfilePageState extends State<ProfilePage> {
   // 获取字体大小
   double get _fontSize => _profile?.fontSize ?? 16.0;
   bool get _showExecutionStatus => _profile?.showExecutionStatus ?? true;
+  String get _applicationInjectedPrompt =>
+      (widget.applicationPromptProvider?.call() ?? currentStarsSystemPrompt())
+          .trim();
 
   @override
   void initState() {
@@ -345,6 +351,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   widget.onOpenMcpServers,
                   key: const ValueKey<String>('profile-mcp-servers'),
                 ),
+                const SizedBox(height: 12),
+                _buildApplicationInjectedPrompt(context, desktop: false),
               ],
             ),
             _buildSettingsSection(
@@ -455,6 +463,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       onTap: widget.onOpenMcpServers,
                     ),
                     _buildDesktopExecutionStatusControl(context),
+                    _buildApplicationInjectedPrompt(context, desktop: true),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -786,6 +795,89 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildApplicationInjectedPrompt(
+    BuildContext context, {
+    required bool desktop,
+  }) {
+    final prompt = _applicationInjectedPrompt;
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              width: DesktopThemeTokens.settingsRowIconSlotWidth,
+              child: Icon(
+                Icons.lock_outline_rounded,
+                size: DesktopThemeTokens.settingsRowIconSize,
+                color: DesktopThemeTokens.mutedText(context),
+              ),
+            ),
+            const SizedBox(width: DesktopThemeTokens.settingsRowIconGap),
+            Expanded(
+              child: Text(
+                S.of(context).applicationInjectedPrompt,
+                style: DesktopThemeTokens.bodyStyle(context),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start:
+                DesktopThemeTokens.settingsRowIconSlotWidth +
+                DesktopThemeTokens.settingsRowIconGap,
+          ),
+          child: Text(
+            S.of(context).applicationInjectedPromptDescription,
+            style: DesktopThemeTokens.metaStyle(context),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Semantics(
+          key: const ValueKey<String>('profile-application-prompt-value'),
+          textField: true,
+          readOnly: true,
+          label: S.of(context).applicationInjectedPrompt,
+          value: prompt,
+          child: ExcludeSemantics(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration:
+                  desktop
+                      ? DesktopThemeTokens.statusDecoration(context)
+                      : BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: DesktopThemeTokens.containerRadius,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+              child: SelectableText(
+                prompt,
+                style: TextStyle(
+                  color: DesktopThemeTokens.text(context),
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return Padding(
+      key: const ValueKey<String>('profile-application-injected-prompt'),
+      padding:
+          desktop ? const EdgeInsets.fromLTRB(8, 14, 8, 16) : EdgeInsets.zero,
+      child: content,
     );
   }
 

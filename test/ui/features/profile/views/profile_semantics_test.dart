@@ -265,6 +265,65 @@ void main() {
     }
   });
 
+  testWidgets('general section shows the application prompt as read only', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    const prompt = '''<stars_application_context>
+Application: Stars
+</stars_application_context>''';
+    final semantics = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(
+        _profileHarness(applicationPromptProvider: () => prompt),
+      );
+      await tester.pumpAndSettle();
+
+      final promptPanel = find.byKey(
+        const ValueKey<String>('profile-application-injected-prompt'),
+      );
+      final promptValue = find.byKey(
+        const ValueKey<String>('profile-application-prompt-value'),
+      );
+      await tester.scrollUntilVisible(
+        promptPanel,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(promptValue);
+      await tester.pumpAndSettle();
+
+      expect(promptPanel, findsOneWidget);
+      expect(promptValue, findsOneWidget);
+      expect(find.text('系统提示词'), findsOneWidget);
+      expect(find.text('只读'), findsNothing);
+      expect(
+        find.descendant(
+          of: promptPanel,
+          matching: find.widgetWithText(SelectableText, prompt),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: promptPanel, matching: find.byType(ShadTextarea)),
+        findsNothing,
+      );
+      expect(
+        tester.getSemantics(promptValue),
+        matchesSemantics(
+          label: '系统提示词',
+          value: prompt,
+          isTextField: true,
+          isReadOnly: true,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      semantics.dispose();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('desktop general section opens Skill and MCP pages', (
     tester,
   ) async {
@@ -286,6 +345,9 @@ void main() {
       final mcpEntry = find.byKey(
         const ValueKey<String>('profile-mcp-servers'),
       );
+      final promptPanel = find.byKey(
+        const ValueKey<String>('profile-application-injected-prompt'),
+      );
       await tester.scrollUntilVisible(
         skillEntry,
         300,
@@ -293,6 +355,7 @@ void main() {
       );
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
+      expect(promptPanel, findsOneWidget);
       expect(
         find.descendant(
           of: mcpEntry,
@@ -336,6 +399,9 @@ void main() {
       final mcpEntry = find.byKey(
         const ValueKey<String>('profile-mcp-servers'),
       );
+      final promptPanel = find.byKey(
+        const ValueKey<String>('profile-application-injected-prompt'),
+      );
       await tester.scrollUntilVisible(
         skillEntry,
         300,
@@ -343,6 +409,7 @@ void main() {
       );
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
+      expect(promptPanel, findsOneWidget);
 
       await tester.ensureVisible(skillEntry);
       await tester.tap(skillEntry);
@@ -374,6 +441,8 @@ void main() {
         300,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.ensureVisible(aboutEntry);
+      await tester.pumpAndSettle();
       await tester.tap(aboutEntry);
       await tester.pumpAndSettle();
 
@@ -607,6 +676,7 @@ Widget _profileHarness({
   Future<void> Function(Profile profile)? onProfileSaved,
   VoidCallback? onOpenSkillLibrary,
   VoidCallback? onOpenMcpServers,
+  String Function()? applicationPromptProvider,
 }) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -645,6 +715,7 @@ Widget _profileHarness({
                 modifyTimestamp: DateTime(2026),
               ),
               onProfileSaved: onProfileSaved ?? (_) async {},
+              applicationPromptProvider: applicationPromptProvider,
               onOpenSkillLibrary: onOpenSkillLibrary ?? () {},
               onOpenMcpServers: onOpenMcpServers ?? () {},
             ),

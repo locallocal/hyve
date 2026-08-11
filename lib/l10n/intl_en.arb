@@ -592,6 +592,8 @@
     "desktopPersonalInformation": "Personal Information",
     "desktopAppearanceAndLanguage": "Appearance & Language",
     "desktopGeneral": "General",
+    "applicationInjectedPrompt": "System prompt",
+    "applicationInjectedPromptDescription": "Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.",
     "desktopHelpAndSupport": "Help & Support",
     "desktopAboutAndLegal": "About & Legal",
     "desktopSettingsDescription": "Manage your profile, appearance, language, and app support.",

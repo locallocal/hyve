@@ -2868,6 +2868,40 @@ void main() {
     expect(find.text('Stars'), findsNothing);
   });
 
+  testWidgets('desktop chat and bot list share toolbar geometry and divider', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1440, 900);
+    addTearDown(tester.view.reset);
+    const toolbarKey = ValueKey<String>('desktop-unified-toolbar');
+
+    await tester.pumpWidget(_desktopHarness());
+    await tester.pumpAndSettle();
+
+    final chatToolbarFinder = find.byKey(toolbarKey);
+    final chatToolbar = tester.widget<Container>(chatToolbarFinder);
+    final chatDecoration = chatToolbar.decoration! as BoxDecoration;
+    final chatBorder = chatDecoration.border! as Border;
+    final chatSize = tester.getSize(chatToolbarFinder);
+
+    await tester.pumpWidget(_desktopHarness(currentIndex: 1));
+    await tester.pumpAndSettle();
+
+    final botToolbarFinder = find.byKey(toolbarKey);
+    final botToolbar = tester.widget<Container>(botToolbarFinder);
+    final botDecoration = botToolbar.decoration! as BoxDecoration;
+    final botBorder = botDecoration.border! as Border;
+    final botSize = tester.getSize(botToolbarFinder);
+
+    expect(chatSize.height, DesktopThemeTokens.toolbarHeight);
+    expect(chatSize, botSize);
+    expect(chatDecoration.color, botDecoration.color);
+    expect(chatBorder.bottom, botBorder.bottom);
+    expect(chatBorder.bottom.width, 0);
+    expect(chatBorder.bottom.style, BorderStyle.solid);
+  });
+
   testWidgets('desktop bot detail displays information without form inputs', (
     tester,
   ) async {

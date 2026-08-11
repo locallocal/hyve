@@ -7,6 +7,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/feedback/views/feedback_page.dart';
 import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:stars/ui/features/profile/views/privacy_policy.dart';
@@ -917,6 +918,27 @@ class _ProfilePageState extends State<ProfilePage> {
     ),
   ];
 
+  Widget _buildDesktopDialogClose(
+    BuildContext dialogContext, {
+    required Key key,
+  }) {
+    return StarsDesktopIconAction(
+      key: key,
+      icon: LucideIcons.x,
+      iconSize: 18,
+      label: MaterialLocalizations.of(dialogContext).closeButtonTooltip,
+      onPressed: () => Navigator.pop(dialogContext),
+    );
+  }
+
+  ShadPosition _desktopDialogClosePosition(BuildContext dialogContext) {
+    return ShadPosition.directional(
+      top: 12,
+      end: 8,
+      textDirection: Directionality.of(dialogContext),
+    );
+  }
+
   ImageProvider _buildAvatarImageProvider() {
     if (_avatar.isNotEmpty) {
       return FileImage(File(_avatar));
@@ -978,6 +1000,12 @@ class _ProfilePageState extends State<ProfilePage> {
         context: context,
         builder:
             (dialogContext) => ShadDialog(
+              key: const ValueKey<String>('profile-edit-name-dialog'),
+              closeIcon: _buildDesktopDialogClose(
+                dialogContext,
+                key: const ValueKey<String>('profile-edit-name-close'),
+              ),
+              closeIconPosition: _desktopDialogClosePosition(dialogContext),
               title: Text(S.of(dialogContext).editName),
               description: Text(S.of(dialogContext).enterDisplayName),
               actions: [
@@ -1080,6 +1108,12 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (dialogContext) {
           final tokens = StarsDesktopTokens.of(dialogContext);
           return ShadDialog(
+            key: const ValueKey<String>('profile-theme-dialog'),
+            closeIcon: _buildDesktopDialogClose(
+              dialogContext,
+              key: const ValueKey<String>('profile-theme-close'),
+            ),
+            closeIconPosition: _desktopDialogClosePosition(dialogContext),
             title: Text(S.of(dialogContext).selectTheme),
             description: Text(
               S.of(dialogContext).desktopSavedImmediatelyDescription,
@@ -1427,6 +1461,11 @@ class _ProfilePageState extends State<ProfilePage> {
         builder:
             (dialogContext) => ShadDialog(
               key: const ValueKey<String>('profile-about-dialog'),
+              closeIcon: _buildDesktopDialogClose(
+                dialogContext,
+                key: const ValueKey<String>('profile-about-close'),
+              ),
+              closeIconPosition: _desktopDialogClosePosition(dialogContext),
               title: Text(S.of(dialogContext).aboutApp),
               actions: [
                 ShadButton(
@@ -1494,6 +1533,12 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (dialogContext) {
           final tokens = StarsDesktopTokens.of(dialogContext);
           return ShadDialog(
+            key: const ValueKey<String>('profile-language-dialog'),
+            closeIcon: _buildDesktopDialogClose(
+              dialogContext,
+              key: const ValueKey<String>('profile-language-close'),
+            ),
+            closeIconPosition: _desktopDialogClosePosition(dialogContext),
             title: Text(S.of(dialogContext).selectLanguage),
             description: Text(
               S.of(dialogContext).desktopSavedImmediatelyDescription,

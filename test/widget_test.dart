@@ -3601,15 +3601,27 @@ void main() {
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.byType(ShadForm), findsOneWidget);
       expect(find.byType(MenuAnchor), findsNWidgets(2));
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      final addBotClose = find.byKey(const ValueKey<String>('add-bot-close'));
+      final addBotDialog = find.byKey(
+        const ValueKey<String>('add-bot-dialog-content'),
+      );
+      expect(addBotClose, findsOneWidget);
+      expect(
+        find.descendant(of: addBotClose, matching: find.byIcon(LucideIcons.x)),
+        findsOneWidget,
+      );
+      expect(tester.getSize(addBotClose), const Size.square(44));
+      expect(
+        tester.getRect(addBotDialog).right - tester.getRect(addBotClose).right,
+        closeTo(8, 0.01),
+      );
+      expect(
+        tester.getRect(addBotClose).top - tester.getRect(addBotDialog).top,
+        closeTo(12, 0.01),
+      );
       expect(find.byIcon(Icons.add_rounded), findsOneWidget);
       expect(find.text('取消'), findsOneWidget);
-      expect(
-        tester.getSize(
-          find.byKey(const ValueKey<String>('add-bot-dialog-content')),
-        ),
-        const Size(840, 720),
-      );
+      expect(tester.getSize(addBotDialog), const Size(840, 720));
       expect(find.text('基本信息'), findsOneWidget);
       expect(find.text('提供商信息'), findsOneWidget);
       expect(find.text('模型配置'), findsOneWidget);
@@ -4021,7 +4033,13 @@ void main() {
         ),
         const Size(768, 568),
       );
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('add-bot-close')),
+          matching: find.byIcon(LucideIcons.x),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('取消'), findsOneWidget);
       expect(tester.takeException(), isNull);
 

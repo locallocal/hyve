@@ -49,7 +49,7 @@ void main() {
     );
   });
 
-  test('loads missing model context window for card metrics', () async {
+  test('loads and caches missing model metadata for card metrics', () async {
     final providerRepository = _ModelInfoAiProviderRepository();
     final botRepository = _UpdatingBotRepository([
       _bot(
@@ -73,7 +73,23 @@ void main() {
 
     expect(providerRepository.lookupCount, 1);
     expect(viewModel.metricsFor('research').contextWindowTokens, 128000);
+    expect(viewModel.metricsFor('research').inputModalities, [
+      InputModality.text,
+      InputModality.image,
+      InputModality.audio,
+    ]);
+    expect(viewModel.metricsFor('research').outputModalities, [
+      OutputModality.text,
+    ]);
     expect(botRepository.bots.single.configuredContextWindowTokens, 128000);
+    expect(botRepository.bots.single.configuredInputModalities, [
+      InputModality.text,
+      InputModality.image,
+      InputModality.audio,
+    ]);
+    expect(botRepository.bots.single.configuredOutputModalities, [
+      OutputModality.text,
+    ]);
     expect(botRepository.bots.single.modifyTimestamp, DateTime(2026, 8, 7));
 
     final reloadedViewModel = BotListViewModel(
@@ -230,7 +246,11 @@ final class _ModelInfoAiProviderRepository implements AiProviderRepository {
     return AiModelInfo(
       modelId: bot.model,
       providerId: 'openai',
-      inputModalities: const [InputModality.text],
+      inputModalities: const [
+        InputModality.text,
+        InputModality.image,
+        InputModality.audio,
+      ],
       outputModalities: const [OutputModality.text],
       contextWindowTokens: 128000,
     );

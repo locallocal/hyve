@@ -10,6 +10,7 @@ import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:stars/ui/core/widgets/model_modalities.dart';
 import 'package:stars/ui/features/bots/views/edit_bot.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
@@ -1165,6 +1166,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       : Icons.memory_outlined,
               label: S.of(context).model,
               value: bot.model.isEmpty ? '—' : bot.model,
+            ),
+            ModelModalitiesView(
+              inputModalities:
+                  generationViewModel?.capabilityProvider.getInputModalites() ??
+                  bot.configuredInputModalities ??
+                  const [InputModality.text],
+              outputModalities:
+                  generationViewModel?.capabilityProvider
+                      .getOutputModalites() ??
+                  bot.configuredOutputModalities ??
+                  const [OutputModality.text],
+              keyPrefix: 'conversation-model-modalities',
             ),
             if (generationViewModel != null)
               ConversationModelControls(

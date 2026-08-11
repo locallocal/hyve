@@ -17,6 +17,8 @@ class BotCardMetrics {
     this.mcpServerNames = const [],
     this.skillCount = 0,
     this.contextWindowTokens,
+    this.inputModalities = const [InputModality.text],
+    this.outputModalities = const [OutputModality.text],
   });
 
   static const empty = BotCardMetrics();
@@ -25,6 +27,8 @@ class BotCardMetrics {
   final List<String> mcpServerNames;
   final int skillCount;
   final int? contextWindowTokens;
+  final List<InputModality> inputModalities;
+  final List<OutputModality> outputModalities;
 }
 
 class BotListViewModel extends ChangeNotifier {
@@ -238,9 +242,20 @@ class BotListViewModel extends ChangeNotifier {
         await (usageFuture, bindingsFuture, modelInfoFuture).wait;
     final contextWindowTokens =
         bot.configuredContextWindowTokens ?? modelInfo?.contextWindowTokens;
+    final providerModalities = _providerModalities(bot);
+    final inputModalities = _resolveInputModalities(
+      bot.configuredInputModalities,
+      modelInfo?.inputModalities,
+      providerModalities.$1,
+    );
+    final outputModalities = _resolveOutputModalities(
+      bot.configuredOutputModalities,
+      modelInfo?.outputModalities,
+      providerModalities.$2,
+    );
     final metadataBackfill =
-        bot.configuredContextWindowTokens == null && contextWindowTokens != null
-            ? _withContextWindowTokens(bot, contextWindowTokens)
+        _hasMissingModelMetadata(bot, modelInfo)
+            ? _withModelMetadata(bot, modelInfo!)
             : null;
     final serverNames =
         bot.mcpServerIds
@@ -259,12 +274,24 @@ class BotListViewModel extends ChangeNotifier {
         mcpServerNames: List<String>.unmodifiable(serverNames),
         skillCount: bindings.length,
         contextWindowTokens: contextWindowTokens,
+        inputModalities: inputModalities,
+        outputModalities: outputModalities,
       ),
       metadataBackfill,
     );
   }
 
-  Bot _withContextWindowTokens(Bot bot, int contextWindowTokens) {
+  bool _hasMissingModelMetadata(Bot bot, AiModelInfo? modelInfo) {
+    if (modelInfo == null) return false;
+    return (bot.configuredContextWindowTokens == null &&
+            modelInfo.contextWindowTokens != null) ||
+        (bot.configuredInputModalities == null &&
+            modelInfo.inputModalities.isNotEmpty) ||
+        (bot.configuredOutputModalities == null &&
+            modelInfo.outputModalities.isNotEmpty);
+  }
+
+  Bot _withModelMetadata(Bot bot, AiModelInfo modelInfo) {
     return Bot(
       id: bot.id,
       name: bot.name,
@@ -277,7 +304,19 @@ class BotListViewModel extends ChangeNotifier {
       systemPrompt: bot.systemPrompt,
       parameters: {
         ...?bot.parameters,
-        Bot.parameterContextWindowTokens: contextWindowTokens,
+        if (bot.configuredContextWindowTokens == null &&
+            modelInfo.contextWindowTokens != null)
+          Bot.parameterContextWindowTokens: modelInfo.contextWindowTokens,
+        if (bot.configuredInputModalities == null &&
+            modelInfo.inputModalities.isNotEmpty)
+          Bot.parameterInputModalities: [
+            for (final modality in modelInfo.inputModalities) modality.value,
+          ],
+        if (bot.configuredOutputModalities == null &&
+            modelInfo.outputModalities.isNotEmpty)
+          Bot.parameterOutputModalities: [
+            for (final modality in modelInfo.outputModalities) modality.value,
+          ],
       },
       createTimestamp: bot.createTimestamp,
       modifyTimestamp: bot.modifyTimestamp,
@@ -307,13 +346,54 @@ class BotListViewModel extends ChangeNotifier {
   }
 
   Future<AiModelInfo?> _loadModelInfoForCard(Bot bot) async {
-    if (bot.configuredContextWindowTokens != null) return null;
+    if (bot.configuredContextWindowTokens != null &&
+        bot.configuredInputModalities != null &&
+        bot.configuredOutputModalities != null) {
+      return null;
+    }
     try {
       return await _aiProviderRepository.getModelInfo(bot);
     } on Object {
       return null;
     }
   }
+
+  (List<InputModality>, List<OutputModality>) _providerModalities(Bot bot) {
+    try {
+      final provider = _aiProviderRepository.create(bot);
+      return (provider.getInputModalites(), provider.getOutputModalites());
+    } on Object {
+      return const ([InputModality.text], [OutputModality.text]);
+    }
+  }
+
+  List<InputModality> _resolveInputModalities(
+    List<InputModality>? configured,
+    List<InputModality>? fetched,
+    List<InputModality> fallback,
+  ) => List<InputModality>.unmodifiable(
+    configured?.isNotEmpty == true
+        ? configured!
+        : fetched?.isNotEmpty == true
+        ? fetched!
+        : fallback.isNotEmpty
+        ? fallback
+        : const [InputModality.text],
+  );
+
+  List<OutputModality> _resolveOutputModalities(
+    List<OutputModality>? configured,
+    List<OutputModality>? fetched,
+    List<OutputModality> fallback,
+  ) => List<OutputModality>.unmodifiable(
+    configured?.isNotEmpty == true
+        ? configured!
+        : fetched?.isNotEmpty == true
+        ? fetched!
+        : fallback.isNotEmpty
+        ? fallback
+        : const [OutputModality.text],
+  );
 
   void _scheduleMetricsLoad() {
     if (_disposed || _metricsLoadScheduled) return;

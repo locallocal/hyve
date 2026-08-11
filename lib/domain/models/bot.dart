@@ -1,4 +1,5 @@
 import 'package:stars/domain/models/mcp.dart';
+import 'package:stars/domain/models/modalities.dart';
 
 class Bot {
   static const parameterSupportsMcp = 'supports_mcp';
@@ -8,6 +9,8 @@ class Bot {
       'supports_automatic_skill_activation';
   static const parameterSupportsSkills = 'supports_skills';
   static const parameterContextWindowTokens = 'context_window_tokens';
+  static const parameterInputModalities = 'input_modalities';
+  static const parameterOutputModalities = 'output_modalities';
 
   static const apiTypeOpenAI = 'openai';
   static const apiTypeAzure = 'azure';
@@ -144,6 +147,26 @@ class Bot {
   int? get configuredContextWindowTokens {
     final value = parameters?[parameterContextWindowTokens];
     return value is int && value > 0 ? value : null;
+  }
+
+  List<InputModality>? get configuredInputModalities {
+    final value = parameters?[parameterInputModalities];
+    if (value is! List) return null;
+    final names = value.whereType<String>().toSet();
+    return List<InputModality>.unmodifiable([
+      for (final modality in InputModality.values)
+        if (names.contains(modality.value)) modality,
+    ]);
+  }
+
+  List<OutputModality>? get configuredOutputModalities {
+    final value = parameters?[parameterOutputModalities];
+    if (value is! List) return null;
+    final names = value.whereType<String>().toSet();
+    return List<OutputModality>.unmodifiable([
+      for (final modality in OutputModality.values)
+        if (names.contains(modality.value)) modality,
+    ]);
   }
 
   static List<String> getAllApiTypes() {

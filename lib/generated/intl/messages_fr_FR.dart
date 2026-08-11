@@ -101,6 +101,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "appTitle": MessageLookupByLibrary.simpleMessage(
       "Stars - Assistant de Chat IA",
     ),
+    "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
+      "Prompt système",
+    ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Géré par Stars et ajouté à chaque requête au modèle. Les identifiants de l’agent et de la conversation en cours sont ajoutés à l’exécution et ne sont pas modifiables.",
+    ),
     "autoActivation": MessageLookupByLibrary.simpleMessage("Automatique"),
     "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Permet aux modèles compatibles d’activer cette compétence à partir de sa description.",

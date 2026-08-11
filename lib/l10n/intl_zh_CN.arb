@@ -592,6 +592,8 @@
     "desktopPersonalInformation": "个人信息",
     "desktopAppearanceAndLanguage": "外观与语言",
     "desktopGeneral": "通用",
+    "applicationInjectedPrompt": "系统提示词",
+    "applicationInjectedPromptDescription": "由 Stars 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
     "desktopHelpAndSupport": "帮助与支持",
     "desktopAboutAndLegal": "关于与法律信息",
     "desktopSettingsDescription": "管理个人信息、外观、语言与应用支持。",

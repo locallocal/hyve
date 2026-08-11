@@ -96,6 +96,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "appName": MessageLookupByLibrary.simpleMessage("Stars"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AIチャットアシスタント"),
+    "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
+      "システムプロンプト",
+    ),
+    "applicationInjectedPromptDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "Stars が管理し、すべてのモデルリクエストに注入します。現在のエージェントと会話の識別子は実行時に追加され、編集できません。",
+        ),
     "autoActivation": MessageLookupByLibrary.simpleMessage("自動"),
     "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
       "対応モデルが説明に基づいてこのスキルを有効化します。",

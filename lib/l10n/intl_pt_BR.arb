@@ -563,6 +563,8 @@
     "desktopPersonalInformation": "Informações pessoais",
     "desktopAppearanceAndLanguage": "Aparência e idioma",
     "desktopGeneral": "Geral",
+    "applicationInjectedPrompt": "Prompt do sistema",
+    "applicationInjectedPromptDescription": "Gerenciado pelo Stars e adicionado a cada solicitação ao modelo. Os identificadores do agente e da conversa atuais são incluídos em tempo de execução e não podem ser editados.",
     "desktopHelpAndSupport": "Ajuda e suporte",
     "desktopAboutAndLegal": "Sobre e informações legais",
     "desktopSettingsDescription": "Gerencie seu perfil, aparência, idioma e suporte do aplicativo.",

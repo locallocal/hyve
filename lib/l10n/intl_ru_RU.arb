@@ -563,6 +563,8 @@
     "desktopPersonalInformation": "Личная информация",
     "desktopAppearanceAndLanguage": "Внешний вид и язык",
     "desktopGeneral": "Общие",
+    "applicationInjectedPrompt": "Системный промпт",
+    "applicationInjectedPromptDescription": "Управляется Stars и добавляется к каждому запросу модели. Идентификаторы текущего агента и беседы подставляются во время выполнения и недоступны для редактирования.",
     "desktopHelpAndSupport": "Помощь и поддержка",
     "desktopAboutAndLegal": "О приложении и правовая информация",
     "desktopSettingsDescription": "Управляйте профилем, внешним видом, языком и поддержкой приложения.",

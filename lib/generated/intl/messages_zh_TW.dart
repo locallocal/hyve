@@ -92,6 +92,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "appName": MessageLookupByLibrary.simpleMessage("Stars"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AI 聊天助手"),
+    "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage("系統提示詞"),
+    "applicationInjectedPromptDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "由 Stars 管理並注入至每次模型請求。目前智慧代理與對話識別碼會在執行階段補充，無法編輯。",
+        ),
     "autoActivation": MessageLookupByLibrary.simpleMessage("自動啟用"),
     "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
       "讓支援的模型依技能描述按需啟用。",

@@ -563,6 +563,8 @@
     "desktopPersonalInformation": "व्यक्तिगत जानकारी",
     "desktopAppearanceAndLanguage": "दिखावट और भाषा",
     "desktopGeneral": "सामान्य",
+    "applicationInjectedPrompt": "सिस्टम प्रॉम्प्ट",
+    "applicationInjectedPromptDescription": "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
     "desktopHelpAndSupport": "सहायता और समर्थन",
     "desktopAboutAndLegal": "ऐप के बारे में और कानूनी जानकारी",
     "desktopSettingsDescription": "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",

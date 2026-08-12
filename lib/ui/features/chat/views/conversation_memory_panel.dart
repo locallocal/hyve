@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
@@ -149,6 +150,10 @@ final class _ConversationMemoryPanelState
                   .copyWith(color: DesktopThemeTokens.error(context)),
             ),
           ],
+          _ConversationSystemPromptBlock(
+            bot: viewModel.bot,
+            conversationId: viewModel.chatId,
+          ),
         ],
       ),
     );
@@ -252,6 +257,63 @@ final class _ConversationMemoryPanelState
             (dialogContext) =>
                 _MemoryManagerDialog(viewModel: widget.viewModel),
       ),
+    );
+  }
+}
+
+final class _ConversationSystemPromptBlock extends StatelessWidget {
+  const _ConversationSystemPromptBlock({
+    required this.bot,
+    required this.conversationId,
+  });
+
+  final Bot bot;
+  final String conversationId;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = S.of(context).applicationInjectedPrompt;
+    final prompt =
+        buildStarsConversationContext(
+          agentId: bot.id,
+          agentName: bot.name,
+          conversationId: conversationId,
+        ).trim();
+    return Column(
+      key: const ValueKey<String>('conversation-system-prompt-block'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(height: 25),
+        Text(
+          label,
+          key: const ValueKey<String>('conversation-system-prompt-title'),
+          style: DesktopThemeTokens.sectionTitleStyle(context),
+        ),
+        const SizedBox(height: 12),
+        Semantics(
+          key: const ValueKey<String>('conversation-system-prompt-value'),
+          textField: true,
+          readOnly: true,
+          label: label,
+          value: prompt,
+          child: ExcludeSemantics(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: DesktopThemeTokens.statusDecoration(context),
+              child: SelectableText(
+                prompt,
+                style: TextStyle(
+                  color: DesktopThemeTokens.text(context),
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

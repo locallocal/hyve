@@ -9,6 +9,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/context_summarizer.dart';
 import 'package:stars/domain/repositories/conversation_memory_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
@@ -53,7 +54,7 @@ void main() {
     expect(find.text('查看摘要'), findsOneWidget);
     expect(find.text('管理记忆'), findsOneWidget);
     expect(find.text('自动记忆'), findsOneWidget);
-    expect(find.byType(Divider), findsOneWidget);
+    expect(find.byType(Divider), findsNWidgets(2));
     expect(
       find.byKey(const ValueKey<String>('automatic-memory-switch')),
       findsOneWidget,
@@ -307,6 +308,91 @@ void main() {
       find.byKey(const ValueKey<String>('memory-summary-card')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('shows the conversation system prompt read only below memory', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      final bot = Bot(
+        id: 'bot<1>',
+        name: 'Research & Review',
+        avatar: '',
+        provider: 'Test',
+        baseURL: '',
+        apiKey: '',
+        apiType: Bot.apiTypeOpenAI,
+        model: 'model',
+        systemPrompt: 'Editable agent instructions.',
+        createTimestamp: DateTime(2026),
+        modifyTimestamp: DateTime(2026),
+      );
+      final repository = _MemoryRepository();
+      final viewModel = ConversationMemoryViewModel(
+        chatId: 'chat>2',
+        bot: bot,
+        repository: repository,
+        compactConversation: CompactConversation(
+          messageRepository: _MessageRepository(),
+          memoryRepository: repository,
+          summarizerFactory: (_) => const _Summarizer(),
+        ),
+      );
+      addTearDown(viewModel.dispose);
+
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final prompt = buildStarsConversationContext(
+        agentId: bot.id,
+        agentName: bot.name,
+        conversationId: viewModel.chatId,
+      );
+      final memoryActions = find.byKey(
+        const ValueKey<String>('conversation-memory-actions'),
+      );
+      final promptBlock = find.byKey(
+        const ValueKey<String>('conversation-system-prompt-block'),
+      );
+      final promptTitle = find.byKey(
+        const ValueKey<String>('conversation-system-prompt-title'),
+      );
+      final promptValue = find.byKey(
+        const ValueKey<String>('conversation-system-prompt-value'),
+      );
+
+      expect(promptBlock, findsOneWidget);
+      expect(find.text('系统提示词'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: promptBlock,
+          matching: find.widgetWithText(SelectableText, prompt),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(ShadTextarea), findsNothing);
+      expect(
+        tester.getTopLeft(promptTitle).dy,
+        greaterThan(tester.getBottomLeft(memoryActions).dy),
+      );
+      expect(
+        tester.getSemantics(promptValue),
+        matchesSemantics(
+          label: '系统提示词',
+          value: prompt,
+          isTextField: true,
+          isReadOnly: true,
+        ),
+      );
+      expect(prompt, contains('Agent ID: bot&lt;1&gt;'));
+      expect(prompt, contains('Agent name: Research &amp; Review'));
+      expect(prompt, contains('Current conversation ID: chat&gt;2'));
+      expect(prompt, isNot(contains(bot.systemPrompt)));
+      expect(tester.takeException(), isNull);
+    } finally {
+      semantics.dispose();
+    }
   });
 
   testWidgets('explains when a conversation summary is not available', (

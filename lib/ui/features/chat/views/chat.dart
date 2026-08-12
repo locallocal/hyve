@@ -8,6 +8,7 @@ import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
 import 'package:stars/ui/features/chat/views/attachments.dart';
@@ -1724,50 +1725,14 @@ class ChatGenerationErrorAlert extends StatelessWidget {
   final VoidCallback onDismiss;
 
   @override
-  Widget build(BuildContext context) {
-    final closeLabel = MaterialLocalizations.of(context).closeButtonTooltip;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ShadAlert.destructive(
-        key: const ValueKey<String>('chat-generation-error-alert'),
-        decoration: const ShadDecoration(
-          border: ShadBorder(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          ),
-        ),
-        crossAxisAlignment: CrossAxisAlignment.center,
-        iconPadding: const EdgeInsetsDirectional.only(end: 8),
-        icon: const Icon(LucideIcons.circleAlert, size: 18),
-        description: Align(
-          alignment: Alignment.center,
-          child: Text(
-            error,
-            key: const ValueKey<String>('chat-generation-error-message'),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        trailing: Semantics(
-          label: closeLabel,
-          button: true,
-          child: ShadTooltip(
-            builder: (context) => Text(closeLabel),
-            child: ShadIconButton.ghost(
-              key: const ValueKey<String>('dismiss-chat-generation-error'),
-              width: 28,
-              height: 28,
-              padding: EdgeInsets.zero,
-              iconSize: 16,
-              onPressed: onDismiss,
-              icon: Icon(
-                isDesktop ? LucideIcons.x : Icons.close_rounded,
-                size: 16,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => StarsInlineErrorAlert(
+    error: error,
+    isDesktop: isDesktop,
+    onDismiss: onDismiss,
+    alertKey: const ValueKey<String>('chat-generation-error-alert'),
+    messageKey: const ValueKey<String>('chat-generation-error-message'),
+    dismissKey: const ValueKey<String>('dismiss-chat-generation-error'),
+  );
 }
 
 class _PendingChatDraft {

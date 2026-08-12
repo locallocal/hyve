@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
 import 'package:stars/ui/features/chat/views/message_input.dart';
 import 'package:stars/domain/models/ai_models.dart';
@@ -37,6 +38,7 @@ void main() {
       const ValueKey<String>('chat-generation-error-message'),
     );
     expect(alert, findsOneWidget);
+    expect(find.byType(StarsInlineErrorAlert), findsOneWidget);
     expect(tester.getSize(alert).height, lessThanOrEqualTo(44));
     expect(
       tester.getCenter(message).dy,

@@ -4171,6 +4171,90 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  testWidgets('add bot failures use the dismissible chat error alert', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 900);
+    addTearDown(tester.view.reset);
+
+    await _withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        _addBotDialogHarness(
+          brightness: Brightness.light,
+          modelLoader: (_) async => throw StateError('模型服务不可用'),
+          onBotAdded: (_, _) async => throw StateError('保存失败'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('add-bot-api-key')),
+          matching: find.byType(EditableText),
+        ),
+        'secret-key',
+      );
+      final fetchModels = find.byIcon(Icons.refresh_rounded);
+      await tester.ensureVisible(fetchModels);
+      await tester.tap(fetchModels);
+      await tester.pumpAndSettle();
+
+      final alert = find.byKey(const ValueKey<String>('add-bot-error-alert'));
+      final message = find.byKey(
+        const ValueKey<String>('add-bot-error-message'),
+      );
+      final dismiss = find.byKey(
+        const ValueKey<String>('dismiss-add-bot-error'),
+      );
+      final submit = find.byKey(const ValueKey<String>('add-bot-submit'));
+      expect(alert, findsOneWidget);
+      expect(find.textContaining('模型服务不可用'), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(
+        find.ancestor(of: alert, matching: find.byType(StarsInlineErrorAlert)),
+        findsOneWidget,
+      );
+      expect(tester.getSize(alert).height, lessThanOrEqualTo(44));
+      expect(
+        tester.getCenter(message).dy,
+        closeTo(tester.getCenter(alert).dy, 1),
+      );
+      expect(
+        tester.getCenter(message).dx,
+        closeTo(tester.getCenter(alert).dx, 1),
+      );
+      expect(
+        tester.widget<ShadAlert>(alert).crossAxisAlignment,
+        CrossAxisAlignment.center,
+      );
+      expect(
+        tester.getRect(alert).bottom,
+        lessThan(tester.getRect(submit).top),
+      );
+
+      await tester.tap(dismiss);
+      await tester.pump();
+      expect(alert, findsNothing);
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('add-bot-name')),
+          matching: find.byType(EditableText),
+        ),
+        'Researcher',
+      );
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+
+      expect(alert, findsOneWidget);
+      expect(find.textContaining('保存失败'), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }
 
 Future<void> _withDesktopPlatform(Future<void> Function() body) async {

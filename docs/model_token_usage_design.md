@@ -32,12 +32,12 @@ Stars 需要记录智能体调用文本模型时由供应商返回的 Token 用�
 | `totalTokens` | `int` | 供应商返回的总 Token |
 | `effectiveTotalTokens` | 计算值 | 有总量时使用总量，否则使用输入与输出之和 |
 
-`Message` 新增不可空的 `tokenUsage`，默认值为全 0。这样旧消息、用户消息和不提供 usage
-的供应商无需处理 `null`。
+`Message` 使用不可空的 `tokenUsage`，默认值为全 0。这样用户消息和不提供 usage 的供应商
+无需处理 `null`。
 
 ### 3.1 SQLite 变更
 
-数据库版本 5 为 `messages` 表新增：
+当前 v15 Schema 的 `messages` 表直接包含：
 
 ```sql
 token_model TEXT NOT NULL DEFAULT '',
@@ -46,7 +46,7 @@ output_token_count INTEGER NOT NULL DEFAULT 0,
 total_token_count INTEGER NOT NULL DEFAULT 0
 ```
 
-数据库版本从 5 升级到 6，新增独立事实表 `token_usage_records`：
+当前 Schema 同时创建独立事实表 `token_usage_records`：
 
 ```sql
 message_id TEXT PRIMARY KEY,
@@ -59,7 +59,7 @@ total_token_count INTEGER NOT NULL,
 timestamp INTEGER NOT NULL
 ```
 
-表上分别建立 `chat_id` 与 `bot_id` 索引。升级时从 `messages` 回填已有非零 usage；后续消息
+表上分别建立 `chat_id` 与 `bot_id` 索引。应用不支持历史数据库升级或 usage 回填；后续消息
 upsert 与 Token 记录同步在同一事务完成。清空会话仅删除 `messages`，保留
 `token_usage_records`；删除整个会话则在同一事务删除两者。
 
@@ -159,7 +159,7 @@ Token usage 与文本、推理、工具调用一样受 run id 保护。终态持
 
 - usage 字段缺失、类型不合法或为负数：忽略该字段；
 - 只返回输入或输出：总量回退为已知字段之和；
-- 数据库升级：旧消息四个字段均为默认值；
+- 当前 Schema 中消息的四个 usage 字段均有默认值；
 - 重复终态：稳定 `message_id` upsert，并由生成 ViewModel 的 finalizing 集合阻止重复写入；
 - 清空会话：删除消息正文但保留 Token 事实记录，右侧面板刷新后统计不变；
 - 删除会话：同时删除消息正文和该会话的 Token 事实记录；
@@ -167,7 +167,7 @@ Token usage 与文本、推理、工具调用一样受 run id 保护。终态持
 
 ## 8. 测试策略
 
-- 数据库迁移测试：验证 v5 字段默认值、v6 事实表及历史 usage 回填；
+- 数据库 Schema 测试：验证当前字段、事实表、索引和非当前版本拒绝策略；
 - Repository 测试：验证消息 usage 往返序列化、按智能体隔离聚合，以及清空内容后统计保留；
 - Provider 测试：验证 usage-only 尾帧既不产生正文错误又能提取用量；
 - 生成 ViewModel 测试：验证 usage 只绑定到一条终态消息；

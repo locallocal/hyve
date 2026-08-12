@@ -486,14 +486,15 @@ void main() {
     expect(searchTop - panelTop, DesktopThemeTokens.panelPadding.top);
   });
 
-  testWidgets('desktop bot cards show usage, model, and creation metrics', (
+  testWidgets('desktop bot cards show usage, model, and timestamp metrics', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 800);
     addTearDown(tester.view.reset);
 
-    final timestamp = DateTime(2026);
+    final timestamp = DateTime(2025);
+    final modifiedAt = DateTime(2026);
     final bot = Bot(
       id: 'bot-1',
       name: '测试智能体',
@@ -518,7 +519,7 @@ void main() {
         ],
       },
       createTimestamp: timestamp,
-      modifyTimestamp: timestamp,
+      modifyTimestamp: modifiedAt,
     );
     final bindingRepository = _BotCardTestBindingRepository();
     await bindingRepository.save(
@@ -586,6 +587,9 @@ void main() {
       final creationTimeMetric = find.byKey(
         const ValueKey<String>('bot-card-creation-time-bot-1'),
       );
+      final modificationTimeMetric = find.byKey(
+        const ValueKey<String>('bot-card-modification-time-bot-1'),
+      );
       final avatar = find.descendant(
         of: card,
         matching: find.byType(ShadAvatar),
@@ -624,13 +628,14 @@ void main() {
         const ValueKey<String>('bot-card-information-divider-bot-1'),
       );
       expect(card, findsOneWidget);
-      expect(tester.getSize(card).height, 200);
+      expect(tester.getSize(card).height, 212);
       expect(tokenMetric, findsOneWidget);
       expect(tokenMetricIcon, findsOneWidget);
       expect(skillMetric, findsOneWidget);
       expect(mcpMetric, findsOneWidget);
       expect(contextWindowMetric, findsOneWidget);
       expect(creationTimeMetric, findsOneWidget);
+      expect(modificationTimeMetric, findsOneWidget);
       expect(avatar, findsOneWidget);
       expect(botName, findsOneWidget);
       expect(identity, findsOneWidget);
@@ -838,11 +843,19 @@ void main() {
       );
       expect(
         tester.getCenter(menuButton).dy,
-        closeTo(tester.getCenter(avatar).dy, 0.5),
+        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
       );
       expect(
         tester.getTopLeft(creationTimeMetric).dx,
         closeTo(tester.getTopLeft(avatar).dx, 0.5),
+      );
+      expect(
+        tester.getRect(creationTimeMetric).right,
+        lessThan(tester.getRect(modificationTimeMetric).left),
+      );
+      expect(
+        tester.getCenter(modificationTimeMetric).dy,
+        closeTo(tester.getCenter(creationTimeMetric).dy, 0.5),
       );
       expect(
         tester
@@ -869,6 +882,17 @@ void main() {
             .widget<Text>(
               find.descendant(
                 of: creationTimeMetric,
+                matching: find.byType(Text),
+              ),
+            )
+            .data,
+        contains('2025'),
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(
+                of: modificationTimeMetric,
                 matching: find.byType(Text),
               ),
             )
@@ -941,6 +965,10 @@ void main() {
         of: creationTimeMetric,
         matching: find.byIcon(Icons.schedule_outlined),
       );
+      final modificationTimeIcon = find.descendant(
+        of: modificationTimeMetric,
+        matching: find.byIcon(Icons.update_outlined),
+      );
       final usageMetrics = [tokenMetric, skillMetric, mcpMetric];
       final usageIcons = [tokenIcon, skillIcon, mcpIcon];
       final usageSeparatorKeys = [
@@ -983,6 +1011,7 @@ void main() {
       await expectTooltip(mcpIcon, 'MCP 服务器');
       await expectTooltip(contextWindowIcon, '模型上下文大小');
       await expectTooltip(creationTimeIcon, '创建时间');
+      await expectTooltip(modificationTimeIcon, '修改时间');
       expect(find.byIcon(LucideIcons.arrowUpRight), findsNothing);
       expect(
         viewModel.metricsFor(bot.id).tokenUsage.effectiveTotalTokens,
@@ -1118,7 +1147,7 @@ void main() {
       );
       expect(
         tester.getCenter(menuButton).dy,
-        lessThan(tester.getCenter(card).dy),
+        greaterThan(tester.getCenter(card).dy),
       );
 
       await tester.tap(card);

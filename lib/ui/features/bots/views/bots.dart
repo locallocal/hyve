@@ -234,7 +234,7 @@ class ContactsPageState extends State<ContactsPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
-              mainAxisExtent: 200,
+              mainAxisExtent: 212,
             ),
             itemCount: filteredBots.length,
             itemBuilder: (context, index) {
@@ -802,11 +802,6 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Transform.translate(
-                            offset: const Offset(_menuIconAlignmentOffset, 0),
-                            child: _buildActionMenu(context),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -949,6 +944,23 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                               context,
                               widget.bot.createTimestamp,
                             ),
+                          ),
+                          const SizedBox(width: 16),
+                          _BotCardMetric(
+                            key: ValueKey<String>(
+                              'bot-card-modification-time-${widget.bot.id}',
+                            ),
+                            icon: Icons.update_outlined,
+                            name: S.of(context).modificationTime,
+                            value: formatTimestamp(
+                              context,
+                              widget.bot.modifyTimestamp,
+                            ),
+                          ),
+                          const Spacer(),
+                          Transform.translate(
+                            offset: const Offset(_menuIconAlignmentOffset, 0),
+                            child: _buildActionMenu(context),
                           ),
                         ],
                       ),

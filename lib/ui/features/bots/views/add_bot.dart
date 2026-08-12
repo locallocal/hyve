@@ -128,6 +128,7 @@ class _AddBotPageState extends State<AddBotPage> {
 
   bool _isLoadingModels = false;
   bool _isSubmitting = false;
+  String? _errorMessage;
   bool _isCustomProvider = false;
   bool _isSyncingProviderFields = false;
   bool _isPasswordVisible = false;
@@ -141,27 +142,43 @@ class _AddBotPageState extends State<AddBotPage> {
   bool _startedLoadingMcpServers = false;
 
   Future<void> _pickImage() async {
-    final imagePath = await widget.avatarPicker?.call();
+    try {
+      final imagePath = await widget.avatarPicker?.call();
 
-    if (imagePath != null && mounted) {
-      setState(() {
-        avatarImage = File(imagePath);
-      });
+      if (imagePath != null && mounted) {
+        setState(() {
+          avatarImage = File(imagePath);
+          _errorMessage = null;
+        });
+      }
+    } on Object catch (error) {
+      _showError(error.toString());
     }
   } // 添加加载状态变量
+
+  void _showError(String message) {
+    if (!mounted) return;
+    setState(() => _errorMessage = message.trim());
+  }
+
+  void _dismissError() {
+    if (_errorMessage == null) return;
+    setState(() => _errorMessage = null);
+  }
 
   // 添加获取模型列表的方法
   Future<void> _fetchModels() async {
     if (apiKeyController.text.trim().isEmpty) {
-      showSnackBar(context, S.of(context).pleaseEnterApiKey);
+      _showError(S.of(context).pleaseEnterApiKey);
       return;
     }
     if (baseURLController.text.trim().isEmpty) {
-      showSnackBar(context, S.of(context).enterApiAddress);
+      _showError(S.of(context).enterApiAddress);
       return;
     }
     setState(() {
       _isLoadingModels = true;
+      _errorMessage = null;
     });
 
     try {
@@ -192,14 +209,13 @@ class _AddBotPageState extends State<AddBotPage> {
         setState(() {
           providerModels = models;
           selectedModelController.text = models.first.modelId;
+          _errorMessage = null;
         });
       } else if (mounted) {
-        showSnackBar(context, S.of(context).noModelsRetrieved);
+        _showError(S.of(context).noModelsRetrieved);
       }
-    } catch (e) {
-      if (mounted) {
-        showSnackBar(context, e.toString());
-      }
+    } on Object catch (error) {
+      _showError(error.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -386,16 +402,23 @@ class _AddBotPageState extends State<AddBotPage> {
   Future<void> _submitBot() async {
     if (_isSubmitting) return;
 
+    if (_errorMessage != null) {
+      setState(() => _errorMessage = null);
+    }
+
     final desktopFormValid =
         !widget.embedded ||
         (_desktopFormKey.currentState?.saveAndValidate() ?? false);
-    if (!desktopFormValid) return;
+    if (!desktopFormValid) {
+      _showError(S.of(context).fillRequiredFields);
+      return;
+    }
 
     if (!widget.embedded &&
         (nameController.text.trim().isEmpty ||
             apiKeyController.text.trim().isEmpty ||
             baseURLController.text.trim().isEmpty)) {
-      showWarningSnackBar(context, S.of(context).fillRequiredFields);
+      _showError(S.of(context).fillRequiredFields);
       return;
     }
 
@@ -462,6 +485,8 @@ class _AddBotPageState extends State<AddBotPage> {
       if (!widget.embedded && mounted) {
         navigator.pop();
       }
+    } on Object catch (error) {
+      _showError(error.toString());
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -568,33 +593,50 @@ class _AddBotPageState extends State<AddBotPage> {
         ),
       ),
 
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.onSurface,
-            minimumSize: const Size.fromHeight(50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24.0),
-              side: BorderSide.none,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_errorMessage case final error?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: StarsInlineErrorAlert(
+                error: error,
+                isDesktop: false,
+                onDismiss: _dismissError,
+                alertKey: const ValueKey<String>('add-bot-error-alert'),
+                messageKey: const ValueKey<String>('add-bot-error-message'),
+                dismissKey: const ValueKey<String>('dismiss-add-bot-error'),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.onSurface,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24.0),
+                  side: BorderSide.none,
+                ),
+              ),
+              onPressed: _isSubmitting ? null : _submitBot,
+              child:
+                  _isSubmitting
+                      ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : Text(
+                        S.of(context).addBot,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: fontSize,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      ),
             ),
           ),
-          onPressed: _isSubmitting ? null : _submitBot,
-          child:
-              _isSubmitting
-                  ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Text(
-                    S.of(context).addBot,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: fontSize,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
-        ),
+        ],
       ),
     );
   }
@@ -861,34 +903,56 @@ class _AddBotPageState extends State<AddBotPage> {
                   constraints: const BoxConstraints(
                     maxWidth: _desktopFormWidth,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ShadButton.outline(
-                        enabled: !_isSubmitting,
-                        onPressed:
-                            _isSubmitting
-                                ? null
-                                : () => Navigator.of(context).pop(),
-                        child: Text(S.of(context).cancel),
-                      ),
-                      const SizedBox(width: 8),
-                      ShadButton(
-                        key: const ValueKey<String>('add-bot-submit'),
-                        enabled: !_isSubmitting,
-                        onPressed: _isSubmitting ? null : _submitBot,
-                        leading:
-                            _isSubmitting
-                                ? SizedBox.square(
-                                  dimension: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color:
-                                        shadTheme.colorScheme.primaryForeground,
-                                  ),
-                                )
-                                : const Icon(Icons.add_rounded, size: 17),
-                        child: Text(S.of(context).addBot),
+                      if (_errorMessage case final error?)
+                        StarsInlineErrorAlert(
+                          error: error,
+                          isDesktop: true,
+                          onDismiss: _dismissError,
+                          alertKey: const ValueKey<String>(
+                            'add-bot-error-alert',
+                          ),
+                          messageKey: const ValueKey<String>(
+                            'add-bot-error-message',
+                          ),
+                          dismissKey: const ValueKey<String>(
+                            'dismiss-add-bot-error',
+                          ),
+                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ShadButton.outline(
+                            enabled: !_isSubmitting,
+                            onPressed:
+                                _isSubmitting
+                                    ? null
+                                    : () => Navigator.of(context).pop(),
+                            child: Text(S.of(context).cancel),
+                          ),
+                          const SizedBox(width: 8),
+                          ShadButton(
+                            key: const ValueKey<String>('add-bot-submit'),
+                            enabled: !_isSubmitting,
+                            onPressed: _isSubmitting ? null : _submitBot,
+                            leading:
+                                _isSubmitting
+                                    ? SizedBox.square(
+                                      dimension: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color:
+                                            shadTheme
+                                                .colorScheme
+                                                .primaryForeground,
+                                      ),
+                                    )
+                                    : const Icon(Icons.add_rounded, size: 17),
+                            child: Text(S.of(context).addBot),
+                          ),
+                        ],
                       ),
                     ],
                   ),

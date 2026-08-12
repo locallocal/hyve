@@ -12,6 +12,70 @@ const double _appIconCornerRadiusRatio = 0.24;
 BorderRadius desktopAppIconBorderRadius(double size) =>
     BorderRadius.circular(size * _appIconCornerRadiusRatio);
 
+/// A compact, dismissible inline error shared by chat and form workflows.
+class StarsInlineErrorAlert extends StatelessWidget {
+  const StarsInlineErrorAlert({
+    super.key,
+    required this.error,
+    required this.isDesktop,
+    required this.onDismiss,
+    this.alertKey,
+    this.messageKey,
+    this.dismissKey,
+    this.padding = const EdgeInsets.only(bottom: 8),
+  });
+
+  final String error;
+  final bool isDesktop;
+  final VoidCallback onDismiss;
+  final Key? alertKey;
+  final Key? messageKey;
+  final Key? dismissKey;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final closeLabel = MaterialLocalizations.of(context).closeButtonTooltip;
+    return Padding(
+      padding: padding,
+      child: ShadAlert.destructive(
+        key: alertKey,
+        decoration: const ShadDecoration(
+          border: ShadBorder(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          ),
+        ),
+        crossAxisAlignment: CrossAxisAlignment.center,
+        iconPadding: const EdgeInsetsDirectional.only(end: 8),
+        icon: const Icon(LucideIcons.circleAlert, size: 18),
+        description: Align(
+          alignment: Alignment.center,
+          child: Text(error, key: messageKey, textAlign: TextAlign.center),
+        ),
+        trailing: Semantics(
+          label: closeLabel,
+          button: true,
+          child: ShadTooltip(
+            builder: (context) => Text(closeLabel),
+            child: ShadIconButton.ghost(
+              key: dismissKey,
+              width: 28,
+              height: 28,
+              padding: EdgeInsets.zero,
+              iconSize: 16,
+              onPressed: onDismiss,
+              icon: Icon(
+                isDesktop ? LucideIcons.x : Icons.close_rounded,
+                size: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A shared label/value row for the desktop conversation inspector.
 ///
 /// The label always starts after the same icon gutter. Text values occupy the

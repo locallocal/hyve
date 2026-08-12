@@ -6,6 +6,21 @@ import 'package:sqflite/sqflite.dart';
 
 typedef ApplicationDocumentsDirectoryProvider = Future<Directory> Function();
 
+final class UnsupportedDatabaseVersionException implements Exception {
+  const UnsupportedDatabaseVersionException({
+    required this.actualVersion,
+    required this.expectedVersion,
+  });
+
+  final int actualVersion;
+  final int expectedVersion;
+
+  @override
+  String toString() =>
+      'Unsupported database version $actualVersion; '
+      'expected $expectedVersion. Historical schema upgrades are not supported.';
+}
+
 class DatabaseService {
   DatabaseService({
     ApplicationDocumentsDirectoryProvider?
@@ -50,12 +65,22 @@ class DatabaseService {
     return await openDatabase(
       path,
       version: databaseVersion,
+      onConfigure: _validateDatabaseVersion,
       onCreate: createSchema,
-      onUpgrade: migrateSchema,
     );
   }
 
-  static Future<void> createSchema(Database db, int version) async {
+  static Future<void> _validateDatabaseVersion(Database db) async {
+    final version = await db.getVersion();
+    if (version != 0 && version != databaseVersion) {
+      throw UnsupportedDatabaseVersionException(
+        actualVersion: version,
+        expectedVersion: databaseVersion,
+      );
+    }
+  }
+
+  static Future<void> createSchema(Database db, int _) async {
     // 创建聊天列表表
     await db.execute('''
           CREATE TABLE chats (
@@ -138,182 +163,6 @@ class DatabaseService {
             modify_timestamp INTEGER
           );
         ''');
-  }
-
-  static Future<void> migrateSchema(
-    Database db,
-    int oldVersion,
-    int newVersion,
-  ) async {
-    if (oldVersion < 2) {
-      await _addColumnIfMissing(db, 'messages', 'process_info', 'TEXT');
-    }
-    if (oldVersion < 3) {
-      await _addColumnIfMissing(db, 'messages', 'message_id', 'TEXT');
-      await _addColumnIfMissing(db, 'messages', 'turn_id', 'TEXT');
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'run_id',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'terminal_state',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'has_partial_content',
-        'INTEGER NOT NULL DEFAULT 0',
-      );
-      await db.execute('''
-        UPDATE messages
-        SET message_id = 'legacy:' || chat_id || ':' || rowid
-        WHERE message_id IS NULL OR message_id = ''
-      ''');
-      await db.execute('''
-        UPDATE messages
-        SET turn_id = 'legacy-turn:' || chat_id || ':' || rowid
-        WHERE turn_id IS NULL OR turn_id = ''
-      ''');
-      await db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS messages_message_id_unique '
-        'ON messages(message_id)',
-      );
-    }
-    if (oldVersion < 4) {
-      await _addColumnIfMissing(
-        db,
-        'profile',
-        'show_execution_status',
-        'INTEGER NOT NULL DEFAULT 1',
-      );
-    }
-    if (oldVersion < 5) {
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'token_model',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'input_token_count',
-        'INTEGER NOT NULL DEFAULT 0',
-      );
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'output_token_count',
-        'INTEGER NOT NULL DEFAULT 0',
-      );
-      await _addColumnIfMissing(
-        db,
-        'messages',
-        'total_token_count',
-        'INTEGER NOT NULL DEFAULT 0',
-      );
-      await db.execute(
-        'CREATE INDEX IF NOT EXISTS messages_bot_id_index '
-        'ON messages(bot_id)',
-      );
-    }
-    if (oldVersion < 6) {
-      await _createTokenUsageSchema(db);
-      await db.execute('''
-        INSERT OR REPLACE INTO token_usage_records (
-          message_id,
-          chat_id,
-          bot_id,
-          token_model,
-          input_token_count,
-          output_token_count,
-          total_token_count,
-          timestamp
-        )
-        SELECT
-          message_id,
-          COALESCE(chat_id, ''),
-          COALESCE(bot_id, ''),
-          COALESCE(token_model, ''),
-          COALESCE(input_token_count, 0),
-          COALESCE(output_token_count, 0),
-          COALESCE(total_token_count, 0),
-          COALESCE(timestamp, 0)
-        FROM messages
-        WHERE message_id IS NOT NULL
-          AND message_id != ''
-          AND (
-            COALESCE(input_token_count, 0) > 0
-            OR COALESCE(output_token_count, 0) > 0
-            OR COALESCE(total_token_count, 0) > 0
-          )
-      ''');
-    }
-    if (oldVersion < 7) {
-      await _createSkillSchema(db);
-    }
-    if (oldVersion < 8 && newVersion >= 8) {
-      await _createConversationSkillPinSchema(db);
-    }
-    if (oldVersion < 11 && newVersion >= 11) {
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'publisher_id',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'publisher_name',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'signature_status',
-        "TEXT NOT NULL DEFAULT 'unsigned'",
-      );
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'catalog_id',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'catalog_entry_id',
-        "TEXT NOT NULL DEFAULT ''",
-      );
-      await _addColumnIfMissing(
-        db,
-        'skills',
-        'update_policy',
-        "TEXT NOT NULL DEFAULT 'manual'",
-      );
-      await _createSkillEcosystemSchema(db);
-    }
-    if (oldVersion < 13 && newVersion >= 13) {
-      await _resetMcpSchema(db);
-    }
-    if (oldVersion >= 13 && oldVersion < 14 && newVersion >= 14) {
-      await _resetMcpSchema(db);
-    }
-    if (oldVersion < 15 && newVersion >= 15) {
-      await _createConversationMemorySchema(db);
-      await _addColumnIfMissing(
-        db,
-        'token_usage_records',
-        'operation_kind',
-        "TEXT NOT NULL DEFAULT 'chat_reply'",
-      );
-    }
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
@@ -610,26 +459,5 @@ class DatabaseService {
       'CREATE INDEX IF NOT EXISTS mcp_tools_server_id_index '
       'ON mcp_tools(server_id)',
     );
-  }
-
-  static Future<void> _resetMcpSchema(DatabaseExecutor db) async {
-    await db.execute('DROP TABLE IF EXISTS mcp_tools');
-    await db.execute('DROP TABLE IF EXISTS mcp_servers');
-    await _createMcpSchema(db);
-  }
-
-  static Future<void> _addColumnIfMissing(
-    Database db,
-    String tableName,
-    String columnName,
-    String columnType,
-  ) async {
-    final columns = await db.rawQuery('PRAGMA table_info($tableName)');
-    final hasColumn = columns.any((column) => column['name'] == columnName);
-    if (!hasColumn) {
-      await db.execute(
-        'ALTER TABLE $tableName ADD COLUMN $columnName $columnType',
-      );
-    }
   }
 }

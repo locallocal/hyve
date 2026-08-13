@@ -126,7 +126,7 @@ void main() {
     );
   });
 
-  test('v15 schema includes Memory tables and history index', () async {
+  test('current schema includes Memory tables and history index', () async {
     final tables = await database.rawQuery(
       "SELECT name FROM sqlite_master WHERE type = 'table'",
     );

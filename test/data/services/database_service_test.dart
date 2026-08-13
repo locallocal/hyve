@@ -12,7 +12,7 @@ void main() {
   });
 
   group('current database schema', () {
-    test('creates every table required by schema version 15', () async {
+    test('creates every table required by the current schema', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
@@ -167,65 +167,113 @@ void main() {
       );
     });
 
+    test('replaces a historical database with the current schema', () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'stars_historical_database_',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final databasePath = path.join(directory.path, 'app.db');
+      final historicalDatabase = await databaseFactoryFfi.openDatabase(
+        databasePath,
+        options: OpenDatabaseOptions(
+          version: DatabaseService.databaseVersion - 1,
+          onCreate: (database, _) async {
+            await database.execute('''
+                CREATE TABLE legacy_records (
+                  id TEXT PRIMARY KEY,
+                  value TEXT NOT NULL
+                )
+              ''');
+          },
+        ),
+      );
+      await historicalDatabase.insert('legacy_records', <String, Object?>{
+        'id': 'legacy-1',
+        'value': 'preserved',
+      });
+      await historicalDatabase.close();
+
+      final service = DatabaseService(
+        applicationDocumentsDirectoryProvider: () async => directory,
+      );
+      final resetDatabase = await service.initDatabase();
+      addTearDown(resetDatabase.close);
+
+      expect(await resetDatabase.getVersion(), DatabaseService.databaseVersion);
+      expect(
+        await resetDatabase.rawQuery('''
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'legacy_records'
+          '''),
+        isEmpty,
+      );
+      expect(
+        await resetDatabase.rawQuery('''
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'messages'
+          '''),
+        hasLength(1),
+      );
+    });
+
     test(
-      'rejects a historical schema without upgrading or deleting its data',
+      'replaces the v15 nullable message schema and deletes its rows',
       () async {
         final directory = await Directory.systemTemp.createTemp(
-          'stars_historical_database_',
+          'stars_v15_message_database_',
         );
         addTearDown(() => directory.delete(recursive: true));
         final databasePath = path.join(directory.path, 'app.db');
         final historicalDatabase = await databaseFactoryFfi.openDatabase(
           databasePath,
           options: OpenDatabaseOptions(
-            version: DatabaseService.databaseVersion - 1,
+            version: 15,
             onCreate: (database, _) async {
               await database.execute('''
-                CREATE TABLE legacy_records (
-                  id TEXT PRIMARY KEY,
-                  value TEXT NOT NULL
+                CREATE TABLE messages (
+                  message_id TEXT,
+                  turn_id TEXT,
+                  chat_id TEXT,
+                  content TEXT
                 )
               ''');
             },
           ),
         );
-        await historicalDatabase.insert('legacy_records', <String, Object?>{
-          'id': 'legacy-1',
-          'value': 'preserved',
+        await historicalDatabase.insert('messages', <String, Object?>{
+          'chat_id': 'legacy-chat',
+          'content': 'preserved',
         });
         await historicalDatabase.close();
 
         final service = DatabaseService(
           applicationDocumentsDirectoryProvider: () async => directory,
         );
-        await expectLater(
-          service.initDatabase(),
-          throwsA(
-            isA<UnsupportedDatabaseVersionException>()
-                .having(
-                  (error) => error.actualVersion,
-                  'actualVersion',
-                  DatabaseService.databaseVersion - 1,
-                )
-                .having(
-                  (error) => error.expectedVersion,
-                  'expectedVersion',
-                  DatabaseService.databaseVersion,
-                ),
-          ),
-        );
+        final resetDatabase = await service.initDatabase();
+        addTearDown(resetDatabase.close);
 
-        final unchangedDatabase = await databaseFactoryFfi.openDatabase(
-          databasePath,
-        );
-        addTearDown(unchangedDatabase.close);
         expect(
-          await unchangedDatabase.getVersion(),
-          DatabaseService.databaseVersion - 1,
+          await resetDatabase.getVersion(),
+          DatabaseService.databaseVersion,
         );
-        expect(await unchangedDatabase.query('legacy_records'), <Object?>[
-          <String, Object?>{'id': 'legacy-1', 'value': 'preserved'},
-        ]);
+        expect(await resetDatabase.query('messages'), isEmpty);
+        final messageColumns = await resetDatabase.rawQuery(
+          'PRAGMA table_info(messages)',
+        );
+        expect(
+          messageColumns.singleWhere(
+            (column) => column['name'] == 'message_id',
+          )['notnull'],
+          1,
+        );
+        expect(
+          messageColumns.singleWhere(
+            (column) => column['name'] == 'turn_id',
+          )['notnull'],
+          1,
+        );
       },
     );
   });

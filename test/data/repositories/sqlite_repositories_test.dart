@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:stars/data/models/local_records.dart';
+import 'package:stars/data/models/skill_records.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
 import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:stars/data/repositories/sqlite_chat_repository.dart';
@@ -37,6 +38,7 @@ void main() {
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: DatabaseService.databaseVersion,
+        onConfigure: DatabaseService.configure,
         onCreate: DatabaseService.createSchema,
       ),
     );
@@ -72,7 +74,13 @@ void main() {
     final bot = _bot();
     await database.insert(
       'bots',
-      BotRecord.fromDomain(bot, storedApiKey: bot.apiKey).values,
+      BotRecord.fromDomain(
+        bot,
+        storedApiKey: await apiKeyCipher.encrypt(
+          botId: bot.id,
+          apiKey: bot.apiKey,
+        ),
+      ).values,
     );
 
     expect(await botRepository.getBots(), isEmpty);
@@ -265,29 +273,19 @@ void main() {
     expect(persisted.modifyTimestamp, modifiedAt);
   });
 
-  test('legacy plaintext Bot API keys migrate when read', () async {
+  test('plaintext Bot API keys are rejected as non-current data', () async {
     final bot = _bot();
     await database.insert(
       'bots',
       BotRecord.fromDomain(bot, storedApiKey: bot.apiKey).values,
     );
 
-    final restored = await botRepository.getBot(bot.id);
-    final rows = await database.query(
-      'bots',
-      columns: ['api_key'],
-      where: 'id = ?',
-      whereArgs: [bot.id],
+    await expectLater(
+      botRepository.getBot(bot.id),
+      throwsA(isA<FormatException>()),
     );
-    final storedApiKey = rows.single['api_key']! as String;
-
-    expect(restored?.apiKey, bot.apiKey);
-    expect(storedApiKey, isNot(bot.apiKey));
-    expect(apiKeyCipher.isEncrypted(storedApiKey), isTrue);
-    expect(
-      await apiKeyCipher.decrypt(botId: bot.id, encrypted: storedApiKey),
-      bot.apiKey,
-    );
+    final rows = await database.query('bots', columns: ['api_key']);
+    expect(rows.single['api_key'], bot.apiKey);
   });
 
   test(
@@ -325,6 +323,26 @@ void main() {
   test('message repository aggregates persisted token usage by bot', () async {
     final repository = SqliteMessageRepository(localDatabase: localDatabase);
     final timestamp = DateTime(2026, 7, 25);
+    await botRepository.addBot(_bot());
+    await botRepository.addBot(_bot(id: 'bot-2'));
+    for (final entry
+        in const <String, String>{
+          'chat-1': 'bot-1',
+          'chat-2': 'bot-1',
+          'chat-3': 'bot-2',
+        }.entries) {
+      await localDatabase.insertChat(
+        ChatRecord.fromDomain(
+          Chat(
+            id: entry.key,
+            botId: entry.value,
+            lastMessageTimestamp: timestamp,
+            createTimestamp: timestamp,
+            modifyTimestamp: timestamp,
+          ),
+        ).values,
+      );
+    }
     await repository.upsertMessages([
       Message(
         messageId: 'assistant-1',
@@ -472,6 +490,9 @@ void main() {
   test('Skill bindings round-trip and are removed with their bot', () async {
     final bot = _bot();
     await botRepository.addBot(bot);
+    await localDatabase.upsertSkill(
+      SkillRecord.fromDomain(_skill('user:release-notes')).values,
+    );
     final timestamp = DateTime(2026, 7, 26, 10);
     final binding = BotSkillBinding(
       botId: bot.id,
@@ -623,10 +644,27 @@ void main() {
   });
 
   test('conversation Skill pins round-trip and clear with chat', () async {
+    final bot = _bot();
+    final timestamp = DateTime(2026, 7, 27, 9);
+    await botRepository.addBot(bot);
+    await localDatabase.upsertSkill(
+      SkillRecord.fromDomain(_skill('user:release-notes')).values,
+    );
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-pinned',
+          botId: bot.id,
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
     final pin = ConversationSkillPin(
       chatId: 'chat-pinned',
       skillId: 'user:release-notes',
-      createdAt: DateTime(2026, 7, 27, 9),
+      createdAt: timestamp,
     );
 
     await pinRepository.save(pin);
@@ -638,8 +676,8 @@ void main() {
   });
 }
 
-Bot _bot() => Bot(
-  id: 'bot-1',
+Bot _bot({String id = 'bot-1'}) => Bot(
+  id: id,
   name: 'Assistant',
   avatar: '',
   provider: 'OpenAI',
@@ -651,4 +689,20 @@ Bot _bot() => Bot(
   parameters: const {'temperature': 0.7},
   createTimestamp: DateTime(2026),
   modifyTimestamp: DateTime(2026),
+);
+
+SkillDescriptor _skill(String id) => SkillDescriptor(
+  id: id,
+  name: id.split(':').last,
+  description: 'Test Skill',
+  version: '1.0.0',
+  scope: SkillScope.user,
+  sourceUri: 'file:///$id',
+  rootPath: '/skills/$id',
+  contentDigest: 'digest-$id',
+  trustState: SkillTrustState.userReviewed,
+  validationStatus: SkillValidationStatus.valid,
+  compatibility: 'Stars',
+  installedAt: DateTime(2026),
+  updatedAt: DateTime(2026),
 );

@@ -46,39 +46,39 @@ final class SkillRecord {
       name: _text('name'),
       description: _text('description'),
       version: _text('version'),
-      scope: _enumValue(SkillScope.values, _text('scope'), SkillScope.user),
+      scope: _enumValue(SkillScope.values, _text('scope'), 'scope'),
       sourceUri: _text('source_uri'),
       rootPath: _text('root_path'),
       contentDigest: _text('content_digest'),
       trustState: _enumValue(
         SkillTrustState.values,
         _text('trust_state'),
-        SkillTrustState.untrusted,
+        'trust_state',
       ),
       validationStatus: _enumValue(
         SkillValidationStatus.values,
         _text('validation_status'),
-        SkillValidationStatus.invalid,
+        'validation_status',
       ),
       compatibility: _text('compatibility'),
       requestedToolNames: _decodeStringSet(_text('requested_tools_json')),
       diagnostics: _decodeDiagnostics(_text('diagnostics_json')),
-      hasScripts: _integer('has_scripts') == 1,
-      hasReferences: _integer('has_references') == 1,
-      hasAssets: _integer('has_assets') == 1,
+      hasScripts: _bool(values['has_scripts'], 'has_scripts'),
+      hasReferences: _bool(values['has_references'], 'has_references'),
+      hasAssets: _bool(values['has_assets'], 'has_assets'),
       publisherId: _text('publisher_id'),
       publisherName: _text('publisher_name'),
       signatureStatus: _enumValue(
         SkillSignatureStatus.values,
         _text('signature_status'),
-        SkillSignatureStatus.unsigned,
+        'signature_status',
       ),
       catalogId: _text('catalog_id'),
       catalogEntryId: _text('catalog_entry_id'),
       updatePolicy: _enumValue(
         SkillUpdatePolicy.values,
         _text('update_policy'),
-        SkillUpdatePolicy.manual,
+        'update_policy',
       ),
       installedAt: DateTime.fromMillisecondsSinceEpoch(
         _integer('installed_at'),
@@ -87,15 +87,11 @@ final class SkillRecord {
     );
   }
 
-  String _text(String key) => values[key]?.toString() ?? '';
+  String _text(String key) => _requiredText(values[key], key);
 
   int _integer(String key) {
     final value = values[key];
-    return switch (value) {
-      final int number => number,
-      final num number => number.toInt(),
-      _ => int.tryParse(value?.toString() ?? '') ?? 0,
-    };
+    return _requiredInteger(value, key);
   }
 }
 
@@ -118,20 +114,20 @@ final class BotSkillBindingRecord {
 
   BotSkillBinding toDomain() {
     return BotSkillBinding(
-      botId: values['bot_id']?.toString() ?? '',
-      skillId: values['skill_id']?.toString() ?? '',
-      enabled: _integer(values['enabled']) == 1,
+      botId: _requiredText(values['bot_id'], 'bot_id'),
+      skillId: _requiredText(values['skill_id'], 'skill_id'),
+      enabled: _bool(values['enabled'], 'enabled'),
       activationMode: _enumValue(
         SkillActivationMode.values,
-        values['activation_mode']?.toString() ?? '',
-        SkillActivationMode.auto,
+        _requiredText(values['activation_mode'], 'activation_mode'),
+        'activation_mode',
       ),
-      priority: _integer(values['priority']),
+      priority: _requiredInteger(values['priority'], 'priority'),
       createdAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['created_at']),
+        _requiredInteger(values['created_at'], 'created_at'),
       ),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['updated_at']),
+        _requiredInteger(values['updated_at'], 'updated_at'),
       ),
     );
   }
@@ -161,29 +157,32 @@ final class SkillActivationDbRecord {
   final Map<String, Object?> values;
 
   SkillActivationRecord toDomain() {
-    final completedAt = _nullableInteger(values['completed_at']);
+    final completedAt = _nullableInteger(
+      values['completed_at'],
+      'completed_at',
+    );
     return SkillActivationRecord(
-      id: values['id']?.toString() ?? '',
-      runId: values['run_id']?.toString() ?? '',
-      chatId: values['chat_id']?.toString() ?? '',
-      messageId: values['message_id']?.toString() ?? '',
-      skillId: values['skill_id']?.toString() ?? '',
-      skillName: values['skill_name']?.toString() ?? '',
-      contentDigest: values['content_digest']?.toString() ?? '',
+      id: _requiredText(values['id'], 'id'),
+      runId: _requiredText(values['run_id'], 'run_id'),
+      chatId: _requiredText(values['chat_id'], 'chat_id'),
+      messageId: _requiredText(values['message_id'], 'message_id'),
+      skillId: _requiredText(values['skill_id'], 'skill_id'),
+      skillName: _requiredText(values['skill_name'], 'skill_name'),
+      contentDigest: _requiredText(values['content_digest'], 'content_digest'),
       trigger: _enumValue(
         SkillActivationTrigger.values,
-        values['trigger_type']?.toString() ?? '',
-        SkillActivationTrigger.model,
+        _requiredText(values['trigger_type'], 'trigger_type'),
+        'trigger_type',
       ),
       status: _enumValue(
         SkillActivationStatus.values,
-        values['status']?.toString() ?? '',
-        SkillActivationStatus.failed,
+        _requiredText(values['status'], 'status'),
+        'status',
       ),
-      durationMs: _nullableInteger(values['duration_ms']),
-      errorCode: values['error_code']?.toString() ?? '',
+      durationMs: _nullableInteger(values['duration_ms'], 'duration_ms'),
+      errorCode: _requiredText(values['error_code'], 'error_code'),
       startedAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['started_at']),
+        _requiredInteger(values['started_at'], 'started_at'),
       ),
       completedAt:
           completedAt == null
@@ -208,60 +207,75 @@ final class ConversationSkillPinRecord {
 
   ConversationSkillPin toDomain() {
     return ConversationSkillPin(
-      chatId: values['chat_id']?.toString() ?? '',
-      skillId: values['skill_id']?.toString() ?? '',
+      chatId: _requiredText(values['chat_id'], 'chat_id'),
+      skillId: _requiredText(values['skill_id'], 'skill_id'),
       createdAt: DateTime.fromMillisecondsSinceEpoch(
-        _integer(values['created_at']),
+        _requiredInteger(values['created_at'], 'created_at'),
       ),
     );
   }
 }
 
-T _enumValue<T extends Enum>(List<T> values, String name, T fallback) {
+T _enumValue<T extends Enum>(List<T> values, String name, String field) {
   for (final value in values) {
     if (value.name == name) return value;
   }
-  return fallback;
+  throw FormatException('Skill record field "$field" has an unknown value.');
 }
 
-int _integer(Object? value) => _nullableInteger(value) ?? 0;
+String _requiredText(Object? value, String field) {
+  if (value is String) return value;
+  throw FormatException('Skill record field "$field" must be a string.');
+}
 
-int? _nullableInteger(Object? value) {
+int _requiredInteger(Object? value, String field) {
+  if (value is int) return value;
+  throw FormatException('Skill record field "$field" must be an integer.');
+}
+
+int? _nullableInteger(Object? value, String field) {
+  if (value == null || value is int) return value as int?;
+  throw FormatException(
+    'Skill record field "$field" must be an integer or null.',
+  );
+}
+
+bool _bool(Object? value, String field) {
   return switch (value) {
-    null => null,
-    final int number => number,
-    final num number => number.toInt(),
-    _ => int.tryParse(value.toString()),
+    0 => false,
+    1 => true,
+    _ => throw FormatException('Skill record field "$field" must be 0 or 1.'),
   };
 }
 
 Set<String> _decodeStringSet(String source) {
-  try {
-    final decoded = jsonDecode(source);
-    if (decoded is List) {
-      return decoded.whereType<String>().toSet();
-    }
-  } on FormatException {
-    return const {};
+  final decoded = jsonDecode(source);
+  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
+    throw const FormatException(
+      'Skill requested_tools_json must contain a string list.',
+    );
   }
-  return const {};
+  return decoded.cast<String>().toSet();
 }
 
 List<SkillDiagnostic> _decodeDiagnostics(String source) {
-  try {
-    final decoded = jsonDecode(source);
-    if (decoded is List) {
-      return decoded
-          .whereType<Map<Object?, Object?>>()
-          .map(
-            (item) => SkillDiagnostic.fromMap(
-              item.map((key, value) => MapEntry(key.toString(), value)),
-            ),
-          )
-          .toList(growable: false);
-    }
-  } on FormatException {
-    return const [];
+  final decoded = jsonDecode(source);
+  if (decoded is! List<Object?> ||
+      decoded.any(
+        (item) =>
+            item is! Map<Object?, Object?> ||
+            item.keys.any((key) => key is! String),
+      )) {
+    throw const FormatException(
+      'Skill diagnostics_json must contain an object list.',
+    );
   }
-  return const [];
+  return decoded
+      .cast<Map<Object?, Object?>>()
+      .map(
+        (item) => SkillDiagnostic.fromMap(
+          item.map((key, value) => MapEntry(key! as String, value)),
+        ),
+      )
+      .toList(growable: false);
 }

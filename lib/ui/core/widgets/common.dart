@@ -9,6 +9,12 @@ String safeFailureMessage(BuildContext context, Object error) {
   if (failure.code == 'bot_required_fields_missing') {
     return S.of(context).fillRequiredFields;
   }
+  if (failure.code == 'database_downgrade_not_supported') {
+    return '数据库由更高版本的 Stars 创建，请升级应用后再打开。';
+  }
+  if (failure.code == 'database_recovery_failed') {
+    return '数据库完整性检查失败，且无法从当前版本备份恢复。';
+  }
   return switch (failure.kind) {
     AppFailureKind.cancelled => S.of(context).replyCancelled,
     AppFailureKind.networkTimeout => S.of(context).statusTimedOut,

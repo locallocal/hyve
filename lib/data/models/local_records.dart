@@ -95,18 +95,28 @@ final class MessageProcessInfoRecord {
   }
 
   factory MessageProcessInfoRecord.fromRaw(Object? raw) {
-    if (raw == null || raw == '') {
-      return const MessageProcessInfoRecord(<String, Object?>{});
+    if (raw is! String) {
+      throw const FormatException(
+        'Message process info must be stored as JSON text.',
+      );
     }
-    if (raw is String) {
-      try {
-        final Object? decoded = jsonDecode(raw);
-        return MessageProcessInfoRecord(_stringMap(decoded) ?? const {});
-      } on FormatException {
-        return const MessageProcessInfoRecord(<String, Object?>{});
-      }
+    final decoded = jsonDecode(raw);
+    final values = _requiredStringMap(decoded, 'Message process info');
+    const fields = <String>{
+      'reasoning_status',
+      'duration_ms',
+      'tool_calls',
+      'command_executions',
+      'file_edits',
+      'skill_activations',
+    };
+    if (values.keys.toSet().difference(fields).isNotEmpty ||
+        fields.difference(values.keys.toSet()).isNotEmpty) {
+      throw const FormatException(
+        'Message process info does not match the current format.',
+      );
     }
-    return MessageProcessInfoRecord(_stringMap(raw) ?? const {});
+    return MessageProcessInfoRecord(values);
   }
 
   final Map<String, Object?> values;
@@ -214,51 +224,44 @@ final class ProfileRecord {
 
   Profile toDomain() {
     return Profile(
-      name: _string(values['name'], fallback: '用户名'),
+      name: _string(values['name']),
       avatar: _string(values['avatar']),
-      fontSize: _storageDouble(values['font_size'], fallback: 16),
+      fontSize: _storageDouble(values['font_size']),
       themeMode: _storageInt(values['theme_mode']),
-      language: _string(values['language'], fallback: 'zh_CN'),
-      showExecutionStatus: _storageBool(
-        values['show_execution_status'],
-        fallback: true,
-      ),
+      language: _string(values['language']),
+      showExecutionStatus: _storageBool(values['show_execution_status']),
       createTimestamp: _timestamp(values['create_timestamp']),
       modifyTimestamp: _timestamp(values['modify_timestamp']),
     );
   }
 }
 
-Map<String, dynamic>? _parameters(Object? raw) {
-  if (raw == null) return null;
-  if (raw is String) {
-    try {
-      final Object? decoded = jsonDecode(raw);
-      return _dynamicStringMap(decoded) ?? <String, dynamic>{};
-    } on FormatException {
-      return <String, dynamic>{};
-    }
+Map<String, dynamic> _parameters(Object? raw) {
+  if (raw is! String) {
+    throw const FormatException('Bot parameters must be stored as JSON text.');
   }
-  return _dynamicStringMap(raw) ?? <String, dynamic>{};
+  final decoded = jsonDecode(raw);
+  return Map<String, dynamic>.from(
+    _requiredStringMap(decoded, 'Bot parameters'),
+  );
 }
 
-Map<String, Object?>? _stringMap(Object? raw) {
-  if (raw is! Map<Object?, Object?>) return null;
+Map<String, Object?> _requiredStringMap(Object? raw, String field) {
+  if (raw is! Map<Object?, Object?> || raw.keys.any((key) => key is! String)) {
+    throw FormatException('$field must contain a JSON object.');
+  }
   return <String, Object?>{
-    for (final entry in raw.entries) entry.key.toString(): entry.value,
+    for (final entry in raw.entries) entry.key! as String: entry.value,
   };
 }
 
-Map<String, dynamic>? _dynamicStringMap(Object? raw) {
-  final map = _stringMap(raw);
-  return map == null ? null : Map<String, dynamic>.from(map);
-}
-
 List<T> _records<T>(Object? raw, T Function(Map<String, Object?>) decode) {
-  if (raw is! List<Object?>) return const [];
+  if (raw is! List<Object?>) {
+    throw const FormatException('Message process records must be a list.');
+  }
   return <T>[
     for (final item in raw)
-      if (_stringMap(item) case final map?) decode(map),
+      decode(_requiredStringMap(item, 'Message process record')),
   ];
 }
 
@@ -345,22 +348,19 @@ MessageSkillActivation _skillActivationFromMap(Map<String, Object?> values) {
     name: _string(values['name']),
     contentDigest: _string(values['content_digest']),
     trigger: _string(values['trigger']),
-    status: _string(values['status'], fallback: 'recorded'),
+    status: _string(values['status']),
   );
 }
 
 List<String> _stringList(Object? raw) {
-  Object? decoded = raw;
-  if (raw is String) {
-    if (raw.isEmpty) return const [];
-    try {
-      decoded = jsonDecode(raw);
-    } on FormatException {
-      return const [];
-    }
+  if (raw is! String) {
+    throw const FormatException('Message assets must be stored as JSON text.');
   }
-  if (decoded is! List<Object?>) return const [];
-  return decoded.map((item) => item.toString()).toList(growable: false);
+  final decoded = jsonDecode(raw);
+  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
+    throw const FormatException('Message assets must contain a string list.');
+  }
+  return List<String>.unmodifiable(decoded.cast<String>());
 }
 
 MessageTerminalOutcome? _terminalOutcome(Object? raw) {
@@ -369,35 +369,31 @@ MessageTerminalOutcome? _terminalOutcome(Object? raw) {
   for (final outcome in MessageTerminalOutcome.values) {
     if (outcome.name == name) return outcome;
   }
-  return null;
+  throw const FormatException('Message terminal state is invalid.');
 }
 
-String _string(Object? value, {String fallback = ''}) =>
-    value?.toString() ?? fallback;
+String _string(Object? value) {
+  if (value is String) return value;
+  throw const FormatException('Stored value must be a string.');
+}
 
 int _storageInt(Object? value) {
-  return switch (value) {
-    final int number => number,
-    final num number => number.toInt(),
-    _ => int.tryParse(value?.toString() ?? '') ?? 0,
-  };
+  if (value is int) return value;
+  throw const FormatException('Stored value must be an integer.');
 }
 
 int? _nullableInt(Object? value) => value == null ? null : _storageInt(value);
 
-double _storageDouble(Object? value, {required double fallback}) {
-  return switch (value) {
-    final num number => number.toDouble(),
-    _ => double.tryParse(value?.toString() ?? '') ?? fallback,
-  };
+double _storageDouble(Object? value) {
+  if (value is num) return value.toDouble();
+  throw const FormatException('Stored value must be numeric.');
 }
 
-bool _storageBool(Object? value, {bool fallback = false}) {
+bool _storageBool(Object? value) {
   return switch (value) {
-    final bool flag => flag,
-    final num number => number != 0,
-    final String text => text != '0' && text.toLowerCase() != 'false',
-    _ => fallback,
+    0 => false,
+    1 => true,
+    _ => throw const FormatException('Stored value must be 0 or 1.'),
   };
 }
 

@@ -16,6 +16,7 @@ void main() {
         inMemoryDatabasePath,
       );
       addTearDown(database.close);
+      await DatabaseService.configure(database);
       await DatabaseService.createSchema(
         database,
         DatabaseService.databaseVersion,
@@ -97,6 +98,7 @@ void main() {
       inMemoryDatabasePath,
     );
     addTearDown(database.close);
+    await DatabaseService.configure(database);
     await DatabaseService.createSchema(
       database,
       DatabaseService.databaseVersion,

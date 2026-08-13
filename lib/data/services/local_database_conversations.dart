@@ -13,11 +13,7 @@ extension LocalDatabaseConversations on LocalDatabaseService {
 
   Future<void> insertChat(Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await database.insert(
-      'chats',
-      values,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _upsertByPrimaryKey(database, 'chats', values, 'id');
   }
 
   Future<void> deleteChat(String id) async {

@@ -179,18 +179,20 @@ final class SqliteConversationMemoryRepository
 ConversationMemoryState _stateFromRow(Map<String, Object?> row) {
   final lastCompactedAt = _nullableInt(row['last_compacted_at']);
   return ConversationMemoryState(
-    chatId: row['chat_id']?.toString() ?? '',
+    chatId: _text(row['chat_id'], 'chat_id'),
     revision: _int(row['revision']),
-    activeSummaryId: row['active_summary_id']?.toString() ?? '',
-    coveredThroughMessageId:
-        row['covered_through_message_id']?.toString() ?? '',
-    autoMemoryEnabled: _int(row['auto_memory_enabled']) != 0,
+    activeSummaryId: _text(row['active_summary_id'], 'active_summary_id'),
+    coveredThroughMessageId: _text(
+      row['covered_through_message_id'],
+      'covered_through_message_id',
+    ),
+    autoMemoryEnabled: _bool(row['auto_memory_enabled']),
     compactionStatus: _enumByName(
       ConversationCompactionStatus.values,
-      row['compaction_status']?.toString(),
-      ConversationCompactionStatus.idle,
+      _text(row['compaction_status'], 'compaction_status'),
+      'compaction_status',
     ),
-    lastError: row['last_error']?.toString() ?? '',
+    lastError: _text(row['last_error'], 'last_error'),
     lastCompactedAt:
         lastCompactedAt == null
             ? null
@@ -201,24 +203,30 @@ ConversationMemoryState _stateFromRow(Map<String, Object?> row) {
 
 ConversationSummaryMetadata _summaryFromRow(Map<String, Object?> row) {
   return ConversationSummaryMetadata(
-    id: row['id']?.toString() ?? '',
-    chatId: row['chat_id']?.toString() ?? '',
+    id: _text(row['id'], 'id'),
+    chatId: _text(row['chat_id'], 'chat_id'),
     status: _enumByName(
       ConversationSummaryStatus.values,
-      row['status']?.toString(),
-      ConversationSummaryStatus.invalid,
+      _text(row['status'], 'status'),
+      'status',
     ),
-    fileName: row['file_name']?.toString() ?? '',
+    fileName: _text(row['file_name'], 'file_name'),
     markdownSchemaVersion: _int(row['markdown_schema_version']),
-    contentDigest: row['content_digest']?.toString() ?? '',
+    contentDigest: _text(row['content_digest'], 'content_digest'),
     contentBytes: _int(row['content_bytes']),
-    sourceStartMessageId: row['source_start_message_id']?.toString() ?? '',
-    sourceEndMessageId: row['source_end_message_id']?.toString() ?? '',
+    sourceStartMessageId: _text(
+      row['source_start_message_id'],
+      'source_start_message_id',
+    ),
+    sourceEndMessageId: _text(
+      row['source_end_message_id'],
+      'source_end_message_id',
+    ),
     sourceMessageIds: _stringList(row['source_message_ids']),
-    sourceDigest: row['source_digest']?.toString() ?? '',
+    sourceDigest: _text(row['source_digest'], 'source_digest'),
     estimatedTokenCount: _int(row['estimated_token_count']),
-    provider: row['provider']?.toString() ?? '',
-    model: row['model']?.toString() ?? '',
+    provider: _text(row['provider'], 'provider'),
+    model: _text(row['model'], 'model'),
     promptVersion: _int(row['prompt_version']),
     baseRevision: _int(row['base_revision']),
     createdAt: DateTime.fromMillisecondsSinceEpoch(_int(row['created_at'])),
@@ -250,29 +258,29 @@ Map<String, Object?> _summaryToRow(ConversationSummaryMetadata metadata) => {
 ConversationMemoryItem _itemFromRow(Map<String, Object?> row) {
   final expiresAt = _nullableInt(row['expires_at']);
   return ConversationMemoryItem(
-    id: row['id']?.toString() ?? '',
-    chatId: row['chat_id']?.toString() ?? '',
-    memoryKey: row['memory_key']?.toString() ?? '',
+    id: _text(row['id'], 'id'),
+    chatId: _text(row['chat_id'], 'chat_id'),
+    memoryKey: _text(row['memory_key'], 'memory_key'),
     kind: _enumByName(
       ConversationMemoryKind.values,
-      row['kind']?.toString(),
-      ConversationMemoryKind.fact,
+      _text(row['kind'], 'kind'),
+      'kind',
     ),
-    content: row['content']?.toString() ?? '',
+    content: _text(row['content'], 'content'),
     state: _enumByName(
       ConversationMemoryItemState.values,
-      row['state']?.toString(),
-      ConversationMemoryItemState.active,
+      _text(row['state'], 'state'),
+      'state',
     ),
     origin: _enumByName(
       ConversationMemoryOrigin.values,
-      row['origin']?.toString(),
-      ConversationMemoryOrigin.auto,
+      _text(row['origin'], 'origin'),
+      'origin',
     ),
     importance: _double(row['importance']),
     confidence: _double(row['confidence']),
     sourceMessageIds: _stringList(row['source_message_ids']),
-    sourceDigest: row['source_digest']?.toString() ?? '',
+    sourceDigest: _text(row['source_digest'], 'source_digest'),
     expiresAt:
         expiresAt == null
             ? null
@@ -301,31 +309,41 @@ Map<String, Object?> _itemToRow(ConversationMemoryItem item) => {
 
 int _int(Object? value) => switch (value) {
   final int number => number,
-  final num number => number.toInt(),
-  _ => int.tryParse(value?.toString() ?? '') ?? 0,
+  _ => throw const FormatException('Memory record integer is invalid.'),
 };
 
 int? _nullableInt(Object? value) => value == null ? null : _int(value);
 
 double _double(Object? value) => switch (value) {
   final num number => number.toDouble(),
-  _ => double.tryParse(value?.toString() ?? '') ?? 0.5,
+  _ => throw const FormatException('Memory record number is invalid.'),
 };
 
 List<String> _stringList(Object? value) {
-  try {
-    final decoded = jsonDecode(value?.toString() ?? '[]');
-    return decoded is List
-        ? decoded.map((item) => item.toString()).toList(growable: false)
-        : const [];
-  } on FormatException {
-    return const [];
+  if (value is! String) {
+    throw const FormatException('Memory record JSON must be text.');
   }
+  final decoded = jsonDecode(value);
+  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
+    throw const FormatException('Memory source ids must be a string list.');
+  }
+  return List<String>.unmodifiable(decoded.cast<String>());
 }
 
-T _enumByName<T extends Enum>(List<T> values, String? name, T fallback) {
+T _enumByName<T extends Enum>(List<T> values, String name, String field) {
   for (final value in values) {
     if (value.name == name) return value;
   }
-  return fallback;
+  throw FormatException('Memory record field "$field" has an unknown value.');
 }
+
+String _text(Object? value, String field) {
+  if (value is String) return value;
+  throw FormatException('Memory record field "$field" must be a string.');
+}
+
+bool _bool(Object? value) => switch (value) {
+  0 => false,
+  1 => true,
+  _ => throw const FormatException('Memory record boolean must be 0 or 1.'),
+};

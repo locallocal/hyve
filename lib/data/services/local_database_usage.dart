@@ -87,7 +87,7 @@ extension LocalDatabaseUsage on LocalDatabaseService {
       'token_usage_records',
       where: 'chat_id = ?',
       whereArgs: [chatId],
-      orderBy: 'timestamp ASC',
+      orderBy: 'timestamp ASC, message_id ASC',
     );
   }
 
@@ -99,7 +99,7 @@ extension LocalDatabaseUsage on LocalDatabaseService {
       'token_usage_records',
       where: 'bot_id = ?',
       whereArgs: [botId],
-      orderBy: 'timestamp ASC',
+      orderBy: 'timestamp ASC, message_id ASC',
     );
   }
 
@@ -168,11 +168,7 @@ extension LocalDatabaseUsage on LocalDatabaseService {
     DatabaseExecutor database,
     Map<String, Object?> values,
   ) async {
-    await database.insert(
-      'messages',
-      values,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _upsertByPrimaryKey(database, 'messages', values, 'message_id');
 
     final messageId = values['message_id']?.toString() ?? '';
     if (messageId.isEmpty) return;

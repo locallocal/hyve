@@ -55,13 +55,15 @@ final class McpServersViewModel extends ChangeNotifier {
   Map<String, List<McpToolDescriptor>> _toolsByServer = const {};
   bool _isLoading = false;
   String? _busyServerId;
-  Object? _error;
+  AppFailure? _error;
+  AppFailure? _warning;
   int _loadGeneration = 0;
 
   List<McpServer> get servers => _servers;
   bool get isLoading => _isLoading;
   String? get busyServerId => _busyServerId;
-  Object? get error => _error;
+  AppFailure? get error => _error;
+  AppFailure? get warning => _warning;
 
   List<McpToolDescriptor> toolsFor(String serverId) =>
       _toolsByServer[serverId] ?? const [];
@@ -76,6 +78,12 @@ final class McpServersViewModel extends ChangeNotifier {
   void clearError() {
     if (_error == null) return;
     _error = null;
+    notifyListeners();
+  }
+
+  void clearWarning() {
+    if (_warning == null) return;
+    _warning = null;
     notifyListeners();
   }
 
@@ -99,7 +107,9 @@ final class McpServersViewModel extends ChangeNotifier {
         for (final (serverId, tools) in catalogs) serverId: tools,
       });
     } catch (error) {
-      if (generation == _loadGeneration) _error = error;
+      if (generation == _loadGeneration) {
+        _error = AppFailure.from(error, code: 'mcp_load_failed');
+      }
     } finally {
       if (generation == _loadGeneration) {
         _isLoading = false;
@@ -110,9 +120,17 @@ final class McpServersViewModel extends ChangeNotifier {
 
   Future<bool> saveAndConnect(McpServerDraft draft) async {
     _error = null;
+    _warning = null;
     final timestamp = _now();
-    final existing =
-        draft.id == null ? null : await _repository.getServer(draft.id!);
+    McpServer? existing;
+    try {
+      existing =
+          draft.id == null ? null : await _repository.getServer(draft.id!);
+    } on Object catch (error) {
+      _error = AppFailure.from(error, code: 'mcp_server_read_failed');
+      notifyListeners();
+      return false;
+    }
     final id =
         existing?.id ??
         'mcp-${timestamp.microsecondsSinceEpoch.toRadixString(36)}';
@@ -123,7 +141,7 @@ final class McpServersViewModel extends ChangeNotifier {
         if (parsedEndpoint == null ||
             !parsedEndpoint.hasScheme ||
             parsedEndpoint.host.isEmpty) {
-          _error = const McpException('mcp_invalid_endpoint');
+          _error = const AppFailure.validation('mcp_invalid_endpoint');
           notifyListeners();
           return false;
         }
@@ -133,7 +151,7 @@ final class McpServersViewModel extends ChangeNotifier {
         );
       case McpTransportType.stdio:
         if (draft.command.trim().isEmpty) {
-          _error = const McpException('mcp_invalid_stdio_command');
+          _error = const AppFailure.validation('mcp_invalid_stdio_command');
           notifyListeners();
           return false;
         }
@@ -148,11 +166,20 @@ final class McpServersViewModel extends ChangeNotifier {
     }
     final environment = _parseEnvironment(draft.environment);
     if (environment == null) {
-      _error = const McpException('mcp_invalid_stdio_environment');
+      _error = const AppFailure.validation('mcp_invalid_stdio_environment');
       notifyListeners();
       return false;
     }
 
+    McpCredential? previousCredential;
+    try {
+      previousCredential = await _readCredentialForRollback(id);
+    } on Object catch (error) {
+      _error = AppFailure.from(error, code: 'mcp_credential_read_failed');
+      notifyListeners();
+      return false;
+    }
+    var credentialChanged = false;
     try {
       final server = McpServer(
         id: id,
@@ -165,24 +192,44 @@ final class McpServersViewModel extends ChangeNotifier {
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,
       );
-      await _repository.saveServer(server);
-      _publishSavedServer(
-        server,
-        clearTools: existing != null && existing.transport != server.transport,
-      );
+      credentialChanged = true;
       await _saveCredential(
         id: id,
         existing: existing,
         draft: draft,
         environment: environment,
       );
-      await _runForServer(id, () => _catalogService.refreshServer(id));
-      return _error == null;
+      await _repository.saveServer(server);
+      _publishSavedServer(
+        server,
+        clearTools: existing != null && existing.transport != server.transport,
+      );
     } on Object catch (error) {
-      _error = error;
+      if (credentialChanged) {
+        try {
+          await _restoreCredential(id, previousCredential);
+        } on Object catch (rollbackError) {
+          _error = AppFailure.storage(
+            'mcp_credential_rollback_failed',
+            cause: (error, rollbackError),
+          );
+          await _reloadPreservingError();
+          return false;
+        }
+      }
+      _error = AppFailure.from(error, code: 'mcp_save_failed');
       await _reloadPreservingError();
       return false;
     }
+
+    // Discovery is a follow-up operation. A remote outage must not turn a
+    // fully committed local save into a reported save failure.
+    await _runForServer(
+      id,
+      () => _catalogService.refreshServer(id),
+      failureIsWarning: true,
+    );
+    return true;
   }
 
   void _publishSavedServer(McpServer server, {required bool clearTools}) {
@@ -210,6 +257,7 @@ final class McpServersViewModel extends ChangeNotifier {
 
   Future<bool> refresh(String serverId) async {
     _error = null;
+    _warning = null;
     await _runForServer(
       serverId,
       () => _catalogService.refreshServer(serverId),
@@ -219,32 +267,59 @@ final class McpServersViewModel extends ChangeNotifier {
 
   Future<void> deleteServer(McpServer server) async {
     _error = null;
+    _warning = null;
     try {
-      await _catalogService.disconnect(server);
-      await _repository.deleteServer(server.id);
+      final previousCredential = await _readCredentialForRollback(server.id);
+      try {
+        await _catalogService.disconnect(server);
+      } on Object catch (error) {
+        _warning = AppFailure.from(error, code: 'mcp_disconnect_failed');
+      }
       await _credentialStore.delete(server.id);
-      await _catalogService.hydrateFromCache();
+      try {
+        await _repository.deleteServer(server.id);
+      } on Object catch (error) {
+        try {
+          await _restoreCredential(server.id, previousCredential);
+        } on Object catch (rollbackError) {
+          throw AppFailure.storage(
+            'mcp_credential_rollback_failed',
+            cause: (error, rollbackError),
+          );
+        }
+        rethrow;
+      }
+      try {
+        await _catalogService.hydrateFromCache();
+      } on Object catch (error) {
+        _warning = AppFailure.from(error, code: 'mcp_cache_refresh_failed');
+      }
     } on Object catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'mcp_delete_failed');
     }
     await _reloadPreservingError();
   }
 
   Future<void> _runForServer(
     String serverId,
-    Future<Object?> Function() operation,
-  ) async {
+    Future<Object?> Function() operation, {
+    bool failureIsWarning = false,
+  }) async {
     _busyServerId = serverId;
     notifyListeners();
-    Object? failure;
+    AppFailure? failure;
     try {
       await operation();
     } on Object catch (error) {
-      failure = error;
+      failure = AppFailure.from(error, code: 'mcp_operation_failed');
     } finally {
       _busyServerId = null;
       await load();
-      _error = failure;
+      if (failureIsWarning) {
+        _warning = failure;
+      } else {
+        _error = failure;
+      }
       notifyListeners();
     }
   }
@@ -254,6 +329,22 @@ final class McpServersViewModel extends ChangeNotifier {
     await load();
     _error = preserved;
     notifyListeners();
+  }
+
+  Future<McpCredential?> _readCredentialForRollback(String id) async {
+    try {
+      return await _credentialStore.read(id);
+    } on Object catch (error) {
+      throw AppFailure.storage('mcp_credential_read_failed', cause: error);
+    }
+  }
+
+  Future<void> _restoreCredential(String id, McpCredential? credential) async {
+    if (credential == null) {
+      await _credentialStore.delete(id);
+    } else {
+      await _credentialStore.write(id, credential);
+    }
   }
 
   Future<void> _saveCredential({

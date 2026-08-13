@@ -43,7 +43,7 @@ class BotTokenUsageViewModel extends ChangeNotifier {
 
   ModelTokenUsage _usage = ModelTokenUsage.empty;
   List<BotConversationTokenUsage> _conversationUsages = const [];
-  Object? _error;
+  AppFailure? _error;
   bool _isLoading = false;
   bool _loadScheduled = false;
   bool _disposed = false;
@@ -55,7 +55,7 @@ class BotTokenUsageViewModel extends ChangeNotifier {
   List<TokenUsageBucket> get visibleBuckets => _timeline.visibleBuckets;
   DateTime? get selectedDay => _timeline.selectedDay;
   TokenUsageGranularity get granularity => _timeline.granularity;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
@@ -102,7 +102,7 @@ class BotTokenUsageViewModel extends ChangeNotifier {
       );
     } catch (error) {
       if (_disposed || generation != _loadGeneration) return;
-      _error = error;
+      _error = AppFailure.from(error, code: 'bot_usage_load_failed');
     } finally {
       if (!_disposed && generation == _loadGeneration) {
         _isLoading = false;

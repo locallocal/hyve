@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
 
 class FeedbackViewModel extends ChangeNotifier {
@@ -7,10 +8,10 @@ class FeedbackViewModel extends ChangeNotifier {
 
   final FeedbackRepository _feedbackRepository;
   bool _isSubmitting = false;
-  Object? _error;
+  AppFailure? _error;
 
   bool get isSubmitting => _isSubmitting;
-  Object? get error => _error;
+  AppFailure? get error => _error;
 
   Future<bool> submit({required String content, String? contact}) async {
     final normalizedContent = content.trim();
@@ -25,7 +26,7 @@ class FeedbackViewModel extends ChangeNotifier {
       );
       return true;
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'feedback_submit_failed');
       return false;
     } finally {
       _isSubmitting = false;

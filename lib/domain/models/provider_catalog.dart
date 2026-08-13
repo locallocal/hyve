@@ -1,5 +1,62 @@
 import 'package:stars/domain/models/models.dart';
 
+enum ProviderLifecycle { active, migrated, retired }
+
+final class ProviderLifecycleInfo {
+  const ProviderLifecycleInfo({
+    required this.lifecycle,
+    required this.code,
+    this.replacementApiType,
+    this.replacementBaseUrl,
+  });
+
+  final ProviderLifecycle lifecycle;
+  final String code;
+  final String? replacementApiType;
+  final String? replacementBaseUrl;
+}
+
+const providerLifecycleByApiType = <String, ProviderLifecycleInfo>{
+  Bot.apiTypeNebius: ProviderLifecycleInfo(
+    lifecycle: ProviderLifecycle.migrated,
+    code: 'nebius_token_factory_migration',
+    replacementBaseUrl: 'https://api.tokenfactory.nebius.com/v1/',
+  ),
+  Bot.apiTypeTencent: ProviderLifecycleInfo(
+    lifecycle: ProviderLifecycle.migrated,
+    code: 'tencent_tokenhub_migration',
+    replacementBaseUrl: 'https://tokenhub.tencentmaas.com/v1/',
+  ),
+  Bot.apiTypeKluster: ProviderLifecycleInfo(
+    lifecycle: ProviderLifecycle.retired,
+    code: 'kluster_retired',
+    replacementApiType: Bot.apiTypeOpenAI,
+  ),
+  Bot.apiTypeLambda: ProviderLifecycleInfo(
+    lifecycle: ProviderLifecycle.retired,
+    code: 'lambda_hosted_inference_retired',
+    replacementApiType: Bot.apiTypeOpenAI,
+  ),
+  Bot.apiTypeSearch1Api: ProviderLifecycleInfo(
+    lifecycle: ProviderLifecycle.retired,
+    code: 'search1api_chat_retired',
+    replacementApiType: Bot.apiTypeOpenAI,
+  ),
+};
+
+ProviderLifecycleInfo? providerMigrationFor(Bot bot) {
+  final info = providerLifecycleByApiType[bot.apiType];
+  if (info == null) return null;
+  if (info.lifecycle == ProviderLifecycle.retired) return info;
+  final replacement = info.replacementBaseUrl;
+  if (replacement != null &&
+      bot.baseURL.isNotEmpty &&
+      bot.baseURL != replacement) {
+    return info;
+  }
+  return null;
+}
+
 final providersInfo = {
   'AiHubMix': {
     'api_type': Bot.apiTypeAiHubMix,
@@ -100,14 +157,6 @@ final providersInfo = {
     'api_type': Bot.apiTypeJina,
     'base_url': 'https://deepsearch.jina.ai/v1/',
   },
-  'Kluster': {
-    'api_type': Bot.apiTypeKluster,
-    'base_url': 'https://api.kluster.ai/v1/',
-  },
-  'Lambda': {
-    'api_type': Bot.apiTypeLambda,
-    'base_url': 'https://api.lambda.ai/v1/',
-  },
   'MiniMax': {
     'api_type': Bot.apiTypeMiniMax,
     'base_url': 'https://api.minimax.chat/v1/',
@@ -130,7 +179,7 @@ final providersInfo = {
   },
   'Nebius': {
     'api_type': Bot.apiTypeNebius,
-    'base_url': 'https://api.studio.nebius.com/v1/',
+    'base_url': 'https://api.tokenfactory.nebius.com/v1/',
   },
   'Novita': {
     'api_type': Bot.apiTypeNovita,
@@ -161,10 +210,6 @@ final providersInfo = {
     'api_type': Bot.apiTypeSambaNova,
     'base_url': 'https://api.sambanova.ai/v1/',
   },
-  'Search1Api': {
-    'api_type': Bot.apiTypeSearch1Api,
-    'base_url': 'https://api.search1api.com/v1/',
-  },
   'SenseNova': {
     'api_type': Bot.apiTypeSenseNova,
     'base_url': 'https://api.sensenova.cn/v1/',
@@ -187,7 +232,7 @@ final providersInfo = {
   },
   'Tencent': {
     'api_type': Bot.apiTypeTencent,
-    'base_url': 'https://api.hunyuan.cloud.tencent.com/v1/',
+    'base_url': 'https://tokenhub.tencentmaas.com/v1/',
   },
   'TogetherAI': {
     'api_type': Bot.apiTypeTogetherAI,

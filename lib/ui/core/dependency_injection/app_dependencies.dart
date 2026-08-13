@@ -464,42 +464,83 @@ class AppDependencies {
   StartupViewModel createStartupViewModel() => StartupViewModel(
     profileRepository: profileRepository,
     capabilityInitializer: () async {
-      try {
-        await systemConversationHistorySkill.validate();
-      } on Object {
-        // A damaged built-in Skill remains unavailable; chat still works with
-        // summaries and recent turns.
+      final statuses = <StartupCapabilityStatus>[];
+      Future<void> inspect(
+        String id, {
+        required bool required,
+        required Future<void> Function() initialize,
+      }) async {
+        try {
+          await initialize();
+          statuses.add(
+            StartupCapabilityStatus(
+              id: id,
+              required: required,
+              state: StartupCapabilityState.available,
+            ),
+          );
+        } on Object catch (error) {
+          final failure = AppFailure.from(
+            error,
+            code: '${id}_initialization_failed',
+          );
+          statuses.add(
+            StartupCapabilityStatus(
+              id: id,
+              required: required,
+              state:
+                  required
+                      ? StartupCapabilityState.failed
+                      : StartupCapabilityState.degraded,
+              diagnosticCode: failure.code,
+              retryable: failure.retryable,
+            ),
+          );
+        }
       }
-      try {
-        await systemShellSkill?.validate();
-      } on Object {
-        // A damaged Shell Skill fails closed without blocking app startup.
+
+      await inspect(
+        'conversation_history_skill',
+        required: true,
+        initialize: systemConversationHistorySkill.validate,
+      );
+      if (systemShellSkill case final shellSkill?) {
+        await inspect(
+          'shell_skill',
+          required: true,
+          initialize: shellSkill.validate,
+        );
       }
-      try {
-        await systemSkillInstallerSkill.validate();
-      } on Object {
-        // A damaged installer Skill fails closed without blocking startup.
+      await inspect(
+        'skill_installer',
+        required: true,
+        initialize: systemSkillInstallerSkill.validate,
+      );
+      await inspect(
+        'mcp_installer',
+        required: true,
+        initialize: systemMcpInstallerSkill.validate,
+      );
+      await inspect(
+        'mcp_catalog_cache',
+        required: false,
+        initialize: mcpCatalogService.hydrateFromCache,
+      );
+      if (skillScriptCatalogService case final scriptCatalog?) {
+        await inspect(
+          'skill_script_catalog',
+          required: false,
+          initialize: scriptCatalog.hydrateFromCache,
+        );
       }
-      try {
-        await systemMcpInstallerSkill.validate();
-      } on Object {
-        // A damaged MCP installer Skill fails closed without blocking startup.
+      if (skillCatalogService case final onlineCatalog?) {
+        await inspect(
+          'online_skill_catalog',
+          required: false,
+          initialize: onlineCatalog.refreshConfiguredCatalogs,
+        );
       }
-      try {
-        await mcpCatalogService.hydrateFromCache();
-      } on Object {
-        // One optional capability source must not block the others.
-      }
-      try {
-        await skillScriptCatalogService?.hydrateFromCache();
-      } on Object {
-        // Unsupported or malformed script packages fail closed.
-      }
-      try {
-        await skillCatalogService?.refreshConfiguredCatalogs();
-      } on Object {
-        // Online catalogs are optional and must not block startup.
-      }
+      return StartupCapabilitiesReport(List.unmodifiable(statuses));
     },
   );
 

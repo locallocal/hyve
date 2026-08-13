@@ -7,9 +7,9 @@ import 'package:stars/data/services/ai/provider_service.dart';
 
 class Nebius extends Provider {
   static const String defaultApiModelsUrl =
-      'https://api.studio.nebius.com/v1/models';
+      'https://api.tokenfactory.nebius.com/v1/models';
   static const String defaultApiChatUrl =
-      'https://api.studio.nebius.com/v1/chat/completions';
+      'https://api.tokenfactory.nebius.com/v1/chat/completions';
   Nebius(super.bot);
 
   @override
@@ -19,34 +19,19 @@ class Nebius extends Provider {
 
   @override
   bool supportDeepThinking() {
-    if (bot.model.toLowerCase().contains('deepseek-r1')) {
-      return true;
-    }
+    // Token Factory capabilities come from its model catalog. Unknown models
+    // fail closed instead of inheriting AI Studio-era name heuristics.
     return false;
   }
 
   @override
   List<InputModality> getInputModalites() {
-    switch (bot.model) {
-      case 'Qwen/Qwen2-VL-7B-Instruct':
-      case 'Qwen/Qwen2-VL-72B-Instruct':
-      case 'Qwen/QVQ-72B-Preview':
-      case 'liuhaotian/llava-v1.5-13b':
-      case 'llava-hf/llava-1.5-7b-hf':
-        return [InputModality.text, InputModality.image];
-    }
-    return [InputModality.text];
+    return bot.configuredInputModalities ?? const [InputModality.text];
   }
 
   @override
   List<OutputModality> getOutputModalites() {
-    switch (bot.model) {
-      case 'stability-ai/sdxl':
-      case 'black-forest-labs/flux-schnell':
-      case 'black-forest-labs/flux-dev':
-        return [OutputModality.image];
-    }
-    return [OutputModality.text];
+    return bot.configuredOutputModalities ?? const [OutputModality.text];
   }
 
   @override
@@ -181,7 +166,7 @@ class Nebius extends Provider {
     final url =
         bot.baseURL.isNotEmpty
             ? '${bot.baseURL}images/generations'
-            : 'https://api.studio.nebius.com/v1/images/generations';
+            : 'https://api.tokenfactory.nebius.com/v1/images/generations';
     final Map<String, dynamic> requestBody = {
       'model': bot.model,
       'prompt': prompt,

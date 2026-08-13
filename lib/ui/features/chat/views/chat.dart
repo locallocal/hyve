@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
@@ -63,6 +62,7 @@ class ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
 
   bool _isLoading = true;
+  bool _isLoadingEarlier = false;
   String? _historyError;
   int _composerFocusToken = 0;
   bool _isTyping = false;
@@ -208,7 +208,7 @@ class ChatPageState extends State<ChatPage> {
         ..clear()
         ..addAll(snapshot.skillActivations);
       if (snapshot.error != null) {
-        _generationError = snapshot.error;
+        _generationError = safeFailureMessage(context, snapshot.error!);
       } else if (snapshot.lifecycle.isRunning ||
           snapshot.lifecycle.isTerminal) {
         _generationError = null;
@@ -265,7 +265,7 @@ class ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _historyError = error.toString();
+        _historyError = safeFailureMessage(context, error);
       });
     }
   }
@@ -342,6 +342,11 @@ class ChatPageState extends State<ChatPage> {
 
     final nearLatest =
         _scrollController.position.extentBefore <= _followLatestThreshold;
+    if (_scrollController.position.extentAfter <= 240 &&
+        _chatViewModel.hasEarlierMessages &&
+        !_isLoadingEarlier) {
+      unawaited(_loadEarlierMessages());
+    }
     if (_followLatest == nearLatest && _showJumpToLatest == !nearLatest) {
       return;
     }
@@ -350,6 +355,24 @@ class ChatPageState extends State<ChatPage> {
       _followLatest = nearLatest;
       _showJumpToLatest = !nearLatest;
     });
+  }
+
+  Future<void> _loadEarlierMessages() async {
+    if (_isLoadingEarlier || !_chatViewModel.hasEarlierMessages) return;
+    setState(() => _isLoadingEarlier = true);
+    try {
+      final messages = await _chatViewModel.loadEarlierMessages();
+      if (!mounted) return;
+      setState(() {
+        _messages = _mergeLoadedMessages(messages);
+        _messageRevision += 1;
+      });
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _historyError = safeFailureMessage(context, error));
+    } finally {
+      if (mounted) setState(() => _isLoadingEarlier = false);
+    }
   }
 
   void _scheduleScrollToLatest({bool force = false, bool animate = false}) {
@@ -454,8 +477,7 @@ class ChatPageState extends State<ChatPage> {
     );
     String? optimisticMessageId;
     try {
-      final imagePaths = await _getSelectedImagePaths();
-      final filePahts = await _getSelectedFilePaths();
+      final (imagePaths, filePaths) = await _persistSelectedAttachments();
 
       final turnId = _chatViewModel.createId('turn');
       final userMessage = Message(
@@ -466,10 +488,10 @@ class ChatPageState extends State<ChatPage> {
         senderId: _currentUserId,
         content: messageText,
         images: imagePaths,
-        files: filePahts,
+        files: filePaths,
         processInfo: _buildProcessInfo(
           imagePaths: imagePaths,
-          filePaths: filePahts,
+          filePaths: filePaths,
           fileStatus: 'attached',
         ),
         timestamp: DateTime.now(),
@@ -514,7 +536,7 @@ class ChatPageState extends State<ChatPage> {
             if (_messages.length != previousLength) _messageRevision += 1;
           }
           _restorePendingDraft();
-          _generationError = error.toString();
+          _generationError = safeFailureMessage(context, error);
         });
       }
     } finally {
@@ -893,7 +915,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         _generationError = desktopConversationText(
           context,
-          S.of(context).clearChatFailed(error.toString()),
+          S.of(context).clearChatFailed(safeFailureMessage(context, error)),
         );
       });
     }
@@ -923,9 +945,12 @@ class ChatPageState extends State<ChatPage> {
 
   Future<void> _cancelRequest() async {
     if (!_isCancellable) return;
-    final lifecycle = await _generationViewModel.cancel();
+    setState(() => _isStopping = true);
+    final cancelled = await _chatViewModel.generationRegistry.stopForNavigation(
+      widget.id,
+    );
     if (!mounted) return;
-    if (lifecycle == ChatRunLifecycle.cancelled) {
+    if (cancelled) {
       if (isDesktopOrTabletPlatform(context)) {
         ShadSonner.of(
           context,
@@ -964,45 +989,28 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Future<List<String>> _getSelectedImagePaths() async {
-    List<String> imagePaths = [];
-    if (_selectedImages.isNotEmpty) {
-      final chatDir = await getChatDirectoryPath(widget.id);
-
-      for (var image in _selectedImages) {
-        final fileName = path.basename(image.path);
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final targetPath = path.join(chatDir, '${fileName}_$timestamp');
-
-        try {
-          await image.copy(targetPath);
-          imagePaths.add(targetPath);
-        } catch (e) {
-          debugPrint('Copy image ${image.path} failed: $e');
-        }
-      }
-    }
-    return imagePaths;
+    return _chatViewModel.persistAssets(
+      _selectedImages.map((image) => image.path),
+    );
   }
 
   Future<List<String>> _getSelectedFilePaths() async {
-    List<String> filePaths = [];
-    if (_selectedFiles.isNotEmpty) {
-      final chatDir = await getChatDirectoryPath(widget.id);
+    return _chatViewModel.persistAssets(
+      _selectedFiles.map((file) => file.path),
+    );
+  }
 
-      for (var file in _selectedFiles) {
-        final fileName = path.basename(file.path);
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final targetPath = path.join(chatDir, '${fileName}_$timestamp');
-
-        try {
-          await file.copy(targetPath);
-          filePaths.add(targetPath);
-        } catch (e) {
-          debugPrint('Copy image ${file.path} failed: $e');
-        }
-      }
-    }
-    return filePaths;
+  Future<(List<String>, List<String>)> _persistSelectedAttachments() async {
+    final imageSources = _selectedImages.map((image) => image.path).toList();
+    final fileSources = _selectedFiles.map((file) => file.path).toList();
+    final persisted = await _chatViewModel.persistAssets([
+      ...imageSources,
+      ...fileSources,
+    ]);
+    return (
+      List<String>.unmodifiable(persisted.take(imageSources.length)),
+      List<String>.unmodifiable(persisted.skip(imageSources.length)),
+    );
   }
 
   Future<void> _generateImage() async {
@@ -1020,7 +1028,7 @@ class ChatPageState extends State<ChatPage> {
     final imageResultDetail = S.of(context).imageResult;
     final generatedPreview = S.of(context).generatedImage;
     var userPersisted = false;
-    _beginNonCancellableRun(chatId);
+    _beginMediaRun(chatId);
 
     try {
       _startProcessTracking();
@@ -1131,11 +1139,13 @@ class ChatPageState extends State<ChatPage> {
             messagesChanged = true;
           }
           if (messagesChanged) _messageRevision += 1;
-          _generationError = S.of(context).generateImageFailed(e.toString());
+          _generationError = S
+              .of(context)
+              .generateImageFailed(safeFailureMessage(context, e));
         });
       }
     } finally {
-      _finishNonCancellableRun(chatId);
+      _finishMediaRun(chatId);
     }
   }
 
@@ -1152,7 +1162,7 @@ class ChatPageState extends State<ChatPage> {
     final speechResultDetail = S.of(context).speechResult;
     final generatedPreview = S.of(context).speechGenerated;
     var userPersisted = false;
-    _beginNonCancellableRun(chatId);
+    _beginMediaRun(chatId);
 
     try {
       _startProcessTracking();
@@ -1259,11 +1269,13 @@ class ChatPageState extends State<ChatPage> {
             messagesChanged = true;
           }
           if (messagesChanged) _messageRevision += 1;
-          _generationError = S.of(context).generateSpeechFailed(e.toString());
+          _generationError = S
+              .of(context)
+              .generateSpeechFailed(safeFailureMessage(context, e));
         });
       }
     } finally {
-      _finishNonCancellableRun(chatId);
+      _finishMediaRun(chatId);
     }
   }
 
@@ -1282,7 +1294,7 @@ class ChatPageState extends State<ChatPage> {
     final musicResultDetail = S.of(context).musicResult;
     final generatedPreview = S.of(context).musicGenerated;
     var userPersisted = false;
-    _beginNonCancellableRun(chatId);
+    _beginMediaRun(chatId);
 
     try {
       _startProcessTracking();
@@ -1395,11 +1407,13 @@ class ChatPageState extends State<ChatPage> {
             messagesChanged = true;
           }
           if (messagesChanged) _messageRevision += 1;
-          _generationError = S.of(context).generateMusicFailed(e.toString());
+          _generationError = S
+              .of(context)
+              .generateMusicFailed(safeFailureMessage(context, e));
         });
       }
     } finally {
-      _finishNonCancellableRun(chatId);
+      _finishMediaRun(chatId);
     }
   }
 
@@ -1418,7 +1432,7 @@ class ChatPageState extends State<ChatPage> {
     final videoResultDetail = S.of(context).videoResult;
     final generatedPreview = S.of(context).videoGenerated;
     var userPersisted = false;
-    _beginNonCancellableRun(chatId);
+    _beginMediaRun(chatId);
 
     try {
       _startProcessTracking();
@@ -1527,19 +1541,24 @@ class ChatPageState extends State<ChatPage> {
             messagesChanged = true;
           }
           if (messagesChanged) _messageRevision += 1;
-          _generationError = S.of(context).generateVideoFailed(e.toString());
+          _generationError = S
+              .of(context)
+              .generateVideoFailed(safeFailureMessage(context, e));
         });
       }
     } finally {
-      _finishNonCancellableRun(chatId);
+      _finishMediaRun(chatId);
     }
   }
 
-  void _beginNonCancellableRun(String chatId) {
-    _chatViewModel.generationRegistry.setNonCancellableRunActive(chatId, true);
+  void _beginMediaRun(String chatId) {
+    _chatViewModel.generationRegistry.setCancellableExternalRun(
+      chatId,
+      _chatViewModel.cancelMedia,
+    );
     setState(() {
       _isTyping = true;
-      _isCancellable = false;
+      _isCancellable = true;
       _isStopping = false;
     });
   }
@@ -1572,8 +1591,8 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _finishNonCancellableRun(String chatId) {
-    _chatViewModel.generationRegistry.setNonCancellableRunActive(chatId, false);
+  void _finishMediaRun(String chatId) {
+    _chatViewModel.generationRegistry.setCancellableExternalRun(chatId, null);
     if (!mounted) return;
     setState(() {
       _isTyping = false;

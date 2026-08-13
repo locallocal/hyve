@@ -49,7 +49,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   int _pageIndex = 0;
   bool _isLoading = false;
   bool _isImporting = false;
-  Object? _error;
+  AppFailure? _error;
   SkillDescriptor? _lastImported;
   SkillSandboxStatus? _sandboxStatus;
   Set<String> _scriptToolSkillIds = const {};
@@ -84,7 +84,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   bool get hasNextPage => _pageIndex + 1 < totalPages;
   bool get isLoading => _isLoading;
   bool get isImporting => _isImporting;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   SkillDescriptor? get lastImported => _lastImported;
   SkillSandboxStatus? get sandboxStatus => _sandboxStatus;
   List<OnlineSkillCatalogEntry> get availableUpdates => _availableUpdates;
@@ -115,7 +115,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
       _applyInstalledSkills(installed, notify: false);
       await _refreshEcosystemState(notify: false);
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'skill_library_load_failed');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -164,7 +164,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     try {
       await _skillRepository.uninstall(skillId);
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'skill_uninstall_failed');
       notifyListeners();
       rethrow;
     }
@@ -180,7 +180,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
       await service.setEnabled(skill, enabled);
       await _refreshEcosystemState();
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'skill_delete_failed');
       notifyListeners();
       rethrow;
     }
@@ -224,7 +224,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
       _availableUpdates = await service.availableUpdates();
       if (firstError != null) throw firstError;
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'skill_operation_failed');
       rethrow;
     } finally {
       _isRefreshingCatalogs = false;
@@ -255,7 +255,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
       _lastImported = skill;
       return skill;
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'skill_catalog_refresh_failed');
       rethrow;
     } finally {
       _isImporting = false;

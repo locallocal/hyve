@@ -766,7 +766,8 @@ ${references.isEmpty ? '' : '<available_references>\n$references\n</available_re
         return SkillToolResult(
           callId: call.callId,
           name: call.name,
-          content: error.toString(),
+          content:
+              AppFailure.from(error, code: 'skill_resource_read_failed').code,
           isError: true,
         );
       }

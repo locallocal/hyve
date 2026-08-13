@@ -259,6 +259,54 @@ void main() {
     );
     expect(result.content, contains('remains configured'));
   });
+
+  test('database save failure rolls back the secure credential', () async {
+    repository.saveError = StateError('database save failed');
+
+    final result = await createTool().execute(
+      ToolCallRequest(
+        callId: 'save-failed',
+        name: addMcpServerToolName,
+        arguments: const {
+          'name': 'Save failure',
+          'transport_type': 'streamable_http',
+          'endpoint': 'https://save-failure.example.com/mcp',
+          'auth_type': 'oauth_access_token',
+          'access_token': 'secret-token',
+        },
+      ),
+      AgentCancellationToken(),
+    );
+
+    expect(result.isError, isTrue);
+    expect(result.errorCode, 'mcp_server_add_failed');
+    expect(repository.servers, isEmpty);
+    expect(credentials.values, isEmpty);
+  });
+
+  test('credential failure never persists the database row', () async {
+    credentials.writeError = StateError('secure storage write failed');
+
+    final result = await createTool().execute(
+      ToolCallRequest(
+        callId: 'credential-failed',
+        name: addMcpServerToolName,
+        arguments: const {
+          'name': 'Credential failure',
+          'transport_type': 'streamable_http',
+          'endpoint': 'https://credential-failure.example.com/mcp',
+          'auth_type': 'oauth_access_token',
+          'access_token': 'secret-token',
+        },
+      ),
+      AgentCancellationToken(),
+    );
+
+    expect(result.isError, isTrue);
+    expect(result.errorCode, 'mcp_credential_store_failed');
+    expect(repository.servers, isEmpty);
+    expect(credentials.values, isEmpty);
+  });
 }
 
 McpToolDescriptor _tool(String serverId, DateTime timestamp) =>
@@ -274,6 +322,7 @@ McpToolDescriptor _tool(String serverId, DateTime timestamp) =>
 final class _MemoryMcpServerRepository implements McpServerRepository {
   final Map<String, McpServer> servers = {};
   final Map<String, List<McpToolDescriptor>> tools = {};
+  Object? saveError;
 
   @override
   Stream<List<McpServer>> get changes => const Stream.empty();
@@ -306,12 +355,14 @@ final class _MemoryMcpServerRepository implements McpServerRepository {
 
   @override
   Future<void> saveServer(McpServer server) async {
+    if (saveError case final error?) throw error;
     servers[server.id] = server;
   }
 }
 
 final class _MemoryMcpCredentialStore implements McpCredentialStore {
   final Map<String, McpCredential> values = {};
+  Object? writeError;
 
   @override
   Future<void> delete(String serverId) async => values.remove(serverId);
@@ -321,6 +372,7 @@ final class _MemoryMcpCredentialStore implements McpCredentialStore {
 
   @override
   Future<void> write(String serverId, McpCredential credential) async {
+    if (writeError case final error?) throw error;
     values[serverId] = credential;
   }
 }

@@ -50,7 +50,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   int _addedPageIndex = 0;
   int _availablePageIndex = 0;
   bool _isLoading = false;
-  Object? _error;
+  AppFailure? _error;
 
   List<SkillDescriptor> get skills =>
       _supportsAutoActivation ? _skills : const [];
@@ -97,7 +97,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   bool get hasNextAvailablePage =>
       _availablePageIndex + 1 < totalAvailablePages;
   bool get isLoading => _isLoading;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get supportsAutoActivation => _supportsAutoActivation;
 
   BotSkillBinding? bindingFor(String skillId) => _bindings[skillId];
@@ -135,7 +135,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _normalizePages();
       notifyListeners();
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'bot_skill_load_failed');
       notifyListeners();
       rethrow;
     }
@@ -230,7 +230,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _normalizePages();
       notifyListeners();
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'bot_skill_save_failed');
       notifyListeners();
       rethrow;
     }
@@ -261,7 +261,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'bot_skill_test_failed');
       notifyListeners();
     }
   }

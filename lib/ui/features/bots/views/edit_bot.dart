@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/models/provider_catalog.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
 import 'package:stars/ui/core/widgets/common.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/model_modalities.dart';
 import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
@@ -61,6 +63,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
   bool _isSaving = false;
   bool _isSaved = false;
   bool _isDeleting = false;
+  AppFailure? _commandFailure;
   int _editRevision = 0;
   File? avatarImage;
   BotTokenUsageViewModel? _tokenUsageViewModel;
@@ -338,6 +341,28 @@ class _EditAIBotPageState extends State<EditBotPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_commandFailure case final failure?) ...[
+                  StarsInlineErrorAlert(
+                    error: safeFailureMessage(context, failure),
+                    isDesktop: widget.embedded,
+                    onDismiss: () => setState(() => _commandFailure = null),
+                    alertKey: const ValueKey<String>('edit-bot-command-error'),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (providerMigrationFor(widget.bot) case final migration?) ...[
+                  ShadAlert.destructive(
+                    key: const ValueKey<String>('provider-migration-notice'),
+                    icon: const Icon(LucideIcons.circleAlert),
+                    title: Text(S.of(context).unavailableBot),
+                    description: Text(
+                      migration.replacementBaseUrl ??
+                          migration.replacementApiType ??
+                          migration.code,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 if (widget.embedded) ...[
                   Row(
                     children: [
@@ -1193,7 +1218,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -1206,7 +1231,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
       await _skillViewModel?.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -1215,7 +1240,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     try {
       await _skillViewModel?.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -1239,7 +1264,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -1306,7 +1331,11 @@ class _EditAIBotPageState extends State<EditBotPage> {
   Future<void> _saveBot() async {
     if (widget.readOnly || _isSaving || _isDeleting) return;
     if (nameController.text.trim().isEmpty) {
-      showSnackBar(context, S.of(context).fillRequiredFields);
+      setState(() {
+        _commandFailure = const AppFailure.validation(
+          'bot_required_fields_missing',
+        );
+      });
       return;
     }
     final navigator = Navigator.of(context);
@@ -1373,12 +1402,19 @@ class _EditAIBotPageState extends State<EditBotPage> {
     setState(() {
       _isSaving = true;
       _isSaved = false;
+      _commandFailure = null;
     });
     try {
       await widget.onBotUpdated(updatedBot);
       saved = true;
       if (!widget.embedded && mounted) {
         navigator.pop();
+      }
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() {
+          _commandFailure = AppFailure.from(error, code: 'bot_update_failed');
+        });
       }
     } finally {
       if (mounted) {
@@ -1855,11 +1891,20 @@ class _EditAIBotPageState extends State<EditBotPage> {
       if (shouldDelete != true) return;
 
       if (_isDeleting || _isSaving) return;
-      setState(() => _isDeleting = true);
+      setState(() {
+        _isDeleting = true;
+        _commandFailure = null;
+      });
       try {
         await widget.onBotDeleted();
         if (!widget.embedded && mounted) {
           Navigator.pop(context);
+        }
+      } on Object catch (error) {
+        if (mounted) {
+          setState(() {
+            _commandFailure = AppFailure.from(error, code: 'bot_delete_failed');
+          });
         }
       } finally {
         if (mounted) {

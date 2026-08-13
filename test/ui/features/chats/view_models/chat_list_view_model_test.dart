@@ -54,7 +54,14 @@ void main() {
       await viewModel.load();
 
       expect(viewModel.isLoading, isFalse);
-      expect(viewModel.error, isA<StateError>());
+      expect(
+        viewModel.error,
+        isA<AppFailure>().having(
+          (failure) => failure.code,
+          'code',
+          'chat_list_load_failed',
+        ),
+      );
     },
   );
 }

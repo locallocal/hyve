@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:stars/domain/models/app_failure.dart';
 import 'package:stars/domain/models/conversation_memory.dart';
 import 'package:stars/domain/models/message.dart';
 import 'package:stars/domain/models/bot.dart';
@@ -107,7 +108,8 @@ final class CompactConversation {
       await _memoryRepository.setCompactionStatus(
         chatId,
         ConversationCompactionStatus.failed,
-        lastError: error.toString(),
+        lastError:
+            AppFailure.from(error, code: 'conversation_compaction_failed').code,
       );
       rethrow;
     }

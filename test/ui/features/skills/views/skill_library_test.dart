@@ -513,7 +513,14 @@ void main() {
       await tester.pumpWidget(_harness(viewModel));
       await tester.pumpAndSettle();
 
-      expect(viewModel.error, isA<UnsupportedError>());
+      expect(
+        viewModel.error,
+        isA<AppFailure>().having(
+          (failure) => failure.code,
+          'code',
+          'skill_uninstall_failed',
+        ),
+      );
       expect(
         find.byKey(const ValueKey<String>('skill-error-alert')),
         findsOneWidget,

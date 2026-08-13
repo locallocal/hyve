@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'dart:isolate';
 import 'package:stars/data/services/ai/ai_hub_mix.dart';
 import 'package:stars/data/services/ai/ai_mass.dart';
 import 'package:stars/data/services/ai/alibaba_cloud.dart';
@@ -43,11 +44,22 @@ import 'package:stars/data/services/ai/volcano_engine.dart';
 import 'package:stars/data/services/ai/xing_he.dart';
 import 'package:stars/data/services/ai/zero_one_ai.dart';
 import 'package:stars/data/services/ai/zhipu.dart';
+import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 
-class AiProviderRepositoryImpl implements AiProviderRepository {
-  const AiProviderRepositoryImpl();
+typedef AiMediaProviderFactory = AiProvider Function(Bot bot);
+
+class AiProviderRepositoryImpl implements CancelableMediaRepository {
+  const AiProviderRepositoryImpl({
+    this.mediaTimeout = const Duration(minutes: 2),
+    AiMediaProviderFactory? mediaProviderFactory,
+  }) : _mediaProviderFactory = mediaProviderFactory;
+
+  static final Map<String, _ActiveMediaRequest> _activeMediaRequests = {};
+
+  final Duration mediaTimeout;
+  final AiMediaProviderFactory? _mediaProviderFactory;
 
   @override
   AiProvider create(Bot bot) {
@@ -120,9 +132,16 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
     required String outputDirectory,
     required List<String> referenceImages,
     required String style,
-  }) => compute(
-    _generateImage,
-    _ImageGenerationRequest(
+  }) => _runMedia(
+    bot,
+    (provider) => provider.generateImage(
+      prompt,
+      size,
+      outputDirectory,
+      referenceImages: referenceImages,
+      style: style,
+    ),
+    _ImageMediaRequest(
       bot: bot,
       prompt: prompt,
       size: size,
@@ -138,9 +157,10 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
     required String prompt,
     required String voiceType,
     required String outputDirectory,
-  }) => compute(
-    _generateSpeech,
-    _SpeechGenerationRequest(
+  }) => _runMedia(
+    bot,
+    (provider) => provider.generateSpeech(prompt, voiceType, outputDirectory),
+    _SpeechMediaRequest(
       bot: bot,
       prompt: prompt,
       voiceType: voiceType,
@@ -154,9 +174,11 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
     required String prompt,
     required String outputDirectory,
     required String referenceMusic,
-  }) => compute(
-    _generateMusic,
-    _MusicGenerationRequest(
+  }) => _runMedia(
+    bot,
+    (provider) =>
+        provider.generateMusic(prompt, outputDirectory, referenceMusic),
+    _MusicMediaRequest(
       bot: bot,
       prompt: prompt,
       outputDirectory: outputDirectory,
@@ -171,9 +193,11 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
     required String ratio,
     required String outputDirectory,
     required List<String> referenceImages,
-  }) => compute(
-    _generateVideo,
-    _VideoGenerationRequest(
+  }) => _runMedia(
+    bot,
+    (provider) =>
+        provider.generateVideo(prompt, ratio, outputDirectory, referenceImages),
+    _VideoMediaRequest(
       bot: bot,
       prompt: prompt,
       ratio: ratio,
@@ -181,50 +205,139 @@ class AiProviderRepositoryImpl implements AiProviderRepository {
       referenceImages: referenceImages,
     ),
   );
+
+  Future<T> _runMedia<T>(
+    Bot bot,
+    Future<T> Function(AiProvider provider) operation,
+    _MediaRequest isolatedRequest,
+  ) async {
+    if (_activeMediaRequests.containsKey(bot.id)) {
+      throw const AppFailure.validation('media_request_already_active');
+    }
+    if (_mediaProviderFactory == null) {
+      return _runMediaIsolate<T>(bot, isolatedRequest);
+    }
+    final provider = _mediaProviderFactory(bot);
+    provider.resetCancelState();
+    final cancellation = Completer<void>();
+    final active = _ActiveMediaRequest(
+      cancellation: cancellation,
+      cancelUnderlying: provider.cancelRequest,
+    );
+    _activeMediaRequests[bot.id] = active;
+    try {
+      return await Future.any<T>([
+        operation(provider),
+        cancellation.future.then<T>((_) => throw const AppFailure.cancelled()),
+      ]).timeout(mediaTimeout);
+    } on TimeoutException catch (error) {
+      await provider.cancelRequest();
+      throw AppFailure(
+        kind: AppFailureKind.networkTimeout,
+        code: 'media_request_timeout',
+        retryable: true,
+        debugCause: error,
+      );
+    } on AppFailure {
+      rethrow;
+    } on Object catch (error) {
+      throw AppFailure.from(error, code: 'media_provider_failed');
+    } finally {
+      if (identical(_activeMediaRequests[bot.id], active)) {
+        _activeMediaRequests.remove(bot.id);
+      }
+    }
+  }
+
+  Future<T> _runMediaIsolate<T>(Bot bot, _MediaRequest request) async {
+    final responsePort = ReceivePort();
+    final cancellation = Completer<void>();
+    Isolate? isolate;
+    final active = _ActiveMediaRequest(
+      cancellation: cancellation,
+      cancelUnderlying: () async {
+        isolate?.kill(priority: Isolate.immediate);
+        return const ProviderCancellationResult(
+          ProviderCancellationStatus.requested,
+        );
+      },
+    );
+    _activeMediaRequests[bot.id] = active;
+    try {
+      isolate = await Isolate.spawn<(SendPort, _MediaRequest)>(
+        _runMediaWorker,
+        (responsePort.sendPort, request),
+        debugName: 'stars-media-${bot.id}',
+      );
+      if (cancellation.isCompleted) {
+        isolate.kill(priority: Isolate.immediate);
+        throw const AppFailure.cancelled();
+      }
+      final raw = await Future.any<Object?>([
+        responsePort.first,
+        cancellation.future.then<Object?>(
+          (_) => throw const AppFailure.cancelled(),
+        ),
+      ]).timeout(mediaTimeout);
+      if (raw is! List<Object?> || raw.length != 3) {
+        throw const AppFailure.providerRejected('invalid_media_worker_result');
+      }
+      if (raw[0] == true) return raw[1] as T;
+      throw AppFailure(
+        kind: AppFailureKind.providerRejected,
+        code: raw[1]?.toString() ?? 'media_provider_failed',
+        retryable: raw[2] == true,
+      );
+    } on TimeoutException catch (error) {
+      isolate?.kill(priority: Isolate.immediate);
+      throw AppFailure(
+        kind: AppFailureKind.networkTimeout,
+        code: 'media_request_timeout',
+        retryable: true,
+        debugCause: error,
+      );
+    } on AppFailure {
+      rethrow;
+    } on Object catch (error) {
+      throw AppFailure.from(error, code: 'media_provider_failed');
+    } finally {
+      isolate?.kill(priority: Isolate.immediate);
+      responsePort.close();
+      if (identical(_activeMediaRequests[bot.id], active)) {
+        _activeMediaRequests.remove(bot.id);
+      }
+    }
+  }
+
+  @override
+  Future<bool> cancelMedia(String botId) async {
+    final active = _activeMediaRequests[botId];
+    if (active == null) return false;
+    if (!active.cancellation.isCompleted) active.cancellation.complete();
+    await active.cancelUnderlying();
+    return true;
+  }
 }
 
-Future<List<String>> _generateImage(_ImageGenerationRequest request) =>
-    const AiProviderRepositoryImpl()
-        .create(request.bot)
-        .generateImage(
-          request.prompt,
-          request.size,
-          request.outputDirectory,
-          referenceImages: request.referenceImages,
-          style: request.style,
-        );
+final class _ActiveMediaRequest {
+  const _ActiveMediaRequest({
+    required this.cancellation,
+    required this.cancelUnderlying,
+  });
 
-Future<String> _generateSpeech(_SpeechGenerationRequest request) =>
-    const AiProviderRepositoryImpl()
-        .create(request.bot)
-        .generateSpeech(
-          request.prompt,
-          request.voiceType,
-          request.outputDirectory,
-        );
+  final Completer<void> cancellation;
+  final Future<ProviderCancellationResult> Function() cancelUnderlying;
+}
 
-Future<String> _generateMusic(_MusicGenerationRequest request) =>
-    const AiProviderRepositoryImpl()
-        .create(request.bot)
-        .generateMusic(
-          request.prompt,
-          request.outputDirectory,
-          request.referenceMusic,
-        );
+sealed class _MediaRequest {
+  const _MediaRequest({required this.bot});
 
-Future<String> _generateVideo(_VideoGenerationRequest request) =>
-    const AiProviderRepositoryImpl()
-        .create(request.bot)
-        .generateVideo(
-          request.prompt,
-          request.ratio,
-          request.outputDirectory,
-          request.referenceImages,
-        );
+  final Bot bot;
+}
 
-class _ImageGenerationRequest {
-  const _ImageGenerationRequest({
-    required this.bot,
+final class _ImageMediaRequest extends _MediaRequest {
+  const _ImageMediaRequest({
+    required super.bot,
     required this.prompt,
     required this.size,
     required this.outputDirectory,
@@ -232,7 +345,6 @@ class _ImageGenerationRequest {
     required this.style,
   });
 
-  final Bot bot;
   final String prompt;
   final String size;
   final String outputDirectory;
@@ -240,46 +352,79 @@ class _ImageGenerationRequest {
   final String style;
 }
 
-class _SpeechGenerationRequest {
-  const _SpeechGenerationRequest({
-    required this.bot,
+final class _SpeechMediaRequest extends _MediaRequest {
+  const _SpeechMediaRequest({
+    required super.bot,
     required this.prompt,
     required this.voiceType,
     required this.outputDirectory,
   });
 
-  final Bot bot;
   final String prompt;
   final String voiceType;
   final String outputDirectory;
 }
 
-class _MusicGenerationRequest {
-  const _MusicGenerationRequest({
-    required this.bot,
+final class _MusicMediaRequest extends _MediaRequest {
+  const _MusicMediaRequest({
+    required super.bot,
     required this.prompt,
     required this.outputDirectory,
     required this.referenceMusic,
   });
 
-  final Bot bot;
   final String prompt;
   final String outputDirectory;
   final String referenceMusic;
 }
 
-class _VideoGenerationRequest {
-  const _VideoGenerationRequest({
-    required this.bot,
+final class _VideoMediaRequest extends _MediaRequest {
+  const _VideoMediaRequest({
+    required super.bot,
     required this.prompt,
     required this.ratio,
     required this.outputDirectory,
     required this.referenceImages,
   });
 
-  final Bot bot;
   final String prompt;
   final String ratio;
   final String outputDirectory;
   final List<String> referenceImages;
+}
+
+Future<void> _runMediaWorker((SendPort, _MediaRequest) message) async {
+  final (sendPort, request) = message;
+  try {
+    final provider = const AiProviderRepositoryImpl().create(request.bot);
+    final Object result = switch (request) {
+      _ImageMediaRequest() => await provider.generateImage(
+        request.prompt,
+        request.size,
+        request.outputDirectory,
+        referenceImages: request.referenceImages,
+        style: request.style,
+      ),
+      _SpeechMediaRequest() => await provider.generateSpeech(
+        request.prompt,
+        request.voiceType,
+        request.outputDirectory,
+      ),
+      _MusicMediaRequest() => await provider.generateMusic(
+        request.prompt,
+        request.outputDirectory,
+        request.referenceMusic,
+      ),
+      _VideoMediaRequest() => await provider.generateVideo(
+        request.prompt,
+        request.ratio,
+        request.outputDirectory,
+        request.referenceImages,
+      ),
+    };
+    sendPort.send(<Object?>[true, result, false]);
+  } on Object catch (error) {
+    final failure = AppFailure.from(error, code: 'media_provider_failed');
+    sendPort.send(<Object?>[false, failure.code, failure.retryable]);
+  }
 }

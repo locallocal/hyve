@@ -5,6 +5,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
 import 'package:stars/ui/features/chats/views/new_chat_dialog.dart';
@@ -42,7 +43,10 @@ class ChatListPageState extends State<ChatListPage> {
   List<Chat> get filteredChatList => widget.viewModel.filteredChats;
   List<Bot> get bots => widget.viewModel.bots;
   bool get isLoading => widget.viewModel.isLoading;
-  String? get loadError => widget.viewModel.error?.toString();
+  String? get loadError =>
+      widget.viewModel.error == null
+          ? null
+          : safeFailureMessage(context, widget.viewModel.error!);
   String get searchQuery => widget.viewModel.query;
 
   @override

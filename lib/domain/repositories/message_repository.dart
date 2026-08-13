@@ -31,3 +31,23 @@ abstract interface class MessageRepository {
 abstract interface class CachedMessageRepository implements MessageRepository {
   List<Message>? peekMessages(String chatId);
 }
+
+abstract interface class PaginatedMessageRepository
+    implements MessageRepository {
+  Future<MessagePage> getMessagePage(
+    String chatId, {
+    MessageCursor? before,
+    int limit = 50,
+  });
+
+  MessagePage? peekMessagePage(String chatId);
+}
+
+abstract interface class BotScopedMessageMetricsRepository
+    implements MessageRepository {
+  Stream<Set<String>> get botMetricChanges;
+
+  Future<Map<String, ModelTokenUsage>> getTokenUsageForBots(
+    Iterable<String> botIds,
+  );
+}

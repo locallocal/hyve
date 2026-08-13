@@ -216,7 +216,9 @@ class ChatListBuilder extends StatelessWidget {
             await onDeleteChat(chat.id);
           } catch (error) {
             if (!context.mounted) return;
-            final message = S.of(context).deleteChatFailed(error.toString());
+            final message = S
+                .of(context)
+                .deleteChatFailed(safeFailureMessage(context, error));
             if (isDesktop) {
               ShadSonner.of(context).show(
                 ShadToast.destructive(

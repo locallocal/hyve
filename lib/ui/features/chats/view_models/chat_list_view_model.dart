@@ -24,7 +24,7 @@ class ChatListViewModel extends ChangeNotifier {
   List<Bot> _bots = const [];
   List<Chat> _filteredChats = const [];
   String _query = '';
-  Object? _error;
+  AppFailure? _error;
   bool _isLoading = false;
   int _loadGeneration = 0;
 
@@ -32,7 +32,7 @@ class ChatListViewModel extends ChangeNotifier {
   List<Bot> get bots => _bots;
   List<Chat> get filteredChats => _filteredChats;
   String get query => _query;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
@@ -51,7 +51,7 @@ class ChatListViewModel extends ChangeNotifier {
       _applyFilter();
     } catch (error) {
       if (generation != _loadGeneration) return;
-      _error = error;
+      _error = AppFailure.from(error, code: 'chat_list_load_failed');
     } finally {
       if (generation == _loadGeneration) {
         _isLoading = false;

@@ -1306,7 +1306,10 @@ void _showImageDialog(BuildContext context, String imagePath) {
       }
     } catch (error) {
       if (dialogContext.mounted) {
-        showSnackBar(dialogContext, strings.saveImageFailed(error.toString()));
+        showSnackBar(
+          dialogContext,
+          strings.saveImageFailed(safeFailureMessage(dialogContext, error)),
+        );
       }
     }
   }
@@ -1320,7 +1323,9 @@ void _showImageDialog(BuildContext context, String imagePath) {
       if (dialogContext.mounted) {
         showSnackBar(
           dialogContext,
-          S.of(dialogContext).shareImageFailed(error.toString()),
+          S
+              .of(dialogContext)
+              .shareImageFailed(safeFailureMessage(dialogContext, error)),
         );
       }
     }

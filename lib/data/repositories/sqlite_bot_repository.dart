@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stars/data/models/local_records.dart';
+import 'package:stars/data/models/skill_records.dart';
 import 'package:stars/data/services/bot_api_key_cipher.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 
-class SqliteBotRepository implements BotRepository {
+class SqliteBotRepository implements BotAggregateRepository {
   SqliteBotRepository({
     required LocalDatabaseService localDatabase,
     required ChatRepository chatRepository,
@@ -51,12 +52,23 @@ class SqliteBotRepository implements BotRepository {
 
   @override
   Future<void> addBot(Bot bot) async {
+    await addBotWithSkillBindings(bot, const <BotSkillBinding>[]);
+  }
+
+  @override
+  Future<void> addBotWithSkillBindings(
+    Bot bot,
+    Iterable<BotSkillBinding> bindings,
+  ) async {
     final encryptedApiKey = await _apiKeyCipher.encrypt(
       botId: bot.id,
       apiKey: bot.apiKey,
     );
-    await _localDatabase.insertBot(
+    await _localDatabase.insertBotWithSkillBindings(
       BotRecord.fromDomain(bot, storedApiKey: encryptedApiKey).values,
+      bindings.map(
+        (binding) => BotSkillBindingRecord.fromDomain(binding).values,
+      ),
     );
     final cache = _cache;
     if (cache == null) {
@@ -92,8 +104,31 @@ class SqliteBotRepository implements BotRepository {
 
   @override
   Future<void> deleteBot(String id) async {
-    await _chatRepository.deleteChatsForBot(id);
-    await _localDatabase.deleteBot(id);
+    final chatRepository = _chatRepository;
+    final BotChatDeletionParticipant? deletionParticipant =
+        chatRepository is BotChatDeletionParticipant
+            ? chatRepository as BotChatDeletionParticipant
+            : null;
+    final BotChatDeletionStage? stage;
+    if (deletionParticipant != null) {
+      stage = await deletionParticipant.stageChatsForBotDeletion(id);
+    } else {
+      stage = null;
+    }
+    try {
+      await _localDatabase.deleteBot(id);
+    } catch (_) {
+      await stage?.rollback();
+      rethrow;
+    }
+    await stage?.commit();
+    if (stage != null && deletionParticipant != null) {
+      deletionParticipant.completeStagedBotDeletion(stage);
+    } else {
+      // Compatibility for injected repositories. Production always uses the
+      // staged participant above.
+      chatRepository.invalidate();
+    }
     final cache = _cache;
     if (cache == null) {
       await _refreshCache();

@@ -150,7 +150,7 @@ void main() {
     expect(registry.find(tool.canonicalName), isNotNull);
   });
 
-  test('a new server records an error when startup fails', () async {
+  test('a new server remains saved when remote discovery fails', () async {
     client.initializeError = const McpException('mcp_stdio_start_failed');
 
     final saved = await viewModel.saveAndConnect(
@@ -161,9 +161,11 @@ void main() {
       ),
     );
 
-    expect(saved, isFalse);
+    expect(saved, isTrue);
     expect(viewModel.servers, hasLength(1));
     expect(viewModel.servers.single.status, McpConnectionStatus.error);
+    expect(viewModel.error, isNull);
+    expect(viewModel.warning?.code, 'mcp_stdio_start_failed');
   });
 
   test('saves stdio process settings and secure environment', () async {
@@ -203,26 +205,159 @@ void main() {
     );
 
     expect(saved, isFalse);
-    expect(viewModel.error, isA<McpException>());
-    expect(
-      (viewModel.error! as McpException).code,
-      'mcp_invalid_stdio_environment',
-    );
+    expect(viewModel.error, isA<AppFailure>());
+    expect(viewModel.error?.code, 'mcp_invalid_stdio_environment');
     expect(viewModel.servers, isEmpty);
+  });
+
+  test('restores the previous credential when database save fails', () async {
+    const id = 'mcp-existing';
+    final timestamp = DateTime(2026, 7, 29, 10);
+    await repository.saveServer(
+      McpServer(
+        id: id,
+        name: 'Existing',
+        transport: McpStreamableHttpServerTransport(
+          endpoint: Uri.parse('https://example.com/old'),
+          authType: McpAuthType.oauthAccessToken,
+        ),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    );
+    await credentials.write(id, McpCredential(accessToken: 'old-secret'));
+    await database.execute('''
+      CREATE TRIGGER fail_mcp_update
+      BEFORE UPDATE ON mcp_servers
+      BEGIN
+        SELECT RAISE(ABORT, 'injected MCP save failure');
+      END
+    ''');
+
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        id: id,
+        name: 'Updated',
+        endpoint: 'https://example.com/new',
+        authType: McpAuthType.oauthAccessToken,
+        accessToken: 'new-secret',
+      ),
+    );
+
+    expect(saved, isFalse);
+    expect(credentials.values[id]?.accessToken, 'old-secret');
+    expect((await repository.getServer(id))?.name, 'Existing');
+  });
+
+  test('restores a credential when database deletion fails', () async {
+    const id = 'mcp-delete';
+    final timestamp = DateTime(2026, 7, 29, 10);
+    final server = McpServer(
+      id: id,
+      name: 'Delete',
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://example.com/delete'),
+        authType: McpAuthType.oauthAccessToken,
+      ),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+    await repository.saveServer(server);
+    await credentials.write(id, McpCredential(accessToken: 'keep-secret'));
+    await database.execute('''
+      CREATE TRIGGER fail_mcp_delete
+      BEFORE DELETE ON mcp_servers
+      BEGIN
+        SELECT RAISE(ABORT, 'injected MCP delete failure');
+      END
+    ''');
+
+    await viewModel.deleteServer(server);
+
+    expect(viewModel.error?.code, 'mcp_delete_failed');
+    expect(credentials.values[id]?.accessToken, 'keep-secret');
+    expect(await repository.getServer(id), isNotNull);
+  });
+
+  test('credential write failure does not persist a server', () async {
+    credentials.writeError = StateError('secure storage write failed');
+
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Write failure',
+        endpoint: 'https://example.com/write-failure',
+        authType: McpAuthType.oauthAccessToken,
+        accessToken: 'secret',
+      ),
+    );
+
+    expect(saved, isFalse);
+    expect(viewModel.error?.code, 'mcp_save_failed');
+    expect(await repository.getServers(), isEmpty);
+    expect(credentials.values, isEmpty);
+  });
+
+  test('credential delete failure preserves the server', () async {
+    const id = 'mcp-credential-delete';
+    final timestamp = DateTime(2026, 7, 29, 10);
+    final server = McpServer(
+      id: id,
+      name: 'Credential delete failure',
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://example.com/delete-failure'),
+        authType: McpAuthType.oauthAccessToken,
+      ),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+    await repository.saveServer(server);
+    await credentials.write(id, McpCredential(accessToken: 'keep-secret'));
+    credentials.deleteError = StateError('secure storage delete failed');
+
+    await viewModel.deleteServer(server);
+
+    expect(viewModel.error?.code, 'mcp_delete_failed');
+    expect(await repository.getServer(id), isNotNull);
+    expect(credentials.values[id]?.accessToken, 'keep-secret');
+  });
+
+  test('credential read failure becomes presentation state', () async {
+    credentials.readError = StateError('secure storage read failed');
+
+    final saved = await viewModel.saveAndConnect(
+      const McpServerDraft(
+        name: 'Read failure',
+        endpoint: 'https://example.com/read-failure',
+      ),
+    );
+
+    expect(saved, isFalse);
+    expect(viewModel.error?.code, 'mcp_credential_read_failed');
+    expect(await repository.getServers(), isEmpty);
   });
 }
 
 final class _MemoryCredentialStore implements McpCredentialStore {
   final Map<String, McpCredential> values = {};
+  Object? readError;
+  Object? writeError;
+  Object? deleteError;
 
   @override
-  Future<void> delete(String serverId) async => values.remove(serverId);
+  Future<void> delete(String serverId) async {
+    if (deleteError case final error?) throw error;
+    values.remove(serverId);
+  }
 
   @override
-  Future<McpCredential?> read(String serverId) async => values[serverId];
+  Future<McpCredential?> read(String serverId) async {
+    if (readError case final error?) throw error;
+    return values[serverId];
+  }
 
   @override
   Future<void> write(String serverId, McpCredential credential) async {
+    if (writeError case final error?) throw error;
     values[serverId] = credential;
   }
 }

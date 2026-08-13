@@ -299,7 +299,13 @@ final class AgentRunCoordinator {
         reasoning: reasoning,
         tokenUsage: usage,
         toolInvocations: invocations,
-        error: error.code.isEmpty ? error.message : error.code,
+        error:
+            error.code.isEmpty
+                ? AppFailure.from(
+                  error.message,
+                  code: 'agent_model_failed',
+                ).code
+                : error.code,
       );
     } catch (error) {
       return AgentRunResult(
@@ -308,7 +314,7 @@ final class AgentRunCoordinator {
         reasoning: reasoning,
         tokenUsage: usage,
         toolInvocations: invocations,
-        error: error.toString(),
+        error: AppFailure.from(error, code: 'agent_run_failed').code,
       );
     } finally {
       timeoutTimer.cancel();

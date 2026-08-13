@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:stars/utils/mcp_search.dart';
@@ -178,6 +179,22 @@ class _McpServersPageState extends State<McpServersPage> {
                       ),
                     ),
                   ],
+                  if (_viewModel.warning != null) ...[
+                    const SizedBox(height: 16),
+                    ShadAlert(
+                      key: const ValueKey<String>('mcp-warning-alert'),
+                      icon: const Icon(LucideIcons.triangleAlert),
+                      title: Text(_errorMessage(_viewModel.warning!)),
+                      trailing: ShadIconButton.ghost(
+                        onPressed: _viewModel.clearWarning,
+                        width: 28,
+                        height: 28,
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        icon: const Icon(LucideIcons.x),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   if (_viewModel.isLoading)
                     const Center(
@@ -329,6 +346,10 @@ class _McpServersPageState extends State<McpServersPage> {
             const SizedBox(height: 12),
             _ErrorNotice(message: _errorMessage(_viewModel.error!)),
           ],
+          if (_viewModel.warning != null) ...[
+            const SizedBox(height: 12),
+            _ErrorNotice(message: _errorMessage(_viewModel.warning!)),
+          ],
           const SizedBox(height: 16),
           if (_viewModel.servers.isEmpty)
             _EmptyState(onAdd: () => _showEditor())
@@ -350,6 +371,21 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   String _errorMessage(Object error) {
+    if (error case AppFailure(:final code)) {
+      return switch (code) {
+        'mcp_https_required' => S.of(context).mcpHttpsRequired,
+        'mcp_private_endpoint_blocked' =>
+          S.of(context).mcpPrivateEndpointBlocked,
+        'mcp_authorization_required' => S.of(context).mcpAuthorizationRequired,
+        'mcp_request_timeout' => S.of(context).mcpRequestTimedOut,
+        'mcp_unsupported_protocol' => S.of(context).mcpUnsupportedProtocol,
+        'mcp_stdio_start_failed' => S.of(context).mcpStdioStartFailed,
+        'mcp_invalid_stdio_environment' =>
+          S.of(context).mcpInvalidStdioEnvironment,
+        'mcp_invalid_endpoint' => S.of(context).mcpHttpsRequired,
+        _ => safeFailureMessage(context, error),
+      };
+    }
     if (error case McpException(:final code)) {
       return switch (code) {
         'mcp_https_required' => S.of(context).mcpHttpsRequired,

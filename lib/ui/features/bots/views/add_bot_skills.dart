@@ -227,7 +227,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -431,7 +431,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
       await viewModel.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -439,7 +439,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 
@@ -447,7 +447,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showSnackBar(context, error.toString());
+      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
     }
   }
 }

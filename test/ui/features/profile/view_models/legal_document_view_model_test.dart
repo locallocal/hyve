@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stars/domain/models/app_failure.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
@@ -29,7 +30,14 @@ void main() {
       await viewModel.load(localeName: 'zh_CN', fallbackContent: '无法加载');
 
       expect(viewModel.content, '无法加载');
-      expect(viewModel.error, isA<StateError>());
+      expect(
+        viewModel.error,
+        isA<AppFailure>().having(
+          (failure) => failure.code,
+          'code',
+          'legal_document_load_failed',
+        ),
+      );
       expect(viewModel.isLoading, isFalse);
     });
   });

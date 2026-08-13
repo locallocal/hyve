@@ -29,14 +29,14 @@ final class ConversationMemoryViewModel extends ChangeNotifier {
   List<ConversationMemoryItem> _items = const [];
   bool _loading = false;
   bool _compacting = false;
-  Object? _error;
+  AppFailure? _error;
 
   ConversationMemoryState? get state => _state;
   ConversationSummaryDocument? get summary => _summary;
   List<ConversationMemoryItem> get items => _items;
   bool get loading => _loading;
   bool get compacting => _compacting;
-  Object? get error => _error;
+  AppFailure? get error => _error;
 
   Future<void> load() async {
     _loading = true;
@@ -50,7 +50,7 @@ final class ConversationMemoryViewModel extends ChangeNotifier {
       _summary = summary;
       _items = items;
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'conversation_memory_load_failed');
     } finally {
       _loading = false;
       notifyListeners();
@@ -74,7 +74,10 @@ final class ConversationMemoryViewModel extends ChangeNotifier {
       await load();
       return result;
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(
+        error,
+        code: 'conversation_memory_update_failed',
+      );
       notifyListeners();
       rethrow;
     } finally {

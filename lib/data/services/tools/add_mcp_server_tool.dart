@@ -143,8 +143,6 @@ final class AddMcpServerTool implements ExecutableTool {
         createdAt: timestamp,
         updatedAt: timestamp,
       );
-      await _repository.saveServer(server);
-
       try {
         cancellationToken.throwIfCancelled();
         if (credential == null) {
@@ -153,22 +151,40 @@ final class AddMcpServerTool implements ExecutableTool {
           await _credentialStore.write(id, credential);
         }
       } on AgentRunCancelledException {
-        try {
-          await _repository.deleteServer(id);
-        } on Object {
-          // Cancellation remains authoritative even if rollback fails.
-        }
         rethrow;
       } on Object {
-        try {
-          await _repository.deleteServer(id);
-        } on Object {
-          // Preserve the original credential failure.
-        }
         return _error(
           call,
           'The MCP credential could not be stored securely.',
           'mcp_credential_store_failed',
+        );
+      }
+
+      try {
+        cancellationToken.throwIfCancelled();
+        await _repository.saveServer(server);
+      } on AgentRunCancelledException {
+        try {
+          await _credentialStore.delete(id);
+        } on Object {
+          // Cancellation remains authoritative; a later secure-store cleanup
+          // can remove this application-generated, unreferenced key.
+        }
+        rethrow;
+      } on Object {
+        try {
+          await _credentialStore.delete(id);
+        } on Object {
+          return _error(
+            call,
+            'The MCP credential rollback failed.',
+            'mcp_credential_rollback_failed',
+          );
+        }
+        return _error(
+          call,
+          'The MCP server could not be added.',
+          'mcp_server_add_failed',
         );
       }
 

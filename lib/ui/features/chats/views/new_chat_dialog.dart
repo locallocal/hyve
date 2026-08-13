@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/features/chat/views/chat.dart';
@@ -244,7 +245,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
             description: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(error?.toString() ?? ''),
+                Text(error == null ? '' : safeFailureMessage(context, error)),
                 const SizedBox(height: 12),
                 ShadButton.outline(
                   size: ShadButtonSize.sm,
@@ -356,7 +357,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
       if (!mounted) return;
       final message = desktopConversationText(
         context,
-        S.of(context).createChatFailed(error.toString()),
+        S.of(context).createChatFailed(safeFailureMessage(context, error)),
       );
       setState(() {
         _creating = false;

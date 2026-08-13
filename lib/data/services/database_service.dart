@@ -6,21 +6,6 @@ import 'package:sqflite/sqflite.dart';
 
 typedef ApplicationDocumentsDirectoryProvider = Future<Directory> Function();
 
-final class UnsupportedDatabaseVersionException implements Exception {
-  const UnsupportedDatabaseVersionException({
-    required this.actualVersion,
-    required this.expectedVersion,
-  });
-
-  final int actualVersion;
-  final int expectedVersion;
-
-  @override
-  String toString() =>
-      'Unsupported database version $actualVersion; '
-      'expected $expectedVersion. Historical schema upgrades are not supported.';
-}
-
 class DatabaseService {
   DatabaseService({
     ApplicationDocumentsDirectoryProvider?
@@ -33,7 +18,10 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  static const int databaseVersion = 15;
+  // v15 could also be produced by the removed historical upgrade path, whose
+  // messages table left message_id and turn_id nullable. Starting a new schema
+  // generation prevents those databases from being mistaken for a fresh one.
+  static const int databaseVersion = 16;
 
   // 获取数据库实例
   Future<Database> get database async {
@@ -62,22 +50,29 @@ class DatabaseService {
     final String appDocPath = appDocDir.path;
     final path = join(appDocPath, 'app.db');
 
+    await _deleteObsoleteDatabase(path);
     return await openDatabase(
       path,
       version: databaseVersion,
-      onConfigure: _validateDatabaseVersion,
       onCreate: createSchema,
     );
   }
 
-  static Future<void> _validateDatabaseVersion(Database db) async {
-    final version = await db.getVersion();
-    if (version != 0 && version != databaseVersion) {
-      throw UnsupportedDatabaseVersionException(
-        actualVersion: version,
-        expectedVersion: databaseVersion,
-      );
+  static Future<void> _deleteObsoleteDatabase(String path) async {
+    if (!await databaseExists(path)) return;
+
+    final database = await openDatabase(
+      path,
+      readOnly: true,
+      singleInstance: false,
+    );
+    late final int version;
+    try {
+      version = await database.getVersion();
+    } finally {
+      await database.close();
     }
+    if (version != databaseVersion) await deleteDatabase(path);
   }
 
   static Future<void> createSchema(Database db, int _) async {

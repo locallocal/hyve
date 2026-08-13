@@ -4,7 +4,7 @@
 > 审计基线：`5292c4e`（`main`）
 > 审计范围：`lib/`、`test/`、桌面平台工程、数据库 schema/迁移、依赖与现有文档
 > 报告性质：代码静态审计与本地质量门禁结果，不包含真实供应商账号联调和 Windows/macOS/Linux 实机视觉验收
-> 整改记录：2026-08-12 已按产品决策关闭 HIST-01，并移除全部历史数据库升级逻辑；当前仅接受全新数据库或 v15 Schema，其他版本会在打开前被拒绝且不会被自动修改、清空或升级。HIST-02、HIST-03 因不再存在升级路径而不再适用。
+> 整改记录：2026-08-13 已按产品决策关闭 HIST-01、HIST-02，并移除全部历史数据库升级逻辑；当前只保留 v16 Schema，其他版本会在打开前整库删除并重新创建，不执行任何历史数据迁移。v16 用新的 schema 世代隔离曾由旧迁移路径产生的 v15 混合结构。
 
 ## 1. 技术摘要
 
@@ -21,12 +21,12 @@
 | P2 | 21 | 中期会持续放大 UI 漂移、可靠性、性能、测试和发布风险 |
 | P3 | 8 | 低风险规范、文档和清理项，可随相关模块改造一并完成 |
 
-建议先完成四件事：为非当前数据库版本提供清晰但不自动升级的错误页与重置说明；把聊天媒体与 Bot/MCP 多资源写入收敛到 Use Case；统一媒体请求超时/取消；为桌面端统一组件、错误反馈和视觉回归基线。之后再拆分超大文件、清理依赖与发布元数据。
+建议先完成四件事：固化非当前数据库版本的自动重置契约；把聊天媒体与 Bot/MCP 多资源写入收敛到 Use Case；统一媒体请求超时/取消；为桌面端统一组件、错误反馈和视觉回归基线。之后再拆分超大文件、清理依赖与发布元数据。
 
 ## 2. 已有保障与正向发现
 
 - 静态分析通过，且 [`lib/data/analysis_options.yaml`](../lib/data/analysis_options.yaml)、[`lib/domain/analysis_options.yaml`](../lib/domain/analysis_options.yaml)、[`lib/ui/analysis_options.yaml`](../lib/ui/analysis_options.yaml) 已启用 `strict-casts`、`strict-inference` 和 `strict-raw-types`。
-- 原审计基线共有 88 个测试文件、432 项通过的测试，覆盖 AI provider、MCP endpoint policy、MCP tool adapter、Skill 包路径穿越、签名、沙箱、会话压缩和 Repository 缓存；整改后数据库测试改为当前 Schema 与版本拒绝契约。
+- 原审计基线共有 88 个测试文件、432 项通过的测试，覆盖 AI provider、MCP endpoint policy、MCP tool adapter、Skill 包路径穿越、签名、沙箱、会话压缩和 Repository 缓存；整改后数据库测试改为当前 Schema 与旧版本整库重置契约。
 - Bot API Key 使用 AES-GCM、随机 256 位主密钥和 Bot ID 关联数据；旧明文 Key 会在读取时懒迁移。证据见 [`bot_api_key_cipher.dart`](../lib/data/services/bot_api_key_cipher.dart#L14-L109) 和 [`sqlite_bot_repository.dart`](../lib/data/repositories/sqlite_bot_repository.dart#L119-L138)。
 - MCP access token/stdio 环境变量进入平台安全存储而不是 SQLite，且服务 ID 经过格式约束。证据见 [`secure_mcp_credential_store.dart`](../lib/data/services/mcp/secure_mcp_credential_store.dart#L7-L85)。
 - 会话摘要文件删除已经采用 stage/commit/rollback，消息缓存也有限制为最近 5 个会话。这两处说明仓库已有可复用的补偿事务和有界缓存思路，见 [`sqlite_chat_repository.dart`](../lib/data/repositories/sqlite_chat_repository.dart#L79-L101) 与 [`sqlite_message_repository.dart`](../lib/data/repositories/sqlite_message_repository.dart#L15-L74)。
@@ -36,9 +36,9 @@
 
 | ID | 优先级 | 状态 | 问题 | 主要影响 |
 | --- | --- | --- | --- | --- |
-| HIST-01 | P1 | 已按策略关闭 | v13/v14 MCP 迁移曾直接删除并重建表；现已移除全部升级逻辑 | 历史数据库不再受支持，旧库不会被自动修改 |
-| HIST-02 | P1 | 不再适用 | 升级库与新装库约束不一致；当前只存在最新 Schema 创建路径 | 不再生成升级后的混合 Schema |
-| HIST-03 | P1 | 不再适用 | 迁移测试不能代表真实旧库；迁移实现和迁移测试均已删除 | 改为验证当前 Schema 与旧版本拒绝策略 |
+| HIST-01 | P1 | 已按策略关闭 | v13/v14 MCP 迁移曾直接删除并重建表；现已移除全部升级逻辑 | 历史数据库不再受支持，旧库会被整库重置 |
+| HIST-02 | P1 | 已关闭 | 升级库与新装库约束不一致；v16 只存在最新 Schema 创建路径 | 旧 v15 混合 Schema 会被删除，不会被误认为当前结构 |
+| HIST-03 | P1 | 不再适用 | 迁移测试不能代表真实旧库；迁移实现和迁移测试均已删除 | 改为验证当前 Schema 与旧版本重置策略 |
 | BIZ-01 | P1 | 已确认 | Bot、Skill、Chat、MCP、凭证跨资源写入缺少原子性/补偿 | 失败后产生半完成状态或孤儿凭证 |
 | BIZ-02 | P1 | 已确认 | 附件复制改坏扩展名、可能覆盖同名文件，并静默忽略失败 | 用户以为附件已发送，实际内容丢失 |
 | BIZ-03 | P1 | 设计风险 | 媒体任务标为不可取消，多处 HTTP 调用没有统一超时 | 请求挂起时阻断切换、删除和退出 |
@@ -80,23 +80,23 @@
 
 审计基线中的 `DatabaseService.migrateSchema` 会在所有 `<13` 的升级以及 `13 -> 14` 升级中调用 `_resetMcpSchema`，直接 `DROP TABLE` 后重建；测试也明确断言升级后两张表为空。
 
-该问题已按“停止历史数据库兼容”的产品策略关闭，而不是实施数据保留迁移：[`database_service.dart`](../lib/data/services/database_service.dart) 已移除 `onUpgrade`、`migrateSchema`、`_resetMcpSchema` 和所有按版本补列/建表逻辑，只保留当前 v15 `createSchema`。打开数据库时只接受版本 0 或 15；其他版本抛出 `UnsupportedDatabaseVersionException`，防止 sqflite 在无回调时把旧库静默标记为 v15。
+该问题已按“停止历史数据库兼容”的产品策略关闭，而不是实施数据保留迁移：[`database_service.dart`](../lib/data/services/database_service.dart) 已移除 `onUpgrade`、`migrateSchema`、`_resetMcpSchema` 和所有按版本补列/建表逻辑，只保留当前 v16 `createSchema`。打开数据库前会只读检查版本；若不是 v16，则关闭连接、删除整个数据库文件，再通过 `createSchema` 创建 v16。
 
-对应测试已改为校验当前 Schema 完整创建、当前版本数据库正常重开，以及旧版本数据库被拒绝后版本号和原始记录保持不变，见 [`database_service_test.dart`](../test/data/services/database_service_test.dart)。这一决策意味着旧数据库不会自动升级，也不会自动导入到最新结构；产品层仍需决定如何向用户展示“不支持的数据库版本”和手动重置说明。
+对应测试已改为校验当前 Schema 完整创建、当前版本数据库正常重开，以及旧版本数据库被删除后只生成最新表且原始记录消失，见 [`database_service_test.dart`](../test/data/services/database_service_test.dart)。这一决策意味着旧数据库不会升级或导入，全部历史数据都会被丢弃。
 
 ### HIST-02：新装与升级后的消息 schema 不等价（P1）
 
 该问题在原审计基线成立：新装库将 `message_id` 和 `turn_id` 定义为 `NOT NULL`，旧迁移却只增加可空 `TEXT` 列，因此相同版本号下可能出现不同约束。
 
-当前已经删除该升级路径和回填表达式，只通过最新 [`createSchema`](../lib/data/services/database_service.dart) 创建 `NOT NULL` 结构。非 v15 数据库在 schema 变更前即被拒绝，因此不会再生成“升级后 v15”混合结构；本项标记为不再适用。
+当前已经删除该升级路径和回填表达式，只通过最新 [`createSchema`](../lib/data/services/database_service.dart) 创建 `NOT NULL` 结构。由于旧升级路径也曾产生版本号为 15 的混合结构，仅删除 `onUpgrade` 仍不足以区分它和全新 v15 数据库；因此当前 schema 世代提升为 v16，并在打开时删除所有 v15 数据库、重新创建 v16。应用不会迁移或回填其中的数据，HIST-02 至此关闭。
 
-后续若调整 Schema，必须继续遵守“只支持单一当前版本”的决策：发布新的数据文件/重置策略，或重新取得产品授权后单独设计迁移；不能在没有迁移实现的情况下仅提高 `databaseVersion`，否则旧库将被明确拒绝。
+后续若调整 Schema，必须继续遵守“只支持单一当前版本”的决策：提高 `databaseVersion` 会触发整库删除并创建新结构；只有重新取得产品授权后才能另行设计数据迁移。
 
 ### HIST-03：迁移测试未还原真实历史 schema（P1）
 
 原迁移测试用当前 Schema 人工删表/删列来模拟旧版本，确实不能证明真实用户库可以升级。
 
-由于当前明确不支持任何历史 Schema，所有逐版本迁移测试已经删除，替换为两个契约：v15 Schema 的表、列和关键约束必须完整；任意非 0/15 版本必须在不修改版本号和记录的情况下拒绝打开。本项随升级路径移除而不再适用。
+由于当前明确不支持任何历史 Schema，所有逐版本迁移测试已经删除，替换为两个契约：v16 Schema 的表、列和关键约束必须完整；任意非 v16 数据库必须被删除并重建为无历史记录的 v16。本项随升级路径移除而不再适用。
 
 ### HIST-04：外键声明未启用（P2）
 
@@ -112,13 +112,13 @@ schema 仅在 `mcp_tools.server_id` 上声明 `ON DELETE CASCADE`，见 [`databa
 
 ### HIST-06：缺少恢复和降级策略（P2）
 
-当前只打开固定 `app.db`，不再执行 upgrade/downgrade；非当前版本会被明确拒绝。系统仍没有数据库备份、完整性检查或用户导出/导入能力。对纯本地 AI 客户端而言，SQLite、会话附件和摘要 Markdown 是用户的核心资产。
+当前只打开固定 `app.db`，不再执行 upgrade/downgrade；非当前版本会被整库删除并重建。系统仍没有数据库备份、完整性检查或用户导出/导入能力。对纯本地 AI 客户端而言，SQLite、会话附件和摘要 Markdown 是用户的核心资产。
 
 建议至少提供：升级前滚动备份、`quick_check`/关键表计数、备份版本元数据、手动导出、失败自动回滚、明确的“不支持降级”错误页。数据库与 `chats/`、摘要目录应使用同一备份 manifest。
 
 ### HIST-07：schema 类型拼写错误（P3）
 
-[`database_service.dart`](../lib/data/services/database_service.dart) 将两个时间列声明为 `INTERGER`。SQLite 的动态类型使它通常仍能保存整数，但这会造成 schema snapshot 噪声，并可能影响外部迁移/检查工具。应在下一次发布新 Schema 时统一为 `INTEGER NOT NULL`，并同步调整版本拒绝策略。
+[`database_service.dart`](../lib/data/services/database_service.dart) 将两个时间列声明为 `INTERGER`。SQLite 的动态类型使它通常仍能保存整数，但这会造成 schema snapshot 噪声，并可能影响外部迁移/检查工具。应在下一次发布新 Schema 时统一为 `INTEGER NOT NULL`，并同步调整版本重置策略。
 
 ### HIST-08：消息顺序没有稳定 tie-breaker（P2）
 
@@ -332,7 +332,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 | 风险面 | 当前覆盖 | 建议新增 |
 | --- | --- | --- |
-| 数据库版本 | 已覆盖当前 Schema 创建、当前库重开、旧版本拒绝且不修改 | 增加空文件/损坏库/未来版本拒绝，并验证产品层错误呈现和手动重置流程 |
+| 数据库版本 | 已覆盖当前 Schema 创建、当前库重开、旧版本删除并重建 | 增加空文件、损坏库和未来版本的重置覆盖 |
 | 跨资源写入 | 会话摘要有 stage/rollback 测试 | Bot+Skill、Bot+Chats、MCP+credential 的每一步 fault injection 和恢复 journal |
 | 附件/媒体 | ViewModel/provider 局部测试 | 同名文件、无扩展名、目录不可写、复制半失败、超时、取消、重启恢复 |
 | 桌面 UI | 大量 widget/semantics 测试 | golden、焦点 traversal、context menu 键盘入口、多语言溢出、三个 breakpoint |
@@ -345,8 +345,8 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 ### 阶段 A：数据安全与立即止损（1 个迭代）
 
-1. 已移除会触发 MCP reset 的迁移和所有历史升级逻辑；保持旧库只读保留、不自动修改。
-2. 固化 v15 Schema 快照和版本拒绝契约，并补产品层“不支持旧数据库”的错误页与手动重置说明。
+1. 已移除会触发 MCP 局部 reset 的迁移和所有历史升级逻辑；非当前版本直接整库删除。
+2. 固化 v16 Schema 快照和版本重置契约。
 3. 修复附件命名、复制失败反馈和稳定消息排序。
 4. 将已退场 provider 从新建入口隐藏；历史 Bot 显示迁移说明。
 5. 为媒体 HTTP 增加统一超时和取消，不再使用不可退出的无限等待。
@@ -376,7 +376,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 建议用以下可量化条件判断治理是否完成：
 
-- 新数据库只创建 v15 Schema；v15 数据库可无损重开；其他版本在不修改文件的情况下被拒绝。
+- 新数据库只创建 v16 Schema；v16 数据库可无损重开；其他版本整库删除后创建空的 v16 Schema。
 - 数据库、文件、安全存储任一步失败后，要么全部回滚，要么 recovery journal 能在下次启动完成恢复。
 - 媒体请求都有 overall timeout 和取消路径；导航不再被无限期阻断。
 - `lib/ui/**` 除组合根外不导入 `lib/data/**`，View 不直接 import 平台插件。
@@ -411,12 +411,12 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 - 未连接真实 OpenAI/Anthropic/国内外 provider 账号，因此 provider 的外部可用性沿用仓库 2026-08-03 专项审计，仍需发布前联调复核。
 - 未在真实 Windows/macOS/Linux 窗口中进行截图和辅助技术测试；UI 结论来自组件树、token、widget tests 和代码路径。
 - 未运行覆盖率工具和 1k/10k 消息性能 benchmark，因此性能项标记为设计风险或缺口，没有伪造百分比/耗时。
-- 原审计未实际制造用户数据库迁移失败；整改后已用 v14 文件验证非当前版本会被拒绝，且版本号和记录不变。
+- 原审计未实际制造用户数据库迁移失败；整改后已用旧版本文件验证非当前版本会被删除，原始记录消失并创建完整 v16 Schema。
 
 ### 待产品/维护者确认
 
-1. 发现旧数据库时，产品应提供“退出/手动重置”中的哪些操作？本次实现不会自动删除或升级。
-2. 是否需要独立的离线导出工具读取旧库？这属于新的显式能力，不能重新放回应用启动升级路径。
+1. 当前按测试阶段决策自动删除非当前版本数据库；进入正式发布前是否继续采用该策略，需要再次确认。
+2. 当前决策不提供旧库离线导出或恢复能力；如需改变，必须作为新的显式能力单独立项。
 3. 桌面视觉最终采用当前紧凑 6–8px 圆角，还是旧 Spec 的 20–24px 大圆角工作台？需要先定方向再统一。
 4. 会话删除后 token usage 被保留到删除 Bot 是明确产品需求，还是历史实现？现有测试将其视为预期行为。
 5. 草稿是否需要跨重启恢复？答案会决定 DraftRepository 使用内存、有界临时目录还是 SQLite。

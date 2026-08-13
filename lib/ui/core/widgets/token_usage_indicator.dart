@@ -152,17 +152,17 @@ class _TokenMetricRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 9),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
+          Icon(icon, size: 17, color: StarsDesktopThemeSpec.mutedText(context)),
           const SizedBox(width: 9),
           Expanded(
-            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
+            child: Text(label, style: StarsDesktopThemeSpec.bodyStyle(context)),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: SelectableText(
               value,
               textAlign: TextAlign.right,
-              style: DesktopThemeTokens.metaStyle(context),
+              style: StarsDesktopThemeSpec.metaStyle(context),
             ),
           ),
         ],

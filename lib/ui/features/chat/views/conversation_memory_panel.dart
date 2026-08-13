@@ -83,7 +83,7 @@ final class _ConversationMemoryPanelState
           Text(
             S.of(context).contextAndMemory,
             key: const ValueKey<String>('conversation-memory-section-title'),
-            style: DesktopThemeTokens.sectionTitleStyle(context),
+            style: StarsDesktopThemeSpec.sectionTitleStyle(context),
           ),
           const SizedBox(height: 12),
           if (report != null) ...[
@@ -146,9 +146,9 @@ final class _ConversationMemoryPanelState
             const SizedBox(height: 10),
             Text(
               safeFailureMessage(context, viewModel.error!),
-              style: (DesktopThemeTokens.metaStyle(context) ??
+              style: (StarsDesktopThemeSpec.metaStyle(context) ??
                       const TextStyle())
-                  .copyWith(color: DesktopThemeTokens.error(context)),
+                  .copyWith(color: StarsDesktopThemeSpec.error(context)),
             ),
           ],
           _ConversationSystemPromptBlock(
@@ -206,7 +206,7 @@ final class _ConversationMemoryPanelState
               key: const ValueKey<String>('conversation-summary-dialog'),
               title: Text(
                 S.of(dialogContext).conversationSummary,
-                style: DesktopThemeTokens.pageTitleStyle(dialogContext),
+                style: StarsDesktopThemeSpec.pageTitleStyle(dialogContext),
               ),
               description: Text(S.of(dialogContext).automaticSummaryWarning),
               constraints: const BoxConstraints(maxWidth: 720),
@@ -236,21 +236,10 @@ final class _ConversationMemoryPanelState
     String message, {
     bool destructive = false,
   }) {
-    final sonner = ShadSonner.maybeOf(context);
-    if (sonner != null) {
-      sonner.show(
-        destructive
-            ? ShadToast.destructive(title: Text(message))
-            : ShadToast(title: Text(message)),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-      ),
+    showStarsNotice(
+      context,
+      message,
+      tone: destructive ? StarsNoticeTone.error : StarsNoticeTone.info,
     );
   }
 
@@ -292,7 +281,7 @@ final class _ConversationSystemPromptBlock extends StatelessWidget {
         Text(
           label,
           key: const ValueKey<String>('conversation-system-prompt-title'),
-          style: DesktopThemeTokens.sectionTitleStyle(context),
+          style: StarsDesktopThemeSpec.sectionTitleStyle(context),
         ),
         const SizedBox(height: 12),
         Semantics(
@@ -305,11 +294,11 @@ final class _ConversationSystemPromptBlock extends StatelessWidget {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
-              decoration: DesktopThemeTokens.statusDecoration(context),
+              decoration: StarsDesktopThemeSpec.statusDecoration(context),
               child: SelectableText(
                 prompt,
                 style: TextStyle(
-                  color: DesktopThemeTokens.text(context),
+                  color: StarsDesktopThemeSpec.text(context),
                   fontFamily: 'monospace',
                   fontSize: 12,
                   height: 1.5,
@@ -336,7 +325,7 @@ final class _ConversationSummaryDocument extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.zero,
       backgroundColor: tokens.raisedSurface,
-      radius: DesktopThemeTokens.containerRadius,
+      radius: StarsDesktopThemeSpec.containerRadius,
       border: ShadBorder.all(color: tokens.separator, width: 1),
       child: Markdown(
         key: const ValueKey<String>('conversation-summary-markdown'),
@@ -351,15 +340,16 @@ final class _ConversationSummaryDocument extends StatelessWidget {
 
 MarkdownStyleSheet _summaryMarkdownStyle(BuildContext context) {
   final tokens = StarsDesktopTokens.of(context);
-  final body = (DesktopThemeTokens.bodyStyle(context) ??
+  final body = (StarsDesktopThemeSpec.bodyStyle(context) ??
           const TextStyle(fontSize: 14))
       .copyWith(color: tokens.primaryText, height: 1.6);
-  final pageTitle = (DesktopThemeTokens.pageTitleStyle(context) ?? body)
+  final pageTitle = (StarsDesktopThemeSpec.pageTitleStyle(context) ?? body)
       .copyWith(color: tokens.primaryText);
-  final sectionTitle = (DesktopThemeTokens.toolbarTitleStyle(context) ?? body)
+  final sectionTitle = (StarsDesktopThemeSpec.toolbarTitleStyle(context) ??
+          body)
       .copyWith(color: tokens.primaryText);
   final subsectionTitle = body.copyWith(fontWeight: FontWeight.w600);
-  final meta = (DesktopThemeTokens.metaStyle(context) ??
+  final meta = (StarsDesktopThemeSpec.metaStyle(context) ??
           const TextStyle(fontSize: 12))
       .copyWith(color: tokens.secondaryText, height: 1.5);
 
@@ -394,13 +384,13 @@ MarkdownStyleSheet _summaryMarkdownStyle(BuildContext context) {
     blockquotePadding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
     blockquoteDecoration: BoxDecoration(
       color: tokens.controlFill,
-      borderRadius: DesktopThemeTokens.itemRadius,
+      borderRadius: StarsDesktopThemeSpec.itemRadius,
       border: Border(left: BorderSide(color: tokens.separator, width: 3)),
     ),
     codeblockPadding: const EdgeInsets.all(12),
     codeblockDecoration: BoxDecoration(
       color: tokens.controlFill,
-      borderRadius: DesktopThemeTokens.itemRadius,
+      borderRadius: StarsDesktopThemeSpec.itemRadius,
       border: Border.all(color: tokens.separator),
     ),
     horizontalRuleDecoration: BoxDecoration(
@@ -607,7 +597,7 @@ final class _MemoryManagerDialogState extends State<_MemoryManagerDialog> {
       key: const ValueKey<String>('conversation-memory-manager-dialog'),
       title: Text(
         S.of(context).manageMemory,
-        style: DesktopThemeTokens.pageTitleStyle(context),
+        style: StarsDesktopThemeSpec.pageTitleStyle(context),
       ),
       description: Text(S.of(context).automaticSummaryWarning),
       constraints: const BoxConstraints(maxWidth: 760),
@@ -710,7 +700,7 @@ final class _SummaryMemoryCard extends StatelessWidget {
               children: [
                 Text(
                   S.of(context).conversationSummary,
-                  style: DesktopThemeTokens.bodyStyle(
+                  style: StarsDesktopThemeSpec.bodyStyle(
                     context,
                   )?.copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -719,7 +709,7 @@ final class _SummaryMemoryCard extends StatelessWidget {
                   summary.markdown,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -748,7 +738,7 @@ final class _MemoryItemTile extends StatelessWidget {
       children: [
         SelectableText(
           item.content,
-          style: DesktopThemeTokens.bodyStyle(
+          style: StarsDesktopThemeSpec.bodyStyle(
             context,
           )?.copyWith(fontWeight: FontWeight.w500),
         ),
@@ -762,7 +752,7 @@ final class _MemoryItemTile extends StatelessWidget {
             ShadBadge.outline(
               child: Text('${(item.confidence * 100).round()}%'),
             ),
-            Text(updatedAt, style: DesktopThemeTokens.metaStyle(context)),
+            Text(updatedAt, style: StarsDesktopThemeSpec.metaStyle(context)),
           ],
         ),
       ],
@@ -861,7 +851,7 @@ final class _MemoryItemTile extends StatelessWidget {
           (dialogContext) => ShadDialog(
             title: Text(
               S.of(dialogContext).editMemory,
-              style: DesktopThemeTokens.pageTitleStyle(dialogContext),
+              style: StarsDesktopThemeSpec.pageTitleStyle(dialogContext),
             ),
             constraints: const BoxConstraints(maxWidth: 560),
             actions: [
@@ -909,24 +899,12 @@ final class _MemoryIconAction extends StatelessWidget {
   final Color? foregroundColor;
 
   @override
-  Widget build(BuildContext context) => Semantics(
+  Widget build(BuildContext context) => StarsDesktopIconAction(
+    icon: icon,
     label: label,
-    button: true,
-    onTap: onPressed,
-    child: ExcludeSemantics(
-      child: ShadTooltip(
-        builder: (context) => Text(label),
-        child: ShadIconButton.raw(
-          variant: ShadButtonVariant.ghost,
-          width: 34,
-          height: 34,
-          iconSize: 16,
-          foregroundColor: foregroundColor,
-          onPressed: onPressed,
-          icon: Icon(icon),
-        ),
-      ),
-    ),
+    iconSize: 16,
+    foregroundColor: foregroundColor,
+    onPressed: onPressed,
   );
 }
 

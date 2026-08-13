@@ -54,7 +54,7 @@ class ImageAttachments extends StatelessWidget {
                   .itemCount((images.length + files.length).toString()),
               style: TextStyle(
                 fontSize: fontSize - 3,
-                color: StarsDesktopTheme.mutedText(context),
+                color: StarsDesktopTokens.of(context).secondaryText,
               ),
             ),
             const SizedBox(width: 4),
@@ -111,9 +111,10 @@ class ImageAttachments extends StatelessWidget {
                                         .withValues(alpha: 0.72),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: StarsDesktopTheme.borderColor(
-                                        context,
-                                      ),
+                                      color:
+                                          StarsDesktopTokens.of(
+                                            context,
+                                          ).separator,
                                     ),
                                   )
                                   : null,
@@ -193,9 +194,10 @@ class ImageAttachments extends StatelessWidget {
                             border:
                                 desktopMode
                                     ? Border.all(
-                                      color: StarsDesktopTheme.borderColor(
-                                        context,
-                                      ),
+                                      color:
+                                          StarsDesktopTokens.of(
+                                            context,
+                                          ).separator,
                                     )
                                     : null,
                           ),
@@ -209,7 +211,9 @@ class ImageAttachments extends StatelessWidget {
                                 size: desktopMode ? 26 : 24,
                                 color:
                                     desktopMode
-                                        ? StarsDesktopTheme.mutedText(context)
+                                        ? StarsDesktopTokens.of(
+                                          context,
+                                        ).secondaryText
                                         : null,
                               ),
                               SizedBox(height: desktopMode ? 8 : 4),

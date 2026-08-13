@@ -388,27 +388,27 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildDesktopBody(BuildContext context) {
     return ColoredBox(
-      color: DesktopThemeTokens.workspaceSurface(context),
+      color: StarsDesktopThemeSpec.workspaceSurface(context),
       child: SingleChildScrollView(
-        padding: DesktopThemeTokens.formPagePadding,
+        padding: StarsDesktopThemeSpec.formPagePadding,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: DesktopThemeTokens.formContentMaxWidth,
+              maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   S.of(context).profile,
-                  style: DesktopThemeTokens.pageTitleStyle(context),
+                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   S.of(context).desktopSettingsDescription,
-                  style: DesktopThemeTokens.bodyStyle(
+                  style: StarsDesktopThemeSpec.bodyStyle(
                     context,
-                  )?.copyWith(color: DesktopThemeTokens.mutedText(context)),
+                  )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context)),
                 ),
                 const SizedBox(height: 32),
                 _buildDesktopSettingsSection(
@@ -534,7 +534,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600);
     final bodyStyle =
         embedded
-            ? DesktopThemeTokens.bodyStyle(dialogContext)
+            ? StarsDesktopThemeSpec.bodyStyle(dialogContext)
             : Theme.of(dialogContext).textTheme.bodyMedium;
     final mutedStyle =
         embedded
@@ -748,7 +748,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: tokens.raisedSurface,
-                    borderRadius: DesktopThemeTokens.containerRadius,
+                    borderRadius: StarsDesktopThemeSpec.containerRadius,
                   ),
                   child: SingleChildScrollView(
                     child: Column(
@@ -756,25 +756,32 @@ class _ProfilePageState extends State<ProfilePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         for (final language in languages)
-                          MenuItemButton(
-                            key: ValueKey<String>(
-                              'profile-language-option-${language.code}',
-                            ),
-                            trailingIcon:
-                                language.code == _language
-                                    ? Icon(
-                                      Icons.check_rounded,
-                                      size: 16,
-                                      color: tokens.accent,
-                                    )
-                                    : const SizedBox.square(dimension: 16),
-                            onPressed: () {
-                              setState(() => _language = language.code);
-                              _saveProfile();
-                              Navigator.pop(dialogContext);
-                            },
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(minWidth: 180),
+                          Semantics(
+                            selected: language.code == _language,
+                            child: ShadButton.raw(
+                              key: ValueKey<String>(
+                                'profile-language-option-${language.code}',
+                              ),
+                              variant:
+                                  language.code == _language
+                                      ? ShadButtonVariant.secondary
+                                      : ShadButtonVariant.ghost,
+                              height: 44,
+                              expands: true,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              trailing:
+                                  language.code == _language
+                                      ? Icon(
+                                        LucideIcons.check,
+                                        size: 16,
+                                        color: tokens.accent,
+                                      )
+                                      : const SizedBox.square(dimension: 16),
+                              onPressed: () {
+                                setState(() => _language = language.code);
+                                _saveProfile();
+                                Navigator.pop(dialogContext);
+                              },
                               child: Text(
                                 language.name,
                                 maxLines: 1,
@@ -893,7 +900,7 @@ class _ProfilePageState extends State<ProfilePage> {
               decoration:
                   isDesktop
                       ? BoxDecoration(
-                        color: DesktopThemeTokens.selectedFill(context),
+                        color: StarsDesktopThemeSpec.selectedFill(context),
                         borderRadius: BorderRadius.circular(12),
                       )
                       : null,
@@ -912,7 +919,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     title,
                     style:
                         isDesktop
-                            ? DesktopThemeTokens.bodyStyle(context)?.copyWith(
+                            ? StarsDesktopThemeSpec.bodyStyle(
+                              context,
+                            )?.copyWith(
                               fontSize: _fontSize,
                               fontWeight: FontWeight.w600,
                             )
@@ -925,7 +934,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     subtitle,
                     style:
                         isDesktop
-                            ? DesktopThemeTokens.metaStyle(
+                            ? StarsDesktopThemeSpec.metaStyle(
                               context,
                             )?.copyWith(fontSize: _fontSize - 2)
                             : TextStyle(

@@ -191,8 +191,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.text('没有足够的旧上下文可压缩'), findsOneWidget);
-    expect(find.byType(ShadToast), findsOneWidget);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byType(ShadToast), findsNothing);
+    expect(find.byType(SnackBar), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey<String>('memory-view-summary')));
     await tester.pumpAndSettle();
@@ -243,7 +243,7 @@ void main() {
     expect(tester.widget(memorySearchField), isA<StarsSearchField>());
     expect(
       tester.getSize(memorySearchField).height,
-      DesktopThemeTokens.botFormFieldHeight,
+      StarsDesktopThemeSpec.botFormFieldHeight,
     );
     expect(
       tester.widget<ShadInput>(memorySearchInput).alignment,
@@ -424,8 +424,8 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('当前还没有可用的会话摘要。'), findsOneWidget);
-    expect(find.byType(ShadToast), findsOneWidget);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byType(ShadToast), findsNothing);
+    expect(find.byType(SnackBar), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('conversation-summary-dialog')),
       findsNothing,

@@ -43,12 +43,7 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
     if (!_canCopy) return;
     await Clipboard.setData(ClipboardData(text: widget.content));
     if (!mounted) return;
-    ShadSonner.maybeOf(context)?.show(
-      ShadToast(
-        title: Text(S.of(context).messageCopied),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    showStarsNotice(context, S.of(context).messageCopied);
   }
 
   @override
@@ -162,12 +157,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
     if (widget.source.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: widget.source));
     if (!mounted) return;
-    ShadSonner.maybeOf(context)?.show(
-      ShadToast(
-        title: Text(S.of(context).messageCopied),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    showStarsNotice(context, S.of(context).messageCopied);
   }
 
   @override
@@ -201,29 +191,31 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: StarsDesktopTheme.mutedText(context),
+                        color: StarsDesktopTokens.of(context).secondaryText,
                         fontFamily: 'monospace',
                       ),
                     ),
                   )
                 else
                   const Spacer(),
-                IconButton(
-                  key: const ValueKey<String>('message-code-copy-button'),
-                  tooltip: copyLabel,
-                  onPressed: widget.source.isEmpty ? null : _copyCode,
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints.tightFor(
-                    width: 32,
-                    height: 32,
+                if (widget.isDesktop)
+                  StarsDesktopIconAction(
+                    key: const ValueKey<String>('message-code-copy-button'),
+                    icon: LucideIcons.copy,
+                    label: copyLabel,
+                    onPressed: widget.source.isEmpty ? null : _copyCode,
+                    enabled: widget.source.isNotEmpty,
+                    iconSize: 16,
+                    foregroundColor:
+                        StarsDesktopTokens.of(context).secondaryText,
+                  )
+                else
+                  IconButton(
+                    key: const ValueKey<String>('message-code-copy-button'),
+                    tooltip: copyLabel,
+                    onPressed: widget.source.isEmpty ? null : _copyCode,
+                    icon: const Icon(Icons.copy_rounded, size: 18),
                   ),
-                  padding: EdgeInsets.zero,
-                  icon: Icon(
-                    LucideIcons.copy,
-                    size: 16,
-                    color: StarsDesktopTheme.mutedText(context),
-                  ),
-                ),
               ],
             ),
           ),
@@ -231,7 +223,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
         Divider(
           height: 1,
           thickness: 1,
-          color: StarsDesktopTheme.borderColor(context),
+          color: StarsDesktopTokens.of(context).separator,
         ),
         Scrollbar(
           controller: _scrollController,

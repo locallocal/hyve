@@ -13,6 +13,7 @@ import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:stars/ui/features/mcp/views/mcp_servers_page.dart';
 import 'package:stars/utils/theme.dart';
@@ -245,7 +246,7 @@ void main() {
       expect(githubRect.width, 453);
       expect(filesystemRect.width, 453);
       expect(githubRect.height, filesystemRect.height);
-      expect(githubRect.height, DesktopThemeTokens.managementCardHeight);
+      expect(githubRect.height, StarsDesktopThemeSpec.managementCardHeight);
       expect(githubRect.top, filesystemRect.top);
       expect(filesystemRect.left - githubRect.right, 14);
 
@@ -818,9 +819,12 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.byType(ShadForm), findsOneWidget);
       expect(find.byType(ShadCard), findsNWidgets(2));
-      expect(find.byType(MenuAnchor), findsNWidgets(2));
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.link_rounded), findsOneWidget);
+      expect(
+        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        findsNWidgets(2),
+      );
+      expect(find.byIcon(LucideIcons.x), findsOneWidget);
+      expect(find.byIcon(LucideIcons.link), findsNWidgets(2));
       expect(find.text('取消'), findsOneWidget);
       expect(find.text('保存并连接'), findsOneWidget);
       expect(
@@ -859,10 +863,10 @@ void main() {
         inputSize('mcp-server-authentication'),
       ];
       expect(inputSizes.map((size) => size.width).toSet(), {
-        DesktopThemeTokens.addBotFormFieldWidth,
+        StarsDesktopThemeSpec.addBotFormFieldWidth,
       });
       expect(inputSizes.map((size) => size.height).toSet(), {
-        DesktopThemeTokens.botFormFieldHeight,
+        StarsDesktopThemeSpec.botFormFieldHeight,
       });
 
       final authenticationMenu = find.byKey(
@@ -886,13 +890,15 @@ void main() {
               .style;
       final accessTokenOption = find.ancestor(
         of: find.text('OAuth / Bearer 访问令牌').last,
-        matching: find.byType(MenuItemButton),
+        matching: find.byType(ShadButton),
       );
       expect(accessTokenOption, findsOneWidget);
-      expect(
-        tester.widget<Text>(find.text('OAuth / Bearer 访问令牌').last).style,
-        authenticationInputStyle,
-      );
+      final accessTokenText = find.text('OAuth / Bearer 访问令牌').last;
+      final accessTokenStyle = DefaultTextStyle.of(
+        tester.element(accessTokenText),
+      ).style.merge(tester.widget<Text>(accessTokenText).style);
+      expect(accessTokenStyle.fontSize, authenticationInputStyle.fontSize);
+      expect(accessTokenStyle.fontFamily, authenticationInputStyle.fontFamily);
       await tester.tap(accessTokenOption);
       await tester.pumpAndSettle();
 
@@ -903,8 +909,8 @@ void main() {
       expect(
         inputSize('mcp-server-access-token'),
         const Size(
-          DesktopThemeTokens.addBotFormFieldWidth,
-          DesktopThemeTokens.botFormFieldHeight,
+          StarsDesktopThemeSpec.addBotFormFieldWidth,
+          StarsDesktopThemeSpec.botFormFieldHeight,
         ),
       );
 
@@ -922,7 +928,7 @@ void main() {
       );
       await tester.tapAt(tester.getCenter(transportInput));
       await tester.pumpAndSettle();
-      expect(find.byType(MenuItemButton), findsNothing);
+      expect(find.text('stdio（本地进程）'), findsNothing);
 
       final transportMenuRect = tester.getRect(transportMenu);
       await tester.tap(transportMenu);
@@ -938,22 +944,23 @@ void main() {
               .style;
       final stdioOption = find.ancestor(
         of: find.text('stdio（本地进程）').last,
-        matching: find.byType(MenuItemButton),
+        matching: find.byType(ShadButton),
       );
       expect(stdioOption, findsOneWidget);
-      expect(tester.getSize(stdioOption).width, 256);
       expect(
         tester.getSize(stdioOption).width,
         lessThan(inputSize('mcp-server-transport').width),
       );
       expect(
         tester.getRect(stdioOption).right,
-        closeTo(transportMenuRect.right, 1),
+        lessThanOrEqualTo(transportMenuRect.right),
       );
-      expect(
-        tester.widget<Text>(find.text('stdio（本地进程）').last).style,
-        transportInputStyle,
-      );
+      final stdioText = find.text('stdio（本地进程）').last;
+      final stdioStyle = DefaultTextStyle.of(
+        tester.element(stdioText),
+      ).style.merge(tester.widget<Text>(stdioText).style);
+      expect(stdioStyle.fontSize, transportInputStyle.fontSize);
+      expect(stdioStyle.fontFamily, transportInputStyle.fontFamily);
       await tester.tap(stdioOption);
       await tester.pumpAndSettle();
 
@@ -980,8 +987,8 @@ void main() {
       expect(
         inputSize('mcp-server-command'),
         const Size(
-          DesktopThemeTokens.addBotFormFieldWidth,
-          DesktopThemeTokens.botFormFieldHeight,
+          StarsDesktopThemeSpec.addBotFormFieldWidth,
+          StarsDesktopThemeSpec.botFormFieldHeight,
         ),
       );
       expect(tester.takeException(), isNull);

@@ -1,6 +1,10 @@
 part of 'theme.dart';
 
-class DesktopThemeTokens {
+class StarsDesktopThemeSpec {
+  /// Stable layout and shape metrics for the desktop component system.
+  ///
+  /// Colors and accessibility state intentionally live only in
+  /// [StarsDesktopTokens], the app's desktop [ThemeExtension].
   static const double sidebarWidth = 300;
   static const double sidebarMinWidth = 240;
   static const double sidebarMaxWidth = 360;
@@ -17,9 +21,14 @@ class DesktopThemeTokens {
   static const double iconButtonSize = 32;
   static const double listItemMinHeight = 44;
   static const double contentMaxWidth = 920;
+  static const double messageBubbleMaxWidth = 552;
   static const double formContentMaxWidth = contentMaxWidth;
   static const double addBotFormFieldWidth = 640;
   static const double botFormFieldHeight = 48;
+  static const EdgeInsets formFieldPadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 1,
+  );
   static const double botFormSectionPadding = 20;
   static const double botFormSectionBorderWidth = 1;
   static const double botFormSectionTitleFontSize = 16;
@@ -54,6 +63,7 @@ class DesktopThemeTokens {
   static const BorderRadius itemRadius = BorderRadius.all(Radius.circular(6));
   static const BorderRadius inputRadius = BorderRadius.all(Radius.circular(6));
   static const BorderRadius statusRadius = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius bubbleRadius = BorderRadius.all(Radius.circular(8));
   static const BorderRadius controlRadius = BorderRadius.all(
     Radius.circular(6),
   );

@@ -85,9 +85,9 @@ class _ReasoningSectionState extends State<ReasoningSection>
       return ShadCard(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        backgroundColor: StarsDesktopTheme.statusCardBackground(context),
-        radius: BorderRadius.circular(StarsDesktopTheme.cardRadius),
-        border: ShadBorder.all(color: StarsDesktopTheme.borderColor(context)),
+        backgroundColor: StarsDesktopTokens.of(context).controlFill,
+        radius: StarsDesktopThemeSpec.statusRadius,
+        border: ShadBorder.all(color: StarsDesktopTokens.of(context).separator),
         child: ShadAccordion<String>(
           controller: _desktopController,
           maintainState: true,
@@ -122,13 +122,19 @@ class _ReasoningSectionState extends State<ReasoningSection>
                                 child: Icon(
                                   LucideIcons.loaderCircle,
                                   size: 16,
-                                  color: StarsDesktopTheme.mutedText(context),
+                                  color:
+                                      StarsDesktopTokens.of(
+                                        context,
+                                      ).secondaryText,
                                 ),
                               )
                               : Icon(
                                 LucideIcons.brain,
                                 size: 16,
-                                color: StarsDesktopTheme.mutedText(context),
+                                color:
+                                    StarsDesktopTokens.of(
+                                      context,
+                                    ).secondaryText,
                               ),
                     ),
                     const SizedBox(width: 8),
@@ -156,9 +162,9 @@ class _ReasoningSectionState extends State<ReasoningSection>
 
     return Container(
       decoration: BoxDecoration(
-        color: StarsDesktopTheme.statusCardBackground(context),
+        color: StarsDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: StarsDesktopTheme.borderColor(context)),
+        border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,7 +213,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                           strings.deepThinking,
                           style: TextStyle(
                             fontSize: fontSize - 3,
-                            color: StarsDesktopTheme.mutedText(context),
+                            color: StarsDesktopTokens.of(context).secondaryText,
                           ),
                         ),
                       ],
@@ -218,7 +224,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                     turns: _mobileExpanded ? 0 : 0.5,
                     child: Icon(
                       Icons.keyboard_arrow_up_rounded,
-                      color: StarsDesktopTheme.mutedText(context),
+                      color: StarsDesktopTokens.of(context).secondaryText,
                     ),
                   ),
                 ],
@@ -255,13 +261,13 @@ class _ReasoningSectionState extends State<ReasoningSection>
           ),
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
-          color: StarsDesktopTheme.mutedText(context),
+          color: StarsDesktopTokens.of(context).secondaryText,
           fontSize: fontSize - 1,
           height: 1.5,
         ),
         code: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
-          backgroundColor: StarsDesktopTheme.elevatedSurface(context),
+          backgroundColor: StarsDesktopTokens.of(context).controlFill,
           fontSize: fontSize - 2,
         ),
         a: TextStyle(
@@ -270,9 +276,9 @@ class _ReasoningSectionState extends State<ReasoningSection>
           decorationColor: Theme.of(context).colorScheme.primary,
         ),
         codeblockDecoration: BoxDecoration(
-          color: StarsDesktopTheme.elevatedSurface(context),
+          color: StarsDesktopTokens.of(context).controlFill,
           borderRadius: BorderRadius.circular(widget.isDesktop ? 8 : 12),
-          border: Border.all(color: StarsDesktopTheme.borderColor(context)),
+          border: Border.all(color: StarsDesktopTokens.of(context).separator),
         ),
         blockSpacing: 8,
       ),
@@ -290,22 +296,13 @@ Future<void> _openMarkdownLink(
   if (await actions?.openExternal(normalized) == true) return;
   if (!context.mounted) return;
 
-  final sonner = ShadSonner.maybeOf(context);
-  if (sonner == null) {
-    showSnackBar(context, S.of(context).linkOpenFailed);
-    return;
-  }
-  sonner.show(
-    ShadToast.destructive(
-      title: Text(S.of(context).linkOpenFailed),
-      action: ShadButton.outline(
-        size: ShadButtonSize.sm,
-        onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: normalized));
-        },
-        leading: const Icon(LucideIcons.copy, size: 16),
-        child: Text(MaterialLocalizations.of(context).copyButtonLabel),
-      ),
-    ),
+  showStarsNotice(
+    context,
+    S.of(context).linkOpenFailed,
+    tone: StarsNoticeTone.error,
+    actionLabel: MaterialLocalizations.of(context).copyButtonLabel,
+    onAction: () {
+      Clipboard.setData(ClipboardData(text: normalized));
+    },
   );
 }

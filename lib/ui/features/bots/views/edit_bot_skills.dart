@@ -49,9 +49,9 @@ extension _EditBotSkills on _EditAIBotPageState {
         strings.noSkillsInstalledDescription,
         style:
             widget.embedded
-                ? DesktopThemeTokens.bodyStyle(
+                ? StarsDesktopThemeSpec.bodyStyle(
                   context,
-                )?.copyWith(color: DesktopThemeTokens.mutedText(context))
+                )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context))
                 : Theme.of(context).textTheme.bodyMedium,
       );
     }
@@ -87,7 +87,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 strings.botSkillsDescription,
                 style:
                     widget.embedded
-                        ? DesktopThemeTokens.metaStyle(context)
+                        ? StarsDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -119,7 +119,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                   strings.noBotSkillsAddedDescription,
                   style:
                       widget.embedded
-                          ? DesktopThemeTokens.metaStyle(context)
+                          ? StarsDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -186,19 +186,14 @@ extension _EditBotSkills on _EditAIBotPageState {
     );
     final removeButton =
         widget.embedded
-            ? ShadTooltip(
-              builder: (context) => Text(strings.removeSkill),
-              child: ShadIconButton.ghost(
-                key: ValueKey<String>('remove-bot-skill-${skill.id}'),
-                width: 30,
-                height: 30,
-                padding: EdgeInsets.zero,
-                iconSize: 16,
-                enabled: !widget.readOnly,
-                onPressed:
-                    widget.readOnly ? null : () => _removeBotSkill(skill.id),
-                icon: const Icon(LucideIcons.trash2),
-              ),
+            ? StarsDesktopIconAction(
+              key: ValueKey<String>('remove-bot-skill-${skill.id}'),
+              icon: LucideIcons.trash2,
+              label: strings.removeSkill,
+              iconSize: 16,
+              enabled: !widget.readOnly,
+              onPressed:
+                  widget.readOnly ? null : () => _removeBotSkill(skill.id),
             )
             : IconButton(
               key: ValueKey<String>('remove-bot-skill-${skill.id}'),
@@ -234,7 +229,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                       overflow: TextOverflow.ellipsis,
                       style:
                           widget.embedded
-                              ? DesktopThemeTokens.metaStyle(context)
+                              ? StarsDesktopThemeSpec.metaStyle(context)
                               : Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -301,34 +296,26 @@ extension _EditBotSkills on _EditAIBotPageState {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ShadTooltip(
-          builder: (context) => Text(localizations.previousPageTooltip),
-          child: ShadIconButton.outline(
-            key: ValueKey<String>('$keyPrefix-previous-page'),
-            width: 32,
-            height: 32,
-            padding: EdgeInsets.zero,
-            iconSize: 16,
-            enabled: hasPreviousPage,
-            onPressed: onPreviousPage,
-            icon: const Icon(LucideIcons.chevronLeft),
-          ),
+        StarsDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-previous-page'),
+          icon: LucideIcons.chevronLeft,
+          label: localizations.previousPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: hasPreviousPage,
+          onPressed: onPreviousPage,
         ),
         const SizedBox(width: 12),
         indicator,
         const SizedBox(width: 12),
-        ShadTooltip(
-          builder: (context) => Text(localizations.nextPageTooltip),
-          child: ShadIconButton.outline(
-            key: ValueKey<String>('$keyPrefix-next-page'),
-            width: 32,
-            height: 32,
-            padding: EdgeInsets.zero,
-            iconSize: 16,
-            enabled: hasNextPage,
-            onPressed: onNextPage,
-            icon: const Icon(LucideIcons.chevronRight),
-          ),
+        StarsDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-next-page'),
+          icon: LucideIcons.chevronRight,
+          label: localizations.nextPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: hasNextPage,
+          onPressed: onNextPage,
         ),
       ],
     );
@@ -431,17 +418,16 @@ extension _EditBotSkills on _EditAIBotPageState {
               suffixIcon:
                   viewModel.availableQuery.isEmpty
                       ? null
-                      : IconButton(
+                      : StarsDesktopIconAction(
                         key: const ValueKey<String>('clear-bot-skill-search'),
-                        tooltip: strings.clearSearch,
+                        icon: LucideIcons.x,
+                        label: strings.clearSearch,
                         onPressed: () {
                           _skillSearchController.clear();
                           viewModel.clearAvailableSearch();
                           refresh(() {});
                         },
-                        icon: const Icon(LucideIcons.x, size: 16),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+                        iconSize: 16,
                       ),
             ),
             const SizedBox(height: 12),
@@ -454,7 +440,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 textAlign: TextAlign.center,
                 style:
                     embedded
-                        ? DesktopThemeTokens.metaStyle(context)
+                        ? StarsDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -482,7 +468,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                           overflow: TextOverflow.ellipsis,
                           style:
                               embedded
-                                  ? DesktopThemeTokens.metaStyle(context)
+                                  ? StarsDesktopThemeSpec.metaStyle(context)
                                   : Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -555,7 +541,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -568,7 +554,7 @@ extension _EditBotSkills on _EditAIBotPageState {
       await _skillViewModel?.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -577,7 +563,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     try {
       await _skillViewModel?.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -595,13 +581,13 @@ extension _EditBotSkills on _EditAIBotPageState {
       );
       if (!mounted) return;
       final result = report.results.single;
-      showSnackBar(
+      showStarsNotice(
         context,
         '${S.of(context).skillDescriptionTestResult}: '
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -629,18 +615,20 @@ extension _EditBotSkills on _EditAIBotPageState {
     return ShadCard(
       key: sectionKey,
       width: double.infinity,
-      padding: const EdgeInsets.all(DesktopThemeTokens.botFormSectionPadding),
+      padding: const EdgeInsets.all(
+        StarsDesktopThemeSpec.botFormSectionPadding,
+      ),
       backgroundColor: tokens.raisedSurface,
       border: ShadBorder.all(
         color: tokens.separator,
-        width: DesktopThemeTokens.botFormSectionBorderWidth,
+        width: StarsDesktopThemeSpec.botFormSectionBorderWidth,
       ),
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: DesktopThemeTokens.sectionTitleStyle(
-          context,
-        )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
+        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
+          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+        ),
       ),
       child: Padding(
         padding: EdgeInsets.only(top: widget.readOnly ? 12 : 16),
@@ -653,7 +641,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 if (widget.readOnly) ...[
                   const SizedBox(height: 8),
                   const ShadSeparator.horizontal(
-                    margin: DesktopThemeTokens.settingsRowSeparatorMargin,
+                    margin: StarsDesktopThemeSpec.settingsRowSeparatorMargin,
                   ),
                   const SizedBox(height: 8),
                 ] else

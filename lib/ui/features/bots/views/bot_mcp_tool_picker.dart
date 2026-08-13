@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/utils/mcp_search.dart';
 import 'package:stars/utils/theme.dart';
 
@@ -160,7 +161,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                 strings.botMcpToolsDescription,
                 style:
                     widget.embedded
-                        ? DesktopThemeTokens.metaStyle(context)
+                        ? StarsDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -186,7 +187,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   strings.noMcpServersDescription,
                   style:
                       widget.embedded
-                          ? DesktopThemeTokens.metaStyle(context)
+                          ? StarsDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -229,7 +230,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   '$enabledCount/${tools.length} ${strings.mcpTools}',
                   style:
                       widget.embedded
-                          ? DesktopThemeTokens.metaStyle(context)
+                          ? StarsDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -240,17 +241,12 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
           const SizedBox(width: 8),
           if (!widget.readOnly)
             widget.embedded
-                ? ShadTooltip(
-                  builder: (context) => Text(strings.removeMcpServer),
-                  child: ShadIconButton.ghost(
-                    key: ValueKey<String>('remove-bot-mcp-server-$serverId'),
-                    width: 30,
-                    height: 30,
-                    padding: EdgeInsets.zero,
-                    iconSize: 16,
-                    onPressed: () => _removeServer(serverId),
-                    icon: const Icon(LucideIcons.trash2),
-                  ),
+                ? StarsDesktopIconAction(
+                  key: ValueKey<String>('remove-bot-mcp-server-$serverId'),
+                  icon: LucideIcons.trash2,
+                  label: strings.removeMcpServer,
+                  iconSize: 16,
+                  onPressed: () => _removeServer(serverId),
                 )
                 : IconButton(
                   key: ValueKey<String>('remove-bot-mcp-server-$serverId'),
@@ -598,7 +594,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   overflow: TextOverflow.ellipsis,
                   style:
                       widget.embedded
-                          ? DesktopThemeTokens.metaStyle(context)
+                          ? StarsDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],

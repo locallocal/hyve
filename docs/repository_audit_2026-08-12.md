@@ -60,10 +60,10 @@
 | ARCH-03 | P2 | 已关闭 | MessageList 通过 MessageActionViewModel 调用平台能力 | 保存取消、失败和不支持链接可独立测试 |
 | ARCH-04 | P2 | 已关闭 | 草稿由有界 LRU Repository 管理并校验附件 | 删除 Chat/Bot 时同步清理草稿 |
 | ARCH-05 | P2 | 已关闭 | 超大文件已按职责拆为 library parts | 非生成生产 Dart 文件全部不超过 1000 行 |
-| UI-01 | P2 | 已确认 | 桌面 Material/Shad、Lucide/Material Icon、SnackBar/Sonner 并存 | 同页面交互密度和反馈风格不一致 |
-| UI-02 | P2 | 已确认 | 多个桌面图标按钮为 28–34px，绕过 44px 共享按钮 | 命中区域和键盘/语义实现不一致 |
-| UI-03 | P2 | 已确认 | 新旧 token、`Theme.of`、`ShadTheme`、直接颜色并存 | 主题与高对比模式容易局部漂移 |
-| UI-04 | P2 | 缺口 | 无桌面 golden/截图基线和 `integration_test` | 静态分析与 widget test 不能发现视觉回归 |
+| UI-01 | P2 | 已关闭 | 桌面组件、Lucide 图标与通知入口已统一并形成 component matrix | 架构测试阻止重新混用 |
+| UI-02 | P2 | 已关闭 | 桌面 icon action 全部复用 44×44 共享命中区 | Tooltip、Focus、Semantics 与 disabled 状态统一 |
+| UI-03 | P2 | 已关闭 | 颜色状态收敛至 ThemeExtension，尺寸/形状收敛至最新 spec | 旧 token 与 compatibility facade 已删除 |
+| UI-04 | P2 | 已关闭 | 已建立 108 个桌面视觉组合和完整桌面交互流 | 可发现主题、本地化、宽度与 overlay 回归 |
 | ENG-01 | P2 | 已确认 | 仓库没有 CI 工作流 | README 中的质量门禁无法自动执行 |
 | ENG-02 | P2 | 已确认 | README 的格式检查命令在生成代码上失败 | 本地/未来 CI 无法保持绿色 |
 | ENG-03 | P2 | 已确认 | 两套本地化生成入口并存，README 的语言数已过期 | 生成结果、格式和文档容易漂移 |
@@ -71,7 +71,7 @@
 | HIST-07 | P3 | 已关闭 | v17 时间字段统一为 `INTEGER NOT NULL` | Schema 快照验证声明类型 |
 | BIZ-10 | P3 | 已确认 | 相对时间按 24 小时差而非自然日，未来时间显示“刚刚” | 列表时间语义不准确且日期未本地化 |
 | ARCH-06 | P3 | 已关闭 | Bots 桌面 Grid 与移动 List 已显式分离 | 不可达 MenuAnchor 分支已删除 |
-| UI-05 | P3 | 已确认 | `isDesktopOrTabletPlatform` 实际只判断桌面 | 命名误导响应式边界 |
+| UI-05 | P3 | 已关闭 | 平台判断统一为 `isDesktopPlatform` | 响应式尺寸继续由 breakpoint 判断 |
 | ENG-05 | P3 | 候选 | 至少 7 个直接零引用依赖可评估移除 | 构建面、升级面和许可证面增大 |
 | ENG-06 | P3 | 已确认 | 桌面 Spec 仍引用已删除的 `lib/pages` 和旧 token 目标 | 文档不能作为当前验收基线 |
 | ENG-07 | P3 | 已确认 | 缺少 LICENSE/SECURITY/CONTRIBUTING/CHANGELOG | 公共仓库治理和发布追踪不完整 |
@@ -299,11 +299,15 @@ Bot 数量增大后会形成无上限并发、供应商限流和列表抖动。�
 
 建议建立桌面 component matrix：primary/secondary/destructive button、icon action、menu/context menu、dialog/sheet、form field、inline error、toast、empty/loading state。每种语义只保留一个桌面实现，并明确哪些 Material 组件仅供移动端使用。
 
+整改：已新增 [`desktop_component_matrix.md`](desktop_component_matrix.md)，桌面点击菜单统一为 `StarsDesktopMenu`，右键菜单统一为 `StarsContextMenu`，按钮/弹层使用 Shad，图标使用 Lucide。临时反馈全部经 `showStarsNotice` 分流，业务视图不再直接调用 Sonner 或 ScaffoldMessenger；架构测试防止重新混用。
+
 ### UI-02：桌面小按钮未遵循共享命中区（P2）
 
 共享 [`StarsDesktopIconAction`](../lib/ui/core/widgets/desktop_chat_primitives.dart#L283-L394) 明确提供 44×44 命中区和统一 Semantics/Tooltip/Focus；但 Skill/MCP 错误关闭按钮为 28×28，EditBot 的移除、分页、输入 action 为 28–32，删除为 34，例见 [`edit_bot.dart`](../lib/ui/features/bots/views/edit_bot.dart#L1642-L1654) 和 [`edit_bot.dart`](../lib/ui/features/bots/views/edit_bot.dart#L1739-L1755)。
 
 建议视觉图标可保持 16–18px、背景可保持 28–36px，但外层命中区统一 40/44px；菜单 trailing action 也复用共享 primitive，补齐 hover、focus ring、disabled semantics。
+
+整改：桌面小图标动作已迁移到 `StarsDesktopIconAction`，外层命中区固定为 44×44，视觉按钮保持 36px，并统一 Tooltip、焦点环、Semantics 和禁用状态。输入框 trailing action 使用同一 primitive，同时以共享 form padding 保持 48px 输入框高度。
 
 ### UI-03：主题来源过多（P2）
 
@@ -311,17 +315,23 @@ UI 层静态计数有 346 处 `Theme.of`、49 处 `ShadTheme.of`、60 处直接 
 
 建议将 `DesktopThemeTokens` 从“大型静态工具类”收敛为 ThemeExtension/语义 token；新增代码禁止桌面分支直接写产品颜色和圆角，允许 `Colors.transparent` 等少量白名单。完成迁移后删除 compatibility facade，而不是无限期保留双入口。
 
+整改：颜色、对比度和透明度状态已统一到 `StarsDesktopTokens` ThemeExtension；稳定尺寸和形状统一到 `StarsDesktopThemeSpec`。`DesktopThemeTokens`、`StarsDesktopTheme` facade 与旧文件已删除，架构测试禁止桌面专用视图直接写产品色、圆角或恢复旧入口。
+
 ### UI-04：缺少视觉和完整交互回归（P2）
 
 现有 widget tests 对桌面 token、部分语义、按钮和布局有较多断言，这是正向保障；但仓库没有 `matchesGoldenFile`、golden 资产或 `integration_test/`。因此无法发现字号/本地化导致的溢出、Shad/Material 弹层层级、实际 hover/focus 视觉、Windows 与 Linux 字体差异。
 
 建议先为 6 个关键场景建立稳定截图基线：桌面壳、会话列表、Bot grid、Bot 新增/编辑、长消息+工具状态、设置页；覆盖 light/dark/high-contrast、中文/英文、1024/1280/1600 三档。再用 integration test 覆盖新建 Bot→新建会话→发送→取消→删除流程。
 
+整改：`desktop_visual_regression_test.dart` 已覆盖上述六个真实场景，在 3 个宽度、3 种外观、2 种语言下形成 18 张组合基线、108 个场景组合；`desktop_workflow_test.dart` 使用生产组件验证新增 Bot→新建会话→发送→取消→删除的完整流程。矩阵、更新命令与宿主字体约束记录于 [`desktop_component_matrix.md`](desktop_component_matrix.md)。
+
 ### UI-05：平台判定命名已失真（P3）
 
 [`isDesktopOrTabletPlatform`](../lib/utils/utils.dart#L68-L82) 目前只是 `isDesktopPlatform` 的别名，注释也说明仅 Windows/Linux/macOS 生效。继续保留旧名会让调用者误以为平板会走桌面布局。
 
 建议批量改名为 `isDesktopPlatform`，响应式尺寸由 `LayoutBuilder`/breakpoint 单独决定；平台能力与窗口尺寸不要混在同一个 bool 中。
+
+整改：已删除 `isDesktopOrTabletPlatform`，全部调用统一为 `isDesktopPlatform`；窗口宽度相关行为继续由布局约束和 breakpoint 控制，架构测试禁止旧别名回归。
 
 ## 8. 工程化、测试与发布规范审计
 

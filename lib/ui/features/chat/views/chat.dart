@@ -544,7 +544,7 @@ class ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize;
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       return _buildDesktopWorkspace(context, fontSize);
     }
     return Scaffold(
@@ -676,13 +676,7 @@ class ChatPageState extends State<ChatPage> {
     final cancelled = await _chatViewModel.stopActiveRun();
     if (!mounted) return;
     if (cancelled) {
-      if (isDesktopOrTabletPlatform(context)) {
-        ShadSonner.of(
-          context,
-        ).show(ShadToast(title: Text(S.of(context).replyCancelled)));
-      } else {
-        showSnackBar(context, S.of(context).replyCancelled);
-      }
+      showStarsNotice(context, S.of(context).replyCancelled);
     }
   }
 

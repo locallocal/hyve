@@ -6,7 +6,7 @@ import 'package:stars/utils/utils.dart';
 
 /// 显示清除聊天历史对话框
 Future<bool> showClearChatDialog(BuildContext context, String botName) async {
-  if (isDesktopOrTabletPlatform(context)) {
+  if (isDesktopPlatform(context)) {
     return _showDesktopConversationConfirmation(
       context: context,
       title: S.of(context).clearChatHistory,

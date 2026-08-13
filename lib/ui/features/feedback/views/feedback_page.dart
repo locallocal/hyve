@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -57,7 +58,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
       return;
     }
     if (feedbackController.text.trim().isEmpty) {
-      showWarningSnackBar(context, S.of(context).fillRequiredFields);
+      showStarsNotice(
+        context,
+        S.of(context).fillRequiredFields,
+        tone: StarsNoticeTone.warning,
+      );
       return;
     }
     await _submitFeedback();
@@ -94,20 +99,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 child: Row(
                   children: [
                     if (Navigator.of(context).canPop()) ...[
-                      Semantics(
-                        button: true,
+                      StarsDesktopIconAction(
+                        icon: LucideIcons.arrowLeft,
                         label: backTooltip,
-                        child: ShadTooltip(
-                          builder: (context) => Text(backTooltip),
-                          child: ShadIconButton.ghost(
-                            width: 32,
-                            height: 32,
-                            padding: EdgeInsets.zero,
-                            iconSize: 18,
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                          ),
-                        ),
+                        iconSize: 18,
+                        onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -162,7 +158,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               ),
                               constraints: const BoxConstraints(
                                 minHeight:
-                                    DesktopThemeTokens.botFormFieldHeight,
+                                    StarsDesktopThemeSpec.botFormFieldHeight,
                               ),
                               alignment: AlignmentDirectional.centerStart,
                               placeholderAlignment:

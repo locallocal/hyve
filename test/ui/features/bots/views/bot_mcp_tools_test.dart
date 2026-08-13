@@ -520,7 +520,7 @@ void main() {
       ),
       'secret',
     );
-    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    await tester.tap(find.byIcon(LucideIcons.refreshCw));
     await tester.pumpAndSettle();
 
     final mcpSection = find.byKey(

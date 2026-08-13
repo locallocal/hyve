@@ -210,7 +210,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 desktopMode
-                    ? DesktopThemeTokens.secondarySurface(context)
+                    ? StarsDesktopThemeSpec.secondarySurface(context)
                     : Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(desktopMode ? 7 : 10),
           ),
@@ -228,7 +228,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
                 skill.name,
                 style:
                     desktopMode
-                        ? DesktopThemeTokens.toolbarTitleStyle(context)
+                        ? StarsDesktopThemeSpec.toolbarTitleStyle(context)
                         : Theme.of(context).textTheme.titleSmall,
               ),
               if (skill.description.trim().isNotEmpty) ...[
@@ -239,7 +239,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style:
                       desktopMode
-                          ? DesktopThemeTokens.metaStyle(context)
+                          ? StarsDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -255,17 +255,17 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             desktopMode
-                ? DesktopThemeTokens.raisedSurface(context)
+                ? StarsDesktopThemeSpec.raisedSurface(context)
                 : Theme.of(context).colorScheme.surfaceContainerLow,
         border: Border.all(
           color:
               desktopMode
-                  ? DesktopThemeTokens.outline(context)
+                  ? StarsDesktopThemeSpec.outline(context)
                   : Theme.of(context).colorScheme.outlineVariant,
         ),
         borderRadius:
             desktopMode
-                ? DesktopThemeTokens.controlRadius
+                ? StarsDesktopThemeSpec.controlRadius
                 : BorderRadius.circular(10),
       ),
       child: content,
@@ -277,7 +277,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       strings.skillDescriptionShouldActivate,
       style:
           desktopMode
-              ? DesktopThemeTokens.bodyStyle(context)
+              ? StarsDesktopThemeSpec.bodyStyle(context)
               : Theme.of(context).textTheme.bodyMedium,
     );
     return Container(
@@ -286,19 +286,19 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             desktopMode
-                ? DesktopThemeTokens.secondarySurface(context)
+                ? StarsDesktopThemeSpec.secondarySurface(context)
                 : Theme.of(
                   context,
                 ).colorScheme.secondaryContainer.withValues(alpha: 0.45),
         border: Border.all(
           color:
               desktopMode
-                  ? DesktopThemeTokens.outline(context)
+                  ? StarsDesktopThemeSpec.outline(context)
                   : Theme.of(context).colorScheme.outlineVariant,
         ),
         borderRadius:
             desktopMode
-                ? DesktopThemeTokens.controlRadius
+                ? StarsDesktopThemeSpec.controlRadius
                 : BorderRadius.circular(10),
       ),
       child: Row(
@@ -308,7 +308,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
             size: 17,
             color:
                 desktopMode
-                    ? DesktopThemeTokens.mutedText(context)
+                    ? StarsDesktopThemeSpec.mutedText(context)
                     : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 9),

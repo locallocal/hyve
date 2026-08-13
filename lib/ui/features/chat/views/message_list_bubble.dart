@@ -43,8 +43,8 @@ class _MessageBubble extends StatelessWidget {
     final useBubbleShell = !isDesktop || isCurrentUser;
     final backgroundColor =
         isCurrentUser
-            ? StarsDesktopTheme.userBubble(context)
-            : StarsDesktopTheme.assistantBubble(context);
+            ? StarsDesktopTokens.of(context).selectedFill
+            : StarsDesktopTokens.of(context).contentBackground;
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,8 +256,10 @@ class _MessageBubble extends StatelessWidget {
         child: ShadCard(
           padding: const EdgeInsets.all(16),
           backgroundColor: backgroundColor,
-          radius: BorderRadius.circular(StarsDesktopTheme.bubbleRadius),
-          border: ShadBorder.all(color: StarsDesktopTheme.borderColor(context)),
+          radius: StarsDesktopThemeSpec.bubbleRadius,
+          border: ShadBorder.all(
+            color: StarsDesktopTokens.of(context).separator,
+          ),
           child: body,
         ),
       );
@@ -325,11 +327,11 @@ class _MessageBubble extends StatelessWidget {
               return Container(
                 width: 96,
                 height: 96,
-                color: StarsDesktopTheme.elevatedSurface(context),
+                color: StarsDesktopTokens.of(context).controlFill,
                 child: Center(
                   child: Icon(
                     isDesktop ? LucideIcons.imageOff : Icons.broken_image,
-                    color: StarsDesktopTheme.mutedText(context),
+                    color: StarsDesktopTokens.of(context).secondaryText,
                   ),
                 ),
               );
@@ -356,7 +358,7 @@ class _MessageBubble extends StatelessWidget {
                 ? Colors.white.withValues(alpha: 0.28)
                 : Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(isDesktop ? 8 : 14),
-        border: Border.all(color: StarsDesktopTheme.borderColor(context)),
+        border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -364,7 +366,7 @@ class _MessageBubble extends StatelessWidget {
           Icon(
             isDesktop ? LucideIcons.file : Icons.insert_drive_file_rounded,
             size: 24,
-            color: StarsDesktopTheme.mutedText(context),
+            color: StarsDesktopTokens.of(context).secondaryText,
           ),
           const SizedBox(height: 8),
           Text(
@@ -391,7 +393,7 @@ class _MessageBubble extends StatelessWidget {
       ),
       code: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
-        backgroundColor: StarsDesktopTheme.elevatedSurface(context),
+        backgroundColor: StarsDesktopTokens.of(context).controlFill,
         fontFamily: 'monospace',
         fontSize: fontSize - 1,
       ),
@@ -420,13 +422,13 @@ class _MessageBubble extends StatelessWidget {
         fontStyle: FontStyle.italic,
       ),
       codeblockDecoration: BoxDecoration(
-        color: StarsDesktopTheme.elevatedSurface(context),
+        color: StarsDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(isDesktop ? 8 : 14),
-        border: Border.all(color: StarsDesktopTheme.borderColor(context)),
+        border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       blockSpacing: 10,
       listBullet: TextStyle(
-        color: StarsDesktopTheme.mutedText(context),
+        color: StarsDesktopTokens.of(context).secondaryText,
         fontSize: fontSize,
       ),
     );
@@ -515,7 +517,7 @@ class _StatusCardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = isDesktop ? StarsDesktopTheme.cardRadius : 14.0;
+    final radius = isDesktop ? StarsDesktopThemeSpec.statusRadiusValue : 14.0;
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -534,9 +536,9 @@ class _StatusCardSection extends StatelessWidget {
       return ShadCard(
         width: double.infinity,
         padding: const EdgeInsets.all(14),
-        backgroundColor: StarsDesktopTheme.statusCardBackground(context),
+        backgroundColor: StarsDesktopTokens.of(context).controlFill,
         radius: BorderRadius.circular(radius),
-        border: ShadBorder.all(color: StarsDesktopTheme.borderColor(context)),
+        border: ShadBorder.all(color: StarsDesktopTokens.of(context).separator),
         child: content,
       );
     }
@@ -545,9 +547,9 @@ class _StatusCardSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: StarsDesktopTheme.statusCardBackground(context),
+        color: StarsDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: StarsDesktopTheme.borderColor(context)),
+        border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       child: content,
     );
@@ -607,7 +609,7 @@ class _StatusCardHeader extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: StarsDesktopTheme.mutedText(context),
+                      color: StarsDesktopTokens.of(context).secondaryText,
                       fontSize:
                           (Theme.of(context).textTheme.bodyMedium?.fontSize ??
                               12) -
@@ -655,7 +657,7 @@ void _showImageDialog(
       });
     } catch (error) {
       if (dialogContext.mounted) {
-        showSnackBar(
+        showStarsNotice(
           dialogContext,
           strings.saveImageFailed(safeFailureMessage(dialogContext, error)),
         );
@@ -671,7 +673,7 @@ void _showImageDialog(
       );
     } catch (error) {
       if (dialogContext.mounted) {
-        showSnackBar(
+        showStarsNotice(
           dialogContext,
           S
               .of(dialogContext)

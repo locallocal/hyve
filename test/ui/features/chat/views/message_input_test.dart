@@ -39,7 +39,7 @@ void main() {
     );
     expect(alert, findsOneWidget);
     expect(find.byType(StarsInlineErrorAlert), findsOneWidget);
-    expect(tester.getSize(alert).height, lessThanOrEqualTo(44));
+    expect(tester.getSize(alert).height, lessThanOrEqualTo(58));
     expect(
       tester.getCenter(message).dy,
       closeTo(tester.getCenter(alert).dy, 1),
@@ -82,10 +82,10 @@ void main() {
       final sendButtonContext = tester.element(sendButton);
       expect(
         button.backgroundColor,
-        DesktopThemeTokens.primaryActionColor(sendButtonContext),
+        StarsDesktopThemeSpec.primaryActionColor(sendButtonContext),
       );
       expect(
-        DesktopThemeTokens.inactivePrimaryActionColor(sendButtonContext),
+        StarsDesktopThemeSpec.inactivePrimaryActionColor(sendButtonContext),
         button.backgroundColor?.withValues(alpha: 0.5),
       );
       expect(

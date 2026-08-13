@@ -34,7 +34,7 @@ void main() {
         expect(input, findsOneWidget);
         expect(
           tester.getSize(input).height,
-          DesktopThemeTokens.botFormFieldHeight,
+          StarsDesktopThemeSpec.botFormFieldHeight,
         );
 
         final editableText = find.descendant(

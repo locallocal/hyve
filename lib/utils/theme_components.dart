@@ -21,9 +21,9 @@ class StarsGlassSurface extends StatelessWidget {
     final composer = role == StarsGlassRole.composer;
     final borderRadius =
         transient
-            ? DesktopThemeTokens.containerRadius
+            ? StarsDesktopThemeSpec.containerRadius
             : composer
-            ? DesktopThemeTokens.inputRadius
+            ? StarsDesktopThemeSpec.inputRadius
             : BorderRadius.zero;
     final color = switch (role) {
       StarsGlassRole.sidebar => tokens.sidebarOpaque,
@@ -49,7 +49,10 @@ class StarsGlassSurface extends StatelessWidget {
         borderRadius: borderRadius,
         boxShadow:
             transient || composer
-                ? DesktopThemeTokens.floatingShadow(context, subtle: composer)
+                ? StarsDesktopThemeSpec.floatingShadow(
+                  context,
+                  subtle: composer,
+                )
                 : null,
       ),
       clipBehavior:
@@ -149,7 +152,9 @@ class StarsToolbarButton extends StatelessWidget {
         );
       }),
       shape: const WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: DesktopThemeTokens.controlRadius),
+        RoundedRectangleBorder(
+          borderRadius: StarsDesktopThemeSpec.controlRadius,
+        ),
       ),
     );
 
@@ -218,7 +223,7 @@ class StarsSearchField extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         style: Theme.of(context).textTheme.bodyMedium,
-        decoration: DesktopThemeTokens.searchDecoration(
+        decoration: StarsDesktopThemeSpec.searchDecoration(
           context,
           hintText: hintText,
           suffixIcon: suffixIcon,
@@ -228,6 +233,7 @@ class StarsSearchField extends StatelessWidget {
       field = ShadInput(
         controller: controller,
         focusNode: focusNode,
+        padding: StarsDesktopThemeSpec.formFieldPadding,
         enabled: enabled,
         autofocus: autofocus,
         decoration:
@@ -249,7 +255,7 @@ class StarsSearchField extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(end: 8),
           child: SizedBox(
             width: 16,
-            height: 30,
+            height: 44,
             child: Icon(
               LucideIcons.search,
               size: 16,
@@ -257,14 +263,11 @@ class StarsSearchField extends StatelessWidget {
             ),
           ),
         ),
-        trailing:
-            suffixIcon == null
-                ? null
-                : SizedBox.square(dimension: 30, child: suffixIcon),
+        trailing: suffixIcon,
         alignment: Alignment.centerLeft,
         placeholderAlignment: Alignment.centerLeft,
         constraints: const BoxConstraints(
-          minHeight: DesktopThemeTokens.botFormFieldHeight,
+          minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
         ),
       );
       if (insetFocusRing) {
@@ -284,7 +287,7 @@ class StarsSearchField extends StatelessWidget {
       label: semanticLabel ?? hintText,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          minHeight: DesktopThemeTokens.botFormFieldHeight,
+          minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
         ),
         child: field,
       ),
@@ -357,13 +360,13 @@ class StarsSearchEmptyState extends StatelessWidget {
           Icon(
             LucideIcons.search,
             size: 28,
-            color: DesktopThemeTokens.mutedText(context),
+            color: StarsDesktopThemeSpec.mutedText(context),
           ),
           const SizedBox(height: 8),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: DesktopThemeTokens.bodyStyle(context),
+            style: StarsDesktopThemeSpec.bodyStyle(context),
           ),
           const SizedBox(height: 8),
           TextButton.icon(
@@ -491,7 +494,7 @@ class _EmptyStateIcon extends StatelessWidget {
         height: 40,
         decoration: BoxDecoration(
           color: tokens.selectedFill,
-          borderRadius: DesktopThemeTokens.containerRadius,
+          borderRadius: StarsDesktopThemeSpec.containerRadius,
         ),
         child: Icon(icon, size: 18, color: tokens.accent),
       ),
@@ -526,7 +529,7 @@ class DesktopListPanel extends StatelessWidget {
     this.searchController,
     this.searchSuffix,
     this.contentMaxWidth,
-    this.padding = DesktopThemeTokens.panelPadding,
+    this.padding = StarsDesktopThemeSpec.panelPadding,
     this.backgroundColor,
     this.showHeader = true,
   });
@@ -549,7 +552,7 @@ class DesktopListPanel extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: DesktopThemeTokens.sectionTitleStyle(context),
+                        style: StarsDesktopThemeSpec.sectionTitleStyle(context),
                       ),
                     if (description.isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -557,7 +560,7 @@ class DesktopListPanel extends StatelessWidget {
                         description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: DesktopThemeTokens.metaStyle(context),
+                        style: StarsDesktopThemeSpec.metaStyle(context),
                       ),
                     ],
                   ],
@@ -614,7 +617,7 @@ class DesktopInteractiveListItem extends StatefulWidget {
     required this.onTap,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    this.minHeight = DesktopThemeTokens.listItemMinHeight,
+    this.minHeight = StarsDesktopThemeSpec.listItemMinHeight,
   });
 
   @override
@@ -652,9 +655,8 @@ class _DesktopInteractiveListItemState
     final disableAnimations =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (ShadTheme.maybeOf(context) != null) {
-      final selectedBackground = DesktopThemeTokens.inactivePrimaryActionColor(
-        context,
-      );
+      final selectedBackground =
+          StarsDesktopThemeSpec.inactivePrimaryActionColor(context);
       return Semantics(
         button: true,
         selected: widget.selected,
@@ -665,7 +667,7 @@ class _DesktopInteractiveListItemState
                   : const Duration(milliseconds: 100),
           curve: Curves.easeOutCubic,
           constraints: BoxConstraints(minHeight: widget.minHeight),
-          decoration: DesktopThemeTokens.listItemDecoration(
+          decoration: StarsDesktopThemeSpec.listItemDecoration(
             context,
             selected: false,
             hovered: false,
@@ -689,9 +691,18 @@ class _DesktopInteractiveListItemState
                       : null,
               pressedBackgroundColor:
                   widget.selected ? selectedBackground : null,
-              foregroundColor: widget.selected ? Colors.white : null,
-              hoverForegroundColor: widget.selected ? Colors.white : null,
-              pressedForegroundColor: widget.selected ? Colors.white : null,
+              foregroundColor:
+                  widget.selected
+                      ? ShadTheme.of(context).colorScheme.primaryForeground
+                      : null,
+              hoverForegroundColor:
+                  widget.selected
+                      ? ShadTheme.of(context).colorScheme.primaryForeground
+                      : null,
+              pressedForegroundColor:
+                  widget.selected
+                      ? ShadTheme.of(context).colorScheme.primaryForeground
+                      : null,
               padding: widget.padding,
               focusNode: _shadFocusNode,
               onFocusChange: _handleShadFocusChange,
@@ -714,7 +725,7 @@ class _DesktopInteractiveListItemState
                 : const Duration(milliseconds: 100),
         curve: Curves.easeOutCubic,
         constraints: BoxConstraints(minHeight: widget.minHeight),
-        decoration: DesktopThemeTokens.listItemDecoration(
+        decoration: StarsDesktopThemeSpec.listItemDecoration(
           context,
           selected: widget.selected,
           hovered: _hovered && !widget.suppressHoverBackground,
@@ -755,7 +766,7 @@ class _DesktopInteractiveListItemState
                 }
               },
               overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-              borderRadius: DesktopThemeTokens.itemRadius,
+              borderRadius: StarsDesktopThemeSpec.itemRadius,
               child: Padding(padding: widget.padding, child: widget.child),
             ),
           ),

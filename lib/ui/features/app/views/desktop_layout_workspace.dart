@@ -6,7 +6,7 @@ part of 'desktop_layout.dart';
 extension _DesktopLayoutWorkspace on _DesktopLayoutState {
   Widget _buildSidebar(BuildContext context, {VoidCallback? onToggleSidebar}) {
     return DecoratedBox(
-      decoration: DesktopThemeTokens.sidebarDecoration(context),
+      decoration: StarsDesktopThemeSpec.sidebarDecoration(context),
       child: Column(
         children: [
           Padding(
@@ -52,7 +52,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                   width: double.infinity,
                   child: ShadButton(
                     size: ShadButtonSize.sm,
-                    height: DesktopThemeTokens.botFormFieldHeight,
+                    height: StarsDesktopThemeSpec.botFormFieldHeight,
                     mainAxisAlignment: MainAxisAlignment.start,
                     expands: true,
                     onPressed: widget.onCreateChat,
@@ -99,7 +99,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
 
   Widget _buildSidebarOverlay(BuildContext context, double availableWidth) {
     final width = math.min(
-      DesktopThemeTokens.sidebarWidth,
+      StarsDesktopThemeSpec.sidebarWidth,
       math.max(0.0, availableWidth - 48.0),
     );
     return Positioned.fill(
@@ -111,7 +111,11 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
               label: MaterialLocalizations.of(context).closeButtonTooltip,
               child: GestureDetector(
                 onTap: () => setState(() => _compactSidebarOpen = false),
-                child: ColoredBox(color: Colors.black.withValues(alpha: 0.22)),
+                child: ColoredBox(
+                  color: StarsDesktopTokens.of(
+                    context,
+                  ).scrim.withValues(alpha: 0.22),
+                ),
               ),
             ),
           ),
@@ -122,8 +126,10 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             width: width,
             child: Material(
               elevation: 8,
-              shadowColor: Colors.black.withValues(alpha: 0.22),
-              color: DesktopThemeTokens.sidebarSurface(context),
+              shadowColor: StarsDesktopTokens.of(
+                context,
+              ).scrim.withValues(alpha: 0.22),
+              color: StarsDesktopThemeSpec.sidebarSurface(context),
               child: _buildSidebar(context),
             ),
           ),
@@ -147,7 +153,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
     final profilePage =
         widget.pages.length > 4 ? widget.pages[4] : const SizedBox.shrink();
     return ColoredBox(
-      color: DesktopThemeTokens.workspaceSurface(context),
+      color: StarsDesktopThemeSpec.workspaceSurface(context),
       child: IndexedStack(
         index: widget.currentIndex,
         children: [
@@ -207,7 +213,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
       );
     }
     return DesktopEmptyStateCard(
-      icon: Icons.auto_awesome_outlined,
+      icon: LucideIcons.sparkles,
       title: S.of(context).Bots,
       description: S.of(context).selectBot,
       imageAsset: 'assets/icon/app_icon.png',
@@ -218,11 +224,11 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
     final width =
         _inspectorWidth
             .clamp(
-              DesktopThemeTokens.inspectorMinWidth,
+              StarsDesktopThemeSpec.inspectorMinWidth,
               math.min(
-                DesktopThemeTokens.inspectorMaxWidth,
+                StarsDesktopThemeSpec.inspectorMaxWidth,
                 math.max(
-                  DesktopThemeTokens.inspectorMinWidth,
+                  StarsDesktopThemeSpec.inspectorMinWidth,
                   availableWidth - 24.0,
                 ),
               ),
@@ -234,7 +240,11 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
           Positioned.fill(
             child: GestureDetector(
               onTap: () => setState(() => _inspectorOpen = false),
-              child: ColoredBox(color: Colors.black.withValues(alpha: 0.12)),
+              child: ColoredBox(
+                color: StarsDesktopTokens.of(
+                  context,
+                ).scrim.withValues(alpha: 0.12),
+              ),
             ),
           ),
           Positioned(
@@ -245,8 +255,10 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             child: Material(
               color: Colors.transparent,
               elevation: 10,
-              shadowColor: Colors.black.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              shadowColor: StarsDesktopTokens.of(
+                context,
+              ).scrim.withValues(alpha: 0.2),
+              borderRadius: StarsDesktopThemeSpec.containerRadius,
               clipBehavior: Clip.antiAlias,
               child: _buildInspector(context, overlay: true),
             ),
@@ -275,9 +287,9 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             : null;
     final decoration =
         overlay && showHeader
-            ? DesktopThemeTokens.overlayInspectorDecoration(context)
+            ? StarsDesktopThemeSpec.overlayInspectorDecoration(context)
             : showHeader
-            ? DesktopThemeTokens.inspectorDecoration(context)
+            ? StarsDesktopThemeSpec.inspectorDecoration(context)
             : const BoxDecoration();
     return Container(
       decoration: decoration,
@@ -292,7 +304,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                 Expanded(
                   child: Text(
                     S.of(context).botInformation,
-                    style: DesktopThemeTokens.sectionTitleStyle(context),
+                    style: StarsDesktopThemeSpec.sectionTitleStyle(context),
                   ),
                 ),
                 if (widget.currentIndex == 0)
@@ -306,7 +318,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                     tooltip:
                         MaterialLocalizations.of(context).closeButtonTooltip,
                     onPressed: () => setState(() => _inspectorOpen = false),
-                    icon: const Icon(Icons.close_rounded, size: 17),
+                    icon: const Icon(LucideIcons.x, size: 17),
                   ),
               ],
             ),
@@ -317,7 +329,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
               icon:
                   widget.currentIndex == 0
                       ? LucideIcons.bot
-                      : Icons.auto_awesome_outlined,
+                      : LucideIcons.sparkles,
               label: S.of(context).name,
               value: bot.name,
             ),
@@ -325,15 +337,13 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
               icon:
                   widget.currentIndex == 0
                       ? LucideIcons.server
-                      : Icons.hub_outlined,
+                      : LucideIcons.server,
               label: S.of(context).provider,
               value: bot.provider.isEmpty ? '—' : bot.provider,
             ),
             _InspectorRow(
               icon:
-                  widget.currentIndex == 0
-                      ? LucideIcons.cpu
-                      : Icons.memory_outlined,
+                  widget.currentIndex == 0 ? LucideIcons.cpu : LucideIcons.cpu,
               label: S.of(context).model,
               value: bot.model.isEmpty ? '—' : bot.model,
             ),

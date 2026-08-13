@@ -182,37 +182,44 @@ extension _ProfileDialogs on _ProfilePageState {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: tokens.raisedSurface,
-                    borderRadius: DesktopThemeTokens.containerRadius,
+                    borderRadius: StarsDesktopThemeSpec.containerRadius,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (final theme in themes)
-                        MenuItemButton(
-                          key: ValueKey<String>(
-                            'profile-theme-option-${theme.mode.name}',
-                          ),
-                          leadingIcon: Icon(
-                            theme.icon,
-                            size: 18,
-                            color: tokens.secondaryText,
-                          ),
-                          trailingIcon:
-                              theme.mode == _themeMode
-                                  ? Icon(
-                                    Icons.check_rounded,
-                                    size: 16,
-                                    color: tokens.accent,
-                                  )
-                                  : const SizedBox.square(dimension: 16),
-                          onPressed: () {
-                            setState(() => _themeMode = theme.mode);
-                            _saveProfile();
-                            Navigator.pop(dialogContext);
-                          },
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 180),
+                        Semantics(
+                          selected: theme.mode == _themeMode,
+                          child: ShadButton.raw(
+                            key: ValueKey<String>(
+                              'profile-theme-option-${theme.mode.name}',
+                            ),
+                            variant:
+                                theme.mode == _themeMode
+                                    ? ShadButtonVariant.secondary
+                                    : ShadButtonVariant.ghost,
+                            height: 44,
+                            expands: true,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            leading: Icon(
+                              theme.icon,
+                              size: 18,
+                              color: tokens.secondaryText,
+                            ),
+                            trailing:
+                                theme.mode == _themeMode
+                                    ? Icon(
+                                      LucideIcons.check,
+                                      size: 16,
+                                      color: tokens.accent,
+                                    )
+                                    : const SizedBox.square(dimension: 16),
+                            onPressed: () {
+                              setState(() => _themeMode = theme.mode);
+                              _saveProfile();
+                              Navigator.pop(dialogContext);
+                            },
                             child: Text(
                               theme.title,
                               maxLines: 1,

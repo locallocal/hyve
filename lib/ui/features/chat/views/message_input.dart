@@ -190,7 +190,7 @@ class _MessageInputState extends State<MessageInput> {
   @override
   Widget build(BuildContext context) {
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14;
-    final isDesktop = _isDesktop || isDesktopOrTabletPlatform(context);
+    final isDesktop = _isDesktop || isDesktopPlatform(context);
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
     final shadTheme = isDesktop ? ShadTheme.of(context) : null;
 
@@ -265,7 +265,8 @@ class _MessageInputState extends State<MessageInput> {
                             hintText: S.of(context).messageHint,
                             hintStyle: TextStyle(
                               fontSize: fontSize,
-                              color: StarsDesktopTheme.subtleText(context),
+                              color:
+                                  StarsDesktopTokens.of(context).tertiaryText,
                             ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -721,12 +722,12 @@ class _MessageInputState extends State<MessageInput> {
             : null;
     final backgroundColor =
         widget.requestInProgress
-            ? DesktopThemeTokens.primaryActionColor(
+            ? StarsDesktopThemeSpec.primaryActionColor(
               context,
             ).withValues(alpha: 0.92)
             : enabled
-            ? DesktopThemeTokens.primaryActionColor(context)
-            : DesktopThemeTokens.primaryActionColor(
+            ? StarsDesktopThemeSpec.primaryActionColor(context)
+            : StarsDesktopThemeSpec.primaryActionColor(
               context,
             ).withValues(alpha: 0.18);
     final foregroundColor =
@@ -794,7 +795,9 @@ class _MessageInputState extends State<MessageInput> {
               size: ShadButtonSize.sm,
               width: 0,
               height: 36,
-              backgroundColor: DesktopThemeTokens.primaryActionColor(context),
+              backgroundColor: StarsDesktopThemeSpec.primaryActionColor(
+                context,
+              ),
               enabled: enabled,
               onPressed: onPressed,
               leading: icon,
@@ -813,7 +816,7 @@ class _MessageInputState extends State<MessageInput> {
     required bool active,
     required VoidCallback onTap,
   }) {
-    final useDesktopStyle = _isDesktop || isDesktopOrTabletPlatform(context);
+    final useDesktopStyle = _isDesktop || isDesktopPlatform(context);
     if (useDesktopStyle) {
       final iconWidget = Icon(icon, size: 16);
       return active
@@ -841,7 +844,7 @@ class _MessageInputState extends State<MessageInput> {
                   ? Theme.of(
                     context,
                   ).colorScheme.primary.withValues(alpha: 0.12)
-                  : StarsDesktopTheme.elevatedSurface(context),
+                  : StarsDesktopTokens.of(context).controlFill,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color:
@@ -849,7 +852,7 @@ class _MessageInputState extends State<MessageInput> {
                     ? Theme.of(
                       context,
                     ).colorScheme.primary.withValues(alpha: 0.22)
-                    : StarsDesktopTheme.borderColor(context),
+                    : StarsDesktopTokens.of(context).separator,
           ),
         ),
         child: Row(
@@ -861,7 +864,7 @@ class _MessageInputState extends State<MessageInput> {
               color:
                   active
                       ? Theme.of(context).colorScheme.primary
-                      : StarsDesktopTheme.mutedText(context),
+                      : StarsDesktopTokens.of(context).secondaryText,
             ),
             const SizedBox(width: 6),
             Text(
@@ -889,7 +892,7 @@ class _MessageInputState extends State<MessageInput> {
     bool active = false,
     required VoidCallback onPressed,
   }) {
-    if (_isDesktop || isDesktopOrTabletPlatform(context)) {
+    if (_isDesktop || isDesktopPlatform(context)) {
       final effectiveFocusNode = focusNode ?? _attachmentButtonFocusNode;
       return StarsDesktopIconAction(
         icon: icon,
@@ -905,13 +908,13 @@ class _MessageInputState extends State<MessageInput> {
         color:
             active
                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.10)
-                : StarsDesktopTheme.elevatedSurface(context),
+                : StarsDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color:
               active
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
-                  : StarsDesktopTheme.borderColor(context),
+                  : StarsDesktopTokens.of(context).separator,
         ),
       ),
       child: IconButton(
@@ -926,7 +929,7 @@ class _MessageInputState extends State<MessageInput> {
         color:
             active
                 ? Theme.of(context).colorScheme.primary
-                : StarsDesktopTheme.mutedText(context),
+                : StarsDesktopTokens.of(context).secondaryText,
         icon: Icon(icon),
       ),
     );

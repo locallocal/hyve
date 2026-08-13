@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
@@ -33,7 +33,7 @@ class ConversationTokenUsagePanel extends StatelessWidget {
             Text(
               key: const ValueKey<String>('token-usage-section-title'),
               S.of(context).tokenUsage,
-              style: DesktopThemeTokens.sectionTitleStyle(context),
+              style: StarsDesktopThemeSpec.sectionTitleStyle(context),
             ),
             const SizedBox(height: 12),
             if (viewModel.isLoading && viewModel.dailyBuckets.isEmpty)
@@ -105,16 +105,16 @@ class TokenUsageTimelineSection extends StatelessWidget {
                 hourly
                     ? S.of(context).hourlyTokenUsage
                     : S.of(context).dailyTokenUsage,
-                style: DesktopThemeTokens.sectionTitleStyle(context),
+                style: StarsDesktopThemeSpec.sectionTitleStyle(context),
               ),
             ),
             if (hourly)
-              IconButton(
+              StarsDesktopIconAction(
                 key: const ValueKey<String>('token-usage-back-to-daily'),
-                visualDensity: VisualDensity.compact,
-                tooltip: S.of(context).backToDailyUsage,
+                icon: LucideIcons.arrowLeft,
+                label: S.of(context).backToDailyUsage,
                 onPressed: onShowDaily,
-                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                iconSize: 18,
               ),
           ],
         ),
@@ -129,7 +129,7 @@ class TokenUsageTimelineSection extends StatelessWidget {
           Text(
             key: const ValueKey<String>('token-usage-drilldown-hint'),
             S.of(context).clickDayForHourlyUsage,
-            style: DesktopThemeTokens.metaStyle(context),
+            style: StarsDesktopThemeSpec.metaStyle(context),
           ),
         ],
         const SizedBox(height: 10),

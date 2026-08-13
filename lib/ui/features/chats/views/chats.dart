@@ -79,7 +79,7 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   Widget _buildPage(BuildContext context) {
-    final isDesktop = isDesktopOrTabletPlatform(context);
+    final isDesktop = isDesktopPlatform(context);
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize;
     final body =
         isLoading
@@ -137,7 +137,7 @@ class ChatListPageState extends State<ChatListPage> {
                 : ShadButton(
                   size: ShadButtonSize.sm,
                   onPressed: _openNewChatDialog,
-                  height: DesktopThemeTokens.botFormFieldHeight,
+                  height: StarsDesktopThemeSpec.botFormFieldHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   leading: const Icon(desktopStartConversationIcon, size: 16),
                   child: Text(
@@ -265,7 +265,7 @@ class ChatListPageState extends State<ChatListPage> {
                 : ShadButton(
                   size: ShadButtonSize.sm,
                   onPressed: _clearSearch,
-                  height: DesktopThemeTokens.controlHeight,
+                  height: StarsDesktopThemeSpec.controlHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   leading: const Icon(LucideIcons.x, size: 16),
                   child: Text(S.of(context).clearSearch),
@@ -347,7 +347,7 @@ class ChatListPageState extends State<ChatListPage> {
       },
     );
 
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       showChatShadDialog<void>(
         context: context,
         barrierLabel:

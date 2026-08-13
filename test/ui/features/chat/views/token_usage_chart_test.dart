@@ -108,7 +108,7 @@ void main() {
     expect(sectionDividerFinder, findsOneWidget);
     expect(
       tokenUsageTitle.style,
-      DesktopThemeTokens.sectionTitleStyle(
+      StarsDesktopThemeSpec.sectionTitleStyle(
         tester.element(tokenUsageTitleFinder),
       ),
     );
@@ -126,7 +126,7 @@ void main() {
     );
     expect(
       drilldownHint.style,
-      DesktopThemeTokens.metaStyle(tester.element(drilldownHintFinder)),
+      StarsDesktopThemeSpec.metaStyle(tester.element(drilldownHintFinder)),
     );
     expect(
       tester.getTopLeft(drilldownHintFinder).dx,

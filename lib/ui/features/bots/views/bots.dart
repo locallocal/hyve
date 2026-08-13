@@ -67,7 +67,7 @@ class ContactsPageState extends State<ContactsPage> {
     final chat = await widget.viewModel.startChat(bot);
     if (!mounted) return;
 
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       widget.onChatCreated?.call(chat.id, bot);
       return;
     }
@@ -81,7 +81,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   void _openBotDetails(Bot bot) {
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       widget.onBotSelected(bot);
       return;
     }
@@ -90,7 +90,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   void _editBot(Bot bot) {
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       (widget.onBotEditSelected ?? widget.onBotSelected)(bot);
       return;
     }
@@ -176,7 +176,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   Widget _buildPage(BuildContext context) {
-    final isDesktop = isDesktopOrTabletPlatform(context);
+    final isDesktop = isDesktopPlatform(context);
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize;
     final content = isLoading ? _buildLoadingState() : _buildBody(isDesktop);
     final failure =
@@ -223,9 +223,9 @@ class ContactsPageState extends State<ContactsPage> {
       searchHintText: S.of(context).searchBots,
       searchFocusNode: _searchFocusNode,
       onSearchChanged: _filterBots,
-      contentMaxWidth: DesktopThemeTokens.formContentMaxWidth,
-      padding: DesktopThemeTokens.formPagePadding,
-      backgroundColor: DesktopThemeTokens.workspaceSurface(context),
+      contentMaxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
+      padding: StarsDesktopThemeSpec.formPagePadding,
+      backgroundColor: StarsDesktopThemeSpec.workspaceSurface(context),
       action: ShadButton(
         onPressed: _openAddBotPage,
         leading: const Icon(LucideIcons.plus, size: 16),
@@ -298,7 +298,7 @@ class ContactsPageState extends State<ContactsPage> {
                 onPressed: (context) async {
                   final chat = await widget.viewModel.startChat(bot);
                   if (!context.mounted) return;
-                  if (isDesktopOrTabletPlatform(context)) {
+                  if (isDesktopPlatform(context)) {
                     widget.onChatCreated?.call(chat.id, bot);
                     return;
                   }
@@ -424,7 +424,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   Future<void> _openAddBotPage() async {
-    if (isDesktopOrTabletPlatform(context)) {
+    if (isDesktopPlatform(context)) {
       final botId = 'bot_${DateTime.now().millisecondsSinceEpoch}';
       final skillViewModel = AppScope.of(
         context,

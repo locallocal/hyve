@@ -6,26 +6,26 @@ part of 'chat.dart';
 extension _ChatPageWorkspace on ChatPageState {
   Widget _buildDesktopWorkspace(BuildContext context, double? fontSize) {
     return Container(
-      color: StarsDesktopTheme.workspaceBackground(context),
+      color: StarsDesktopTokens.of(context).contentBackground,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: StarsDesktopTheme.panelBackground(context),
+          color: StarsDesktopTokens.of(context).contentBackground,
         ),
         child: Column(
           children: [
             Expanded(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  DesktopThemeTokens.formPagePadding.left,
+                  StarsDesktopThemeSpec.formPagePadding.left,
                   0,
-                  DesktopThemeTokens.formPagePadding.right,
+                  StarsDesktopThemeSpec.formPagePadding.right,
                   0,
                 ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
-                      maxWidth: StarsDesktopTheme.contentMaxWidth,
+                      maxWidth: StarsDesktopThemeSpec.contentMaxWidth,
                     ),
                     child: SizedBox(
                       key: const ValueKey<String>('desktop-chat-content'),
@@ -52,18 +52,18 @@ extension _ChatPageWorkspace on ChatPageState {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-        DesktopThemeTokens.formPagePadding.left,
+        StarsDesktopThemeSpec.formPagePadding.left,
         8,
-        DesktopThemeTokens.formPagePadding.right,
+        StarsDesktopThemeSpec.formPagePadding.right,
         18,
       ),
       decoration: BoxDecoration(
-        color: StarsDesktopTheme.panelBackground(context),
+        color: StarsDesktopTokens.of(context).contentBackground,
       ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: StarsDesktopTheme.inputMaxWidth,
+            maxWidth: StarsDesktopThemeSpec.contentMaxWidth,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

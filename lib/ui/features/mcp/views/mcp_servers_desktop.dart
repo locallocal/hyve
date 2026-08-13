@@ -139,7 +139,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                               ? null
                               : () => _invokeMenuAction(widget.onEdit),
                       mainAxisAlignment: MainAxisAlignment.start,
-                      leading: const Icon(Icons.edit_outlined, size: 16),
+                      leading: const Icon(LucideIcons.pencil, size: 16),
                       child: Text(S.of(context).edit),
                     ),
                     ShadButton.raw(
@@ -222,7 +222,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: DesktopThemeTokens.pageTitleStyle(context),
+                      style: StarsDesktopThemeSpec.pageTitleStyle(context),
                     ),
                   ),
                 ],
@@ -359,7 +359,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
       title: Text(
         server.name,
         key: ValueKey<String>('mcp-server-details-title-${server.id}'),
-        style: DesktopThemeTokens.pageTitleStyle(context),
+        style: StarsDesktopThemeSpec.pageTitleStyle(context),
       ),
       description: Text(
         mcpConnectionSummary(server),
@@ -411,7 +411,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
               Text(
                 strings.mcpTools,
                 key: ValueKey<String>('mcp-tools-title-${server.id}'),
-                style: DesktopThemeTokens.pageTitleStyle(
+                style: StarsDesktopThemeSpec.pageTitleStyle(
                   context,
                 )?.copyWith(color: tokens.secondaryText),
               ),
@@ -428,15 +428,14 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
                   suffixIcon:
                       _query.isEmpty
                           ? null
-                          : IconButton(
+                          : StarsDesktopIconAction(
                             key: ValueKey<String>(
                               'clear-desktop-mcp-tool-search-${server.id}',
                             ),
-                            tooltip: strings.clearSearch,
+                            icon: LucideIcons.x,
+                            label: strings.clearSearch,
                             onPressed: _clearSearch,
-                            icon: const Icon(LucideIcons.x, size: 16),
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+                            iconSize: 16,
                           ),
                 ),
                 const SizedBox(height: 12),
@@ -444,7 +443,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
               if (tools.isEmpty)
                 Text(
                   strings.noMcpToolsDiscovered,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 )
               else if (filteredTools.isEmpty)
                 StarsSearchEmptyState(
@@ -497,7 +496,7 @@ class _McpStdioRuntimeDetails extends StatelessWidget {
         Text(
           strings.mcpStdioProcessAndChannel,
           key: ValueKey<String>('mcp-stdio-runtime-title-$serverId'),
-          style: DesktopThemeTokens.pageTitleStyle(
+          style: StarsDesktopThemeSpec.pageTitleStyle(
             context,
           )?.copyWith(color: StarsDesktopTokens.of(context).secondaryText),
         ),
@@ -643,7 +642,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
                   tool.canonicalName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
                 if (tool.description.isNotEmpty || !supported) ...[
                   const SizedBox(height: 4),
@@ -653,7 +652,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
                         : S.of(context).mcpToolSchemaUnsupported,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: DesktopThemeTokens.metaStyle(context)?.copyWith(
+                    style: StarsDesktopThemeSpec.metaStyle(context)?.copyWith(
                       color: supported ? tokens.secondaryText : tokens.danger,
                     ),
                   ),

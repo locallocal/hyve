@@ -142,7 +142,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = isDesktopOrTabletPlatform(context);
+    final isDesktop = isDesktopPlatform(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

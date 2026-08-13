@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
 import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
@@ -124,20 +125,11 @@ class _UserAgreementPageState extends State<UserAgreementPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    Semantics(
-                      button: true,
+                    StarsDesktopIconAction(
+                      icon: LucideIcons.arrowLeft,
                       label: backTooltip,
-                      child: ShadTooltip(
-                        builder: (context) => Text(backTooltip),
-                        child: ShadIconButton.ghost(
-                          width: 32,
-                          height: 32,
-                          padding: EdgeInsets.zero,
-                          iconSize: 18,
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
-                      ),
+                      iconSize: 18,
+                      onPressed: () => Navigator.of(context).maybePop(),
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -190,7 +182,7 @@ class _UserAgreementPageState extends State<UserAgreementPage> {
       ),
       blockquoteDecoration: BoxDecoration(
         color: tokens.controlFill,
-        borderRadius: DesktopThemeTokens.containerRadius,
+        borderRadius: StarsDesktopThemeSpec.containerRadius,
         border: Border(left: BorderSide(color: tokens.separator, width: 3)),
       ),
       horizontalRuleDecoration: BoxDecoration(

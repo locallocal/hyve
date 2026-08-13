@@ -51,14 +51,14 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
 
     return Container(
       key: const ValueKey<String>('desktop-unified-toolbar'),
-      height: DesktopThemeTokens.toolbarHeight,
+      height: StarsDesktopThemeSpec.toolbarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: DesktopThemeTokens.toolbarSurface(context),
+        color: StarsDesktopThemeSpec.toolbarSurface(context),
         border: Border(
           bottom: BorderSide(
             width: 0,
-            color: DesktopThemeTokens.divider(context),
+            color: StarsDesktopThemeSpec.divider(context),
           ),
         ),
       ),
@@ -84,10 +84,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                           ),
                           tooltip: S.of(context).showSidebar,
                           onPressed: onToggleSidebar,
-                          icon: const Icon(
-                            Icons.view_sidebar_outlined,
-                            size: 17,
-                          ),
+                          icon: const Icon(LucideIcons.panelLeft, size: 17),
                         )
                     : const SizedBox.shrink(),
           ),
@@ -113,7 +110,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: DesktopThemeTokens.toolbarTitleStyle(context),
+                    style: StarsDesktopThemeSpec.toolbarTitleStyle(context),
                   ),
                 ),
                 if (summary != null && summary.isNotEmpty) ...[
@@ -123,7 +120,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                       summary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: DesktopThemeTokens.metaStyle(context),
+                      style: StarsDesktopThemeSpec.metaStyle(context),
                     ),
                   ),
                 ],
@@ -185,8 +182,8 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                     )
                     : DecoratedBox(
                       decoration: BoxDecoration(
-                        color: DesktopThemeTokens.controlFill(context),
-                        borderRadius: DesktopThemeTokens.controlRadius,
+                        color: StarsDesktopThemeSpec.controlFill(context),
+                        borderRadius: StarsDesktopThemeSpec.controlRadius,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -204,8 +201,8 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                               selected: inspectorVisible,
                               icon: Icon(
                                 inspectorVisible
-                                    ? Icons.vertical_split_rounded
-                                    : Icons.vertical_split_outlined,
+                                    ? LucideIcons.panelRightClose
+                                    : LucideIcons.panelRightOpen,
                                 size: 17,
                               ),
                             ),

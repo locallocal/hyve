@@ -70,7 +70,7 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
             textAlign: TextAlign.center,
             style:
                 widget.embedded
-                    ? DesktopThemeTokens.metaStyle(context)
+                    ? StarsDesktopThemeSpec.metaStyle(context)
                     : Theme.of(context).textTheme.bodySmall,
           ),
         ),
@@ -98,15 +98,14 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
                 suffixIcon:
                     _query.isEmpty
                         ? null
-                        : IconButton(
+                        : StarsDesktopIconAction(
                           key: ValueKey<String>(
                             'clear-bot-mcp-tool-search-${widget.serverId}',
                           ),
-                          tooltip: strings.clearSearch,
+                          icon: LucideIcons.x,
+                          label: strings.clearSearch,
                           onPressed: _clearSearch,
-                          icon: const Icon(LucideIcons.x, size: 16),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
+                          iconSize: 16,
                         ),
               ),
               const SizedBox(height: 12),

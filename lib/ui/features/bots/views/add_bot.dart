@@ -103,20 +103,19 @@ class AddBotPage extends StatefulWidget {
 
 class _AddBotPageState extends State<AddBotPage> {
   static const double _desktopFieldWidth =
-      DesktopThemeTokens.addBotFormFieldWidth;
-  static const double _desktopDropdownButtonSize = 30;
+      StarsDesktopThemeSpec.addBotFormFieldWidth;
   static const double _desktopProviderMenuWidth = 256;
   static const double _desktopModelMenuWidth = 320;
   static const double _desktopSectionPadding =
-      DesktopThemeTokens.botFormSectionPadding;
+      StarsDesktopThemeSpec.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
-      DesktopThemeTokens.botFormSectionBorderWidth;
+      StarsDesktopThemeSpec.botFormSectionBorderWidth;
   static const double _desktopFormWidth =
       _desktopFieldWidth +
       _desktopSectionPadding * 2 +
       _desktopSectionBorderWidth * 2;
   static const BoxConstraints _desktopInputConstraints = BoxConstraints(
-    minHeight: DesktopThemeTokens.botFormFieldHeight,
+    minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
   );
 
   final _desktopFormKey = GlobalKey<ShadFormState>();

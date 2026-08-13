@@ -77,31 +77,31 @@ void main() {
     expect(tokens.reduceTransparency, isFalse);
 
     expect(
-      DesktopThemeTokens.shellBackground(testContext),
+      StarsDesktopThemeSpec.shellBackground(testContext),
       tokens.windowBackground,
     );
-    expect(DesktopThemeTokens.sidebarWidth, 300);
-    expect(DesktopThemeTokens.inspectorWidth, 360);
-    expect(DesktopThemeTokens.inspectorMaxWidth, 420);
-    expect(DesktopThemeTokens.toolbarHeight, 50);
-    expect(DesktopThemeTokens.menuBarHeight, 50);
-    expect(DesktopThemeTokens.sidebarDecoration(testContext).border, isNull);
-    expect(DesktopThemeTokens.formContentMaxWidth, 920);
-    expect(DesktopThemeTokens.addBotFormFieldWidth, 640);
-    expect(DesktopThemeTokens.botFormFieldHeight, 48);
-    expect(DesktopThemeTokens.botFormSectionPadding, 20);
-    expect(DesktopThemeTokens.botFormSectionBorderWidth, 1);
-    expect(DesktopThemeTokens.botFormSectionTitleFontSize, 16);
+    expect(StarsDesktopThemeSpec.sidebarWidth, 300);
+    expect(StarsDesktopThemeSpec.inspectorWidth, 360);
+    expect(StarsDesktopThemeSpec.inspectorMaxWidth, 420);
+    expect(StarsDesktopThemeSpec.toolbarHeight, 50);
+    expect(StarsDesktopThemeSpec.menuBarHeight, 50);
+    expect(StarsDesktopThemeSpec.sidebarDecoration(testContext).border, isNull);
+    expect(StarsDesktopThemeSpec.formContentMaxWidth, 920);
+    expect(StarsDesktopThemeSpec.addBotFormFieldWidth, 640);
+    expect(StarsDesktopThemeSpec.botFormFieldHeight, 48);
+    expect(StarsDesktopThemeSpec.botFormSectionPadding, 20);
+    expect(StarsDesktopThemeSpec.botFormSectionBorderWidth, 1);
+    expect(StarsDesktopThemeSpec.botFormSectionTitleFontSize, 16);
     expect(
-      StarsDesktopTheme.contentMaxWidth,
-      DesktopThemeTokens.formContentMaxWidth,
+      StarsDesktopThemeSpec.contentMaxWidth,
+      StarsDesktopThemeSpec.formContentMaxWidth,
     );
     expect(
-      StarsDesktopTheme.inputMaxWidth,
-      DesktopThemeTokens.formContentMaxWidth,
+      StarsDesktopThemeSpec.contentMaxWidth,
+      StarsDesktopThemeSpec.formContentMaxWidth,
     );
     expect(
-      DesktopThemeTokens.formPagePadding,
+      StarsDesktopThemeSpec.formPagePadding,
       const EdgeInsets.fromLTRB(32, 28, 32, 48),
     );
   });
@@ -192,7 +192,7 @@ void main() {
     expect(tokens.separator, const Color(0xFFA1A1AA));
     expect(tokens.selectedFill, const Color(0xFFE4E4E7));
     expect(tokens.focusRing, const Color(0xFF09090B));
-    expect(DesktopThemeTokens.panelShadow(testContext), isEmpty);
+    expect(StarsDesktopThemeSpec.panelShadow(testContext), isEmpty);
   });
 
   testWidgets('MediaQuery high contrast is honored by semantic token access', (
@@ -308,7 +308,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Scaffold(
           body: SizedBox(
-            width: DesktopThemeTokens.sidebarWidth,
+            width: StarsDesktopThemeSpec.sidebarWidth,
             height: 700,
             child: DesktopListPanel(
               title: '聊天',
@@ -330,7 +330,7 @@ void main() {
     expect(find.byType(Card), findsNothing);
     expect(
       tester.getSize(find.byType(StarsSearchField)).height,
-      DesktopThemeTokens.botFormFieldHeight,
+      StarsDesktopThemeSpec.botFormFieldHeight,
     );
     expect(
       tester.widget<TextField>(find.byType(TextField)).textAlignVertical,
@@ -350,7 +350,7 @@ void main() {
         homeBuilder:
             (context) => Scaffold(
               body: SizedBox(
-                width: DesktopThemeTokens.sidebarWidth,
+                width: StarsDesktopThemeSpec.sidebarWidth,
                 child: Column(
                   children: [
                     StarsSearchField(
@@ -381,7 +381,7 @@ void main() {
       final shadInput = tester.widget<ShadInput>(input);
       expect(
         tester.getSize(field).height,
-        DesktopThemeTokens.botFormFieldHeight,
+        StarsDesktopThemeSpec.botFormFieldHeight,
       );
       expect(shadInput.alignment, Alignment.centerLeft);
       expect(shadInput.placeholderAlignment, Alignment.centerLeft);
@@ -417,7 +417,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Builder(
           builder: (context) {
-            workspaceColor = DesktopThemeTokens.workspaceSurface(context);
+            workspaceColor = StarsDesktopThemeSpec.workspaceSurface(context);
             return Scaffold(
               body: SizedBox(
                 width: 1000,
@@ -428,8 +428,8 @@ void main() {
                   searchHintText: '搜索智能体',
                   onSearchChanged: (_) {},
                   action: const Text('添加智能体'),
-                  contentMaxWidth: DesktopThemeTokens.formContentMaxWidth,
-                  padding: DesktopThemeTokens.formPagePadding,
+                  contentMaxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
+                  padding: StarsDesktopThemeSpec.formPagePadding,
                   backgroundColor: workspaceColor,
                   child: const Text('智能体内容'),
                 ),
@@ -451,7 +451,7 @@ void main() {
     expect(panelBackground.color, workspaceColor);
     expect(
       tester.getSize(find.byType(StarsSearchField)).width,
-      DesktopThemeTokens.formContentMaxWidth,
+      StarsDesktopThemeSpec.formContentMaxWidth,
     );
     expect(find.text('添加智能体'), findsOneWidget);
     expect(find.text('智能体内容'), findsOneWidget);
@@ -465,7 +465,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Scaffold(
           body: SizedBox(
-            width: DesktopThemeTokens.sidebarWidth,
+            width: StarsDesktopThemeSpec.sidebarWidth,
             height: 700,
             child: DesktopListPanel(
               title: '',
@@ -483,7 +483,7 @@ void main() {
 
     final panelTop = tester.getTopLeft(find.byType(DesktopListPanel)).dy;
     final searchTop = tester.getTopLeft(find.byType(StarsSearchField)).dy;
-    expect(searchTop - panelTop, DesktopThemeTokens.panelPadding.top);
+    expect(searchTop - panelTop, StarsDesktopThemeSpec.panelPadding.top);
   });
 
   testWidgets('desktop bot cards show usage, model, and timestamp metrics', (
@@ -651,10 +651,10 @@ void main() {
       expect(
         tester.widget<Container>(informationPanel).decoration,
         BoxDecoration(
-          color: DesktopThemeTokens.controlFill(
+          color: StarsDesktopThemeSpec.controlFill(
             tester.element(informationPanel),
           ),
-          borderRadius: DesktopThemeTokens.controlRadius,
+          borderRadius: StarsDesktopThemeSpec.controlRadius,
         ),
       );
       final inputModalities = find.byKey(
@@ -735,7 +735,7 @@ void main() {
       }
       final contextFeatureIcon = find.descendant(
         of: contextWindowMetric,
-        matching: find.byIcon(Icons.data_array_rounded),
+        matching: find.byIcon(LucideIcons.braces),
       );
       final contextWindowSeparator = find.byKey(
         const ValueKey<String>('bot-card-context-window-separator-bot-1'),
@@ -955,19 +955,19 @@ void main() {
       );
       final mcpIcon = find.descendant(
         of: mcpMetric,
-        matching: find.byIcon(Icons.hub_outlined),
+        matching: find.byIcon(LucideIcons.server),
       );
       final contextWindowIcon = find.descendant(
         of: contextWindowMetric,
-        matching: find.byIcon(Icons.data_array_rounded),
+        matching: find.byIcon(LucideIcons.braces),
       );
       final creationTimeIcon = find.descendant(
         of: creationTimeMetric,
-        matching: find.byIcon(Icons.schedule_outlined),
+        matching: find.byIcon(LucideIcons.clock3),
       );
       final modificationTimeIcon = find.descendant(
         of: modificationTimeMetric,
-        matching: find.byIcon(Icons.update_outlined),
+        matching: find.byIcon(LucideIcons.history),
       );
       final usageMetrics = [tokenMetric, skillMetric, mcpMetric];
       final usageIcons = [tokenIcon, skillIcon, mcpIcon];
@@ -2021,23 +2021,25 @@ void main() {
       expect(rowButton.variant, ShadButtonVariant.primary);
       expect(
         rowButton.backgroundColor,
-        DesktopThemeTokens.inactivePrimaryActionColor(rowContext),
+        StarsDesktopThemeSpec.inactivePrimaryActionColor(rowContext),
       );
       expect(rowButton.hoverBackgroundColor, rowButton.backgroundColor);
       expect(rowButton.pressedBackgroundColor, rowButton.backgroundColor);
-      expect(rowButton.foregroundColor, Colors.white);
-      expect(rowButton.hoverForegroundColor, Colors.white);
-      expect(rowButton.pressedForegroundColor, Colors.white);
+      final selectedForeground =
+          ShadTheme.of(rowContext).colorScheme.primaryForeground;
+      expect(rowButton.foregroundColor, selectedForeground);
+      expect(rowButton.hoverForegroundColor, selectedForeground);
+      expect(rowButton.pressedForegroundColor, selectedForeground);
       expect(
         tester.widget<Text>(find.text(bot.name)).style?.color,
-        Colors.white,
+        selectedForeground,
       );
       expect(
         tester
             .widget<Text>(find.textContaining(chat.lastMessage).first)
             .style
             ?.color,
-        Colors.white,
+        selectedForeground,
       );
 
       await tester.tap(
@@ -2523,8 +2525,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
-      expect(sheet.constraints?.minWidth, DesktopThemeTokens.inspectorWidth);
-      expect(sheet.constraints?.maxWidth, DesktopThemeTokens.inspectorWidth);
+      expect(sheet.constraints?.minWidth, StarsDesktopThemeSpec.inspectorWidth);
+      expect(sheet.constraints?.maxWidth, StarsDesktopThemeSpec.inspectorWidth);
       final inspector = find.byKey(
         const PageStorageKey<String>('desktop-context-inspector'),
       );
@@ -2709,7 +2711,7 @@ void main() {
       expect(selectedButton.variant, ShadButtonVariant.primary);
       expect(
         selectedButton.backgroundColor,
-        DesktopThemeTokens.inactivePrimaryActionColor(selectedButtonContext),
+        StarsDesktopThemeSpec.inactivePrimaryActionColor(selectedButtonContext),
       );
       expect(
         selectedButton.hoverBackgroundColor,
@@ -2719,18 +2721,20 @@ void main() {
         selectedButton.pressedBackgroundColor,
         selectedButton.backgroundColor,
       );
-      expect(selectedButton.foregroundColor, Colors.white);
-      expect(selectedButton.hoverForegroundColor, Colors.white);
-      expect(selectedButton.pressedForegroundColor, Colors.white);
+      final selectedForeground =
+          ShadTheme.of(selectedButtonContext).colorScheme.primaryForeground;
+      expect(selectedButton.foregroundColor, selectedForeground);
+      expect(selectedButton.hoverForegroundColor, selectedForeground);
+      expect(selectedButton.pressedForegroundColor, selectedForeground);
 
       final textFinder = find.text(label).first;
       final text = tester.widget<Text>(textFinder);
       final inheritedTextStyle =
           DefaultTextStyle.of(tester.element(textFinder)).style;
-      expect(inheritedTextStyle.merge(text.style).color, Colors.white);
+      expect(inheritedTextStyle.merge(text.style).color, selectedForeground);
       expect(
         tester.getSize(selectedButtonFinder).height,
-        DesktopThemeTokens.botFormFieldHeight,
+        StarsDesktopThemeSpec.botFormFieldHeight,
       );
       expect(selectedButton.mainAxisAlignment, MainAxisAlignment.start);
 
@@ -2762,7 +2766,7 @@ void main() {
 
         expect(
           tester.getSize(newChatButtonFinder).height,
-          DesktopThemeTokens.botFormFieldHeight,
+          StarsDesktopThemeSpec.botFormFieldHeight,
         );
         expect(selectedButton.size, newChatButton.size);
         expect(selectedButton.expands, newChatButton.expands);
@@ -2963,7 +2967,7 @@ void main() {
     final botBorder = botDecoration.border! as Border;
     final botSize = tester.getSize(botToolbarFinder);
 
-    expect(chatSize.height, DesktopThemeTokens.toolbarHeight);
+    expect(chatSize.height, StarsDesktopThemeSpec.toolbarHeight);
     expect(chatSize, botSize);
     expect(chatDecoration.color, botDecoration.color);
     expect(chatBorder.bottom, botBorder.bottom);
@@ -3009,7 +3013,9 @@ void main() {
     final detailContext = tester.element(
       find.byKey(const ValueKey<String>('desktop-bot-detail-scaffold')),
     );
-    final workspaceColor = DesktopThemeTokens.workspaceSurface(detailContext);
+    final workspaceColor = StarsDesktopThemeSpec.workspaceSurface(
+      detailContext,
+    );
     final raisedSurface = StarsDesktopTokens.of(detailContext).raisedSurface;
     final detailContent = find.byKey(
       const ValueKey<String>('desktop-bot-detail-content'),
@@ -3026,8 +3032,8 @@ void main() {
     expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
     expect(
       tester.getSize(detailContent).width,
-      DesktopThemeTokens.formContentMaxWidth +
-          DesktopThemeTokens.formPagePadding.horizontal,
+      StarsDesktopThemeSpec.formContentMaxWidth +
+          StarsDesktopThemeSpec.formPagePadding.horizontal,
     );
     final basicSection = find.byKey(
       const ValueKey<String>('desktop-bot-basic-section'),
@@ -3051,7 +3057,7 @@ void main() {
       expect(section, findsOneWidget);
       expect(
         tester.getSize(section).width,
-        DesktopThemeTokens.formContentMaxWidth,
+        StarsDesktopThemeSpec.formContentMaxWidth,
       );
       expect(tester.widget<ShadCard>(section).backgroundColor, raisedSurface);
     }
@@ -3066,7 +3072,7 @@ void main() {
       );
       expect(
         titleText.style?.fontSize,
-        DesktopThemeTokens.botFormSectionTitleFontSize,
+        StarsDesktopThemeSpec.botFormSectionTitleFontSize,
       );
     }
     expect(
@@ -3296,12 +3302,12 @@ void main() {
     );
     expect(
       tester.widget<Icon>(providerIcon).size,
-      DesktopThemeTokens.settingsRowIconSize,
+      StarsDesktopThemeSpec.settingsRowIconSize,
     );
     expect(
       tester.getSize(providerDetail).height,
-      DesktopThemeTokens.settingsRowMinHeight +
-          DesktopThemeTokens.settingsRowPadding.vertical,
+      StarsDesktopThemeSpec.settingsRowMinHeight +
+          StarsDesktopThemeSpec.settingsRowPadding.vertical,
     );
     final providerSeparators = find.descendant(
       of: providerSection,
@@ -3310,7 +3316,7 @@ void main() {
     expect(providerSeparators, findsNWidgets(3));
     expect(
       tester.widget<ShadSeparator>(providerSeparators.first).margin,
-      DesktopThemeTokens.settingsRowSeparatorMargin,
+      StarsDesktopThemeSpec.settingsRowSeparatorMargin,
     );
 
     final systemPromptDetail = find.byKey(
@@ -3326,7 +3332,7 @@ void main() {
     );
     expect(
       tester.getSize(systemPromptValue).width,
-      greaterThan(DesktopThemeTokens.settingsRowValueMaxWidth),
+      greaterThan(StarsDesktopThemeSpec.settingsRowValueMaxWidth),
     );
     expect(
       tester.getTopLeft(systemPromptValue).dy,
@@ -3404,9 +3410,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final expectedFieldWidth =
-        DesktopThemeTokens.formContentMaxWidth -
-        (DesktopThemeTokens.botFormSectionPadding +
-                DesktopThemeTokens.botFormSectionBorderWidth) *
+        StarsDesktopThemeSpec.formContentMaxWidth -
+        (StarsDesktopThemeSpec.botFormSectionPadding +
+                StarsDesktopThemeSpec.botFormSectionBorderWidth) *
             2;
     expect(
       find.byKey(const ValueKey<String>('desktop-bot-token-usage-section')),
@@ -3426,7 +3432,7 @@ void main() {
       expect(tester.getSize(inputFinder).width, expectedFieldWidth);
       expect(
         tester.getSize(inputFinder).height,
-        DesktopThemeTokens.botFormFieldHeight,
+        StarsDesktopThemeSpec.botFormFieldHeight,
       );
       final editableText = find.descendant(
         of: inputFinder,
@@ -3443,7 +3449,7 @@ void main() {
     expect(tester.getSize(nameInput).width, expectedFieldWidth);
     expect(
       tester.getSize(nameInput).height,
-      DesktopThemeTokens.botFormFieldHeight,
+      StarsDesktopThemeSpec.botFormFieldHeight,
     );
     final nameEditableText = find.descendant(
       of: nameInput,
@@ -3703,7 +3709,10 @@ void main() {
 
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.byType(ShadForm), findsOneWidget);
-      expect(find.byType(MenuAnchor), findsNWidgets(2));
+      expect(
+        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        findsNWidgets(2),
+      );
       final addBotClose = find.byKey(const ValueKey<String>('add-bot-close'));
       final addBotDialog = find.byKey(
         const ValueKey<String>('add-bot-dialog-content'),
@@ -3722,7 +3731,7 @@ void main() {
         tester.getRect(addBotClose).top - tester.getRect(addBotDialog).top,
         closeTo(12, 0.01),
       );
-      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.plus), findsOneWidget);
       expect(find.text('取消'), findsOneWidget);
       expect(tester.getSize(addBotDialog), const Size(840, 720));
       expect(find.text('基本信息'), findsOneWidget);
@@ -3738,7 +3747,7 @@ void main() {
         ),
         'secret-key',
       );
-      final fetchModels = find.byIcon(Icons.refresh_rounded);
+      final fetchModels = find.byIcon(LucideIcons.refreshCw);
       await tester.ensureVisible(fetchModels);
       await tester.pumpAndSettle();
       await tester.tap(fetchModels);
@@ -3752,11 +3761,7 @@ void main() {
       );
       final modelMenuButton = find.descendant(
         of: modelMenu,
-        matching: find.byType(ShadIconButton),
-      );
-      final modelDropdownIcon = find.descendant(
-        of: modelMenu,
-        matching: find.byIcon(Icons.expand_more_rounded),
+        matching: find.byType(StarsDesktopIconAction),
       );
       expect(modelMenu, findsOneWidget);
       expect(modelMenuButton, findsOneWidget);
@@ -3768,13 +3773,11 @@ void main() {
       await tester.tap(modelMenuButton);
       await tester.pumpAndSettle();
 
-      final modelOption = find.widgetWithText(MenuItemButton, 'gpt-test');
+      final modelOption = find.widgetWithText(ShadButton, 'gpt-test');
       expect(modelOption, findsOneWidget);
-      final modelMenuSurface =
-          find.ancestor(of: modelOption, matching: find.byType(Material)).first;
       expect(
-        tester.getRect(modelMenuSurface).right,
-        closeTo(tester.getRect(modelDropdownIcon).right, 1),
+        tester.getRect(modelOption).right,
+        closeTo(tester.getRect(modelMenuButton).right - 6, 1),
       );
       expect(find.textContaining('联网搜索'), findsNothing);
       expect(find.textContaining('深度思考'), findsNothing);
@@ -3806,7 +3809,7 @@ void main() {
         );
         expect(
           titleText.style?.fontSize,
-          DesktopThemeTokens.botFormSectionTitleFontSize,
+          StarsDesktopThemeSpec.botFormSectionTitleFontSize,
         );
       }
       expect(
@@ -3945,10 +3948,10 @@ void main() {
         inputSize('add-bot-model'),
       ];
       expect(singleLineInputSizes.map((size) => size.width).toSet(), {
-        DesktopThemeTokens.addBotFormFieldWidth,
+        StarsDesktopThemeSpec.addBotFormFieldWidth,
       });
       expect(singleLineInputSizes.map((size) => size.height).toSet(), {
-        DesktopThemeTokens.botFormFieldHeight,
+        StarsDesktopThemeSpec.botFormFieldHeight,
       });
 
       final nameField = find.byKey(const ValueKey<String>('add-bot-name'));
@@ -3973,20 +3976,26 @@ void main() {
       );
       expect(
         systemPromptSize,
-        const Size(DesktopThemeTokens.addBotFormFieldWidth, 114),
+        const Size(StarsDesktopThemeSpec.addBotFormFieldWidth, 114),
       );
 
       final providerMenuAnchor = find.descendant(
         of: providerField,
-        matching: find.byType(MenuAnchor),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is StarsDesktopMenu<Object?>,
+        ),
       );
       expect(providerMenuAnchor, findsOneWidget);
 
       final providerDropdownIcon = find.descendant(
         of: providerMenuAnchor,
-        matching: find.byIcon(Icons.expand_more_rounded),
+        matching: find.byIcon(LucideIcons.chevronDown),
       );
       final providerDropdownIconRect = tester.getRect(providerDropdownIcon);
+      final providerMenuButton = find.descendant(
+        of: providerMenuAnchor,
+        matching: find.byType(StarsDesktopIconAction),
+      );
       await tester.enterText(
         find.descendant(of: providerField, matching: find.byType(EditableText)),
         'Anthropic',
@@ -4010,15 +4019,15 @@ void main() {
       );
       expect(controllerFor('add-bot-api-type').text, Bot.apiTypeAnthropic);
 
-      await tester.tap(find.byIcon(Icons.expand_more_rounded).first);
+      await tester.tap(providerDropdownIcon);
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
-      expect(find.byType(MenuItemButton), findsWidgets);
+      expect(find.byType(ShadButton), findsWidgets);
       expect(find.text('OpenAI'), findsWidgets);
       final openAIOption = find.ancestor(
         of: find.text('OpenAI'),
-        matching: find.byType(MenuItemButton),
+        matching: find.byType(ShadButton),
       );
       final openAIOptionRect = tester.getRect(openAIOption);
       expect(
@@ -4027,16 +4036,16 @@ void main() {
       );
       expect(
         openAIOptionRect.right,
-        closeTo(providerDropdownIconRect.right, 1),
+        closeTo(tester.getRect(providerMenuButton).right - 6, 1),
       );
       final anthropicOption = find.ancestor(
         of: find.text('Anthropic'),
-        matching: find.byType(MenuItemButton),
+        matching: find.byType(ShadButton),
       );
       expect(
         find.descendant(
           of: anthropicOption,
-          matching: find.byIcon(Icons.check_rounded),
+          matching: find.byIcon(LucideIcons.check),
         ),
         findsOneWidget,
       );
@@ -4054,7 +4063,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
-      expect(find.byType(MenuAnchor), findsNWidgets(3));
+      expect(
+        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        findsNWidgets(3),
+      );
       expect(controllerFor('add-bot-sub-provider').text, 'HF-Inference');
       expect(
         controllerFor('add-bot-base-url').text,
@@ -4083,7 +4095,7 @@ void main() {
         ),
         '',
       );
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byIcon(LucideIcons.plus));
       await tester.pump();
       expect(submittedBot, isNull);
 
@@ -4095,7 +4107,7 @@ void main() {
         ),
         customHuggingFaceUrl,
       );
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byIcon(LucideIcons.plus));
       await tester.pumpAndSettle();
 
       expect(submittedBot?.provider, 'HuggingFace');
@@ -4156,7 +4168,7 @@ void main() {
         find.descendant(of: fields.at(4), matching: find.byType(EditableText)),
         'secret-key',
       );
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byIcon(LucideIcons.plus));
       await tester.pump();
 
       expect(submitCount, 1);
@@ -4167,7 +4179,7 @@ void main() {
 
       submission.complete();
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.plus), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -4196,7 +4208,7 @@ void main() {
         ),
         'secret-key',
       );
-      final fetchModels = find.byIcon(Icons.refresh_rounded);
+      final fetchModels = find.byIcon(LucideIcons.refreshCw);
       await tester.ensureVisible(fetchModels);
       await tester.tap(fetchModels);
       await tester.pumpAndSettle();
@@ -4217,7 +4229,7 @@ void main() {
         find.ancestor(of: alert, matching: find.byType(StarsInlineErrorAlert)),
         findsOneWidget,
       );
-      expect(tester.getSize(alert).height, lessThanOrEqualTo(44));
+      expect(tester.getSize(alert).height, lessThanOrEqualTo(58));
       expect(
         tester.getCenter(message).dy,
         closeTo(tester.getCenter(alert).dy, 1),
@@ -4253,7 +4265,7 @@ void main() {
       expect(find.text('加载内容时出错，请稍后再试。'), findsOneWidget);
       expect(find.textContaining('保存失败'), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
-      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.plus), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

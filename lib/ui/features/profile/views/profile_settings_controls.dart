@@ -18,9 +18,9 @@ extension _ProfileSettingsControls on _ProfilePageState {
         padding: const EdgeInsets.all(20),
         title: Text(
           title,
-          style: DesktopThemeTokens.sectionTitleStyle(
-            context,
-          )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
+          style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
+            fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+          ),
         ),
         description: description == null ? null : Text(description),
         child: Padding(
@@ -31,7 +31,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 children[index],
                 if (index != children.length - 1)
                   const ShadSeparator.horizontal(
-                    margin: DesktopThemeTokens.settingsRowSeparatorMargin,
+                    margin: StarsDesktopThemeSpec.settingsRowSeparatorMargin,
                   ),
               ],
             ],
@@ -57,7 +57,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
             image: true,
             child: CircleAvatar(
               radius: 28,
-              backgroundColor: DesktopThemeTokens.secondarySurface(context),
+              backgroundColor: StarsDesktopThemeSpec.secondarySurface(context),
               backgroundImage: _buildAvatarImageProvider(),
             ),
           ),
@@ -89,57 +89,62 @@ extension _ProfileSettingsControls on _ProfilePageState {
         width: double.infinity,
         height: 0,
         expands: true,
-        padding: DesktopThemeTokens.settingsRowPadding,
+        padding: StarsDesktopThemeSpec.settingsRowPadding,
         mainAxisAlignment: MainAxisAlignment.start,
         onPressed: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            minHeight: DesktopThemeTokens.settingsRowMinHeight,
+            minHeight: StarsDesktopThemeSpec.settingsRowMinHeight,
           ),
           child: Row(
             children: [
               SizedBox(
                 width:
                     leading == null
-                        ? DesktopThemeTokens.settingsRowIconSlotWidth
+                        ? StarsDesktopThemeSpec.settingsRowIconSlotWidth
                         : 56,
                 child:
                     leading ??
                     Icon(
                       icon,
-                      size: DesktopThemeTokens.settingsRowIconSize,
-                      color: DesktopThemeTokens.mutedText(context),
+                      size: StarsDesktopThemeSpec.settingsRowIconSize,
+                      color: StarsDesktopThemeSpec.mutedText(context),
                     ),
               ),
-              const SizedBox(width: DesktopThemeTokens.settingsRowIconGap),
+              const SizedBox(width: StarsDesktopThemeSpec.settingsRowIconGap),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(title, style: DesktopThemeTokens.bodyStyle(context)),
+                    Text(
+                      title,
+                      style: StarsDesktopThemeSpec.bodyStyle(context),
+                    ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: DesktopThemeTokens.metaStyle(context),
+                        style: StarsDesktopThemeSpec.metaStyle(context),
                       ),
                     ],
                   ],
                 ),
               ),
               if (value != null) ...[
-                const SizedBox(width: DesktopThemeTokens.settingsRowValueGap),
+                const SizedBox(
+                  width: StarsDesktopThemeSpec.settingsRowValueGap,
+                ),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: DesktopThemeTokens.settingsRowValueMaxWidth,
+                    maxWidth: StarsDesktopThemeSpec.settingsRowValueMaxWidth,
                   ),
                   child: Text(
                     value,
                     textAlign: TextAlign.end,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: DesktopThemeTokens.metaStyle(context),
+                    style: StarsDesktopThemeSpec.metaStyle(context),
                   ),
                 ),
               ],
@@ -147,7 +152,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
-                color: DesktopThemeTokens.softText(context),
+                color: StarsDesktopThemeSpec.softText(context),
               ),
             ],
           ),
@@ -172,19 +177,19 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 child: Icon(
                   Icons.text_fields_outlined,
                   size: 18,
-                  color: DesktopThemeTokens.mutedText(context),
+                  color: StarsDesktopThemeSpec.mutedText(context),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   S.of(context).fontSizeSettings,
-                  style: DesktopThemeTokens.bodyStyle(context),
+                  style: StarsDesktopThemeSpec.bodyStyle(context),
                 ),
               ),
               Text(
                 '${_fontSize.round()} px',
-                style: DesktopThemeTokens.metaStyle(
+                style: StarsDesktopThemeSpec.metaStyle(
                   context,
                 )?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -214,13 +219,13 @@ extension _ProfileSettingsControls on _ProfilePageState {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: DesktopThemeTokens.statusDecoration(context),
+            decoration: StarsDesktopThemeSpec.statusDecoration(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   S.of(context).previewText,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -229,7 +234,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
                     S.of(context).appDescription,
                   ),
                   style: TextStyle(
-                    color: DesktopThemeTokens.text(context),
+                    color: StarsDesktopThemeSpec.text(context),
                     fontSize: _fontSize,
                     height: 1.55,
                   ),
@@ -253,7 +258,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               child: Icon(
                 LucideIcons.activity,
                 size: 18,
-                color: DesktopThemeTokens.mutedText(context),
+                color: StarsDesktopThemeSpec.mutedText(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -263,12 +268,12 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 children: [
                   Text(
                     S.of(context).chatExecutionStatus,
-                    style: DesktopThemeTokens.bodyStyle(context),
+                    style: StarsDesktopThemeSpec.bodyStyle(context),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     S.of(context).showExecutionStatusDescription,
-                    style: DesktopThemeTokens.metaStyle(context),
+                    style: StarsDesktopThemeSpec.metaStyle(context),
                   ),
                 ],
               ),
@@ -298,18 +303,18 @@ extension _ProfileSettingsControls on _ProfilePageState {
         Row(
           children: [
             SizedBox(
-              width: DesktopThemeTokens.settingsRowIconSlotWidth,
+              width: StarsDesktopThemeSpec.settingsRowIconSlotWidth,
               child: Icon(
                 Icons.lock_outline_rounded,
-                size: DesktopThemeTokens.settingsRowIconSize,
-                color: DesktopThemeTokens.mutedText(context),
+                size: StarsDesktopThemeSpec.settingsRowIconSize,
+                color: StarsDesktopThemeSpec.mutedText(context),
               ),
             ),
-            const SizedBox(width: DesktopThemeTokens.settingsRowIconGap),
+            const SizedBox(width: StarsDesktopThemeSpec.settingsRowIconGap),
             Expanded(
               child: Text(
                 S.of(context).applicationInjectedPrompt,
-                style: DesktopThemeTokens.bodyStyle(context),
+                style: StarsDesktopThemeSpec.bodyStyle(context),
               ),
             ),
           ],
@@ -318,12 +323,12 @@ extension _ProfileSettingsControls on _ProfilePageState {
         Padding(
           padding: const EdgeInsetsDirectional.only(
             start:
-                DesktopThemeTokens.settingsRowIconSlotWidth +
-                DesktopThemeTokens.settingsRowIconGap,
+                StarsDesktopThemeSpec.settingsRowIconSlotWidth +
+                StarsDesktopThemeSpec.settingsRowIconGap,
           ),
           child: Text(
             S.of(context).applicationInjectedPromptDescription,
-            style: DesktopThemeTokens.metaStyle(context),
+            style: StarsDesktopThemeSpec.metaStyle(context),
           ),
         ),
         const SizedBox(height: 10),
@@ -339,10 +344,10 @@ extension _ProfileSettingsControls on _ProfilePageState {
               padding: const EdgeInsets.all(14),
               decoration:
                   desktop
-                      ? DesktopThemeTokens.statusDecoration(context)
+                      ? StarsDesktopThemeSpec.statusDecoration(context)
                       : BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
-                        borderRadius: DesktopThemeTokens.containerRadius,
+                        borderRadius: StarsDesktopThemeSpec.containerRadius,
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outlineVariant,
                         ),
@@ -350,7 +355,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               child: SelectableText(
                 prompt,
                 style: TextStyle(
-                  color: DesktopThemeTokens.text(context),
+                  color: StarsDesktopThemeSpec.text(context),
                   fontFamily: 'monospace',
                   fontSize: 12,
                   height: 1.5,
@@ -458,7 +463,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
     if (isDesktopPlatform(context)) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: DesktopThemeTokens.statusDecoration(context),
+        decoration: StarsDesktopThemeSpec.statusDecoration(context),
         child: slider,
       );
     }

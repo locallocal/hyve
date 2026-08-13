@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/common.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/bots/views/skill_description_test_dialog.dart';
 import 'package:stars/utils/theme.dart';
@@ -53,9 +54,9 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     if (viewModel.skills.isEmpty) {
       return Text(
         strings.noSkillsInstalledDescription,
-        style: DesktopThemeTokens.bodyStyle(
+        style: StarsDesktopThemeSpec.bodyStyle(
           context,
-        )?.copyWith(color: DesktopThemeTokens.mutedText(context)),
+        )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context)),
       );
     }
 
@@ -77,7 +78,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
             Expanded(
               child: Text(
                 strings.botSkillsDescription,
-                style: DesktopThemeTokens.metaStyle(context),
+                style: StarsDesktopThemeSpec.metaStyle(context),
               ),
             ),
             const SizedBox(width: 12),
@@ -101,7 +102,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 const SizedBox(height: 4),
                 Text(
                   strings.noBotSkillsAddedDescription,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -159,7 +160,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                       skill.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: DesktopThemeTokens.metaStyle(context),
+                      style: StarsDesktopThemeSpec.metaStyle(context),
                     ),
                   ],
                 ),
@@ -188,17 +189,12 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 ),
               ),
               const SizedBox(width: 8),
-              ShadTooltip(
-                builder: (context) => Text(strings.removeSkill),
-                child: ShadIconButton.ghost(
-                  key: ValueKey<String>('remove-add-bot-skill-${skill.id}'),
-                  width: 30,
-                  height: 30,
-                  padding: EdgeInsets.zero,
-                  iconSize: 16,
-                  onPressed: () => _removeSkill(skill.id),
-                  icon: const Icon(LucideIcons.trash2),
-                ),
+              StarsDesktopIconAction(
+                key: ValueKey<String>('remove-add-bot-skill-${skill.id}'),
+                icon: LucideIcons.trash2,
+                label: strings.removeSkill,
+                iconSize: 16,
+                onPressed: () => _removeSkill(skill.id),
               ),
             ],
           ),
@@ -221,13 +217,13 @@ class _AddBotSkillsState extends State<AddBotSkills> {
       );
       if (!mounted) return;
       final result = report.results.single;
-      showSnackBar(
+      showStarsNotice(
         context,
         '${S.of(context).skillDescriptionTestResult}: '
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -244,18 +240,14 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ShadTooltip(
-          builder: (context) => Text(localizations.previousPageTooltip),
-          child: ShadIconButton.outline(
-            key: ValueKey<String>('$keyPrefix-previous-page'),
-            width: 32,
-            height: 32,
-            padding: EdgeInsets.zero,
-            iconSize: 16,
-            enabled: hasPreviousPage,
-            onPressed: onPreviousPage,
-            icon: const Icon(LucideIcons.chevronLeft),
-          ),
+        StarsDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-previous-page'),
+          icon: LucideIcons.chevronLeft,
+          label: localizations.previousPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: hasPreviousPage,
+          onPressed: onPreviousPage,
         ),
         const SizedBox(width: 12),
         Text(
@@ -263,18 +255,14 @@ class _AddBotSkillsState extends State<AddBotSkills> {
           key: ValueKey<String>('$keyPrefix-page-indicator'),
         ),
         const SizedBox(width: 12),
-        ShadTooltip(
-          builder: (context) => Text(localizations.nextPageTooltip),
-          child: ShadIconButton.outline(
-            key: ValueKey<String>('$keyPrefix-next-page'),
-            width: 32,
-            height: 32,
-            padding: EdgeInsets.zero,
-            iconSize: 16,
-            enabled: hasNextPage,
-            onPressed: onNextPage,
-            icon: const Icon(LucideIcons.chevronRight),
-          ),
+        StarsDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-next-page'),
+          icon: LucideIcons.chevronRight,
+          label: localizations.nextPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: hasNextPage,
+          onPressed: onNextPage,
         ),
       ],
     );
@@ -338,17 +326,16 @@ class _AddBotSkillsState extends State<AddBotSkills> {
             suffixIcon:
                 viewModel.availableQuery.isEmpty
                     ? null
-                    : IconButton(
+                    : StarsDesktopIconAction(
                       key: const ValueKey<String>('clear-add-bot-skill-search'),
-                      tooltip: strings.clearSearch,
+                      icon: LucideIcons.x,
+                      label: strings.clearSearch,
                       onPressed: () {
                         _searchController.clear();
                         viewModel.clearAvailableSearch();
                         refresh(() {});
                       },
-                      icon: const Icon(LucideIcons.x, size: 16),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+                      iconSize: 16,
                     ),
           ),
           const SizedBox(height: 12),
@@ -358,7 +345,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
               child: Text(
                 strings.noMatchingSkills,
                 textAlign: TextAlign.center,
-                style: DesktopThemeTokens.metaStyle(context),
+                style: StarsDesktopThemeSpec.metaStyle(context),
               ),
             ),
           for (var index = 0; index < skills.length; index++) ...[
@@ -382,7 +369,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                           skills[index].description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: DesktopThemeTokens.metaStyle(context),
+                          style: StarsDesktopThemeSpec.metaStyle(context),
                         ),
                       ],
                     ),
@@ -431,7 +418,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
       await viewModel.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -439,7 +426,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -447,7 +434,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showSnackBar(context, safeFailureMessage(context, error));
+      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
     }
   }
 }

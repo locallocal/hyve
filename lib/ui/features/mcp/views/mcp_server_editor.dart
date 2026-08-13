@@ -12,19 +12,18 @@ class _McpServerEditorDialog extends StatefulWidget {
 
 class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   static const double _desktopFieldWidth =
-      DesktopThemeTokens.addBotFormFieldWidth;
+      StarsDesktopThemeSpec.addBotFormFieldWidth;
   static const double _desktopSectionPadding =
-      DesktopThemeTokens.botFormSectionPadding;
+      StarsDesktopThemeSpec.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
-      DesktopThemeTokens.botFormSectionBorderWidth;
-  static const double _desktopDropdownButtonSize = 30;
+      StarsDesktopThemeSpec.botFormSectionBorderWidth;
   static const double _desktopTransportMenuWidth = 256;
   static const double _desktopFormWidth =
       _desktopFieldWidth +
       _desktopSectionPadding * 2 +
       _desktopSectionBorderWidth * 2;
   static const BoxConstraints _desktopInputConstraints = BoxConstraints(
-    minHeight: DesktopThemeTokens.botFormFieldHeight,
+    minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
   );
 
   final _desktopFormKey = GlobalKey<ShadFormState>();
@@ -323,7 +322,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.hub_outlined,
+              LucideIcons.server,
               size: 23,
               color: tokens.secondaryText,
             ),
@@ -338,30 +337,24 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                   editing ? strings.editMcpServer : strings.addMcpServer,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.pageTitleStyle(context),
+                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   strings.mcpServersDescription,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          ShadTooltip(
-            builder:
-                (context) =>
-                    Text(MaterialLocalizations.of(context).closeButtonTooltip),
-            child: ShadIconButton.ghost(
-              onPressed: () => Navigator.of(context).pop(),
-              width: 36,
-              height: 36,
-              iconSize: 17,
-              icon: const Icon(Icons.close_rounded),
-            ),
+          StarsDesktopIconAction(
+            icon: LucideIcons.x,
+            label: MaterialLocalizations.of(context).closeButtonTooltip,
+            onPressed: () => Navigator.of(context).pop(),
+            iconSize: 17,
           ),
         ],
       ),
@@ -387,9 +380,9 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: DesktopThemeTokens.sectionTitleStyle(
-          context,
-        )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
+        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
+          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
@@ -432,7 +425,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                       const SizedBox(width: 8),
                       ShadButton(
                         onPressed: _save,
-                        leading: const Icon(Icons.link_rounded, size: 17),
+                        leading: const Icon(LucideIcons.link, size: 17),
                         child: Text(S.of(context).saveAndConnect),
                       ),
                     ],
@@ -451,9 +444,10 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-name'),
       id: 'name',
       controller: _nameController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).mcpServerName),
-      leading: _desktopInputLeading(Icons.hub_outlined),
+      leading: _desktopInputLeading(LucideIcons.server),
       constraints: _desktopInputConstraints,
       validator:
           (value) =>
@@ -462,56 +456,35 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   }
 
   Widget _buildDesktopTransportInput(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
-    final shadTheme = ShadTheme.of(context);
-    final inputTextStyle = shadTheme.textTheme.muted
-        .copyWith(color: shadTheme.colorScheme.foreground)
-        .merge(shadTheme.inputTheme.style);
     return ShadInputFormField(
       key: const ValueKey<String>('mcp-server-transport'),
       id: 'transport',
       controller: _transportController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       readOnly: true,
       label: Text(S.of(context).mcpTransport),
-      leading: _desktopInputLeading(Icons.swap_horiz_rounded),
+      leading: _desktopInputLeading(LucideIcons.arrowLeftRight),
       constraints: _desktopInputConstraints,
-      trailing: MenuAnchor(
-        crossAxisUnconstrained: false,
-        alignmentOffset: const Offset(
-          _desktopDropdownButtonSize - _desktopTransportMenuWidth,
-          4,
-        ),
-        style: _desktopMenuStyle(tokens, width: _desktopTransportMenuWidth),
-        menuChildren: [
+      trailing: StarsDesktopMenu<McpTransportType>(
+        width: _desktopTransportMenuWidth,
+        alignEnd: true,
+        items: [
           for (final transportType in McpTransportType.values)
-            MenuItemButton(
-              trailingIcon:
-                  transportType == _transportType
-                      ? Icon(
-                        Icons.check_rounded,
-                        size: 16,
-                        color: tokens.accent,
-                      )
-                      : const SizedBox.square(dimension: 16),
-              onPressed: () => _setTransportType(transportType),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 180),
-                child: Text(
-                  _transportLabel(transportType),
-                  style: inputTextStyle,
-                ),
-              ),
+            StarsDesktopMenuItem<McpTransportType>(
+              value: transportType,
+              label: _transportLabel(transportType),
+              selected: transportType == _transportType,
             ),
         ],
-        builder:
-            (context, controller, child) => ShadIconButton.ghost(
+        onSelected: _setTransportType,
+        triggerBuilder:
+            (context, toggle, isOpen) => StarsDesktopIconAction(
               key: const ValueKey<String>('mcp-server-transport-menu'),
-              onPressed: () => _toggleMenu(controller),
-              icon: const Icon(Icons.expand_more_rounded),
+              icon: LucideIcons.chevronDown,
+              label: S.of(context).mcpTransport,
+              onPressed: toggle,
+              selected: isOpen,
               iconSize: 16,
-              width: _desktopDropdownButtonSize,
-              height: _desktopDropdownButtonSize,
-              padding: EdgeInsets.zero,
             ),
       ),
     );
@@ -522,6 +495,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-endpoint'),
       id: 'endpoint',
       controller: _endpointController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       autocorrect: false,
       keyboardType: TextInputType.url,
@@ -540,12 +514,13 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-command'),
       id: 'command',
       controller: _commandController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       autocorrect: false,
       label: Text(S.of(context).mcpCommand),
       description: Text(S.of(context).mcpCommandDescription),
       placeholder: const Text('npx'),
-      leading: _desktopInputLeading(Icons.terminal_rounded),
+      leading: _desktopInputLeading(LucideIcons.terminal),
       constraints: _desktopInputConstraints,
       validator:
           (value) =>
@@ -565,7 +540,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       label: Text(S.of(context).mcpArguments),
       description: Text(S.of(context).mcpArgumentsDescription),
       placeholder: const Text('-y\n@modelcontextprotocol/server-filesystem'),
-      leading: _desktopInputLeading(Icons.format_list_bulleted_rounded),
+      leading: _desktopInputLeading(LucideIcons.list),
       constraints: const BoxConstraints(minHeight: 104),
     );
   }
@@ -583,77 +558,42 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       label: Text(S.of(context).mcpEnvironment),
       description: Text(S.of(context).mcpEnvironmentDescription),
       placeholder: const Text('API_KEY=secret'),
-      leading: _desktopInputLeading(Icons.password_rounded),
+      leading: _desktopInputLeading(LucideIcons.keyRound),
       constraints: const BoxConstraints(minHeight: 104),
     );
   }
 
   Widget _buildDesktopAuthInput(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
-    final shadTheme = ShadTheme.of(context);
-    final inputTextStyle = shadTheme.textTheme.muted
-        .copyWith(color: shadTheme.colorScheme.foreground)
-        .merge(shadTheme.inputTheme.style);
-    return MenuAnchor(
-      alignmentOffset: const Offset(0, 4),
-      style: _desktopMenuStyle(tokens),
-      menuChildren: [
+    return StarsDesktopMenu<McpAuthType>(
+      items: [
         for (final authType in McpAuthType.values)
-          MenuItemButton(
-            trailingIcon:
-                authType == _authType
-                    ? Icon(Icons.check_rounded, size: 16, color: tokens.accent)
-                    : const SizedBox.square(dimension: 16),
-            onPressed: () => _setAuthType(authType),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 180),
-              child: Text(_authLabel(authType), style: inputTextStyle),
-            ),
+          StarsDesktopMenuItem<McpAuthType>(
+            value: authType,
+            label: _authLabel(authType),
+            selected: authType == _authType,
           ),
       ],
-      builder:
-          (context, controller, child) => ShadInputFormField(
+      onSelected: _setAuthType,
+      triggerBuilder:
+          (context, toggle, isOpen) => ShadInputFormField(
             key: const ValueKey<String>('mcp-server-authentication'),
             id: 'authentication',
             controller: _authController,
+            padding: StarsDesktopThemeSpec.formFieldPadding,
             readOnly: true,
             label: Text(S.of(context).mcpAuthentication),
             leading: _desktopInputLeading(LucideIcons.keyRound),
             constraints: _desktopInputConstraints,
-            onPressed: () => _toggleMenu(controller),
-            trailing: ShadIconButton.ghost(
+            onPressed: toggle,
+            trailing: StarsDesktopIconAction(
               key: const ValueKey<String>('mcp-server-authentication-menu'),
-              onPressed: () => _toggleMenu(controller),
-              icon: const Icon(Icons.expand_more_rounded),
+              onPressed: toggle,
+              icon: LucideIcons.chevronDown,
+              label: S.of(context).mcpAuthentication,
+              selected: isOpen,
               iconSize: 16,
-              width: _desktopDropdownButtonSize,
-              height: _desktopDropdownButtonSize,
-              padding: EdgeInsets.zero,
             ),
           ),
-    );
-  }
-
-  MenuStyle _desktopMenuStyle(StarsDesktopTokens tokens, {double? width}) {
-    return MenuStyle(
-      backgroundColor: WidgetStatePropertyAll(tokens.raisedSurface),
-      surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-      shadowColor: WidgetStatePropertyAll(
-        Colors.black.withValues(alpha: tokens.highContrast ? 0 : 0.18),
-      ),
-      elevation: WidgetStatePropertyAll(tokens.highContrast ? 0 : 6),
-      visualDensity: width == null ? null : VisualDensity.standard,
-      minimumSize:
-          width == null ? null : WidgetStatePropertyAll(Size(width, 0)),
-      maximumSize: WidgetStatePropertyAll(Size(width ?? 420, 240)),
-      side: WidgetStatePropertyAll(
-        BorderSide(color: tokens.separator, width: 0),
-      ),
-      shape: const WidgetStatePropertyAll(
-        RoundedRectangleBorder(
-          borderRadius: DesktopThemeTokens.containerRadius,
-        ),
-      ),
     );
   }
 
@@ -662,6 +602,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-access-token'),
       id: 'accessToken',
       controller: _tokenController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       obscureText: true,
       enableSuggestions: false,
       autocorrect: false,
@@ -679,13 +620,9 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   Widget _desktopInputLeading(IconData icon) {
     return SizedBox(
       width: 17,
-      height: 30,
+      height: 44,
       child: Center(child: Icon(icon, size: 17)),
     );
-  }
-
-  void _toggleMenu(MenuController controller) {
-    controller.isOpen ? controller.close() : controller.open();
   }
 
   void _setAuthType(McpAuthType value) {

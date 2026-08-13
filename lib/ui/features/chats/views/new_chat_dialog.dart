@@ -62,7 +62,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
 
   @override
   Widget build(BuildContext context) {
-    if (!isDesktopOrTabletPlatform(context)) {
+    if (!isDesktopPlatform(context)) {
       return _buildMobileDialog(context);
     }
 
@@ -98,7 +98,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
             _buildDesktopHeader(context),
             ShadSeparator.horizontal(
               thickness: 1,
-              color: DesktopThemeTokens.divider(context),
+              color: StarsDesktopThemeSpec.divider(context),
             ),
             Flexible(child: _buildDesktopContent(context)),
           ],
@@ -121,14 +121,14 @@ class _NewChatDialogState extends State<NewChatDialog> {
                   desktopConversationText(context, S.of(context).newChat),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.toolbarTitleStyle(context),
+                  style: StarsDesktopThemeSpec.toolbarTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   S.of(context).selectBot,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -364,10 +364,8 @@ class _NewChatDialogState extends State<NewChatDialog> {
         _creatingBotId = null;
         _creationError = message;
       });
-      if (!isDesktopOrTabletPlatform(context)) {
-        ScaffoldMessenger.maybeOf(
-          context,
-        )?.showSnackBar(SnackBar(content: Text(message)));
+      if (!isDesktopPlatform(context)) {
+        showStarsNotice(context, message, tone: StarsNoticeTone.error);
       }
       return;
     }
@@ -375,7 +373,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
     if (!mounted) return;
     ChatPageState.requestComposerFocus(chat.id);
     final navigator = Navigator.of(context);
-    final isDesktop = isDesktopOrTabletPlatform(context);
+    final isDesktop = isDesktopPlatform(context);
 
     widget.onChatCreated?.call(chat.id, bot);
     navigator.pop();
@@ -447,7 +445,7 @@ class _DesktopBotChoice extends StatelessWidget {
                         bot.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: DesktopThemeTokens.bodyStyle(
+                        style: StarsDesktopThemeSpec.bodyStyle(
                           context,
                         )?.copyWith(fontWeight: FontWeight.w600),
                       ),
@@ -457,7 +455,7 @@ class _DesktopBotChoice extends StatelessWidget {
                           metadata,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: DesktopThemeTokens.metaStyle(context),
+                          style: StarsDesktopThemeSpec.metaStyle(context),
                         ),
                       ],
                     ],
@@ -475,7 +473,7 @@ class _DesktopBotChoice extends StatelessWidget {
                           S.of(context).creatingChat,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: DesktopThemeTokens.metaStyle(context),
+                          style: StarsDesktopThemeSpec.metaStyle(context),
                         ),
                         const SizedBox(height: 5),
                         ShadProgress(
@@ -489,7 +487,7 @@ class _DesktopBotChoice extends StatelessWidget {
                   Icon(
                     LucideIcons.chevronRight,
                     size: 18,
-                    color: DesktopThemeTokens.softText(context),
+                    color: StarsDesktopThemeSpec.softText(context),
                   ),
               ],
             ),

@@ -164,7 +164,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
                           border: Border.all(color: tokens.separator, width: 0),
                         ),
                         child: Icon(
-                          Icons.edit_rounded,
+                          LucideIcons.pencil,
                           size: 11,
                           color: tokens.secondaryText,
                         ),
@@ -185,14 +185,14 @@ extension _AddBotDesktopForm on _AddBotPageState {
                   strings.addBot,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.pageTitleStyle(context),
+                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   strings.botInformation,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: DesktopThemeTokens.metaStyle(context),
+                  style: StarsDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -230,9 +230,9 @@ extension _AddBotDesktopForm on _AddBotPageState {
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: DesktopThemeTokens.sectionTitleStyle(
-          context,
-        )?.copyWith(fontSize: DesktopThemeTokens.botFormSectionTitleFontSize),
+        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
+          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
@@ -312,7 +312,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
                                                 .primaryForeground,
                                       ),
                                     )
-                                    : const Icon(Icons.add_rounded, size: 17),
+                                    : const Icon(LucideIcons.plus, size: 17),
                             child: Text(S.of(context).addBot),
                           ),
                         ],
@@ -333,33 +333,28 @@ extension _AddBotDesktopForm on _AddBotPageState {
     required IconData icon,
     required VoidCallback? onPressed,
   }) {
-    return ShadTooltip(
-      builder: (context) => Text(tooltip),
-      child: ShadIconButton.ghost(
-        enabled: onPressed != null,
-        onPressed: onPressed,
-        icon: Icon(icon),
-        iconSize: 16,
-        width: _AddBotPageState._desktopDropdownButtonSize,
-        height: _AddBotPageState._desktopDropdownButtonSize,
-        padding: EdgeInsets.zero,
-      ),
+    return StarsDesktopIconAction(
+      icon: icon,
+      label: tooltip,
+      enabled: onPressed != null,
+      onPressed: onPressed,
+      iconSize: 16,
     );
   }
 
   Widget _desktopInputLeading(IconData icon) {
     return SizedBox(
       width: 17,
-      height: 30,
+      height: 44,
       child: Center(child: Icon(icon, size: 17)),
     );
   }
 
-  Widget _desktopMenuAnchor<T>({
+  Widget _desktopSelectMenu<T>({
     Key? key,
     required List<T> options,
     required T? selectedValue,
-    required Widget Function(MenuController controller) fieldBuilder,
+    required Widget Function(VoidCallback toggle) fieldBuilder,
     required ValueChanged<T> onSelected,
     String Function(T value)? labelBuilder,
     Widget Function(T value)? leadingBuilder,
@@ -368,60 +363,22 @@ extension _AddBotDesktopForm on _AddBotPageState {
     bool constrainMenuWidth = false,
   }) {
     assert(!alignEnd || menuWidth != null);
-    final tokens = StarsDesktopTokens.of(context);
-    return MenuAnchor(
+    return StarsDesktopMenu<T>(
       key: key,
-      crossAxisUnconstrained: !constrainMenuWidth,
-      alignmentOffset: Offset(
-        alignEnd ? _AddBotPageState._desktopDropdownButtonSize - menuWidth! : 0,
-        4,
-      ),
-      style: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(tokens.raisedSurface),
-        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-        shadowColor: WidgetStatePropertyAll(
-          Colors.black.withValues(alpha: tokens.highContrast ? 0 : 0.18),
-        ),
-        elevation: WidgetStatePropertyAll(tokens.highContrast ? 0 : 6),
-        minimumSize:
-            menuWidth == null
-                ? null
-                : WidgetStatePropertyAll(Size(menuWidth, 0)),
-        maximumSize: WidgetStatePropertyAll(Size(menuWidth ?? 420, 360)),
-        side: WidgetStatePropertyAll(
-          BorderSide(color: tokens.separator, width: 0),
-        ),
-        shape: const WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: DesktopThemeTokens.containerRadius,
-          ),
-        ),
-      ),
-      menuChildren: [
+      width: menuWidth ?? (constrainMenuWidth ? 420 : 220),
+      alignEnd: alignEnd,
+      items: [
         for (final option in options)
-          MenuItemButton(
-            leadingIcon: leadingBuilder?.call(option),
-            trailingIcon:
-                option == selectedValue
-                    ? Icon(Icons.check_rounded, size: 16, color: tokens.accent)
-                    : const SizedBox.square(dimension: 16),
-            onPressed: () => onSelected(option),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 180),
-              child: Text(
-                labelBuilder?.call(option) ?? option.toString(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+          StarsDesktopMenuItem<T>(
+            value: option,
+            label: labelBuilder?.call(option) ?? option.toString(),
+            leading: leadingBuilder?.call(option),
+            selected: option == selectedValue,
           ),
       ],
-      builder: (context, controller, child) => fieldBuilder(controller),
+      onSelected: onSelected,
+      triggerBuilder: (context, toggle, isOpen) => fieldBuilder(toggle),
     );
-  }
-
-  void _toggleMenu(MenuController controller) {
-    controller.isOpen ? controller.close() : controller.open();
   }
 
   Widget _buildDesktopNameInput() {
@@ -429,10 +386,11 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-name'),
       id: 'name',
       controller: nameController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).botName),
       placeholder: Text(S.of(context).enterBotName),
-      leading: _desktopInputLeading(Icons.auto_awesome_outlined),
+      leading: _desktopInputLeading(LucideIcons.sparkles),
       constraints: _AddBotPageState._desktopInputConstraints,
       validator:
           (value) =>
@@ -445,13 +403,14 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-provider'),
       id: 'provider',
       controller: providerController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).provider),
       placeholder: Text(S.of(context).selectProvider),
-      leading: _desktopInputLeading(Icons.business_outlined),
+      leading: _desktopInputLeading(LucideIcons.building2),
       constraints: _AddBotPageState._desktopInputConstraints,
       onChanged: _handleProviderTextChanged,
-      trailing: _desktopMenuAnchor(
+      trailing: _desktopSelectMenu(
         options: providersInfo.keys.toList(growable: false),
         selectedValue: providerController.text,
         onSelected: _onProviderChanged,
@@ -460,10 +419,10 @@ extension _AddBotDesktopForm on _AddBotPageState {
         leadingBuilder:
             (provider) => buildProviderLogo(context, '', provider, 18),
         fieldBuilder:
-            (menuController) => _desktopIconButton(
+            (toggleMenu) => _desktopIconButton(
               tooltip: S.of(context).selectProvider,
-              icon: Icons.expand_more_rounded,
-              onPressed: () => _toggleMenu(menuController),
+              icon: LucideIcons.chevronDown,
+              onPressed: toggleMenu,
             ),
       ),
     );
@@ -473,54 +432,55 @@ extension _AddBotDesktopForm on _AddBotPageState {
     final subProviders =
         providersInfo[providerController.text]?['sub_providers']
             as Map<String, Map>;
-    return _desktopMenuAnchor(
+    return _desktopSelectMenu(
       options: subProviders.keys.toList(growable: false),
       selectedValue: subProviderController.text,
       onSelected: _onSubProviderChanged,
       leadingBuilder:
           (provider) => buildProviderLogo(context, '', provider, 18),
       fieldBuilder:
-          (menuController) => ShadInputFormField(
+          (toggleMenu) => ShadInputFormField(
             key: const ValueKey<String>('add-bot-sub-provider'),
             id: 'subProvider',
             controller: subProviderController,
+            padding: StarsDesktopThemeSpec.formFieldPadding,
             textInputAction: TextInputAction.next,
             label: Text('${S.of(context).provider} (HuggingFace)'),
             placeholder: Text(S.of(context).selectProvider),
-            leading: _desktopInputLeading(Icons.hub_outlined),
+            leading: _desktopInputLeading(LucideIcons.server),
             constraints: _AddBotPageState._desktopInputConstraints,
             onChanged: _handleSubProviderTextChanged,
             trailing: _desktopIconButton(
               tooltip: S.of(context).selectProvider,
-              icon: Icons.expand_more_rounded,
-              onPressed: () => _toggleMenu(menuController),
+              icon: LucideIcons.chevronDown,
+              onPressed: toggleMenu,
             ),
           ),
     );
   }
 
   Widget _buildDesktopApiTypeSelector() {
-    return _desktopMenuAnchor(
+    return _desktopSelectMenu(
       options: Bot.getAllApiTypes(),
       selectedValue: apiTypeController.text,
       onSelected: (value) {
         setState(() => apiTypeController.text = value);
       },
       fieldBuilder:
-          (menuController) => ShadInputFormField(
+          (toggleMenu) => ShadInputFormField(
             key: const ValueKey<String>('add-bot-api-type'),
             id: 'apiType',
             controller: apiTypeController,
+            padding: StarsDesktopThemeSpec.formFieldPadding,
             enabled: _isCustomProvider,
             textInputAction: TextInputAction.next,
             label: Text(S.of(context).apiType),
-            leading: _desktopInputLeading(Icons.category_outlined),
+            leading: _desktopInputLeading(LucideIcons.tags),
             constraints: _AddBotPageState._desktopInputConstraints,
             trailing: _desktopIconButton(
               tooltip: S.of(context).apiType,
-              icon: Icons.expand_more_rounded,
-              onPressed:
-                  _isCustomProvider ? () => _toggleMenu(menuController) : null,
+              icon: LucideIcons.chevronDown,
+              onPressed: _isCustomProvider ? toggleMenu : null,
             ),
           ),
     );
@@ -531,9 +491,10 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-base-url'),
       id: 'baseUrl',
       controller: baseURLController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).apiAddress),
-      leading: _desktopInputLeading(Icons.link_rounded),
+      leading: _desktopInputLeading(LucideIcons.link),
       constraints: _AddBotPageState._desktopInputConstraints,
       validator:
           (value) =>
@@ -546,10 +507,11 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-api-key'),
       id: 'apiKey',
       controller: apiKeyController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       obscureText: !_isPasswordVisible,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).apiKey),
-      leading: _desktopInputLeading(Icons.key_outlined),
+      leading: _desktopInputLeading(LucideIcons.keyRound),
       constraints: _AddBotPageState._desktopInputConstraints,
       validator:
           (value) =>
@@ -559,7 +521,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
             _isPasswordVisible
                 ? S.of(context).hideApiKey
                 : S.of(context).showApiKey,
-        icon: _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+        icon: _isPasswordVisible ? LucideIcons.eyeOff : LucideIcons.eye,
         onPressed: () {
           setState(() {
             _isPasswordVisible = !_isPasswordVisible;
@@ -574,10 +536,11 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-model'),
       id: 'model',
       controller: selectedModelController,
+      padding: StarsDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).model),
       placeholder: Text(S.of(context).selectModel),
-      leading: _desktopInputLeading(Icons.memory_outlined),
+      leading: _desktopInputLeading(LucideIcons.cpu),
       constraints: _AddBotPageState._desktopInputConstraints,
       trailing:
           providerModels.isEmpty
@@ -593,10 +556,10 @@ extension _AddBotDesktopForm on _AddBotPageState {
                   )
                   : _desktopIconButton(
                     tooltip: S.of(context).fetchModelList,
-                    icon: Icons.refresh_rounded,
+                    icon: LucideIcons.refreshCw,
                     onPressed: _fetchModels,
                   )
-              : _desktopMenuAnchor<AiModelInfo>(
+              : _desktopSelectMenu<AiModelInfo>(
                 key: const ValueKey<String>('add-bot-model-menu'),
                 options: providerModels,
                 selectedValue: _modelInfoById(selectedModelController.text),
@@ -608,10 +571,10 @@ extension _AddBotDesktopForm on _AddBotPageState {
                   setState(() => selectedModelController.text = value.modelId);
                 },
                 fieldBuilder:
-                    (menuController) => _desktopIconButton(
+                    (toggleMenu) => _desktopIconButton(
                       tooltip: S.of(context).selectModel,
-                      icon: Icons.expand_more_rounded,
-                      onPressed: () => _toggleMenu(menuController),
+                      icon: LucideIcons.chevronDown,
+                      onPressed: toggleMenu,
                     ),
               ),
     );
@@ -623,7 +586,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       id: 'systemPrompt',
       controller: systemPromptController,
       label: Text(S.of(context).systemPrompt),
-      leading: const Icon(Icons.notes_rounded, size: 17),
+      leading: const Icon(LucideIcons.notebookText, size: 17),
       minHeight: 96,
       maxHeight: 96,
       resizable: false,

@@ -77,7 +77,7 @@ class _ServerCardState extends State<_ServerCard> {
         title: Text(
           server.name,
           key: ValueKey<String>('mobile-mcp-server-title-${server.id}'),
-          style: DesktopThemeTokens.pageTitleStyle(context),
+          style: StarsDesktopThemeSpec.pageTitleStyle(context),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

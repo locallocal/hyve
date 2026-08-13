@@ -38,13 +38,16 @@ class _ChatListItemState extends State<ChatListItem> {
   @override
   Widget build(BuildContext context) {
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16;
-    final selectedTextColor = widget.isSelected ? Colors.white : null;
-    final titleStyle = DesktopThemeTokens.bodyStyle(context)?.copyWith(
+    final selectedTextColor =
+        widget.isSelected
+            ? ShadTheme.of(context).colorScheme.primaryForeground
+            : null;
+    final titleStyle = StarsDesktopThemeSpec.bodyStyle(context)?.copyWith(
       fontWeight: FontWeight.w600,
       fontSize: (fontSize - 2).clamp(13, 14),
       color: selectedTextColor,
     );
-    final metaStyle = DesktopThemeTokens.metaStyle(context)?.copyWith(
+    final metaStyle = StarsDesktopThemeSpec.metaStyle(context)?.copyWith(
       fontSize: (fontSize - 3).clamp(12, 13),
       color: selectedTextColor,
     );
@@ -114,8 +117,10 @@ class _ChatListItemState extends State<ChatListItem> {
                   style: metaStyle?.copyWith(
                     color:
                         widget.isSelected
-                            ? Colors.white
-                            : DesktopThemeTokens.mutedText(context),
+                            ? ShadTheme.of(
+                              context,
+                            ).colorScheme.primaryForeground
+                            : StarsDesktopThemeSpec.mutedText(context),
                   ),
                 ),
               ],

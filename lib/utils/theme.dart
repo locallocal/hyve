@@ -6,9 +6,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 ///
 /// The fallback palette mirrors the shadcn Zinc scheme. Keeping these semantic
 /// names lets legacy Material-only widgets share the same desktop appearance.
-part 'theme_legacy_tokens.dart';
+part 'desktop_theme_spec.dart';
 part 'theme_components.dart';
-part 'theme_facade.dart';
 
 @immutable
 class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
@@ -30,6 +29,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     required this.success,
     required this.warning,
     required this.danger,
+    required this.scrim,
     required this.reduceTransparency,
     required this.highContrast,
   });
@@ -59,6 +59,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
       success: const Color(0xFF16A34A),
       warning: const Color(0xFFD97706),
       danger: const Color(0xFFEF4444),
+      scrim: const Color(0xFF000000),
       reduceTransparency: reduceTransparency,
       highContrast: highContrast,
     );
@@ -89,6 +90,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
       success: const Color(0xFF22C55E),
       warning: const Color(0xFFF59E0B),
       danger: const Color(0xFFEF4444),
+      scrim: const Color(0xFF000000),
       reduceTransparency: reduceTransparency,
       highContrast: highContrast,
     );
@@ -111,6 +113,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
   final Color success;
   final Color warning;
   final Color danger;
+  final Color scrim;
   final bool reduceTransparency;
   final bool highContrast;
 
@@ -172,6 +175,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
       success: isDark ? const Color(0xFF22C55E) : const Color(0xFF16A34A),
       warning: isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706),
       danger: colors.destructive,
+      scrim: const Color(0xFF000000),
       reduceTransparency: reduceTransparency,
       highContrast: highContrast,
     );
@@ -197,6 +201,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     Color? success,
     Color? warning,
     Color? danger,
+    Color? scrim,
     bool? reduceTransparency,
     bool? highContrast,
   }) {
@@ -218,6 +223,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
       success: success ?? this.success,
       warning: warning ?? this.warning,
       danger: danger ?? this.danger,
+      scrim: scrim ?? this.scrim,
       reduceTransparency: reduceTransparency ?? this.reduceTransparency,
       highContrast: highContrast ?? this.highContrast,
     );
@@ -248,6 +254,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       danger: Color.lerp(danger, other.danger, t)!,
+      scrim: Color.lerp(scrim, other.scrim, t)!,
       reduceTransparency:
           t < 0.5 ? reduceTransparency : other.reduceTransparency,
       highContrast: t < 0.5 ? highContrast : other.highContrast,
@@ -372,6 +379,7 @@ ThemeData buildLegacyMobileTheme({
             success: const Color(0xFF30D158),
             warning: const Color(0xFFFF9F0A),
             danger: const Color(0xFFFF453A),
+            scrim: const Color(0xFF000000),
             reduceTransparency: reduceTransparency,
             highContrast: highContrast,
           )
@@ -399,6 +407,7 @@ ThemeData buildLegacyMobileTheme({
             success: const Color(0xFF248A3D),
             warning: const Color(0xFFC93400),
             danger: const Color(0xFFD70015),
+            scrim: const Color(0xFF000000),
             reduceTransparency: reduceTransparency,
             highContrast: highContrast,
           );
@@ -498,7 +507,10 @@ ThemeData buildLegacyMobileTheme({
         color: tokens.raisedSurface,
         border: Border.all(color: tokens.separator, width: 0),
         borderRadius: containerRadius,
-        boxShadow: DesktopThemeTokens.floatingShadowFor(tokens, subtle: true),
+        boxShadow: StarsDesktopThemeSpec.floatingShadowFor(
+          tokens,
+          subtle: true,
+        ),
       ),
       textStyle: TextStyle(color: tokens.primaryText, fontSize: 12),
       waitDuration: const Duration(milliseconds: 450),
@@ -627,15 +639,15 @@ ThemeData buildAppTheme({
       isDense: true,
       hintStyle: TextStyle(color: tokens.tertiaryText),
       border: OutlineInputBorder(
-        borderRadius: DesktopThemeTokens.controlRadius,
+        borderRadius: StarsDesktopThemeSpec.controlRadius,
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: DesktopThemeTokens.controlRadius,
+        borderRadius: StarsDesktopThemeSpec.controlRadius,
         borderSide: BorderSide(color: tokens.separator),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: DesktopThemeTokens.controlRadius,
+        borderRadius: StarsDesktopThemeSpec.controlRadius,
         borderSide: BorderSide(
           color: tokens.focusRing,
           width: highContrast ? 2 : 1.5,
@@ -657,7 +669,7 @@ ThemeData buildAppTheme({
         }),
         shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            borderRadius: DesktopThemeTokens.controlRadius,
+            borderRadius: StarsDesktopThemeSpec.controlRadius,
           ),
         ),
       ),
@@ -666,8 +678,11 @@ ThemeData buildAppTheme({
       decoration: BoxDecoration(
         color: tokens.raisedSurface,
         border: Border.all(color: tokens.separator),
-        borderRadius: DesktopThemeTokens.containerRadius,
-        boxShadow: DesktopThemeTokens.floatingShadowFor(tokens, subtle: true),
+        borderRadius: StarsDesktopThemeSpec.containerRadius,
+        boxShadow: StarsDesktopThemeSpec.floatingShadowFor(
+          tokens,
+          subtle: true,
+        ),
       ),
       textStyle: TextStyle(color: tokens.primaryText, fontSize: 12),
       waitDuration: const Duration(milliseconds: 450),
@@ -684,8 +699,3 @@ const List<String> _desktopFontFallback = [
   'Ubuntu',
   'sans-serif',
 ];
-
-/// Compatibility facade for existing desktop widgets.
-///
-/// New widgets should read [StarsDesktopTokens] directly. Keeping this API
-/// avoids a flag-day migration while the desktop shell is rebuilt.

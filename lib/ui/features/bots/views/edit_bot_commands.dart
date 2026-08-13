@@ -106,26 +106,26 @@ extension _EditBotCommands on _EditAIBotPageState {
     final displayValue = value.trim().isEmpty ? '—' : value;
     final labelStyle =
         widget.embedded
-            ? DesktopThemeTokens.bodyStyle(context)
+            ? StarsDesktopThemeSpec.bodyStyle(context)
             : materialTheme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w500,
             );
     final valueStyle =
         widget.embedded
-            ? DesktopThemeTokens.metaStyle(context)
+            ? StarsDesktopThemeSpec.metaStyle(context)
             : materialTheme.textTheme.bodySmall?.copyWith(
               color: materialTheme.colorScheme.onSurfaceVariant,
             );
     final iconColor =
         widget.embedded
-            ? DesktopThemeTokens.mutedText(context)
+            ? StarsDesktopThemeSpec.mutedText(context)
             : materialTheme.colorScheme.primary;
 
     final leading = SizedBox(
-      width: DesktopThemeTokens.settingsRowIconSlotWidth,
+      width: StarsDesktopThemeSpec.settingsRowIconSlotWidth,
       child: Icon(
         icon,
-        size: widget.embedded ? DesktopThemeTokens.settingsRowIconSize : 20,
+        size: widget.embedded ? StarsDesktopThemeSpec.settingsRowIconSize : 20,
         color: iconColor,
       ),
     );
@@ -139,7 +139,7 @@ extension _EditBotCommands on _EditAIBotPageState {
             return Padding(
               padding:
                   useSettingsRowLayout
-                      ? DesktopThemeTokens.settingsRowPadding
+                      ? StarsDesktopThemeSpec.settingsRowPadding
                       : EdgeInsets.symmetric(
                         horizontal: widget.embedded ? 8 : 0,
                         vertical: 8,
@@ -148,7 +148,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                 constraints: BoxConstraints(
                   minHeight:
                       useSettingsRowLayout
-                          ? DesktopThemeTokens.settingsRowMinHeight
+                          ? StarsDesktopThemeSpec.settingsRowMinHeight
                           : 0,
                 ),
                 child: Row(
@@ -158,7 +158,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                     SizedBox(
                       width:
                           widget.embedded
-                              ? DesktopThemeTokens.settingsRowIconGap
+                              ? StarsDesktopThemeSpec.settingsRowIconGap
                               : 16,
                     ),
                     Expanded(
@@ -195,24 +195,25 @@ extension _EditBotCommands on _EditAIBotPageState {
           }
           if (useSettingsRowLayout) {
             return Padding(
-              padding: DesktopThemeTokens.settingsRowPadding,
+              padding: StarsDesktopThemeSpec.settingsRowPadding,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
-                  minHeight: DesktopThemeTokens.settingsRowMinHeight,
+                  minHeight: StarsDesktopThemeSpec.settingsRowMinHeight,
                 ),
                 child: Row(
                   children: [
                     leading,
                     const SizedBox(
-                      width: DesktopThemeTokens.settingsRowIconGap,
+                      width: StarsDesktopThemeSpec.settingsRowIconGap,
                     ),
                     Expanded(child: Text(label, style: labelStyle)),
                     const SizedBox(
-                      width: DesktopThemeTokens.settingsRowValueGap,
+                      width: StarsDesktopThemeSpec.settingsRowValueGap,
                     ),
                     ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth: DesktopThemeTokens.settingsRowValueMaxWidth,
+                        maxWidth:
+                            StarsDesktopThemeSpec.settingsRowValueMaxWidth,
                       ),
                       child:
                           valueWidget ??
@@ -243,7 +244,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                 SizedBox(
                   width:
                       widget.embedded
-                          ? DesktopThemeTokens.settingsRowIconGap
+                          ? StarsDesktopThemeSpec.settingsRowIconGap
                           : 16,
                 ),
                 Expanded(
@@ -334,17 +335,12 @@ extension _EditBotCommands on _EditAIBotPageState {
     required VoidCallback onPressed,
   }) {
     if (widget.embedded) {
-      return ShadTooltip(
-        builder: (context) => Text(tooltip),
-        child: ShadIconButton.ghost(
-          key: key,
-          onPressed: onPressed,
-          icon: Icon(icon),
-          iconSize: 16,
-          width: 28,
-          height: 28,
-          padding: EdgeInsets.zero,
-        ),
+      return StarsDesktopIconAction(
+        key: key,
+        icon: icon,
+        label: tooltip,
+        onPressed: onPressed,
+        iconSize: 16,
       );
     }
     return IconButton(
@@ -377,10 +373,11 @@ extension _EditBotCommands on _EditAIBotPageState {
           child: ShadInput(
             key: key,
             controller: controller,
+            padding: StarsDesktopThemeSpec.formFieldPadding,
             placeholder: placeholder == null ? null : Text(placeholder),
             leading: SizedBox(
               width: 17,
-              height: 30,
+              height: 44,
               child: Center(child: Icon(icon, size: 17)),
             ),
             trailing: trailing,
@@ -390,7 +387,7 @@ extension _EditBotCommands on _EditAIBotPageState {
             placeholderAlignment: Alignment.centerLeft,
             crossAxisAlignment: CrossAxisAlignment.center,
             constraints: const BoxConstraints(
-              minHeight: DesktopThemeTokens.botFormFieldHeight,
+              minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
             ),
             textInputAction: TextInputAction.next,
             onChanged: onChanged,
@@ -435,17 +432,12 @@ extension _EditBotCommands on _EditAIBotPageState {
     required IconData icon,
     required VoidCallback? onPressed,
   }) {
-    return ShadTooltip(
-      builder: (context) => Text(tooltip),
-      child: ShadIconButton.ghost(
-        enabled: onPressed != null,
-        onPressed: onPressed,
-        icon: Icon(icon),
-        iconSize: 16,
-        width: 28,
-        height: 28,
-        padding: EdgeInsets.zero,
-      ),
+    return StarsDesktopIconAction(
+      icon: icon,
+      label: tooltip,
+      enabled: onPressed != null,
+      onPressed: onPressed,
+      iconSize: 16,
     );
   }
 
@@ -572,17 +564,13 @@ extension _EditBotCommands on _EditAIBotPageState {
     }
 
     if (widget.embedded) {
-      return ShadTooltip(
-        builder: (context) => Text(S.of(context).deleteBot),
-        child: ShadIconButton.destructive(
-          enabled: !_isSaving && !_isDeleting,
-          width: 34,
-          height: 34,
-          padding: EdgeInsets.zero,
-          iconSize: 18,
-          icon: const Icon(Icons.delete_outline_rounded),
-          onPressed: _isSaving || _isDeleting ? null : deleteBot,
-        ),
+      return StarsDesktopIconAction(
+        icon: LucideIcons.trash2,
+        label: S.of(context).deleteBot,
+        variant: ShadButtonVariant.destructive,
+        enabled: !_isSaving && !_isDeleting,
+        iconSize: 18,
+        onPressed: _isSaving || _isDeleting ? null : deleteBot,
       );
     }
 

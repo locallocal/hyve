@@ -102,4 +102,122 @@ void main() {
       );
     }
   });
+
+  test('desktop views use the shared component and semantic token system', () {
+    final desktopFiles = Directory('lib/ui')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where(
+          (file) =>
+              file.path.endsWith('.dart') &&
+              (file.path.contains('/desktop_') ||
+                  file.path.endsWith('_desktop.dart') ||
+                  file.path.endsWith('_desktop_card.dart') ||
+                  file.path.endsWith('skill_library_cards.dart') ||
+                  file.path.endsWith('skill_library_details.dart')),
+        );
+    final rawProductColor = RegExp(r'Colors\.(?!transparent\b)');
+
+    for (final file in desktopFiles) {
+      final source = file.readAsStringSync();
+      expect(
+        source,
+        isNot(contains('MenuAnchor(')),
+        reason: '${file.path} bypasses StarsDesktopMenu/StarsContextMenu',
+      );
+      expect(
+        source,
+        isNot(contains('MenuItemButton(')),
+        reason: '${file.path} mixes Material menu items into desktop UI',
+      );
+      expect(
+        RegExp(r'(?<!Lucide)Icons\.').hasMatch(source),
+        isFalse,
+        reason: '${file.path} mixes Material icons into desktop UI',
+      );
+      expect(
+        source,
+        isNot(matches(rawProductColor)),
+        reason: '${file.path} defines a product color outside desktop tokens',
+      );
+      expect(
+        source,
+        isNot(contains('BorderRadius.circular(')),
+        reason: '${file.path} defines a radius outside the desktop spec',
+      );
+    }
+  });
+
+  test('desktop icon actions and notices have one implementation', () {
+    const directShadIconButtonAllowlist = <String>{
+      'lib/ui/core/widgets/desktop_chat_primitives.dart',
+      'lib/ui/features/app/views/desktop_layout_toolbar.dart',
+      'lib/ui/features/chat/views/audio_player_widget.dart',
+    };
+    final uiFiles = Directory('lib/ui')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+
+    for (final file in uiFiles) {
+      final source = file.readAsStringSync();
+      if (!directShadIconButtonAllowlist.contains(file.path)) {
+        expect(
+          source,
+          isNot(contains('ShadIconButton.')),
+          reason: '${file.path} bypasses the 44px StarsDesktopIconAction',
+        );
+      }
+      if (!file.path.endsWith('lib/ui/core/widgets/common.dart')) {
+        expect(
+          source,
+          isNot(anyOf(contains('ShadSonner.'), contains('ScaffoldMessenger.'))),
+          reason: '${file.path} bypasses showStarsNotice',
+        );
+      }
+    }
+  });
+
+  test('legacy desktop theme and platform aliases stay removed', () {
+    final production = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+
+    for (final file in production) {
+      final source = file.readAsStringSync();
+      expect(source, isNot(contains('DesktopThemeTokens')));
+      expect(source, isNot(contains('StarsDesktopTheme.')));
+      expect(source, isNot(contains('isDesktopOrTabletPlatform')));
+    }
+  });
+
+  test('desktop visual and integration regression matrix stays complete', () {
+    const appearances = {'light', 'dark', 'high_contrast'};
+    const locales = {'zh_CN', 'en'};
+    const widths = {1024, 1280, 1600};
+    final goldenDirectory = Directory('test/ui/goldens/desktop_visual_matrix');
+    final expected = {
+      for (final appearance in appearances)
+        for (final locale in locales)
+          for (final width in widths) '${appearance}_${locale}_$width.png',
+    };
+    final actual =
+        goldenDirectory
+            .listSync()
+            .whereType<File>()
+            .map((file) => file.uri.pathSegments.last)
+            .toSet();
+
+    expect(actual, expected);
+    expect(
+      File('test/ui/desktop_visual_regression_test.dart').existsSync(),
+      isTrue,
+    );
+    expect(
+      File('integration_test/desktop_workflow_test.dart').existsSync(),
+      isTrue,
+    );
+    expect(File('test_driver/integration_test.dart').existsSync(), isTrue);
+  });
 }

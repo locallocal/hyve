@@ -84,7 +84,7 @@ extension _ChatPageDraftAndMedia on ChatPageState {
   }) async {
     final prompt = _messageController.text.trim();
     if (prompt.isEmpty) {
-      showSnackBar(context, emptyPromptMessage);
+      showStarsNotice(context, emptyPromptMessage);
       return;
     }
     final originalImages = List<File>.of(_selectedImages);

@@ -323,7 +323,7 @@ void main() {
       expect(tester.getSize(compactCard), tester.getSize(detailedCard));
       expect(
         tester.getSize(compactCard).height,
-        DesktopThemeTokens.managementCardHeight,
+        StarsDesktopThemeSpec.managementCardHeight,
       );
       expect(tester.takeException(), isNull);
     } finally {

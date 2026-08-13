@@ -281,7 +281,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
               ? const ValueKey<String>('desktop-bot-detail-scaffold')
               : null,
       backgroundColor:
-          widget.embedded ? DesktopThemeTokens.workspaceSurface(context) : null,
+          widget.embedded
+              ? StarsDesktopThemeSpec.workspaceSurface(context)
+              : null,
       appBar:
           widget.embedded
               ? null
@@ -311,14 +313,14 @@ class _EditAIBotPageState extends State<EditBotPage> {
           constraints: BoxConstraints(
             maxWidth:
                 widget.embedded
-                    ? DesktopThemeTokens.formContentMaxWidth +
-                        DesktopThemeTokens.formPagePadding.horizontal
+                    ? StarsDesktopThemeSpec.formContentMaxWidth +
+                        StarsDesktopThemeSpec.formPagePadding.horizontal
                     : 800,
           ),
           child: SingleChildScrollView(
             padding:
                 widget.embedded
-                    ? DesktopThemeTokens.formPagePadding
+                    ? StarsDesktopThemeSpec.formPagePadding
                     : const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,14 +390,16 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           children: [
                             Text(
                               widget.bot.name,
-                              style: DesktopThemeTokens.pageTitleStyle(context),
+                              style: StarsDesktopThemeSpec.pageTitleStyle(
+                                context,
+                              ),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               '${widget.bot.provider} · ${widget.bot.model}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: DesktopThemeTokens.metaStyle(context),
+                              style: StarsDesktopThemeSpec.metaStyle(context),
                             ),
                           ],
                         ),
@@ -580,7 +584,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     key: const ValueKey<String>(
                       'desktop-bot-save-bar-background',
                     ),
-                    color: DesktopThemeTokens.workspaceSurface(context),
+                    color: StarsDesktopThemeSpec.workspaceSurface(context),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
                       child: Row(

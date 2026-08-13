@@ -79,7 +79,7 @@ class BotTokenUsagePanel extends StatelessWidget {
         ),
         const Divider(
           key: ValueKey<String>('bot-token-usage-timeline-divider'),
-          height: 33,
+          height: 32,
         ),
         TokenUsageTimelineSection(
           dailyBuckets: dailyBuckets,
@@ -155,9 +155,8 @@ class _ConversationTokenShare extends StatelessWidget {
                                   entry.usage.effectiveTotalTokens,
                               ],
                               colors: colors,
-                              separatorColor: DesktopThemeTokens.raisedSurface(
-                                context,
-                              ),
+                              separatorColor:
+                                  StarsDesktopThemeSpec.raisedSurface(context),
                             ),
                           ),
                         );
@@ -208,8 +207,8 @@ class _EmptyPieChart extends StatelessWidget {
           child: CustomPaint(
             key: const ValueKey<String>('bot-conversation-token-pie-empty'),
             painter: _EmptyPiePainter(
-              color: DesktopThemeTokens.secondarySurface(context),
-              separatorColor: DesktopThemeTokens.divider(context),
+              color: StarsDesktopThemeSpec.secondarySurface(context),
+              separatorColor: StarsDesktopThemeSpec.divider(context),
             ),
           ),
         ),
@@ -217,7 +216,7 @@ class _EmptyPieChart extends StatelessWidget {
         Expanded(
           child: Text(
             S.of(context).noTokenUsageRecorded,
-            style: DesktopThemeTokens.metaStyle(context),
+            style: StarsDesktopThemeSpec.metaStyle(context),
           ),
         ),
       ],
@@ -274,13 +273,13 @@ class _ConversationTokenLegend extends StatelessWidget {
                       labels[index],
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: DesktopThemeTokens.bodyStyle(context),
+                      style: StarsDesktopThemeSpec.bodyStyle(context),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     _formatPercentage(context, entries[index], total),
-                    style: DesktopThemeTokens.metaStyle(context),
+                    style: StarsDesktopThemeSpec.metaStyle(context),
                   ),
                 ],
               ),

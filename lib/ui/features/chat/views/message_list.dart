@@ -251,7 +251,7 @@ class _MessageListState extends State<MessageList> {
     bool isCurrentUser = false,
   }) {
     final viewportMaxWidth =
-        isDesktop ? StarsDesktopTheme.contentMaxWidth : double.infinity;
+        isDesktop ? StarsDesktopThemeSpec.contentMaxWidth : double.infinity;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: isDesktop ? 10 : 4),
@@ -270,8 +270,8 @@ class _MessageListState extends State<MessageList> {
                 maxWidth:
                     isDesktop
                         ? (isCurrentUser
-                            ? StarsDesktopTheme.messageBubbleMaxWidth
-                            : StarsDesktopTheme.contentMaxWidth)
+                            ? StarsDesktopThemeSpec.messageBubbleMaxWidth
+                            : StarsDesktopThemeSpec.contentMaxWidth)
                         : MediaQuery.of(context).size.width * 0.8,
               ),
               child: bubble,

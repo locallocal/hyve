@@ -134,7 +134,7 @@ class _CompactModalityGroup extends StatelessWidget {
             child: Icon(
               icon,
               size: 14,
-              color: DesktopThemeTokens.mutedText(context),
+              color: StarsDesktopThemeSpec.mutedText(context),
             ),
           ),
           const SizedBox(width: 6),
@@ -142,7 +142,7 @@ class _CompactModalityGroup extends StatelessWidget {
             key: ValueKey<String>('$keyPrefix-separator'),
             width: 1,
             height: 14,
-            color: DesktopThemeTokens.divider(context),
+            color: StarsDesktopThemeSpec.divider(context),
           ),
           const SizedBox(width: 6),
           Flexible(child: valueIcons),
@@ -263,7 +263,7 @@ class _ModalityIcons extends StatelessWidget {
               child: Icon(
                 item.icon,
                 size: iconSize,
-                color: DesktopThemeTokens.mutedText(context),
+                color: StarsDesktopThemeSpec.mutedText(context),
               ),
             ),
           ),

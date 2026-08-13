@@ -39,7 +39,7 @@ class ChatListBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = isDesktopOrTabletPlatform(context);
+    final isDesktop = isDesktopPlatform(context);
     return ListView.separated(
       padding: EdgeInsets.only(bottom: isDesktop ? 8 : 0),
       itemCount: chatList.length,
@@ -65,11 +65,11 @@ class ChatListBuilder extends StatelessWidget {
             );
         void openChat({bool refreshAfterClose = false}) {
           if (isOrphaned) {
-            ShadSonner.of(context).show(
-              ShadToast.destructive(
-                title: Text(S.of(context).botUnavailableTitle),
-                description: Text(S.of(context).orphanedChatGuidance),
-              ),
+            showStarsNotice(
+              context,
+              S.of(context).botUnavailableTitle,
+              description: S.of(context).orphanedChatGuidance,
+              tone: StarsNoticeTone.error,
             );
             return;
           }
@@ -160,7 +160,7 @@ class ChatListBuilder extends StatelessWidget {
                               child: Text(
                                 S.of(dialogContext).delete,
                                 style: TextStyle(
-                                  color: DesktopThemeTokens.error(
+                                  color: StarsDesktopThemeSpec.error(
                                     dialogContext,
                                   ),
                                 ),
@@ -173,11 +173,11 @@ class ChatListBuilder extends StatelessWidget {
           if (confirm != true || !context.mounted) return;
           if (isDesktop && registry.hasBlockingRun(chat.id)) {
             if (!registry.supportsCancellationForRun(chat.id)) {
-              ShadSonner.of(context).show(
-                ShadToast.destructive(
-                  title: Text(S.of(context).activeRequestCannotStop),
-                  description: Text(S.of(context).waitForGenerationToFinish),
-                ),
+              showStarsNotice(
+                context,
+                S.of(context).activeRequestCannotStop,
+                description: S.of(context).waitForGenerationToFinish,
+                tone: StarsNoticeTone.error,
               );
               return;
             }
@@ -188,11 +188,11 @@ class ChatListBuilder extends StatelessWidget {
             final stopped = await registry.stopForNavigation(chat.id);
             if (!stopped || !context.mounted) {
               if (context.mounted) {
-                ShadSonner.of(context).show(
-                  ShadToast.destructive(
-                    title: Text(S.of(context).activeRequestCannotStop),
-                    description: Text(S.of(context).waitForGenerationToFinish),
-                  ),
+                showStarsNotice(
+                  context,
+                  S.of(context).activeRequestCannotStop,
+                  description: S.of(context).waitForGenerationToFinish,
+                  tone: StarsNoticeTone.error,
                 );
               }
               return;
@@ -203,11 +203,11 @@ class ChatListBuilder extends StatelessWidget {
             final canDelete = await registry.stopForNavigation(chat.id);
             if (!canDelete || !context.mounted) {
               if (context.mounted) {
-                ShadSonner.of(context).show(
-                  ShadToast.destructive(
-                    title: Text(S.of(context).activeRequestCannotStop),
-                    description: Text(S.of(context).waitForGenerationToFinish),
-                  ),
+                showStarsNotice(
+                  context,
+                  S.of(context).activeRequestCannotStop,
+                  description: S.of(context).waitForGenerationToFinish,
+                  tone: StarsNoticeTone.error,
                 );
               }
               return;
@@ -219,21 +219,13 @@ class ChatListBuilder extends StatelessWidget {
             final message = S
                 .of(context)
                 .deleteChatFailed(safeFailureMessage(context, error));
-            if (isDesktop) {
-              ShadSonner.of(context).show(
-                ShadToast.destructive(
-                  title: Text(message),
-                  action: ShadButton.outline(
-                    size: ShadButtonSize.sm,
-                    onPressed: () => deleteChat(),
-                    leading: const Icon(LucideIcons.refreshCw, size: 16),
-                    child: Text(S.of(context).retry),
-                  ),
-                ),
-              );
-            } else {
-              showSnackBar(context, message);
-            }
+            showStarsNotice(
+              context,
+              message,
+              tone: StarsNoticeTone.error,
+              actionLabel: S.of(context).retry,
+              onAction: deleteChat,
+            );
             return;
           }
 

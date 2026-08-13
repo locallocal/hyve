@@ -72,11 +72,6 @@ bool isDesktopPlatform(BuildContext context) {
       platform == TargetPlatform.linux;
 }
 
-bool isDesktopOrTabletPlatform(BuildContext context) {
-  // 兼容既有调用方，但桌面工作台样式现在只对 Windows/Linux/macOS 生效。
-  return isDesktopPlatform(context);
-}
-
 /// Uses conversation terminology for Chinese copy in the desktop workspace.
 ///
 /// Mobile keeps its existing chat terminology, while non-Chinese locales are

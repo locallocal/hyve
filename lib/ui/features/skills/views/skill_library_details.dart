@@ -32,7 +32,9 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
       title: Text(
         skill.name,
         key: ValueKey<String>('skill-details-title-${skill.id}'),
-        style: const TextStyle(fontSize: DesktopThemeTokens.pageTitleFontSize),
+        style: const TextStyle(
+          fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+        ),
       ),
       description: Text(skill.description),
       constraints: const BoxConstraints(maxWidth: 720),
@@ -108,12 +110,10 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
                               }
                             } catch (error) {
                               if (mounted) {
-                                ShadSonner.of(this.context).show(
-                                  ShadToast(
-                                    title: Text(
-                                      safeFailureMessage(this.context, error),
-                                    ),
-                                  ),
+                                showStarsNotice(
+                                  this.context,
+                                  safeFailureMessage(this.context, error),
+                                  tone: StarsNoticeTone.error,
                                 );
                               }
                             }
@@ -235,17 +235,12 @@ class _SkillStorageLocationDetail extends StatelessWidget {
               children: [
                 Expanded(child: SelectableText(location)),
                 const SizedBox(width: 6),
-                IconButton(
+                StarsDesktopIconAction(
                   key: const ValueKey<String>('copy-skill-storage-location'),
-                  tooltip: S.of(context).copySkillStorageLocation,
+                  icon: LucideIcons.copy,
+                  label: S.of(context).copySkillStorageLocation,
                   onPressed: onCopy,
-                  icon: const Icon(Icons.copy_rounded, size: 18),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(
-                    width: 32,
-                    height: 32,
-                  ),
+                  iconSize: 18,
                 ),
               ],
             ),
@@ -292,7 +287,7 @@ class _SkillFilesDetail extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Icon(
-                                    Icons.insert_drive_file_outlined,
+                                    LucideIcons.file,
                                     size: 16,
                                     color: iconColor,
                                   ),

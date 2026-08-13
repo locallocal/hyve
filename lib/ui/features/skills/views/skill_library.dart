@@ -60,7 +60,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
-        return isDesktopOrTabletPlatform(context)
+        return isDesktopPlatform(context)
             ? _buildDesktop(context)
             : _buildMobile(context);
       },
@@ -70,14 +70,14 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   Widget _buildDesktop(BuildContext context) {
     final strings = S.of(context);
     return ColoredBox(
-      color: DesktopThemeTokens.workspaceSurface(context),
+      color: StarsDesktopThemeSpec.workspaceSurface(context),
       child: SingleChildScrollView(
         key: ValueKey<String>('skill-library-page-${viewModel.currentPage}'),
-        padding: DesktopThemeTokens.formPagePadding,
+        padding: StarsDesktopThemeSpec.formPagePadding,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: DesktopThemeTokens.formContentMaxWidth,
+              maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,15 +92,17 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                           Text(
                             strings.skillLibrary,
                             key: const ValueKey<String>('skill-library-title'),
-                            style: DesktopThemeTokens.pageTitleStyle(context),
+                            style: StarsDesktopThemeSpec.pageTitleStyle(
+                              context,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             strings.skillLibraryDescription,
-                            style: DesktopThemeTokens.bodyStyle(
+                            style: StarsDesktopThemeSpec.bodyStyle(
                               context,
                             )?.copyWith(
-                              color: DesktopThemeTokens.mutedText(context),
+                              color: StarsDesktopThemeSpec.mutedText(context),
                             ),
                           ),
                         ],
@@ -201,22 +203,13 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                         safeFailureMessage(context, viewModel.error!),
                       ),
                     ),
-                    trailing: ShadTooltip(
-                      builder:
-                          (context) => Text(
-                            MaterialLocalizations.of(
-                              context,
-                            ).closeButtonTooltip,
-                          ),
-                      child: ShadIconButton.ghost(
-                        key: const ValueKey<String>('close-skill-error'),
-                        onPressed: viewModel.clearError,
-                        width: 28,
-                        height: 28,
-                        padding: EdgeInsets.zero,
-                        iconSize: 16,
-                        icon: const Icon(LucideIcons.x),
-                      ),
+                    trailing: StarsDesktopIconAction(
+                      key: const ValueKey<String>('close-skill-error'),
+                      icon: LucideIcons.x,
+                      label:
+                          MaterialLocalizations.of(context).closeButtonTooltip,
+                      onPressed: viewModel.clearError,
+                      iconSize: 16,
                     ),
                   ),
                 ],
@@ -283,7 +276,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 crossAxisCount: columns,
                 crossAxisSpacing: gap,
                 mainAxisSpacing: gap,
-                mainAxisExtent: DesktopThemeTokens.managementCardHeight,
+                mainAxisExtent: StarsDesktopThemeSpec.managementCardHeight,
               ),
               itemCount: viewModel.paginatedSkills.length,
               itemBuilder: (context, index) {
@@ -383,7 +376,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
           strings.skillLibrary,
           key: const ValueKey<String>('skill-library-title'),
           style: const TextStyle(
-            fontSize: DesktopThemeTokens.pageTitleFontSize,
+            fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
           ),
         ),
         actions: [
@@ -485,7 +478,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                   title: Text(
                     skill.name,
                     style: const TextStyle(
-                      fontSize: DesktopThemeTokens.pageTitleFontSize,
+                      fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
                     ),
                   ),
                   subtitle: Text(
@@ -528,13 +521,12 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
       onChanged: viewModel.search,
       suffixIcon:
           hasQuery
-              ? IconButton(
+              ? StarsDesktopIconAction(
                 key: const ValueKey<String>('clear-skill-search'),
-                tooltip: strings.clearSearch,
+                icon: LucideIcons.x,
+                label: strings.clearSearch,
                 onPressed: _clearSearch,
-                icon: const Icon(LucideIcons.x, size: 16),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
+                iconSize: 16,
               )
               : null,
     );
@@ -647,7 +639,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     try {
       final content = await viewModel.loadContent(skill.id);
       if (!context.mounted) return;
-      if (isDesktopOrTabletPlatform(context)) {
+      if (isDesktopPlatform(context)) {
         await showShadDialog<void>(
           context: context,
           builder:
@@ -671,7 +663,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                   skill.name,
                   key: ValueKey<String>('skill-details-title-${skill.id}'),
                   style: const TextStyle(
-                    fontSize: DesktopThemeTokens.pageTitleFontSize,
+                    fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
                   ),
                 ),
                 content: SizedBox(
@@ -731,7 +723,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     if (skill.scope == SkillScope.bundled) return;
     final strings = S.of(context);
     final confirmed =
-        isDesktopOrTabletPlatform(context)
+        isDesktopPlatform(context)
             ? await showShadDialog<bool>(
               context: context,
               variant: ShadDialogVariant.alert,
@@ -782,12 +774,6 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   }
 
   void _showMessage(BuildContext context, String message) {
-    if (isDesktopOrTabletPlatform(context)) {
-      ShadSonner.of(context).show(ShadToast(title: Text(message)));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-    }
+    showStarsNotice(context, message, tone: StarsNoticeTone.error);
   }
 }

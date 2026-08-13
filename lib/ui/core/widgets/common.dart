@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/utils/utils.dart';
 
 /// Maps arbitrary failures to localized, product-safe copy. Raw exception
 /// strings remain available only through [AppFailure.debugCause].
@@ -22,39 +24,79 @@ String safeFailureMessage(BuildContext context, Object error) {
   };
 }
 
-/// Shows a floating informational message using the current Material shell.
-void showSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      duration: const Duration(seconds: 5),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(bottom: 80.0, left: 16.0, right: 16.0),
-    ),
-  );
-}
+enum StarsNoticeTone { info, success, warning, error }
 
-void showWarningSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            size: 24,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          SizedBox(width: 16),
-          Text(message),
-        ],
+/// The single transient-feedback entry point for every feature.
+///
+/// Desktop uses Shad Sonner. Mobile keeps a Material SnackBar because the
+/// mobile shell is Material-only. Feature code must not select a feedback
+/// implementation itself.
+void showStarsNotice(
+  BuildContext context,
+  String message, {
+  String? description,
+  StarsNoticeTone tone = StarsNoticeTone.info,
+  String? actionLabel,
+  VoidCallback? onAction,
+}) {
+  assert((actionLabel == null) == (onAction == null));
+  if (isDesktopPlatform(context)) {
+    final sonner = ShadSonner.maybeOf(context);
+    if (sonner != null) {
+      final action =
+          actionLabel == null
+              ? null
+              : ShadButton.outline(
+                size: ShadButtonSize.sm,
+                onPressed: onAction,
+                child: Text(actionLabel),
+              );
+      sonner.show(
+        tone == StarsNoticeTone.error
+            ? ShadToast.destructive(
+              title: Text(message),
+              description: description == null ? null : Text(description),
+              action: action,
+            )
+            : ShadToast(
+              title: Text(message),
+              description: description == null ? null : Text(description),
+              action: action,
+            ),
+      );
+      return;
+    }
+  }
+
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+  final colorScheme = Theme.of(context).colorScheme;
+  final foreground = switch (tone) {
+    StarsNoticeTone.warning || StarsNoticeTone.error => colorScheme.onError,
+    _ => colorScheme.onInverseSurface,
+  };
+  final background = switch (tone) {
+    StarsNoticeTone.warning || StarsNoticeTone.error => colorScheme.error,
+    _ => colorScheme.inverseSurface,
+  };
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          description == null ? message : '$message\n$description',
+          style: TextStyle(color: foreground),
+        ),
+        backgroundColor: background,
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+        action:
+            actionLabel == null
+                ? null
+                : SnackBarAction(label: actionLabel, onPressed: onAction!),
       ),
-      duration: const Duration(seconds: 5),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(bottom: 80.0, left: 16.0, right: 16.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
-      backgroundColor: Theme.of(context).colorScheme.onSurface,
-    ),
-  );
+    );
 }
 
 // 构建分组容器

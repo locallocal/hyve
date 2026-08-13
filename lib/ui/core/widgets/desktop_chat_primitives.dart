@@ -10,7 +10,7 @@ const double starsInspectorIconLabelGap = 9;
 const double _appIconCornerRadiusRatio = 0.24;
 
 BorderRadius desktopAppIconBorderRadius(double size) =>
-    BorderRadius.circular(size * _appIconCornerRadiusRatio);
+    BorderRadius.all(Radius.circular(size * _appIconCornerRadiusRatio));
 
 /// A compact, dismissible inline error shared by chat and form workflows.
 class StarsInlineErrorAlert extends StatelessWidget {
@@ -47,29 +47,21 @@ class StarsInlineErrorAlert extends StatelessWidget {
         ),
         crossAxisAlignment: CrossAxisAlignment.center,
         iconPadding: const EdgeInsetsDirectional.only(end: 8),
-        icon: const Icon(LucideIcons.circleAlert, size: 18),
+        icon: const SizedBox(
+          width: 36,
+          height: 44,
+          child: Center(child: Icon(LucideIcons.circleAlert, size: 18)),
+        ),
         description: Align(
           alignment: Alignment.center,
           child: Text(error, key: messageKey, textAlign: TextAlign.center),
         ),
-        trailing: Semantics(
+        trailing: StarsDesktopIconAction(
+          key: dismissKey,
+          icon: LucideIcons.x,
           label: closeLabel,
-          button: true,
-          child: ShadTooltip(
-            builder: (context) => Text(closeLabel),
-            child: ShadIconButton.ghost(
-              key: dismissKey,
-              width: 28,
-              height: 28,
-              padding: EdgeInsets.zero,
-              iconSize: 16,
-              onPressed: onDismiss,
-              icon: Icon(
-                isDesktop ? LucideIcons.x : Icons.close_rounded,
-                size: 16,
-              ),
-            ),
-          ),
+          iconSize: 16,
+          onPressed: onDismiss,
         ),
       ),
     );
@@ -115,7 +107,7 @@ class StarsInspectorInfoRow extends StatelessWidget {
         SelectableText(
           value!,
           textAlign: valueTextAlign,
-          style: DesktopThemeTokens.metaStyle(context),
+          style: StarsDesktopThemeSpec.metaStyle(context),
         );
     final trailingColumn = switch (trailingWidth) {
       final width? => SizedBox(width: width, child: trailingContent),
@@ -129,10 +121,10 @@ class StarsInspectorInfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: crossAxisAlignment,
         children: [
-          Icon(icon, size: 17, color: DesktopThemeTokens.mutedText(context)),
+          Icon(icon, size: 17, color: StarsDesktopThemeSpec.mutedText(context)),
           SizedBox(key: iconLabelGapKey, width: starsInspectorIconLabelGap),
           Expanded(
-            child: Text(label, style: DesktopThemeTokens.bodyStyle(context)),
+            child: Text(label, style: StarsDesktopThemeSpec.bodyStyle(context)),
           ),
           const SizedBox(width: 8),
           trailingColumn,
@@ -297,6 +289,7 @@ class StarsDesktopIconAction extends StatefulWidget {
     this.autofocus = false,
     this.iconSize = 18,
     this.hoverBackgroundColor,
+    this.foregroundColor,
     this.showFocusRing = true,
   }) : assert(
          variant != ShadButtonVariant.link,
@@ -313,6 +306,7 @@ class StarsDesktopIconAction extends StatefulWidget {
   final bool autofocus;
   final double iconSize;
   final Color? hoverBackgroundColor;
+  final Color? foregroundColor;
   final bool showFocusRing;
 
   @override
@@ -354,6 +348,31 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
   @override
   Widget build(BuildContext context) {
     final effectiveEnabled = widget.enabled && widget.onPressed != null;
+    final shadTheme = ShadTheme.maybeOf(context);
+    if (shadTheme == null) {
+      return Semantics(
+        container: true,
+        label: widget.label,
+        button: true,
+        enabled: effectiveEnabled,
+        selected: widget.selected,
+        onTap: effectiveEnabled ? widget.onPressed : null,
+        child: Tooltip(
+          message: widget.label,
+          child: SizedBox.square(
+            dimension: 44,
+            child: IconButton(
+              focusNode: _focusNode,
+              autofocus: widget.autofocus,
+              onPressed: effectiveEnabled ? widget.onPressed : null,
+              iconSize: widget.iconSize,
+              color: widget.foregroundColor,
+              icon: Icon(widget.icon, size: widget.iconSize),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Semantics(
       container: true,
@@ -379,6 +398,7 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
                 enabled: effectiveEnabled,
                 onPressed: widget.onPressed,
                 hoverBackgroundColor: widget.hoverBackgroundColor,
+                foregroundColor: widget.foregroundColor,
                 decoration:
                     widget.showFocusRing
                         ? null
@@ -389,6 +409,156 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Data for one entry in a [StarsDesktopMenu].
+class StarsDesktopMenuItem<T> {
+  const StarsDesktopMenuItem({
+    required this.value,
+    required this.label,
+    this.key,
+    this.leading,
+    this.enabled = true,
+    this.selected = false,
+    this.destructive = false,
+  });
+
+  final T value;
+  final String label;
+  final Key? key;
+  final Widget? leading;
+  final bool enabled;
+  final bool selected;
+  final bool destructive;
+}
+
+/// The standard click/tap menu for desktop controls.
+///
+/// This keeps all desktop selection and overflow menus on Shad popovers while
+/// [StarsContextMenu] owns secondary-click menus. The trigger is responsible
+/// for its own visual style and should normally be a
+/// [StarsDesktopIconAction], [ShadButton], or [ShadInput].
+class StarsDesktopMenu<T> extends StatefulWidget {
+  const StarsDesktopMenu({
+    super.key,
+    required this.items,
+    required this.onSelected,
+    required this.triggerBuilder,
+    this.width = 220,
+    this.maxHeight = 360,
+    this.alignEnd = false,
+  });
+
+  final List<StarsDesktopMenuItem<T>> items;
+  final ValueChanged<T> onSelected;
+  final Widget Function(BuildContext context, VoidCallback toggle, bool isOpen)
+  triggerBuilder;
+  final double width;
+  final double maxHeight;
+  final bool alignEnd;
+
+  @override
+  State<StarsDesktopMenu<T>> createState() => _StarsDesktopMenuState<T>();
+}
+
+class _StarsDesktopMenuState<T> extends State<StarsDesktopMenu<T>> {
+  late final ShadPopoverController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ShadPopoverController()..addListener(_handleChanged);
+  }
+
+  void _handleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _select(StarsDesktopMenuItem<T> item) {
+    if (!item.enabled) return;
+    _controller.hide();
+    widget.onSelected(item.value);
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_handleChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ShadTheme.of(context).colorScheme;
+    final anchor = ShadAnchor(
+      offset: const Offset(0, 4),
+      childAlignment:
+          widget.alignEnd
+              ? AlignmentDirectional.topEnd
+              : AlignmentDirectional.topStart,
+      overlayAlignment:
+          widget.alignEnd
+              ? AlignmentDirectional.bottomEnd
+              : AlignmentDirectional.bottomStart,
+    );
+    return ShadPopover(
+      controller: _controller,
+      anchor: anchor,
+      padding: EdgeInsets.zero,
+      popover:
+          (context) => ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: widget.width,
+              maxWidth: widget.width,
+              maxHeight: widget.maxHeight,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final item in widget.items)
+                    Semantics(
+                      selected: item.selected,
+                      child: ShadButton.raw(
+                        key: item.key,
+                        variant:
+                            item.selected
+                                ? ShadButtonVariant.secondary
+                                : ShadButtonVariant.ghost,
+                        size: ShadButtonSize.sm,
+                        height: 36,
+                        enabled: item.enabled,
+                        expands: true,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        foregroundColor:
+                            item.destructive ? colors.destructive : null,
+                        leading: item.leading,
+                        trailing:
+                            item.selected
+                                ? const Icon(LucideIcons.check, size: 16)
+                                : const SizedBox.square(dimension: 16),
+                        onPressed: () => _select(item),
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+      child: widget.triggerBuilder(
+        context,
+        _controller.toggle,
+        _controller.isOpen,
       ),
     );
   }

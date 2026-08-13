@@ -56,7 +56,7 @@ class _McpServersPageState extends State<McpServersPage> {
       listenable: _viewModel,
       builder:
           (context, _) =>
-              isDesktopOrTabletPlatform(context)
+              isDesktopPlatform(context)
                   ? _buildDesktop(context)
                   : _buildMobile(context),
     );
@@ -68,7 +68,7 @@ class _McpServersPageState extends State<McpServersPage> {
         title: Text(
           S.of(context).mcpServers,
           key: const ValueKey<String>('mcp-servers-title'),
-          style: DesktopThemeTokens.pageTitleStyle(context),
+          style: StarsDesktopThemeSpec.pageTitleStyle(context),
         ),
         actions: [
           IconButton(
@@ -91,18 +91,18 @@ class _McpServersPageState extends State<McpServersPage> {
     final strings = S.of(context);
     final filteredServers = _filteredServers;
     return ColoredBox(
-      color: DesktopThemeTokens.workspaceSurface(context),
+      color: StarsDesktopThemeSpec.workspaceSurface(context),
       child: RefreshIndicator(
         onRefresh: _viewModel.load,
         child: SingleChildScrollView(
           key: const ValueKey<String>('mcp-servers-desktop-page'),
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: DesktopThemeTokens.formPagePadding,
+          padding: StarsDesktopThemeSpec.formPagePadding,
           child: Center(
             child: ConstrainedBox(
               key: const ValueKey<String>('mcp-servers-desktop-content'),
               constraints: const BoxConstraints(
-                maxWidth: DesktopThemeTokens.formContentMaxWidth,
+                maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,15 +117,17 @@ class _McpServersPageState extends State<McpServersPage> {
                             Text(
                               strings.mcpServers,
                               key: const ValueKey<String>('mcp-servers-title'),
-                              style: DesktopThemeTokens.pageTitleStyle(context),
+                              style: StarsDesktopThemeSpec.pageTitleStyle(
+                                context,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               strings.mcpServersDescription,
-                              style: DesktopThemeTokens.bodyStyle(
+                              style: StarsDesktopThemeSpec.bodyStyle(
                                 context,
                               )?.copyWith(
-                                color: DesktopThemeTokens.mutedText(context),
+                                color: StarsDesktopThemeSpec.mutedText(context),
                               ),
                             ),
                           ],
@@ -153,9 +155,9 @@ class _McpServersPageState extends State<McpServersPage> {
                   const SizedBox(height: 16),
                   Text(
                     strings.mcpProgressiveDiscoveryDescription,
-                    style: DesktopThemeTokens.bodyStyle(
-                      context,
-                    )?.copyWith(color: DesktopThemeTokens.mutedText(context)),
+                    style: StarsDesktopThemeSpec.bodyStyle(context)?.copyWith(
+                      color: StarsDesktopThemeSpec.mutedText(context),
+                    ),
                   ),
                   if (_viewModel.error != null) ...[
                     const SizedBox(height: 16),
@@ -164,22 +166,15 @@ class _McpServersPageState extends State<McpServersPage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       icon: const Icon(LucideIcons.circleAlert),
                       title: Text(_errorMessage(_viewModel.error!)),
-                      trailing: ShadTooltip(
-                        builder:
-                            (context) => Text(
-                              MaterialLocalizations.of(
-                                context,
-                              ).closeButtonTooltip,
-                            ),
-                        child: ShadIconButton.ghost(
-                          key: const ValueKey<String>('close-mcp-error'),
-                          onPressed: _viewModel.clearError,
-                          width: 28,
-                          height: 28,
-                          padding: EdgeInsets.zero,
-                          iconSize: 16,
-                          icon: const Icon(LucideIcons.x),
-                        ),
+                      trailing: StarsDesktopIconAction(
+                        key: const ValueKey<String>('close-mcp-error'),
+                        icon: LucideIcons.x,
+                        label:
+                            MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
+                        onPressed: _viewModel.clearError,
+                        iconSize: 16,
                       ),
                     ),
                   ],
@@ -189,13 +184,14 @@ class _McpServersPageState extends State<McpServersPage> {
                       key: const ValueKey<String>('mcp-warning-alert'),
                       icon: const Icon(LucideIcons.triangleAlert),
                       title: Text(_errorMessage(_viewModel.warning!)),
-                      trailing: ShadIconButton.ghost(
+                      trailing: StarsDesktopIconAction(
                         onPressed: _viewModel.clearWarning,
-                        width: 28,
-                        height: 28,
-                        padding: EdgeInsets.zero,
+                        icon: LucideIcons.x,
+                        label:
+                            MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
                         iconSize: 16,
-                        icon: const Icon(LucideIcons.x),
                       ),
                     ),
                   ],
@@ -243,13 +239,12 @@ class _McpServersPageState extends State<McpServersPage> {
       onChanged: _search,
       suffixIcon:
           _query.isNotEmpty
-              ? IconButton(
+              ? StarsDesktopIconAction(
                 key: const ValueKey<String>('clear-mcp-search'),
-                tooltip: strings.clearSearch,
+                icon: LucideIcons.x,
+                label: strings.clearSearch,
                 onPressed: _clearSearch,
-                icon: const Icon(LucideIcons.x, size: 16),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
+                iconSize: 16,
               )
               : null,
     );
@@ -282,7 +277,7 @@ class _McpServersPageState extends State<McpServersPage> {
             crossAxisCount: columns,
             crossAxisSpacing: gap,
             mainAxisSpacing: gap,
-            mainAxisExtent: DesktopThemeTokens.managementCardHeight,
+            mainAxisExtent: StarsDesktopThemeSpec.managementCardHeight,
           ),
           itemCount: servers.length,
           itemBuilder: (context, index) {
@@ -432,7 +427,7 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   Future<void> _showEditor([McpServer? server]) async {
-    final desktop = isDesktopOrTabletPlatform(context);
+    final desktop = isDesktopPlatform(context);
     final draft =
         desktop
             ? await showShadDialog<McpServerDraft>(
@@ -453,7 +448,7 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   Future<void> _confirmDelete(McpServer server) async {
-    final desktop = isDesktopOrTabletPlatform(context);
+    final desktop = isDesktopPlatform(context);
     final confirmed =
         desktop
             ? await showChatShadDialog<bool>(
@@ -506,7 +501,7 @@ class _McpServersPageState extends State<McpServersPage> {
                         child: Text(
                           S.of(dialogContext).delete,
                           style: TextStyle(
-                            color: DesktopThemeTokens.error(dialogContext),
+                            color: StarsDesktopThemeSpec.error(dialogContext),
                           ),
                         ),
                       ),

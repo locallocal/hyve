@@ -166,7 +166,7 @@ void main() {
         final titleText = tester.widget<Text>(find.text(title));
         expect(
           titleText.style?.fontSize,
-          DesktopThemeTokens.botFormSectionTitleFontSize,
+          StarsDesktopThemeSpec.botFormSectionTitleFontSize,
         );
       }
     } finally {
@@ -510,7 +510,7 @@ Application: Stars
       final optionsContainer = tester.widget<Container>(options);
       expect((optionsContainer.decoration! as BoxDecoration).border, isNull);
       expect(
-        find.descendant(of: options, matching: find.byType(MenuItemButton)),
+        find.descendant(of: options, matching: find.byType(ShadButton)),
         findsNWidgets(3),
       );
 
@@ -524,14 +524,14 @@ Application: Stars
       expect(
         find.descendant(
           of: lightOption,
-          matching: find.byIcon(Icons.check_rounded),
+          matching: find.byIcon(LucideIcons.check),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: systemOption,
-          matching: find.byIcon(Icons.check_rounded),
+          matching: find.byIcon(LucideIcons.check),
         ),
         findsNothing,
       );
@@ -547,7 +547,7 @@ Application: Stars
             .getRect(
               find.descendant(
                 of: lightOption,
-                matching: find.byIcon(Icons.check_rounded),
+                matching: find.byIcon(LucideIcons.check),
               ),
             )
             .left,
@@ -609,20 +609,20 @@ Application: Stars
       final optionsContainer = tester.widget<Container>(options);
       expect((optionsContainer.decoration! as BoxDecoration).border, isNull);
       expect(
-        find.descendant(of: options, matching: find.byType(MenuItemButton)),
+        find.descendant(of: options, matching: find.byType(ShadButton)),
         findsNWidgets(12),
       );
       expect(
         find.descendant(
           of: chineseOption,
-          matching: find.byIcon(Icons.check_rounded),
+          matching: find.byIcon(LucideIcons.check),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: englishOption,
-          matching: find.byIcon(Icons.check_rounded),
+          matching: find.byIcon(LucideIcons.check),
         ),
         findsNothing,
       );

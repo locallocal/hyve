@@ -81,7 +81,7 @@ class _DesktopResizeHandleState extends State<_DesktopResizeHandle> {
             onHorizontalDragStart: (_) => _focusNode.requestFocus(),
             onHorizontalDragUpdate: (details) => _moveHandle(details.delta.dx),
             child: SizedBox(
-              width: DesktopThemeTokens.splitterHitWidth,
+              width: StarsDesktopThemeSpec.splitterHitWidth,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -132,7 +132,7 @@ class _SidebarDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedBackground = DesktopThemeTokens.inactivePrimaryActionColor(
+    final selectedBackground = StarsDesktopThemeSpec.inactivePrimaryActionColor(
       context,
     );
     return Semantics(
@@ -145,13 +145,22 @@ class _SidebarDestination extends StatelessWidget {
           variant:
               selected ? ShadButtonVariant.primary : ShadButtonVariant.ghost,
           size: ShadButtonSize.sm,
-          height: DesktopThemeTokens.botFormFieldHeight,
+          height: StarsDesktopThemeSpec.botFormFieldHeight,
           backgroundColor: selected ? selectedBackground : null,
           hoverBackgroundColor: selected ? selectedBackground : null,
           pressedBackgroundColor: selected ? selectedBackground : null,
-          foregroundColor: selected ? Colors.white : null,
-          hoverForegroundColor: selected ? Colors.white : null,
-          pressedForegroundColor: selected ? Colors.white : null,
+          foregroundColor:
+              selected
+                  ? ShadTheme.of(context).colorScheme.primaryForeground
+                  : null,
+          hoverForegroundColor:
+              selected
+                  ? ShadTheme.of(context).colorScheme.primaryForeground
+                  : null,
+          pressedForegroundColor:
+              selected
+                  ? ShadTheme.of(context).colorScheme.primaryForeground
+                  : null,
           mainAxisAlignment: MainAxisAlignment.start,
           expands: true,
           onPressed: onTap,
@@ -206,7 +215,7 @@ class _AccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DesktopInteractiveListItem(
       selected: selected,
-      minHeight: DesktopThemeTokens.botFormFieldHeight,
+      minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       child: Row(
@@ -222,7 +231,7 @@ class _AccountButton extends StatelessWidget {
           const SizedBox(width: 9),
           Expanded(child: Text(S.of(context).profile)),
           Icon(
-            useLucideIcon ? LucideIcons.settings : Icons.settings_outlined,
+            useLucideIcon ? LucideIcons.settings : LucideIcons.settings,
             size: 17,
           ),
         ],

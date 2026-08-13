@@ -207,7 +207,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                         'desktop-skill-card-title-${widget.skill.id}',
                       ),
                       style: const TextStyle(
-                        fontSize: DesktopThemeTokens.pageTitleFontSize,
+                        fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
                       ),
                     ),
                   ),

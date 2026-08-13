@@ -477,7 +477,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildScaffold(BuildContext context) {
-    final isDesktopOrTablet = isDesktopOrTabletPlatform(context);
+    final isDesktopOrTablet = isDesktopPlatform(context);
     final pages = <Widget>[
       ChatListPage(
         key: _chatListKey,
@@ -632,7 +632,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<bool> _guardActiveChatRun() async {
-    if (!isDesktopOrTabletPlatform(context)) return true;
+    if (!isDesktopPlatform(context)) return true;
     return _performActiveRunGuard();
   }
 
@@ -642,11 +642,11 @@ class _MainPageState extends State<MainPage> {
 
     if (!registry.supportsCancellationForRun(_viewModel.selectedChatId)) {
       if (mounted) {
-        ShadSonner.of(context).show(
-          ShadToast.destructive(
-            title: Text(S.of(context).activeRequestCannotStop),
-            description: Text(S.of(context).waitForGenerationBeforeLeaving),
-          ),
+        showStarsNotice(
+          context,
+          S.of(context).activeRequestCannotStop,
+          description: S.of(context).waitForGenerationBeforeLeaving,
+          tone: StarsNoticeTone.error,
         );
       }
       return false;
@@ -659,11 +659,11 @@ class _MainPageState extends State<MainPage> {
       _viewModel.selectedChatId,
     );
     if (!canContinue && mounted) {
-      ShadSonner.of(context).show(
-        ShadToast.destructive(
-          title: Text(S.of(context).activeRequestCannotStop),
-          description: Text(S.of(context).waitForGenerationBeforeLeaving),
-        ),
+      showStarsNotice(
+        context,
+        S.of(context).activeRequestCannotStop,
+        description: S.of(context).waitForGenerationBeforeLeaving,
+        tone: StarsNoticeTone.error,
       );
     }
     return canContinue;

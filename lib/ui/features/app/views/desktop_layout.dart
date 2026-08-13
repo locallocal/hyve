@@ -75,8 +75,8 @@ class DesktopLayout extends StatefulWidget {
 }
 
 class _DesktopLayoutState extends State<DesktopLayout> {
-  double _sidebarWidth = DesktopThemeTokens.sidebarWidth;
-  double _inspectorWidth = DesktopThemeTokens.inspectorWidth;
+  double _sidebarWidth = StarsDesktopThemeSpec.sidebarWidth;
+  double _inspectorWidth = StarsDesktopThemeSpec.inspectorWidth;
   bool _sidebarVisible = true;
   bool _compactSidebarOpen = false;
   bool _inspectorOpen = false;
@@ -225,8 +225,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         width < 1200
             ? _sidebarWidth.clamp(260.0, 280.0)
             : _sidebarWidth.clamp(
-              DesktopThemeTokens.sidebarMinWidth,
-              DesktopThemeTokens.sidebarMaxWidth,
+              StarsDesktopThemeSpec.sidebarMinWidth,
+              StarsDesktopThemeSpec.sidebarMaxWidth,
             );
     final inspectorAvailable =
         width >= 800 && widget.currentIndex == 0 && _activeBot != null;
@@ -237,18 +237,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     final overlayInspector =
         width < 1500 && _inspectorOpen && inspectorAvailable;
     final inspectorMaxWidth = math.min(
-      DesktopThemeTokens.inspectorMaxWidth,
+      StarsDesktopThemeSpec.inspectorMaxWidth,
       math.max(
-        DesktopThemeTokens.inspectorMinWidth,
+        StarsDesktopThemeSpec.inspectorMinWidth,
         width -
             (showSidebar ? sidebarWidth : 0) -
-            DesktopThemeTokens.detailMinWidth -
-            DesktopThemeTokens.splitterHitWidth * 2,
+            StarsDesktopThemeSpec.detailMinWidth -
+            StarsDesktopThemeSpec.splitterHitWidth * 2,
       ),
     );
     final inspectorWidth =
         _inspectorWidth
-            .clamp(DesktopThemeTokens.inspectorMinWidth, inspectorMaxWidth)
+            .clamp(StarsDesktopThemeSpec.inspectorMinWidth, inspectorMaxWidth)
             .toDouble();
 
     if (isChat) {
@@ -273,7 +273,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         child: Focus(
           autofocus: true,
           child: ColoredBox(
-            color: DesktopThemeTokens.shellBackground(context),
+            color: StarsDesktopThemeSpec.shellBackground(context),
             child: SafeArea(
               child: Stack(
                 children: [
@@ -604,8 +604,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             : ShadSheetSide.right;
     final targetWidth =
         overlay == _ChatOverlay.sidebar
-            ? DesktopThemeTokens.sidebarWidth
-            : DesktopThemeTokens.inspectorWidth;
+            ? StarsDesktopThemeSpec.sidebarWidth
+            : StarsDesktopThemeSpec.inspectorWidth;
     final closed = showChatShadSheet<void>(
       context: context,
       side: side,
@@ -784,13 +784,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     required double inspectorWidth,
   }) {
     final reserved =
-        DesktopThemeTokens.detailMinWidth +
+        StarsDesktopThemeSpec.detailMinWidth +
         (dockInspector ? inspectorWidth : 0) +
-        DesktopThemeTokens.splitterHitWidth * (dockInspector ? 2 : 1);
+        StarsDesktopThemeSpec.splitterHitWidth * (dockInspector ? 2 : 1);
     final compactDock = availableWidth < 1200;
-    final minWidth = compactDock ? 260.0 : DesktopThemeTokens.sidebarMinWidth;
+    final minWidth =
+        compactDock ? 260.0 : StarsDesktopThemeSpec.sidebarMinWidth;
     final requestedMax =
-        compactDock ? 280.0 : DesktopThemeTokens.sidebarMaxWidth;
+        compactDock ? 280.0 : StarsDesktopThemeSpec.sidebarMaxWidth;
     final maxWidth = math.min(
       requestedMax,
       math.max(minWidth, availableWidth - reserved),
@@ -803,7 +804,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
 
   void _resetSidebarWidth(double availableWidth) {
     final defaultWidth =
-        availableWidth < 1200 ? 280.0 : DesktopThemeTokens.sidebarWidth;
+        availableWidth < 1200 ? 280.0 : StarsDesktopThemeSpec.sidebarWidth;
     setState(() => _sidebarWidth = defaultWidth);
   }
 
@@ -813,29 +814,29 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     required double sidebarWidth,
   }) {
     final maxWidth = math.min(
-      DesktopThemeTokens.inspectorMaxWidth,
+      StarsDesktopThemeSpec.inspectorMaxWidth,
       math.max(
-        DesktopThemeTokens.inspectorMinWidth,
+        StarsDesktopThemeSpec.inspectorMinWidth,
         availableWidth -
             sidebarWidth -
-            DesktopThemeTokens.detailMinWidth -
-            DesktopThemeTokens.splitterHitWidth * 2,
+            StarsDesktopThemeSpec.detailMinWidth -
+            StarsDesktopThemeSpec.splitterHitWidth * 2,
       ),
     );
     final effectiveWidth =
         _inspectorWidth
-            .clamp(DesktopThemeTokens.inspectorMinWidth, maxWidth)
+            .clamp(StarsDesktopThemeSpec.inspectorMinWidth, maxWidth)
             .toDouble();
     setState(() {
       _inspectorWidth = (effectiveWidth + delta).clamp(
-        DesktopThemeTokens.inspectorMinWidth,
+        StarsDesktopThemeSpec.inspectorMinWidth,
         maxWidth,
       );
     });
   }
 
   void _resetInspectorWidth() {
-    setState(() => _inspectorWidth = DesktopThemeTokens.inspectorWidth);
+    setState(() => _inspectorWidth = StarsDesktopThemeSpec.inspectorWidth);
   }
 
   Future<void> _requestClearChat() async {

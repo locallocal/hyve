@@ -78,10 +78,8 @@ final class ToolApprovalCard extends StatelessWidget {
                   key: const ValueKey<String>('tool-approval-card'),
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  backgroundColor: StarsDesktopTheme.statusCardBackground(
-                    context,
-                  ),
-                  radius: BorderRadius.circular(StarsDesktopTheme.cardRadius),
+                  backgroundColor: StarsDesktopTokens.of(context).controlFill,
+                  radius: StarsDesktopThemeSpec.statusRadius,
                   border: ShadBorder.all(
                     color: riskColor.withValues(alpha: 0.32),
                   ),
@@ -116,7 +114,7 @@ final class ToolApprovalCard extends StatelessWidget {
             request.definition.description.trim(),
             style:
                 desktopMode
-                    ? DesktopThemeTokens.bodyStyle(context)
+                    ? StarsDesktopThemeSpec.bodyStyle(context)
                     : Theme.of(context).textTheme.bodyMedium,
           ),
         ],
@@ -157,7 +155,7 @@ final class ToolApprovalCard extends StatelessWidget {
                 strings.toolCalls,
                 style:
                     desktopMode
-                        ? DesktopThemeTokens.metaStyle(context)
+                        ? StarsDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -169,7 +167,7 @@ final class ToolApprovalCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style:
                     desktopMode
-                        ? DesktopThemeTokens.toolbarTitleStyle(context)
+                        ? StarsDesktopThemeSpec.toolbarTitleStyle(context)
                         : Theme.of(context).textTheme.titleSmall,
               ),
             ],
@@ -221,7 +219,7 @@ final class ToolApprovalCard extends StatelessWidget {
         .join('\n');
     final foreground =
         desktopMode
-            ? DesktopThemeTokens.text(context)
+            ? StarsDesktopThemeSpec.text(context)
             : Theme.of(context).colorScheme.onSurface;
     final panel = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -233,7 +231,7 @@ final class ToolApprovalCard extends StatelessWidget {
               size: 16,
               color:
                   desktopMode
-                      ? DesktopThemeTokens.mutedText(context)
+                      ? StarsDesktopThemeSpec.mutedText(context)
                       : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 7),
@@ -241,7 +239,7 @@ final class ToolApprovalCard extends StatelessWidget {
               strings.details,
               style:
                   desktopMode
-                      ? DesktopThemeTokens.sectionTitleStyle(context)
+                      ? StarsDesktopThemeSpec.sectionTitleStyle(context)
                       : Theme.of(context).textTheme.labelMedium,
             ),
           ],
@@ -264,9 +262,9 @@ final class ToolApprovalCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: DesktopThemeTokens.raisedSurface(context),
-          border: Border.all(color: DesktopThemeTokens.outline(context)),
-          borderRadius: DesktopThemeTokens.controlRadius,
+          color: StarsDesktopThemeSpec.raisedSurface(context),
+          border: Border.all(color: StarsDesktopThemeSpec.outline(context)),
+          borderRadius: StarsDesktopThemeSpec.controlRadius,
         ),
         child: panel,
       );
@@ -358,8 +356,8 @@ final class ToolApprovalCard extends StatelessWidget {
       .definition
       .riskLevel) {
     ToolRiskLevel.readOnly => Theme.of(context).colorScheme.primary,
-    ToolRiskLevel.write => DesktopThemeTokens.warning(context),
-    ToolRiskLevel.destructive => DesktopThemeTokens.error(context),
+    ToolRiskLevel.write => StarsDesktopThemeSpec.warning(context),
+    ToolRiskLevel.destructive => StarsDesktopThemeSpec.error(context),
   };
 
   IconData get _riskIcon => switch (request.definition.riskLevel) {

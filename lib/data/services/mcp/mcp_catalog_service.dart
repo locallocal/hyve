@@ -1,9 +1,10 @@
 import 'package:stars/data/services/mcp/mcp_tool_adapter.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 
-final class McpCatalogService {
+final class McpCatalogService implements McpCatalogController {
   McpCatalogService({
     required McpServerRepository repository,
     required McpClient client,
@@ -19,6 +20,7 @@ final class McpCatalogService {
   final DynamicToolRegistry _toolRegistry;
   final DateTime Function() _now;
 
+  @override
   McpStdioProcessInfo? getStdioProcessInfo(String serverId) {
     final client = _client;
     return switch (client) {
@@ -27,6 +29,7 @@ final class McpCatalogService {
     };
   }
 
+  @override
   Future<void> hydrateFromCache() async {
     final servers = await _repository.getServers();
     final tools = <ExecutableTool>[];
@@ -58,6 +61,7 @@ final class McpCatalogService {
     _toolRegistry.replaceDynamicSource('mcp', tools);
   }
 
+  @override
   Future<McpServer> refreshServer(
     String serverId, {
     AgentCancellationToken? cancellationToken,
@@ -121,6 +125,7 @@ final class McpCatalogService {
     }
   }
 
+  @override
   Future<void> disconnect(McpServer server) async {
     await _client.disconnect(server);
     await _repository.saveServer(

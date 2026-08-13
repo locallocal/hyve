@@ -33,5 +33,5 @@ abstract interface class BotChatDeletionStage {
 abstract interface class BotChatDeletionParticipant {
   Future<BotChatDeletionStage> stageChatsForBotDeletion(String botId);
 
-  void completeStagedBotDeletion(BotChatDeletionStage stage);
+  Future<void> completeStagedBotDeletion(BotChatDeletionStage stage);
 }

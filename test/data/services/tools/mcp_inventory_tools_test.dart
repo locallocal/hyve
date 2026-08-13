@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/tools/mcp_inventory_tools.dart';
+import 'package:stars/domain/use_cases/mcp_inventory_tools.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
 

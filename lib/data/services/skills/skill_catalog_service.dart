@@ -5,13 +5,14 @@ import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
 typedef SkillCatalogHttpClientFactory = HttpClient Function();
 typedef SkillCatalogFetcher = Future<List<int>> Function(Uri uri, int maxBytes);
 
-final class SkillCatalogService {
+final class SkillCatalogService implements SkillCatalogController {
   SkillCatalogService({
     required SkillEcosystemRepository ecosystemRepository,
     required SkillRepository skillRepository,
@@ -37,6 +38,7 @@ final class SkillCatalogService {
   List<OnlineSkillCatalogEntry> entriesFor(String catalogId) =>
       List.unmodifiable(_entries[catalogId] ?? const []);
 
+  @override
   Future<void> refreshConfiguredCatalogs() async {
     final installed = await _skillRepository.getInstalled(forceRefresh: true);
     final backgroundCatalogIds = {
@@ -59,6 +61,7 @@ final class SkillCatalogService {
     await applyAutomaticUpdates();
   }
 
+  @override
   Future<List<OnlineSkillCatalogEntry>> refresh(
     SkillCatalogSource source,
   ) async {
@@ -135,6 +138,7 @@ final class SkillCatalogService {
     }
   }
 
+  @override
   Future<SkillDescriptor> install(OnlineSkillCatalogEntry entry) async {
     await _endpointPolicy.validate(entry.archiveUri);
     final bytes = await _fetch(entry.archiveUri, maxArchiveBytes);
@@ -175,6 +179,7 @@ final class SkillCatalogService {
     }
   }
 
+  @override
   Future<List<OnlineSkillCatalogEntry>> availableUpdates() async {
     final installed = await _skillRepository.getInstalled(forceRefresh: true);
     final updates = <OnlineSkillCatalogEntry>[];
@@ -196,6 +201,7 @@ final class SkillCatalogService {
     return List.unmodifiable(updates);
   }
 
+  @override
   Future<void> applyAutomaticUpdates() async {
     final policy = await _ecosystemRepository.getOrganizationPolicy();
     if (!policy.allowAutomaticUpdates) return;

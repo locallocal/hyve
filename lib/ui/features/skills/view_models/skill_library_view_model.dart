@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
-import 'package:stars/data/services/skills/skill_catalog_service.dart';
-import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 
@@ -14,8 +13,8 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     required SkillRepository skillRepository,
     required SkillPickerRepository pickerRepository,
     SkillEcosystemRepository? ecosystemRepository,
-    SkillScriptCatalogService? scriptCatalogService,
-    SkillCatalogService? catalogService,
+    SkillScriptCatalogController? scriptCatalogService,
+    SkillCatalogController? catalogService,
     BundledSkillLoader? bundledSkillLoader,
     this.pageSize = defaultPageSize,
   }) : _skillRepository = skillRepository,
@@ -35,8 +34,8 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   final SkillRepository _skillRepository;
   final SkillPickerRepository _pickerRepository;
   final SkillEcosystemRepository? _ecosystemRepository;
-  final SkillScriptCatalogService? _scriptCatalogService;
-  final SkillCatalogService? _catalogService;
+  final SkillScriptCatalogController? _scriptCatalogService;
+  final SkillCatalogController? _catalogService;
   final BundledSkillLoader? _bundledSkillLoader;
   final int pageSize;
   late final StreamSubscription<List<SkillDescriptor>> _changesSubscription;

@@ -4,14 +4,19 @@ import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_history_repository.dart';
+import 'package:stars/domain/repositories/conversation_draft_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/data/services/tools/conversation_history_tools.dart';
-import 'package:stars/data/services/tools/mcp_inventory_tools.dart';
-import 'package:stars/data/services/tools/skill_inventory_tools.dart';
+import 'package:stars/domain/use_cases/conversation_history_tools.dart';
+import 'package:stars/domain/use_cases/mcp_inventory_tools.dart';
+import 'package:stars/domain/use_cases/skill_inventory_tools.dart';
 import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
 import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
+import 'package:stars/domain/use_cases/create_user_message.dart';
+import 'package:stars/domain/use_cases/generate_media_turn.dart';
+import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
 
 class ChatViewModel extends ChangeNotifier {
   ChatViewModel({
@@ -26,6 +31,9 @@ class ChatViewModel extends ChangeNotifier {
     ConversationHistoryRepository? conversationHistoryRepository,
     McpInventoryRepository? mcpInventoryRepository,
     SkillInventoryRepository? skillInventoryRepository,
+    ConversationDraftRepository? conversationDraftRepository,
+    MessageActionViewModel? messageActionViewModel,
+    GenerateMediaTurn? generateMediaTurn,
   }) : _messageRepository = messageRepository,
        _chatRepository = chatRepository,
        _aiProviderRepository = aiProviderRepository,
@@ -34,6 +42,22 @@ class ChatViewModel extends ChangeNotifier {
        _conversationHistoryRepository = conversationHistoryRepository,
        _mcpInventoryRepository = mcpInventoryRepository,
        _skillInventoryRepository = skillInventoryRepository,
+       _conversationDraftRepository = conversationDraftRepository,
+       messageActions = messageActionViewModel,
+       _persistConversationAssets = PersistConversationAssets(
+         repository: attachmentRepository,
+       ),
+       _generateMediaTurn =
+           generateMediaTurn ??
+           GenerateMediaTurn(
+             messageRepository: messageRepository,
+             chatRepository: chatRepository,
+             providerRepository: aiProviderRepository,
+             attachmentRepository: attachmentRepository,
+           ),
+       _createUserMessage = CreateUserMessage(
+         messageRepository: messageRepository,
+       ),
        generationRegistry = generationRegistry,
        generationViewModel = generationRegistry.viewModelFor(chatId, bot);
 
@@ -47,6 +71,11 @@ class ChatViewModel extends ChangeNotifier {
   final ConversationHistoryRepository? _conversationHistoryRepository;
   final McpInventoryRepository? _mcpInventoryRepository;
   final SkillInventoryRepository? _skillInventoryRepository;
+  final ConversationDraftRepository? _conversationDraftRepository;
+  final MessageActionViewModel? messageActions;
+  final PersistConversationAssets _persistConversationAssets;
+  final GenerateMediaTurn _generateMediaTurn;
+  final CreateUserMessage _createUserMessage;
   final ChatGenerationRegistry generationRegistry;
   final ChatGenerationViewModel generationViewModel;
 
@@ -139,6 +168,24 @@ class ChatViewModel extends ChangeNotifier {
 
   String createId(String prefix) => _messageRepository.createId(prefix);
 
+  Message createUserMessage({
+    required String currentUserId,
+    required String content,
+    List<String> imagePaths = const [],
+    List<String> filePaths = const [],
+    String imageDetail = '',
+    String fileDetail = '',
+  }) => _createUserMessage(
+    chatId: chatId,
+    botId: bot.id,
+    senderId: currentUserId,
+    content: content,
+    imagePaths: imagePaths,
+    filePaths: filePaths,
+    imageDetail: imageDetail,
+    fileDetail: fileDetail,
+  );
+
   Future<Message> upsertMessage(Message message) =>
       _messageRepository.upsertMessage(message);
 
@@ -229,12 +276,32 @@ class ChatViewModel extends ChangeNotifier {
   Future<String?> selectFile() => _attachmentRepository.selectFile();
 
   Future<List<String>> persistAssets(Iterable<String> sourcePaths) {
-    final repository = _attachmentRepository;
-    if (repository is! ConversationAssetRepository) {
-      throw const AppFailure.storage('conversation_asset_store_unavailable');
-    }
-    return repository.persistAssets(chatId: chatId, sourcePaths: sourcePaths);
+    return _persistConversationAssets(chatId: chatId, sourcePaths: sourcePaths);
   }
+
+  Future<MediaTurnResult> generateMediaTurn(
+    MediaTurnRequest request, {
+    MediaUserPersisted? onUserPersisted,
+  }) async {
+    generationRegistry.setCancellableExternalRun(chatId, cancelMedia);
+    try {
+      return await _generateMediaTurn(
+        request,
+        onUserPersisted: onUserPersisted,
+      );
+    } finally {
+      generationRegistry.setCancellableExternalRun(chatId, null);
+    }
+  }
+
+  Future<ConversationDraft?> readDraft() =>
+      _conversationDraftRepository?.read(chatId) ?? Future.value();
+
+  Future<void> writeDraft(ConversationDraft draft) =>
+      _conversationDraftRepository?.write(chatId, draft) ?? Future.value();
+
+  Future<void> deleteDraft() =>
+      _conversationDraftRepository?.delete(chatId) ?? Future.value();
 
   Future<List<String>> generateImage({
     required String prompt,
@@ -291,6 +358,13 @@ class ChatViewModel extends ChangeNotifier {
     if (repository is! CancelableMediaRepository) return Future.value(false);
     return repository.cancelMedia(bot.id);
   }
+
+  bool get hasBlockingRun => generationRegistry.hasBlockingRun(chatId);
+
+  bool get supportsRunCancellation =>
+      generationRegistry.supportsCancellationForRun(chatId);
+
+  Future<bool> stopActiveRun() => generationRegistry.stopForNavigation(chatId);
 
   void notifyChatListChanged() => _chatRepository.invalidate();
 }

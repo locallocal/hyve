@@ -104,6 +104,17 @@ class AttachmentRepositoryImpl implements ConversationAssetRepository {
       throw AppFailure.from(error, code: 'attachment_persist_failed');
     }
   }
+
+  @override
+  Future<String> getOutputDirectory(String chatId) async {
+    if (!RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(chatId)) {
+      throw const AppFailure.validation('invalid_chat_id');
+    }
+    final root = await _documentsDirectoryProvider();
+    final directory = Directory(path.join(root.path, 'chats', chatId));
+    await directory.create(recursive: true);
+    return directory.path;
+  }
 }
 
 final class _StagedAsset {

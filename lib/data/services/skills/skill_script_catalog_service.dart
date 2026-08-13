@@ -1,11 +1,12 @@
 import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:stars/data/services/skills/skill_script_tool.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/repositories/skill_script_sandbox.dart';
 
-final class SkillScriptCatalogService {
+final class SkillScriptCatalogService implements SkillScriptCatalogController {
   const SkillScriptCatalogService({
     required SkillRepository skillRepository,
     required SkillEcosystemRepository ecosystemRepository,
@@ -24,17 +25,21 @@ final class SkillScriptCatalogService {
   final SkillScriptSandbox _sandbox;
   final DynamicToolRegistry _toolRegistry;
 
+  @override
   Future<SkillSandboxStatus> sandboxStatus() => _sandbox.probe();
 
+  @override
   Future<bool> hasToolManifest(SkillDescriptor skill) async =>
       skill.hasScripts && await _manifestParser.hasManifest(skill);
 
+  @override
   Future<bool> isEnabled(SkillDescriptor skill) async {
     final grant = await _ecosystemRepository.getScriptGrant(skill.id);
     return grant?.enabled == true &&
         grant?.contentDigest == skill.contentDigest;
   }
 
+  @override
   Future<void> setEnabled(SkillDescriptor skill, bool enabled) async {
     final policy = await _ecosystemRepository.getOrganizationPolicy();
     if (enabled &&
@@ -84,6 +89,7 @@ final class SkillScriptCatalogService {
     await hydrateFromCache();
   }
 
+  @override
   Future<void> hydrateFromCache() async {
     final policy = await _ecosystemRepository.getOrganizationPolicy();
     final status = await _sandbox.probe();

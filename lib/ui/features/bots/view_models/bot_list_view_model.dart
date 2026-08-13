@@ -9,6 +9,7 @@ import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:stars/domain/use_cases/bot_commands.dart';
 
 @immutable
 class BotCardMetrics {
@@ -43,6 +44,9 @@ class BotListViewModel extends ChangeNotifier {
     BotSkillBindingRepository? botSkillBindingRepository,
     MessageRepository? messageRepository,
     McpServerRepository? mcpServerRepository,
+    CreateBot? createBot,
+    UpdateBot? updateBot,
+    DeleteBot? deleteBot,
   }) : _botRepository = botRepository,
        _createChat = createChat,
        _aiProviderRepository = aiProviderRepository,
@@ -50,6 +54,14 @@ class BotListViewModel extends ChangeNotifier {
        _botSkillBindingRepository = botSkillBindingRepository,
        _messageRepository = messageRepository,
        _mcpServerRepository = mcpServerRepository {
+    _createBot =
+        createBot ??
+        CreateBot(
+          repository: botRepository,
+          bindingRepository: botSkillBindingRepository,
+        );
+    _updateBot = updateBot ?? UpdateBot(repository: botRepository);
+    _deleteBot = deleteBot ?? DeleteBot(repository: botRepository);
     _botSubscription = _botRepository.changes.listen(_handleBotsChanged);
     if (messageRepository is BotScopedMessageMetricsRepository) {
       _messageMetricSubscription = messageRepository.botMetricChanges.listen(
@@ -93,6 +105,9 @@ class BotListViewModel extends ChangeNotifier {
   final BotSkillBindingRepository? _botSkillBindingRepository;
   final MessageRepository? _messageRepository;
   final McpServerRepository? _mcpServerRepository;
+  late final CreateBot _createBot;
+  late final UpdateBot _updateBot;
+  late final DeleteBot _deleteBot;
   late final StreamSubscription<List<Bot>> _botSubscription;
   StreamSubscription<void>? _messageSubscription;
   StreamSubscription<void>? _bindingSubscription;
@@ -172,35 +187,17 @@ class BotListViewModel extends ChangeNotifier {
     Bot bot, {
     List<BotSkillBinding> skillBindings = const [],
   }) async {
-    await _runMutation('bot_create_failed', () async {
-      final aggregateRepository = _botRepository;
-      if (aggregateRepository is BotAggregateRepository) {
-        await aggregateRepository.addBotWithSkillBindings(bot, skillBindings);
-        return;
-      }
-      await _botRepository.addBot(bot);
-      if (skillBindings.isEmpty) return;
-
-      final bindingRepository = _botSkillBindingRepository;
-      if (bindingRepository == null) {
-        throw StateError('No Bot Skill binding repository was configured.');
-      }
-      try {
-        for (final binding in skillBindings) {
-          await bindingRepository.save(binding);
-        }
-      } catch (_) {
-        await _botRepository.deleteBot(bot.id);
-        rethrow;
-      }
-    });
+    await _runMutation(
+      'bot_create_failed',
+      () => _createBot(bot, skillBindings: skillBindings),
+    );
   }
 
   Future<void> updateBot(Bot bot) =>
-      _runMutation('bot_update_failed', () => _botRepository.updateBot(bot));
+      _runMutation('bot_update_failed', () => _updateBot(bot));
 
   Future<void> deleteBot(String id) =>
-      _runMutation('bot_delete_failed', () => _botRepository.deleteBot(id));
+      _runMutation('bot_delete_failed', () => _deleteBot(id));
 
   Future<void> _runMutation(
     String failureCode,

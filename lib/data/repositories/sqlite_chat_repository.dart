@@ -7,6 +7,7 @@ import 'package:stars/data/services/conversation_summary_storage.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_memory_repository.dart';
+import 'package:stars/domain/repositories/conversation_draft_repository.dart';
 import 'package:stars/utils/utils.dart';
 
 class SqliteChatRepository
@@ -15,13 +16,16 @@ class SqliteChatRepository
     required LocalDatabaseService localDatabase,
     ConversationMemoryRepository? conversationMemoryRepository,
     ConversationSummaryStorage? conversationSummaryStorage,
+    ConversationDraftRepository? conversationDraftRepository,
   }) : _localDatabase = localDatabase,
        _conversationMemoryRepository = conversationMemoryRepository,
-       _conversationSummaryStorage = conversationSummaryStorage;
+       _conversationSummaryStorage = conversationSummaryStorage,
+       _conversationDraftRepository = conversationDraftRepository;
 
   final LocalDatabaseService _localDatabase;
   final ConversationMemoryRepository? _conversationMemoryRepository;
   final ConversationSummaryStorage? _conversationSummaryStorage;
+  final ConversationDraftRepository? _conversationDraftRepository;
   final StreamController<List<Chat>> _changes =
       StreamController<List<Chat>>.broadcast();
   List<Chat>? _cache;
@@ -91,6 +95,7 @@ class SqliteChatRepository
       rethrow;
     }
     await staged?.commit();
+    await _conversationDraftRepository?.delete(id);
     _cache = _cache?.where((chat) => chat.id != id).toList();
     if (storage == null) {
       try {
@@ -114,7 +119,7 @@ class SqliteChatRepository
       rethrow;
     }
     await stage.commit();
-    completeStagedBotDeletion(stage);
+    await completeStagedBotDeletion(stage);
   }
 
   @override
@@ -147,8 +152,11 @@ class SqliteChatRepository
   }
 
   @override
-  void completeStagedBotDeletion(BotChatDeletionStage stage) {
+  Future<void> completeStagedBotDeletion(BotChatDeletionStage stage) async {
     final deleted = stage.chatIds.toSet();
+    for (final chatId in deleted) {
+      await _conversationDraftRepository?.delete(chatId);
+    }
     _cache = _cache?.where((chat) => !deleted.contains(chat.id)).toList();
     _emit();
   }

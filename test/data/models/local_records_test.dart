@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/data/models/local_records.dart';
+import 'package:stars/data/models/skill_records.dart';
 import 'package:stars/domain/models/models.dart';
 
 void main() {
@@ -31,21 +32,19 @@ void main() {
     expect(restored.skillActivations.single.status, 'recorded');
   });
 
-  test('legacy process info remains readable without Skill fields', () {
-    final restored =
-        MessageProcessInfoRecord.fromRaw(
-          jsonEncode(<String, Object?>{
-            'reasoning_status': 'completed',
-            'duration_ms': 42,
-            'tool_calls': <Object?>[],
-            'command_executions': <Object?>[],
-            'file_edits': <Object?>[],
-          }),
-        ).toDomain();
-
-    expect(restored.reasoningStatus, 'completed');
-    expect(restored.durationMs, 42);
-    expect(restored.skillActivations, isEmpty);
+  test('rejects process info that does not use the current field set', () {
+    expect(
+      () => MessageProcessInfoRecord.fromRaw(
+        jsonEncode(<String, Object?>{
+          'reasoning_status': 'completed',
+          'duration_ms': 42,
+          'tool_calls': <Object?>[],
+          'command_executions': <Object?>[],
+          'file_edits': <Object?>[],
+        }),
+      ),
+      throwsFormatException,
+    );
   });
 
   test('structured tool invocation survives process info serialization', () {
@@ -161,5 +160,94 @@ void main() {
     expect(restoredChat.lastMessageTimestamp, timestamp);
     expect(restoredProfile.fontSize, 18);
     expect(restoredProfile.showExecutionStatus, isFalse);
+  });
+
+  test('rejects corrupt current Bot parameters instead of erasing them', () {
+    final timestamp = DateTime.fromMillisecondsSinceEpoch(1);
+    final record = BotRecord.fromDomain(
+      Bot(
+        id: 'bot-strict',
+        name: 'Strict',
+        avatar: '',
+        provider: 'Provider',
+        baseURL: '',
+        apiKey: '',
+        apiType: Bot.apiTypeOpenAI,
+        model: 'model',
+        systemPrompt: '',
+        parameters: const <String, Object?>{},
+        createTimestamp: timestamp,
+        modifyTimestamp: timestamp,
+      ),
+      storedApiKey: '',
+    );
+    final corrupt = BotRecord(<String, Object?>{
+      ...record.values,
+      'parameters': '{not-json',
+    });
+
+    expect(() => corrupt.toDomain(apiKey: ''), throwsFormatException);
+  });
+
+  test('rejects corrupt message assets and timestamps', () {
+    final timestamp = DateTime.fromMillisecondsSinceEpoch(1);
+    final record = MessageRecord.fromDomain(
+      Message(
+        messageId: 'message-strict',
+        turnId: 'turn-strict',
+        chatId: 'chat-strict',
+        botId: 'bot-strict',
+        senderId: 'me',
+        content: 'content',
+        timestamp: timestamp,
+      ),
+    );
+
+    expect(
+      () =>
+          MessageRecord(<String, Object?>{
+            ...record.values,
+            'images': 'not-json',
+          }).toDomain(),
+      throwsFormatException,
+    );
+    expect(
+      () =>
+          MessageRecord(<String, Object?>{
+            ...record.values,
+            'timestamp': null,
+          }).toDomain(),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects corrupt current Skill JSON instead of using defaults', () {
+    final timestamp = DateTime.fromMillisecondsSinceEpoch(1);
+    final record = SkillRecord.fromDomain(
+      SkillDescriptor(
+        id: 'user:strict',
+        name: 'strict',
+        description: 'Strict Skill',
+        version: '1.0.0',
+        scope: SkillScope.user,
+        sourceUri: 'file:///strict',
+        rootPath: '/skills/strict',
+        contentDigest: 'digest',
+        trustState: SkillTrustState.userReviewed,
+        validationStatus: SkillValidationStatus.valid,
+        compatibility: 'Stars',
+        installedAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    );
+
+    expect(
+      () =>
+          SkillRecord(<String, Object?>{
+            ...record.values,
+            'requested_tools_json': '[1]',
+          }).toDomain(),
+      throwsFormatException,
+    );
   });
 }

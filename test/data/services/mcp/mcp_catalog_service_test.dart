@@ -21,6 +21,7 @@ void main() {
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: DatabaseService.databaseVersion,
+        onConfigure: DatabaseService.configure,
         onCreate: DatabaseService.createSchema,
       ),
     );

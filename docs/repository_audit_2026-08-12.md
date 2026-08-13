@@ -4,7 +4,8 @@
 > 审计基线：`5292c4e`（`main`）
 > 审计范围：`lib/`、`test/`、桌面平台工程、数据库 schema/迁移、依赖与现有文档
 > 报告性质：代码静态审计与本地质量门禁结果，不包含真实供应商账号联调和 Windows/macOS/Linux 实机视觉验收
-> 整改记录：2026-08-13 已按产品决策关闭 HIST-01、HIST-02、HIST-03，并移除全部历史数据库升级逻辑；当前只保留 v16 Schema，其他版本会在打开前整库删除并重新创建，不执行任何历史数据迁移。v16 用新的 schema 世代隔离曾由旧迁移路径产生的 v15 混合结构。
+> 整改记录：2026-08-13 已按产品决策关闭 HIST-01、HIST-02、HIST-03，并移除全部历史数据库升级逻辑；当前只保留单一最新 Schema，其他旧版本会在打开前整库删除并重新创建，不执行任何历史数据迁移。
+> 整改记录：2026-08-14 已关闭 HIST-04 至 HIST-08：当前 v17 Schema 启用并补齐外键，所有 SQLite 记录按最新字段严格解码；启动执行完整性检查并维护仅限 v17 的数据库/会话资产滚动备份；时间类型统一为 INTEGER；消息 SQL、分页游标与内存缓存统一使用稳定的 timestamp/message_id 顺序。v16 及更早版本会连同关联会话目录和旧备份直接删除，不迁移、不导入。
 > 整改记录：2026-08-14 已关闭 BIZ-01 至 BIZ-09：补齐 Bot/MCP 跨资源事务与补偿、附件原子持久化、媒体超时取消、供应商退场迁移、Bot 命令反馈、安全错误模型、启动能力报告、Bot 指标批量增量刷新，以及消息游标分页与有界缓存。
 > 整改记录：2026-08-14 已关闭 ARCH-01 至 ARCH-06：领域编排下沉到用例，UI/Data 依赖方向由门禁约束，平台消息操作经 Repository 注入，会话草稿改为有界仓库并随会话删除清理，所有非生成生产 Dart 文件均不超过 1000 行，Bots 不可达桌面分支已删除。
 
@@ -39,17 +40,17 @@
 | ID | 优先级 | 状态 | 问题 | 主要影响 |
 | --- | --- | --- | --- | --- |
 | HIST-01 | P1 | 已按策略关闭 | v13/v14 MCP 迁移曾直接删除并重建表；现已移除全部升级逻辑 | 历史数据库不再受支持，旧库会被整库重置 |
-| HIST-02 | P1 | 已关闭 | 升级库与新装库约束不一致；v16 只存在最新 Schema 创建路径 | 旧 v15 混合 Schema 会被删除，不会被误认为当前结构 |
+| HIST-02 | P1 | 已关闭 | 升级库与新装库约束不一致；v17 只存在最新 Schema 创建路径 | v16 及更早 Schema 会被删除，不会被误认为当前结构 |
 | HIST-03 | P1 | 已关闭 | 迁移测试不能代表真实旧库；迁移实现和伪历史 Schema fixture 均已删除 | 只验证当前 Schema 精确快照与版本重置策略 |
 | BIZ-01 | P1 | 已关闭 | Bot+Skill 使用数据库事务；Bot+Chat 文件和 MCP 凭证使用 stage/rollback 补偿 | 故障注入验证失败后不产生半完成状态 |
 | BIZ-02 | P1 | 已关闭 | 附件由 Repository 内容寻址、保留扩展名并整批原子复制 | 复制失败阻止消息发送并清理暂存文件 |
 | BIZ-03 | P1 | 已关闭 | 媒体请求具备统一 overall timeout、可取消注册和隔离任务终止 | 挂起请求可取消且不会永久阻断导航 |
 | BIZ-04 | P1 | 已关闭 | Nebius/Tencent 已迁移；Kluster/Lambda/Search1Api 已从新建入口隐藏 | 历史 Bot 保留迁移或退场提示 |
 | ARCH-01 | P1 | 已关闭 | Chat/AddBot/EditBot 领域编排已下沉到可测试用例 | View 仅收集输入、调用命令并渲染结果 |
-| HIST-04 | P2 | 已确认 | 声明了 MCP 外键但未启用 SQLite foreign keys | `ON DELETE CASCADE` 实际不生效 |
-| HIST-05 | P2 | 已确认 | 历史 JSON/时间字段损坏时静默转空值或 1970 年 | 数据损坏不可观测，展示和排序异常 |
-| HIST-06 | P2 | 缺口 | 无数据库备份/导出和 downgrade 策略 | 迁移失败或回滚版本时恢复能力弱 |
-| HIST-08 | P2 | 已确认 | 消息仅按毫秒时间排序，没有稳定次序键 | 同时间戳消息和旧消息顺序不确定 |
+| HIST-04 | P2 | 已关闭 | v17 启用外键并补齐 Bot/Chat/Message/Skill/Pin 级联关系 | `foreign_key_check` 必须为空，孤儿写入直接失败 |
+| HIST-05 | P2 | 已关闭 | SQLite 记录只接受最新字段、类型和 JSON 结构 | 损坏值抛出格式错误，不再回落为空值或 epoch |
+| HIST-06 | P2 | 已关闭 | 当前版本启动检查、两级滚动备份和自动恢复 | 备份含 v17 数据库与 `chats/`，高版本数据库明确拒绝降级 |
+| HIST-08 | P2 | 已关闭 | SQL、分页游标和缓存统一 timestamp/message_id 顺序 | 同毫秒消息顺序稳定且分页无重叠 |
 | BIZ-05 | P2 | 已关闭 | Bot create/update/delete 共享命令状态与页面内错误反馈 | 写操作失败可见、可关闭且不会成为未处理回调 |
 | BIZ-06 | P2 | 已关闭 | 引入类型化 `AppFailure`，UI 仅展示本地化安全文案 | 原始异常只保留在诊断 cause，不再作为产品文案 |
 | BIZ-07 | P2 | 已关闭 | 启动返回 required/optional 能力报告并提供可见诊断和重试 | MCP/Skill 降级不再静默 |
@@ -67,7 +68,7 @@
 | ENG-02 | P2 | 已确认 | README 的格式检查命令在生成代码上失败 | 本地/未来 CI 无法保持绿色 |
 | ENG-03 | P2 | 已确认 | 两套本地化生成入口并存，README 的语言数已过期 | 生成结果、格式和文档容易漂移 |
 | ENG-04 | P2 | 已确认 | 全平台仍使用 `com.example.stars` 等占位标识 | 正式签名、升级、凭证命名和商店发布受阻 |
-| HIST-07 | P3 | 已确认 | `chats` 新装 schema 将 `INTEGER` 写为 `INTERGER` | SQLite 可运行但 schema 不规范、工具识别不稳定 |
+| HIST-07 | P3 | 已关闭 | v17 时间字段统一为 `INTEGER NOT NULL` | Schema 快照验证声明类型 |
 | BIZ-10 | P3 | 已确认 | 相对时间按 24 小时差而非自然日，未来时间显示“刚刚” | 列表时间语义不准确且日期未本地化 |
 | ARCH-06 | P3 | 已关闭 | Bots 桌面 Grid 与移动 List 已显式分离 | 不可达 MenuAnchor 分支已删除 |
 | UI-05 | P3 | 已确认 | `isDesktopOrTabletPlatform` 实际只判断桌面 | 命名误导响应式边界 |
@@ -82,7 +83,7 @@
 
 审计基线中的 `DatabaseService.migrateSchema` 会在所有 `<13` 的升级以及 `13 -> 14` 升级中调用 `_resetMcpSchema`，直接 `DROP TABLE` 后重建；测试也明确断言升级后两张表为空。
 
-该问题已按“停止历史数据库兼容”的产品策略关闭，而不是实施数据保留迁移：[`database_service.dart`](../lib/data/services/database_service.dart) 已移除 `onUpgrade`、`migrateSchema`、`_resetMcpSchema` 和所有按版本补列/建表逻辑，只保留当前 v16 `createSchema`。打开数据库前会只读检查版本；若不是 v16，则关闭连接、删除整个数据库文件，再通过 `createSchema` 创建 v16。
+该问题已按“停止历史数据库兼容”的产品策略关闭，而不是实施数据保留迁移：[`database_service.dart`](../lib/data/services/database_service.dart) 已移除 `onUpgrade`、`migrateSchema`、`_resetMcpSchema` 和所有按版本补列/建表逻辑，只保留当前 v17 `createSchema`。打开数据库前会只读检查版本；低于 v17 时会删除数据库、关联 `chats/` 和旧备份，再通过 `createSchema` 创建 v17；高于 v17 时明确拒绝降级。
 
 对应测试已改为校验当前 Schema 完整创建、当前版本数据库正常重开，以及旧版本数据库被删除后只生成最新表且原始记录消失，见 [`database_service_test.dart`](../test/data/services/database_service_test.dart)。这一决策意味着旧数据库不会升级或导入，全部历史数据都会被丢弃。
 
@@ -90,7 +91,7 @@
 
 该问题在原审计基线成立：新装库将 `message_id` 和 `turn_id` 定义为 `NOT NULL`，旧迁移却只增加可空 `TEXT` 列，因此相同版本号下可能出现不同约束。
 
-当前已经删除该升级路径和回填表达式，只通过最新 [`createSchema`](../lib/data/services/database_service.dart) 创建 `NOT NULL` 结构。由于旧升级路径也曾产生版本号为 15 的混合结构，仅删除 `onUpgrade` 仍不足以区分它和全新 v15 数据库；因此当前 schema 世代提升为 v16，并在打开时删除所有 v15 数据库、重新创建 v16。应用不会迁移或回填其中的数据，HIST-02 至此关闭。
+当前已经删除该升级路径和回填表达式，只通过最新 [`createSchema`](../lib/data/services/database_service.dart) 创建 `NOT NULL` 结构。当前 schema 世代为 v17；v16、v15 及更早数据库都会在打开前删除并重新创建。应用不会迁移、回填或导入其中的数据，HIST-02 至此关闭。
 
 后续若调整 Schema，必须继续遵守“只支持单一当前版本”的决策：提高 `databaseVersion` 会触发整库删除并创建新结构；只有重新取得产品授权后才能另行设计数据迁移。
 
@@ -98,35 +99,45 @@
 
 原迁移测试用当前 Schema 人工删表/删列来模拟旧版本，确实不能证明真实用户库可以升级。
 
-由于当前明确不支持任何历史 Schema，所有逐版本迁移测试和专门拼造 v15 消息表的 fixture 已删除，替换为两个契约：v16 Schema 的表、索引、关键列顺序和约束必须与精确快照一致；任意非 v16 数据库只按版本整库删除并重建，不检查、不解析也不迁移其内部结构。HIST-03 至此关闭。
+由于当前明确不支持任何历史 Schema，所有逐版本迁移测试和专门拼造旧消息表的 fixture 已删除，替换为两个契约：v17 Schema 的表、索引、关键列顺序和约束必须与精确快照一致；任意更旧数据库只按版本删除当前数据目录并重建，不检查、不解析也不迁移其内部结构。HIST-03 至此关闭。
 
-### HIST-04：外键声明未启用（P2）
+### HIST-04：外键声明未启用（P2，已关闭）
 
 schema 仅在 `mcp_tools.server_id` 上声明 `ON DELETE CASCADE`，见 [`database_service.dart`](../lib/data/services/database_service.dart#L568-L607)，但打开数据库时没有 `onConfigure` 执行 `PRAGMA foreign_keys = ON`，见 [`database_service.dart`](../lib/data/services/database_service.dart#L45-L55)。SQLite 默认不会执行该级联。
 
 当前 Repository 手工先删 Tools 再删 Server，所以常规路径大多正常；但迁移、调试脚本或未来新入口绕开 Repository 时会留下孤儿数据。建议启用外键，补齐 bots/chats/messages/skills/pins 的关系，并在迁移测试中执行 `PRAGMA foreign_key_check`。
 
-### HIST-05：兼容读取过于静默（P2）
+整改：v17 在 `onConfigure` 中强制开启 `PRAGMA foreign_keys = ON`，并为 Bot→Chat→Message、Bot/Skill binding、Chat/Skill pin、会话记忆和 MCP Tool 补齐 `ON DELETE CASCADE`。父记录 upsert 改为 update-or-insert，避免 SQLite `REPLACE` 触发误级联；测试覆盖孤儿写入拒绝、聚合删除和 `foreign_key_check`。
+
+### HIST-05：兼容读取过于静默（P2，已关闭）
 
 [`local_records.dart`](../lib/data/models/local_records.dart#L232-L243) 将损坏的 Bot parameters JSON 直接变成空 Map；图片/文件列表损坏时变成空列表，见 [`local_records.dart`](../lib/data/models/local_records.dart#L352-L364)；缺失或非法时间被转换为 epoch，见 [`local_records.dart`](../lib/data/models/local_records.dart#L378-L405)。这种策略保证页面“不崩”，但会把 MCP/模型能力配置、附件和时间信息悄悄抹掉。
 
 建议保留容错读取，同时返回结构化 migration warning/diagnostic；原始值不要在首次读取时覆盖。对可修复值执行显式一次性迁移，对不可修复值在 UI 显示“历史数据部分损坏”，并支持导出原始记录。
 
-### HIST-06：缺少恢复和降级策略（P2）
+整改：根据“不保留历史兼容”的产品决策，没有实现 warning 或一次性迁移。Bot、Message、Profile、Skill、Memory 等当前记录只接受 v17 定义的字段类型、枚举和 JSON 结构；损坏或缺字段直接抛出 `FormatException`。明文 Bot API Key 的读时迁移也已删除，只接受空值或当前加密 envelope。
+
+### HIST-06：缺少恢复和降级策略（P2，已关闭）
 
 当前只打开固定 `app.db`，不再执行 upgrade/downgrade；非当前版本会被整库删除并重建。系统仍没有数据库备份、完整性检查或用户导出/导入能力。对纯本地 AI 客户端而言，SQLite、会话附件和摘要 Markdown 是用户的核心资产。
 
 建议至少提供：升级前滚动备份、`quick_check`/关键表计数、备份版本元数据、手动导出、失败自动回滚、明确的“不支持降级”错误页。数据库与 `chats/`、摘要目录应使用同一备份 manifest。
 
-### HIST-07：schema 类型拼写错误（P3）
+整改：每次打开已有 v17 数据前执行 `quick_check` 与 `foreign_key_check`，验证通过后轮换 current/previous 两级快照；manifest 固定标记 v17，并同时复制 `app.db` 与完整 `chats/`（含附件和摘要）。主库损坏时只尝试恢复这两个 v17 快照；无有效快照则显示明确恢复失败，高于 v17 的数据库显示“不支持降级”且不修改原文件。旧版本不会进入备份恢复或导入路径。
+
+### HIST-07：schema 类型拼写错误（P3，已关闭）
 
 [`database_service.dart`](../lib/data/services/database_service.dart) 将两个时间列声明为 `INTERGER`。SQLite 的动态类型使它通常仍能保存整数，但这会造成 schema snapshot 噪声，并可能影响外部迁移/检查工具。应在下一次发布新 Schema 时统一为 `INTEGER NOT NULL`，并同步调整版本重置策略。
 
-### HIST-08：消息顺序没有稳定 tie-breaker（P2）
+整改：v17 将 Chat 的 `create_timestamp`、`modify_timestamp` 统一声明为 `INTEGER NOT NULL`，Schema snapshot 直接验证声明类型；旧 v16 数据库按版本重置，不执行修列迁移。
+
+### HIST-08：消息顺序没有稳定 tie-breaker（P2，已关闭）
 
 数据库已经建立 `(chat_id, timestamp, message_id)` 索引，见 [`database_service.dart`](../lib/data/services/database_service.dart#L559-L565)，但读取只使用 `ORDER BY timestamp ASC`，见 [`local_database_service.dart`](../lib/data/services/local_database_service.dart#L678-L685)，内存缓存也只比较 timestamp，见 [`sqlite_message_repository.dart`](../lib/data/repositories/sqlite_message_repository.dart#L153-L179)。同一毫秒写入的消息或时间为 0 的历史消息顺序不稳定。
 
 建议统一使用 `timestamp ASC, message_id ASC`；如果业务必须保持 user/assistant 因果次序，应持久化单调的 `sequence`，而不是依赖字符串 ID。
+
+整改：完整历史查询使用 `timestamp ASC, message_id ASC`，最近页及游标使用对应的 DESC/复合比较，内存窗口使用相同二级比较器。当前消息 ID 由 Repository 生成且唯一，测试覆盖同毫秒的 55 条消息跨页顺序，因此本阶段无需新增 sequence 字段。
 
 ## 5. 业务逻辑与可靠性审计
 
@@ -378,7 +389,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 ### 阶段 A：数据安全与立即止损（1 个迭代）
 
 1. 已移除会触发 MCP 局部 reset 的迁移和所有历史升级逻辑；非当前版本直接整库删除。
-2. 固化 v16 Schema 快照和版本重置契约。
+2. 固化 v17 Schema 快照和版本重置契约。
 3. 修复附件命名、复制失败反馈和稳定消息排序。
 4. 将已退场 provider 从新建入口隐藏；历史 Bot 显示迁移说明。
 5. 为媒体 HTTP 增加统一超时和取消，不再使用不可退出的无限等待。
@@ -408,7 +419,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 建议用以下可量化条件判断治理是否完成：
 
-- 新数据库只创建 v16 Schema；v16 数据库可无损重开；其他版本整库删除后创建空的 v16 Schema。
+- 新数据库只创建 v17 Schema；v17 数据库经检查与备份后重开；更旧版本删除数据库和关联会话数据后创建空的 v17 Schema，更高版本明确拒绝降级。
 - 数据库、文件、安全存储任一步失败后，要么全部回滚，要么 recovery journal 能在下次启动完成恢复。
 - 媒体请求都有 overall timeout 和取消路径；导航不再被无限期阻断。
 - `lib/ui/**` 除组合根外不导入 `lib/data/**`，View 不直接 import 平台插件。
@@ -443,7 +454,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 - 未连接真实 OpenAI/Anthropic/国内外 provider 账号，因此 provider 的外部可用性沿用仓库 2026-08-03 专项审计，仍需发布前联调复核。
 - 未在真实 Windows/macOS/Linux 窗口中进行截图和辅助技术测试；UI 结论来自组件树、token、widget tests 和代码路径。
 - 未运行覆盖率工具和 1k/10k 消息性能 benchmark，因此性能项标记为设计风险或缺口，没有伪造百分比/耗时。
-- 原审计未实际制造用户数据库迁移失败；整改后不再伪造历史 Schema，只用任意非当前版本数据库验证原始记录被删除并创建完整 v16 Schema。
+- 原审计未实际制造用户数据库迁移失败；整改后不再伪造历史 Schema，只用更旧版本数据库验证原始记录和关联会话目录被删除并创建完整 v17 Schema。
 
 ### 待产品/维护者确认
 

@@ -27,6 +27,7 @@ void main() {
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: DatabaseService.databaseVersion,
+        onConfigure: DatabaseService.configure,
         onCreate: DatabaseService.createSchema,
       ),
     );
@@ -121,6 +122,7 @@ void main() {
       );
 
       final timestamp = DateTime(2026, 7, 26);
+      await database.insert('bots', _botRow('bot-1'));
       await bindingRepository.save(
         BotSkillBinding(
           botId: 'bot-1',
@@ -196,6 +198,21 @@ Do not install.
     );
   });
 }
+
+Map<String, Object?> _botRow(String id) => <String, Object?>{
+  'id': id,
+  'name': 'Bot',
+  'avatar': '',
+  'provider': 'Provider',
+  'base_url': '',
+  'api_key': '',
+  'api_type': 'openai',
+  'model': 'model',
+  'system_prompt': '',
+  'parameters': '{}',
+  'create_timestamp': 1,
+  'modify_timestamp': 1,
+};
 
 String _skillSource(String instructions) => '''
 ---

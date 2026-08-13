@@ -33,11 +33,7 @@ class LocalDatabaseService {
 
   Future<void> insertBot(Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await database.insert(
-      'bots',
-      values,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _upsertByPrimaryKey(database, 'bots', values, 'id');
   }
 
   Future<void> insertBotWithSkillBindings(
@@ -46,11 +42,7 @@ class LocalDatabaseService {
   ) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
-      await transaction.insert(
-        'bots',
-        bot,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await _upsertByPrimaryKey(transaction, 'bots', bot, 'id');
       for (final binding in bindings) {
         await transaction.insert(
           'bot_skill_bindings',
@@ -256,11 +248,7 @@ class LocalDatabaseService {
 
   Future<void> upsertSkill(Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await database.insert(
-      'skills',
-      values,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await _upsertByPrimaryKey(database, 'skills', values, 'id');
   }
 
   Future<void> deleteSkill(String id) async {
@@ -414,6 +402,33 @@ class LocalDatabaseService {
       whereArgs: skillId == null ? null : [skillId],
       orderBy: 'timestamp DESC',
       limit: limit,
+    );
+  }
+}
+
+Future<void> _upsertByPrimaryKey(
+  DatabaseExecutor database,
+  String table,
+  Map<String, Object?> values,
+  String key,
+) async {
+  final primaryKey = values[key];
+  if (primaryKey == null) {
+    throw ArgumentError.value(values, 'values', 'Missing primary key $key.');
+  }
+  final updates = Map<String, Object?>.from(values)..remove(key);
+  final updated = await database.update(
+    table,
+    updates,
+    where: '$key = ?',
+    whereArgs: <Object?>[primaryKey],
+    conflictAlgorithm: ConflictAlgorithm.abort,
+  );
+  if (updated == 0) {
+    await database.insert(
+      table,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
   }
 }

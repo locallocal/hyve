@@ -14,13 +14,12 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
   @override
   Future<SkillOrganizationPolicy> getOrganizationPolicy() async {
     final rows = await _localDatabase.loadSkillOrganizationPolicy();
-    if (rows.isEmpty) return SkillOrganizationPolicy.defaults;
     final row = rows.single;
     return SkillOrganizationPolicy(
-      allowUnsignedSkills: _bool(row['allow_unsigned_skills'], true),
-      allowUnknownPublishers: _bool(row['allow_unknown_publishers'], false),
-      allowScriptExecution: _bool(row['allow_script_execution'], true),
-      allowAutomaticUpdates: _bool(row['allow_automatic_updates'], false),
+      allowUnsignedSkills: _bool(row['allow_unsigned_skills']),
+      allowUnknownPublishers: _bool(row['allow_unknown_publishers']),
+      allowScriptExecution: _bool(row['allow_script_execution']),
+      allowAutomaticUpdates: _bool(row['allow_automatic_updates']),
       allowedPublisherIds: _stringSet(row['allowed_publishers_json']),
       updatedAt: _date(row['updated_at']),
     );
@@ -76,7 +75,7 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
           name: _text(row['name']),
           indexUri: Uri.parse(_text(row['index_uri'])),
           publisherId: _text(row['publisher_id']),
-          enabled: _bool(row['enabled'], true),
+          enabled: _bool(row['enabled']),
           lastError: _text(row['last_error']),
           lastFetchedAt: _date(row['last_fetched_at']),
         ),
@@ -109,9 +108,8 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
     return SkillScriptGrant(
       skillId: _text(row['skill_id']),
       contentDigest: _text(row['content_digest']),
-      enabled: _bool(row['enabled'], false),
-      approvedAt:
-          _date(row['approved_at']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      enabled: _bool(row['enabled']),
+      approvedAt: _requiredDate(row['approved_at'], 'approved_at'),
     );
   }
 
@@ -161,7 +159,7 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
           type: _enumValue(
             SkillComplianceEventType.values,
             _text(row['event_type']),
-            SkillComplianceEventType.scriptRejected,
+            'event_type',
           ),
           skillId: _text(row['skill_id']),
           contentDigest: _text(row['content_digest']),
@@ -169,8 +167,7 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
           decision: _text(row['decision']),
           reason: _text(row['reason']),
           metadata: _objectMap(row['metadata_json']),
-          timestamp:
-              _date(row['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+          timestamp: _requiredDate(row['timestamp'], 'timestamp'),
         ),
       ),
     );
@@ -182,57 +179,59 @@ final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
     keyId: _text(row['key_id']),
     publicKey: _text(row['public_key']),
     organization: _text(row['organization']),
-    trusted: _bool(row['trusted'], true),
-    createdAt:
-        _date(row['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0),
-    updatedAt:
-        _date(row['updated_at']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    trusted: _bool(row['trusted']),
+    createdAt: _requiredDate(row['created_at'], 'created_at'),
+    updatedAt: _requiredDate(row['updated_at'], 'updated_at'),
   );
 }
 
-String _text(Object? value) => value?.toString() ?? '';
-
-bool _bool(Object? value, bool fallback) {
-  if (value == null) return fallback;
-  return value == 1 || value == true || value.toString() == '1';
+String _text(Object? value) {
+  if (value is String) return value;
+  throw const FormatException('Skill ecosystem text field is invalid.');
 }
+
+bool _bool(Object? value) => switch (value) {
+  0 => false,
+  1 => true,
+  _ => throw const FormatException('Skill ecosystem boolean is invalid.'),
+};
 
 DateTime? _date(Object? value) {
-  final milliseconds = switch (value) {
-    final int number => number,
-    final num number => number.toInt(),
-    _ => int.tryParse(value?.toString() ?? ''),
-  };
-  return milliseconds == null
-      ? null
-      : DateTime.fromMillisecondsSinceEpoch(milliseconds);
+  if (value == null) return null;
+  if (value is! int) {
+    throw const FormatException('Skill ecosystem timestamp is invalid.');
+  }
+  return DateTime.fromMillisecondsSinceEpoch(value);
 }
 
+DateTime _requiredDate(Object? value, String field) =>
+    _date(value) ??
+    (throw FormatException('Skill ecosystem field "$field" is required.'));
+
 Set<String> _stringSet(Object? value) {
-  try {
-    final decoded = jsonDecode(_text(value));
-    return decoded is List
-        ? decoded.map((item) => item.toString()).toSet()
-        : const {};
-  } on FormatException {
-    return const {};
+  final decoded = jsonDecode(_text(value));
+  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
+    throw const FormatException(
+      'Skill ecosystem publisher ids must be a string list.',
+    );
   }
+  return decoded.cast<String>().toSet();
 }
 
 Map<String, Object?> _objectMap(Object? value) {
-  try {
-    final decoded = jsonDecode(_text(value));
-    return decoded is Map
-        ? decoded.map((key, item) => MapEntry(key.toString(), item))
-        : const {};
-  } on FormatException {
-    return const {};
+  final decoded = jsonDecode(_text(value));
+  if (decoded is! Map<Object?, Object?> ||
+      decoded.keys.any((key) => key is! String)) {
+    throw const FormatException(
+      'Skill ecosystem metadata must contain an object.',
+    );
   }
+  return decoded.map((key, item) => MapEntry(key! as String, item));
 }
 
-T _enumValue<T extends Enum>(List<T> values, String name, T fallback) {
+T _enumValue<T extends Enum>(List<T> values, String name, String field) {
   for (final value in values) {
     if (value.name == name) return value;
   }
-  return fallback;
+  throw FormatException('Skill ecosystem field "$field" has an unknown value.');
 }

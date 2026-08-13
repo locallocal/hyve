@@ -17,6 +17,7 @@ void main() {
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: DatabaseService.databaseVersion,
+        onConfigure: DatabaseService.configure,
         onCreate: DatabaseService.createSchema,
       ),
     );
@@ -49,6 +50,8 @@ void main() {
           ),
         ).values,
       );
+      await database.insert('bots', _botRow('bot-1'));
+      await database.insert('bots', _botRow('bot-2'));
       await localDatabase.upsertBotSkillBinding(
         _binding('bot-1', 'user:reviewer', enabled: true),
       );
@@ -85,6 +88,16 @@ void main() {
           ),
         ).values,
       );
+      await localDatabase.upsertSkill(
+        SkillRecord.fromDomain(
+          _skill(
+            id: skillInstallerSkillId,
+            name: 'Skill installer',
+            description: 'Install Skills.',
+          ),
+        ).values,
+      );
+      await database.insert('bots', _botRow('bot-1'));
       await localDatabase.insertChat({
         'id': 'chat-1',
         'bot_id': 'bot-1',
@@ -104,11 +117,14 @@ void main() {
         'skill_id': 'user:reviewer',
         'created_at': now.millisecondsSinceEpoch,
       });
-      await localDatabase.upsertConversationSkillPin({
-        'chat_id': 'chat-1',
-        'skill_id': 'user:missing',
-        'created_at': now.millisecondsSinceEpoch,
-      });
+      await expectLater(
+        localDatabase.upsertConversationSkillPin({
+          'chat_id': 'chat-1',
+          'skill_id': 'user:missing',
+          'created_at': now.millisecondsSinceEpoch,
+        }),
+        throwsA(isA<DatabaseException>()),
+      );
       await localDatabase.upsertSkillActivations([
         {
           'id': 'activation-1',
@@ -128,11 +144,7 @@ void main() {
       final items = await repository.listForConversation('chat-1');
       final byId = {for (final item in items) item.id: item};
 
-      expect(byId.keys, {
-        'user:reviewer',
-        skillInstallerSkillId,
-        'user:missing',
-      });
+      expect(byId.keys, {'user:reviewer', skillInstallerSkillId});
       expect(byId['user:reviewer']?.configuredEnabled, isTrue);
       expect(byId['user:reviewer']?.pinnedToConversation, isTrue);
       expect(byId['user:reviewer']?.priority, 7);
@@ -140,12 +152,25 @@ void main() {
       expect(byId['user:reviewer']?.lastActivatedAt, now);
       expect(byId[skillInstallerSkillId]?.bundled, isTrue);
       expect(byId[skillInstallerSkillId]?.configuredEnabled, isFalse);
-      expect(byId['user:missing']?.available, isFalse);
-
       expect(await repository.listForConversation('chat-other'), isEmpty);
     },
   );
 }
+
+Map<String, Object?> _botRow(String id) => <String, Object?>{
+  'id': id,
+  'name': 'Bot',
+  'avatar': '',
+  'provider': 'Provider',
+  'base_url': '',
+  'api_key': '',
+  'api_type': 'openai',
+  'model': 'model',
+  'system_prompt': '',
+  'parameters': '{}',
+  'create_timestamp': 1,
+  'modify_timestamp': 1,
+};
 
 SkillDescriptor _skill({
   required String id,

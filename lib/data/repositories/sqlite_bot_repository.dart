@@ -155,21 +155,16 @@ class SqliteBotRepository implements BotAggregateRepository {
     final record = BotRecord(values);
     final storedApiKey = record.storedApiKey;
     if (storedApiKey.isEmpty) return record.toDomain(apiKey: '');
-
-    if (_apiKeyCipher.isEncrypted(storedApiKey)) {
-      final apiKey = await _apiKeyCipher.decrypt(
-        botId: record.id,
-        encrypted: storedApiKey,
+    if (!_apiKeyCipher.isEncrypted(storedApiKey)) {
+      throw const FormatException(
+        'Bot API key does not use the current encrypted format.',
       );
-      return record.toDomain(apiKey: apiKey);
     }
-
-    final encryptedApiKey = await _apiKeyCipher.encrypt(
+    final apiKey = await _apiKeyCipher.decrypt(
       botId: record.id,
-      apiKey: storedApiKey,
+      encrypted: storedApiKey,
     );
-    await _localDatabase.updateBot(record.id, {'api_key': encryptedApiKey});
-    return record.toDomain(apiKey: storedApiKey);
+    return record.toDomain(apiKey: apiKey);
   }
 
   List<Bot> get _snapshot => List<Bot>.unmodifiable(_cache ?? const []);

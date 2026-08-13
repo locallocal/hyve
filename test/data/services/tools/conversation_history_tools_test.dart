@@ -17,6 +17,7 @@ void main() {
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: DatabaseService.databaseVersion,
+        onConfigure: DatabaseService.configure,
         onCreate: DatabaseService.createSchema,
       ),
     );
@@ -25,6 +26,9 @@ void main() {
         databaseProvider: () async => database,
       ),
     );
+    await database.insert('bots', _botRow('bot_1'));
+    await database.insert('chats', _chatRow('chat_1', 'bot_1'));
+    await database.insert('chats', _chatRow('chat_2', 'bot_1'));
     await messages.upsertMessages([
       _message(
         id: 'message_1',
@@ -239,6 +243,30 @@ void main() {
     },
   );
 }
+
+Map<String, Object?> _botRow(String id) => <String, Object?>{
+  'id': id,
+  'name': 'Bot',
+  'avatar': '',
+  'provider': 'Provider',
+  'base_url': '',
+  'api_key': '',
+  'api_type': 'openai',
+  'model': 'model',
+  'system_prompt': '',
+  'parameters': '{}',
+  'create_timestamp': 1,
+  'modify_timestamp': 1,
+};
+
+Map<String, Object?> _chatRow(String id, String botId) => <String, Object?>{
+  'id': id,
+  'bot_id': botId,
+  'last_message': '',
+  'last_message_timestamp': 1,
+  'create_timestamp': 1,
+  'modify_timestamp': 1,
+};
 
 Message _message({
   required String id,

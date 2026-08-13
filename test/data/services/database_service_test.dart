@@ -12,91 +12,11 @@ void main() {
   });
 
   group('current database schema', () {
-    test('creates every table required by the current schema', () async {
+    test('creates exactly the current schema', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
-      final tables = await database.rawQuery('''
-        SELECT name
-        FROM sqlite_master
-        WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
-      ''');
-      expect(
-        tables.map((table) => table['name']),
-        containsAll(<String>[
-          'chats',
-          'messages',
-          'token_usage_records',
-          'skills',
-          'bot_skill_bindings',
-          'skill_activations',
-          'skill_publishers',
-          'skill_catalogs',
-          'skill_script_grants',
-          'skill_organization_policy',
-          'skill_compliance_events',
-          'conversation_skill_pins',
-          'mcp_servers',
-          'mcp_tools',
-          'conversation_memory_state',
-          'conversation_summary_segments',
-          'conversation_memory_items',
-          'bots',
-          'profile',
-        ]),
-      );
-
-      final messageColumns = await database.rawQuery(
-        'PRAGMA table_info(messages)',
-      );
-      expect(
-        messageColumns.map((column) => column['name']),
-        containsAll(<String>[
-          'message_id',
-          'turn_id',
-          'run_id',
-          'process_info',
-          'token_model',
-          'input_token_count',
-          'output_token_count',
-          'total_token_count',
-          'terminal_state',
-          'has_partial_content',
-        ]),
-      );
-      expect(
-        messageColumns.singleWhere(
-          (column) => column['name'] == 'message_id',
-        )['notnull'],
-        1,
-      );
-      expect(
-        messageColumns.singleWhere(
-          (column) => column['name'] == 'turn_id',
-        )['notnull'],
-        1,
-      );
-
-      final mcpColumns = await database.rawQuery(
-        'PRAGMA table_info(mcp_servers)',
-      );
-      expect(
-        mcpColumns.map((column) => column['name']),
-        containsAll(<String>[
-          'transport_type',
-          'transport_config_json',
-          'capabilities_json',
-          'connection_status',
-        ]),
-      );
-
-      final tokenUsageColumns = await database.rawQuery(
-        'PRAGMA table_info(token_usage_records)',
-      );
-      expect(
-        tokenUsageColumns.map((column) => column['name']),
-        contains('operation_kind'),
-      );
+      await _expectCurrentSchema(database);
     });
 
     test('replacing a duplicate message id leaves exactly one row', () async {
@@ -127,7 +47,7 @@ void main() {
     });
   });
 
-  group('database version policy', () {
+  group('database version reset policy', () {
     test('reopens a database that already uses the current schema', () async {
       final directory = await Directory.systemTemp.createTemp(
         'stars_current_database_',
@@ -167,86 +87,33 @@ void main() {
       );
     });
 
-    test('replaces a historical database with the current schema', () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'stars_historical_database_',
-      );
-      addTearDown(() => directory.delete(recursive: true));
-      final databasePath = path.join(directory.path, 'app.db');
-      final historicalDatabase = await databaseFactoryFfi.openDatabase(
-        databasePath,
-        options: OpenDatabaseOptions(
-          version: DatabaseService.databaseVersion - 1,
-          onCreate: (database, _) async {
-            await database.execute('''
-                CREATE TABLE legacy_records (
-                  id TEXT PRIMARY KEY,
-                  value TEXT NOT NULL
-                )
-              ''');
-          },
-        ),
-      );
-      await historicalDatabase.insert('legacy_records', <String, Object?>{
-        'id': 'legacy-1',
-        'value': 'preserved',
-      });
-      await historicalDatabase.close();
-
-      final service = DatabaseService(
-        applicationDocumentsDirectoryProvider: () async => directory,
-      );
-      final resetDatabase = await service.initDatabase();
-      addTearDown(resetDatabase.close);
-
-      expect(await resetDatabase.getVersion(), DatabaseService.databaseVersion);
-      expect(
-        await resetDatabase.rawQuery('''
-            SELECT name
-            FROM sqlite_master
-            WHERE type = 'table' AND name = 'legacy_records'
-          '''),
-        isEmpty,
-      );
-      expect(
-        await resetDatabase.rawQuery('''
-            SELECT name
-            FROM sqlite_master
-            WHERE type = 'table' AND name = 'messages'
-          '''),
-        hasLength(1),
-      );
-    });
-
     test(
-      'replaces the v15 nullable message schema and deletes its rows',
+      'deletes any non-current database before creating the current schema',
       () async {
         final directory = await Directory.systemTemp.createTemp(
-          'stars_v15_message_database_',
+          'stars_obsolete_database_',
         );
         addTearDown(() => directory.delete(recursive: true));
         final databasePath = path.join(directory.path, 'app.db');
-        final historicalDatabase = await databaseFactoryFfi.openDatabase(
+        final obsoleteDatabase = await databaseFactoryFfi.openDatabase(
           databasePath,
           options: OpenDatabaseOptions(
-            version: 15,
+            version: DatabaseService.databaseVersion - 1,
             onCreate: (database, _) async {
               await database.execute('''
-                CREATE TABLE messages (
-                  message_id TEXT,
-                  turn_id TEXT,
-                  chat_id TEXT,
-                  content TEXT
+                CREATE TABLE obsolete_data (
+                  id TEXT PRIMARY KEY,
+                  value TEXT NOT NULL
                 )
               ''');
             },
           ),
         );
-        await historicalDatabase.insert('messages', <String, Object?>{
-          'chat_id': 'legacy-chat',
-          'content': 'preserved',
+        await obsoleteDatabase.insert('obsolete_data', <String, Object?>{
+          'id': 'obsolete-1',
+          'value': 'must be deleted',
         });
-        await historicalDatabase.close();
+        await obsoleteDatabase.close();
 
         final service = DatabaseService(
           applicationDocumentsDirectoryProvider: () async => directory,
@@ -258,25 +125,152 @@ void main() {
           await resetDatabase.getVersion(),
           DatabaseService.databaseVersion,
         );
+        await _expectCurrentSchema(resetDatabase);
+        expect(
+          await resetDatabase.rawQuery('''
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table' AND name = 'obsolete_data'
+          '''),
+          isEmpty,
+        );
         expect(await resetDatabase.query('messages'), isEmpty);
-        final messageColumns = await resetDatabase.rawQuery(
-          'PRAGMA table_info(messages)',
-        );
-        expect(
-          messageColumns.singleWhere(
-            (column) => column['name'] == 'message_id',
-          )['notnull'],
-          1,
-        );
-        expect(
-          messageColumns.singleWhere(
-            (column) => column['name'] == 'turn_id',
-          )['notnull'],
-          1,
-        );
       },
     );
   });
+}
+
+Future<void> _expectCurrentSchema(Database database) async {
+  final tables = await database.rawQuery('''
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+  ''');
+  expect(
+    tables.map((table) => table['name']),
+    unorderedEquals(<String>[
+      'chats',
+      'messages',
+      'token_usage_records',
+      'skills',
+      'bot_skill_bindings',
+      'skill_activations',
+      'skill_publishers',
+      'skill_catalogs',
+      'skill_script_grants',
+      'skill_organization_policy',
+      'skill_compliance_events',
+      'conversation_skill_pins',
+      'mcp_servers',
+      'mcp_tools',
+      'conversation_memory_state',
+      'conversation_summary_segments',
+      'conversation_memory_items',
+      'bots',
+      'profile',
+    ]),
+  );
+
+  final indexes = await database.rawQuery('''
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'index' AND name NOT LIKE 'sqlite_autoindex_%'
+  ''');
+  expect(
+    indexes.map((index) => index['name']),
+    unorderedEquals(<String>[
+      'messages_message_id_unique',
+      'messages_bot_id_index',
+      'token_usage_records_chat_id_index',
+      'token_usage_records_bot_id_index',
+      'bot_skill_bindings_skill_id_index',
+      'skill_activations_run_id_index',
+      'skill_activations_chat_id_index',
+      'skill_compliance_events_skill_id_index',
+      'conversation_skill_pins_skill_id_index',
+      'conversation_summary_chat_status_index',
+      'conversation_memory_chat_key_index',
+      'messages_chat_timestamp_message_index',
+      'mcp_tools_server_id_index',
+    ]),
+  );
+
+  final messageColumns = await database.rawQuery('PRAGMA table_info(messages)');
+  expect(
+    messageColumns.map((column) => column['name']),
+    orderedEquals(<String>[
+      'message_id',
+      'turn_id',
+      'run_id',
+      'chat_id',
+      'bot_id',
+      'sender_id',
+      'content',
+      'reasoning',
+      'process_info',
+      'images',
+      'files',
+      'audio',
+      'music',
+      'video',
+      'token_model',
+      'input_token_count',
+      'output_token_count',
+      'total_token_count',
+      'terminal_state',
+      'has_partial_content',
+      'timestamp',
+    ]),
+  );
+  expect(
+    messageColumns.singleWhere(
+      (column) => column['name'] == 'message_id',
+    )['notnull'],
+    1,
+  );
+  expect(
+    messageColumns.singleWhere(
+      (column) => column['name'] == 'turn_id',
+    )['notnull'],
+    1,
+  );
+
+  final mcpColumns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
+  expect(
+    mcpColumns.map((column) => column['name']),
+    orderedEquals(<String>[
+      'id',
+      'name',
+      'transport_type',
+      'transport_config_json',
+      'remote_server_name',
+      'remote_server_version',
+      'capabilities_json',
+      'connection_status',
+      'last_error_code',
+      'last_connected_at',
+      'created_at',
+      'updated_at',
+    ]),
+  );
+
+  final tokenUsageColumns = await database.rawQuery(
+    'PRAGMA table_info(token_usage_records)',
+  );
+  expect(
+    tokenUsageColumns.map((column) => column['name']),
+    orderedEquals(<String>[
+      'message_id',
+      'chat_id',
+      'bot_id',
+      'operation_kind',
+      'token_model',
+      'input_token_count',
+      'output_token_count',
+      'total_token_count',
+      'timestamp',
+    ]),
+  );
 }
 
 Future<Database> _openCurrentDatabase() {

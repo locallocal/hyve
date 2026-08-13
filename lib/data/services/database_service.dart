@@ -18,9 +18,8 @@ class DatabaseService {
   _applicationDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  // v15 could also be produced by the removed historical upgrade path, whose
-  // messages table left message_id and turn_id nullable. Starting a new schema
-  // generation prevents those databases from being mistaken for a fresh one.
+  // This is the only supported schema generation. Every other version is
+  // deleted before the database is opened.
   static const int databaseVersion = 16;
 
   // 获取数据库实例
@@ -162,7 +161,7 @@ class DatabaseService {
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS token_usage_records (
+      CREATE TABLE token_usage_records (
         message_id TEXT PRIMARY KEY,
         chat_id TEXT NOT NULL DEFAULT '',
         bot_id TEXT NOT NULL DEFAULT '',
@@ -175,18 +174,18 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS token_usage_records_chat_id_index '
+      'CREATE INDEX token_usage_records_chat_id_index '
       'ON token_usage_records(chat_id)',
     );
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS token_usage_records_bot_id_index '
+      'CREATE INDEX token_usage_records_bot_id_index '
       'ON token_usage_records(bot_id)',
     );
   }
 
   static Future<void> _createSkillSchema(DatabaseExecutor db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skills (
+      CREATE TABLE skills (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -215,7 +214,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS bot_skill_bindings (
+      CREATE TABLE bot_skill_bindings (
         bot_id TEXT NOT NULL,
         skill_id TEXT NOT NULL,
         enabled INTEGER NOT NULL DEFAULT 1,
@@ -227,11 +226,11 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS bot_skill_bindings_skill_id_index '
+      'CREATE INDEX bot_skill_bindings_skill_id_index '
       'ON bot_skill_bindings(skill_id)',
     );
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_activations (
+      CREATE TABLE skill_activations (
         id TEXT PRIMARY KEY,
         run_id TEXT NOT NULL,
         chat_id TEXT NOT NULL,
@@ -248,18 +247,18 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS skill_activations_run_id_index '
+      'CREATE INDEX skill_activations_run_id_index '
       'ON skill_activations(run_id)',
     );
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS skill_activations_chat_id_index '
+      'CREATE INDEX skill_activations_chat_id_index '
       'ON skill_activations(chat_id)',
     );
   }
 
   static Future<void> _createSkillEcosystemSchema(DatabaseExecutor db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_publishers (
+      CREATE TABLE skill_publishers (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         key_id TEXT NOT NULL,
@@ -271,7 +270,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_catalogs (
+      CREATE TABLE skill_catalogs (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         index_uri TEXT NOT NULL,
@@ -282,7 +281,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_script_grants (
+      CREATE TABLE skill_script_grants (
         skill_id TEXT PRIMARY KEY,
         content_digest TEXT NOT NULL,
         enabled INTEGER NOT NULL DEFAULT 0,
@@ -290,7 +289,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_organization_policy (
+      CREATE TABLE skill_organization_policy (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         allow_unsigned_skills INTEGER NOT NULL DEFAULT 1,
         allow_unknown_publishers INTEGER NOT NULL DEFAULT 0,
@@ -301,10 +300,10 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      INSERT OR IGNORE INTO skill_organization_policy (id) VALUES (1)
+      INSERT INTO skill_organization_policy (id) VALUES (1)
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS skill_compliance_events (
+      CREATE TABLE skill_compliance_events (
         id TEXT PRIMARY KEY,
         event_type TEXT NOT NULL,
         skill_id TEXT NOT NULL DEFAULT '',
@@ -317,7 +316,7 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS skill_compliance_events_skill_id_index '
+      'CREATE INDEX skill_compliance_events_skill_id_index '
       'ON skill_compliance_events(skill_id, timestamp DESC)',
     );
   }
@@ -326,7 +325,7 @@ class DatabaseService {
     DatabaseExecutor db,
   ) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS conversation_skill_pins (
+      CREATE TABLE conversation_skill_pins (
         chat_id TEXT NOT NULL,
         skill_id TEXT NOT NULL,
         created_at INTEGER NOT NULL,
@@ -334,7 +333,7 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS conversation_skill_pins_skill_id_index '
+      'CREATE INDEX conversation_skill_pins_skill_id_index '
       'ON conversation_skill_pins(skill_id)',
     );
   }
@@ -343,7 +342,7 @@ class DatabaseService {
     DatabaseExecutor db,
   ) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS conversation_memory_state (
+      CREATE TABLE conversation_memory_state (
         chat_id TEXT PRIMARY KEY,
         revision INTEGER NOT NULL DEFAULT 0,
         active_summary_id TEXT NOT NULL DEFAULT '',
@@ -356,7 +355,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS conversation_summary_segments (
+      CREATE TABLE conversation_summary_segments (
         id TEXT PRIMARY KEY,
         chat_id TEXT NOT NULL,
         status TEXT NOT NULL,
@@ -378,11 +377,11 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS conversation_summary_chat_status_index '
+      'CREATE INDEX conversation_summary_chat_status_index '
       'ON conversation_summary_segments(chat_id, status)',
     );
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS conversation_memory_items (
+      CREATE TABLE conversation_memory_items (
         id TEXT PRIMARY KEY,
         chat_id TEXT NOT NULL,
         memory_key TEXT NOT NULL,
@@ -400,18 +399,18 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE UNIQUE INDEX IF NOT EXISTS conversation_memory_chat_key_index '
+      'CREATE UNIQUE INDEX conversation_memory_chat_key_index '
       'ON conversation_memory_items(chat_id, memory_key)',
     );
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS messages_chat_timestamp_message_index '
+      'CREATE INDEX messages_chat_timestamp_message_index '
       'ON messages(chat_id, timestamp, message_id)',
     );
   }
 
   static Future<void> _createMcpSchema(DatabaseExecutor db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS mcp_servers (
+      CREATE TABLE mcp_servers (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         transport_type TEXT NOT NULL
@@ -435,7 +434,7 @@ class DatabaseService {
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS mcp_tools (
+      CREATE TABLE mcp_tools (
         server_id TEXT NOT NULL,
         remote_name TEXT NOT NULL,
         title TEXT NOT NULL DEFAULT '',
@@ -451,7 +450,7 @@ class DatabaseService {
       )
     ''');
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS mcp_tools_server_id_index '
+      'CREATE INDEX mcp_tools_server_id_index '
       'ON mcp_tools(server_id)',
     );
   }

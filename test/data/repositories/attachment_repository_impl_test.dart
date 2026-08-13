@@ -1,45 +1,65 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 import 'package:stars/data/repositories/attachment_repository_impl.dart';
 import 'package:stars/data/services/attachment_picker_service.dart';
+import 'package:stars/domain/models/models.dart';
 
 void main() {
-  group('AttachmentRepositoryImpl', () {
-    late ImageSource selectedSource;
-    late AttachmentRepositoryImpl repository;
+  late Directory root;
+  late AttachmentRepositoryImpl repository;
 
-    setUp(() {
-      final service = AttachmentPickerService(
-        imagePathPicker: ({
-          required ImageSource source,
-          int? imageQuality,
-          double? maxWidth,
-          double? maxHeight,
-        }) async {
-          selectedSource = source;
-          return '/tmp/${source.name}.jpg';
-        },
-        filePathPicker: () async => '/tmp/document.pdf',
-      );
-      repository = AttachmentRepositoryImpl(service: service);
-    });
+  setUp(() async {
+    root = await Directory.systemTemp.createTemp('stars-assets-');
+    repository = AttachmentRepositoryImpl(
+      service: AttachmentPickerService(),
+      documentsDirectoryProvider: () async => root,
+    );
+  });
 
-    test('delegates camera capture to the platform service', () async {
-      final path = await repository.captureImage();
+  tearDown(() async {
+    if (await root.exists()) await root.delete(recursive: true);
+  });
 
-      expect(selectedSource, ImageSource.camera);
-      expect(path, '/tmp/camera.jpg');
-    });
+  test('same-basename assets are unique and preserve extensions', () async {
+    final firstDirectory =
+        await Directory(path.join(root.path, 'source-a')).create();
+    final secondDirectory =
+        await Directory(path.join(root.path, 'source-b')).create();
+    final first = File(path.join(firstDirectory.path, 'photo.PNG'));
+    final second = File(path.join(secondDirectory.path, 'photo.PNG'));
+    await first.writeAsString('first');
+    await second.writeAsString('second');
 
-    test('delegates gallery selection to the platform service', () async {
-      final path = await repository.selectImage();
+    final stored = await repository.persistAssets(
+      chatId: 'chat_1',
+      sourcePaths: [first.path, second.path],
+    );
 
-      expect(selectedSource, ImageSource.gallery);
-      expect(path, '/tmp/gallery.jpg');
-    });
+    expect(stored, hasLength(2));
+    expect(stored.toSet(), hasLength(2));
+    expect(stored.every((item) => path.extension(item) == '.png'), isTrue);
+    expect(await File(stored.first).readAsString(), 'first');
+    expect(await File(stored.last).readAsString(), 'second');
+  });
 
-    test('returns the selected document path', () async {
-      expect(await repository.selectFile(), '/tmp/document.pdf');
-    });
+  test('a missing source rolls back every staged asset', () async {
+    final source = File(path.join(root.path, 'valid.txt'));
+    await source.writeAsString('valid');
+
+    await expectLater(
+      repository.persistAssets(
+        chatId: 'chat_2',
+        sourcePaths: [source.path, path.join(root.path, 'missing.txt')],
+      ),
+      throwsA(isA<AppFailure>()),
+    );
+
+    final destination = Directory(path.join(root.path, 'chats', 'chat_2'));
+    expect(
+      await destination.list().where((entity) => entity is File).toList(),
+      isEmpty,
+    );
   });
 }

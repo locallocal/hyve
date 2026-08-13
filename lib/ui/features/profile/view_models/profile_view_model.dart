@@ -18,11 +18,11 @@ class ProfileViewModel extends ChangeNotifier {
   final AttachmentRepository _attachmentRepository;
   late final StreamSubscription<Profile> _subscription;
   Profile? _profile;
-  Object? _error;
+  AppFailure? _error;
   bool _isLoading = false;
 
   Profile? get profile => _profile;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
@@ -32,7 +32,7 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       _applyProfile(await _profileRepository.getProfile(), notify: false);
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'profile_load_failed');
     } finally {
       _isLoading = false;
       notifyListeners();

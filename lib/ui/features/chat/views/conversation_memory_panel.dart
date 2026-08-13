@@ -6,6 +6,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/services/stars_system_prompt.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
@@ -144,7 +145,7 @@ final class _ConversationMemoryPanelState
           if (viewModel.error != null) ...[
             const SizedBox(height: 10),
             Text(
-              viewModel.error.toString(),
+              safeFailureMessage(context, viewModel.error!),
               style: (DesktopThemeTokens.metaStyle(context) ??
                       const TextStyle())
                   .copyWith(color: DesktopThemeTokens.error(context)),
@@ -182,7 +183,11 @@ final class _ConversationMemoryPanelState
       );
     } on Object catch (error) {
       if (context.mounted) {
-        _showNotice(context, error.toString(), destructive: true);
+        _showNotice(
+          context,
+          safeFailureMessage(context, error),
+          destructive: true,
+        );
       }
     }
   }

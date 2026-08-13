@@ -51,15 +51,38 @@ class BotListViewModel extends ChangeNotifier {
        _messageRepository = messageRepository,
        _mcpServerRepository = mcpServerRepository {
     _botSubscription = _botRepository.changes.listen(_handleBotsChanged);
-    _messageSubscription = messageRepository?.changes.listen(
-      (_) => _scheduleMetricsLoad(),
-    );
-    _bindingSubscription = botSkillBindingRepository?.changes.listen(
-      (_) => _scheduleMetricsLoad(),
-    );
+    if (messageRepository is BotScopedMessageMetricsRepository) {
+      _messageMetricSubscription = messageRepository.botMetricChanges.listen(
+        _scheduleMetricsLoad,
+      );
+    } else {
+      _messageSubscription = messageRepository?.changes.listen(
+        (_) => _scheduleMetricsLoad(),
+      );
+    }
+    if (botSkillBindingRepository is BotScopedSkillBindingMetricsRepository) {
+      _bindingMetricSubscription = botSkillBindingRepository.botMetricChanges
+          .listen(_scheduleMetricsLoad);
+    } else {
+      _bindingSubscription = botSkillBindingRepository?.changes.listen(
+        (_) => _scheduleMetricsLoad(),
+      );
+    }
     _mcpSubscription = mcpServerRepository?.changes.listen((servers) {
+      final previous = {
+        for (final server in _mcpServers ?? const []) server.id: server,
+      };
+      final next = {for (final server in servers) server.id: server};
+      final changedServerIds =
+          {
+            ...previous.keys,
+            ...next.keys,
+          }.where((id) => previous[id]?.name != next[id]?.name).toSet();
       _mcpServers = List<McpServer>.unmodifiable(servers);
-      _scheduleMetricsLoad();
+      _scheduleMetricsLoad({
+        for (final bot in _bots)
+          if (bot.mcpServerIds.any(changedServerIds.contains)) bot.id,
+      });
     });
   }
 
@@ -71,8 +94,10 @@ class BotListViewModel extends ChangeNotifier {
   final MessageRepository? _messageRepository;
   final McpServerRepository? _mcpServerRepository;
   late final StreamSubscription<List<Bot>> _botSubscription;
-  late final StreamSubscription<void>? _messageSubscription;
-  late final StreamSubscription<void>? _bindingSubscription;
+  StreamSubscription<void>? _messageSubscription;
+  StreamSubscription<void>? _bindingSubscription;
+  StreamSubscription<Set<String>>? _messageMetricSubscription;
+  StreamSubscription<Set<String>>? _bindingMetricSubscription;
   late final StreamSubscription<List<McpServer>>? _mcpSubscription;
 
   List<Bot> _bots = const [];
@@ -80,11 +105,12 @@ class BotListViewModel extends ChangeNotifier {
   List<McpServer>? _mcpServers;
   Map<String, BotCardMetrics> _cardMetrics = const {};
   String _query = '';
-  Object? _error;
+  AppFailure? _error;
+  CommandState _commandState = const CommandState.idle();
   bool _isLoading = false;
   bool _metricsLoadScheduled = false;
-  bool _isPersistingModelMetadata = false;
-  bool _reloadMetricsAfterModelMetadataPersistence = false;
+  bool _reloadAllMetrics = false;
+  final Set<String> _pendingMetricBotIds = <String>{};
   bool _disposed = false;
   int _loadGeneration = 0;
   int _metricsLoadGeneration = 0;
@@ -92,10 +118,18 @@ class BotListViewModel extends ChangeNotifier {
   List<Bot> get bots => _bots;
   List<Bot> get filteredBots => _filteredBots;
   String get query => _query;
-  Object? get error => _error;
+  AppFailure? get error => _error;
+  CommandState get commandState => _commandState;
   bool get isLoading => _isLoading;
   BotCardMetrics metricsFor(String botId) =>
       _cardMetrics[botId] ?? BotCardMetrics.empty;
+
+  void clearError() {
+    if (_error == null && _commandState.phase != CommandPhase.failed) return;
+    _error = null;
+    _commandState = const CommandState.idle();
+    notifyListeners();
+  }
 
   Future<void> load() async {
     final generation = ++_loadGeneration;
@@ -109,7 +143,7 @@ class BotListViewModel extends ChangeNotifier {
       await _loadCardMetrics(bots, notify: false);
     } catch (error) {
       if (_disposed || generation != _loadGeneration) return;
-      _error = error;
+      _error = AppFailure.from(error, code: 'bot_list_load_failed');
     } finally {
       if (!_disposed && generation == _loadGeneration) {
         _isLoading = false;
@@ -138,30 +172,67 @@ class BotListViewModel extends ChangeNotifier {
     Bot bot, {
     List<BotSkillBinding> skillBindings = const [],
   }) async {
-    await _botRepository.addBot(bot);
-    if (skillBindings.isEmpty) return;
+    await _runMutation('bot_create_failed', () async {
+      final aggregateRepository = _botRepository;
+      if (aggregateRepository is BotAggregateRepository) {
+        await aggregateRepository.addBotWithSkillBindings(bot, skillBindings);
+        return;
+      }
+      await _botRepository.addBot(bot);
+      if (skillBindings.isEmpty) return;
 
-    final bindingRepository = _botSkillBindingRepository;
-    if (bindingRepository == null) {
-      throw StateError('No Bot Skill binding repository was configured.');
-    }
-    for (final binding in skillBindings) {
-      await bindingRepository.save(binding);
+      final bindingRepository = _botSkillBindingRepository;
+      if (bindingRepository == null) {
+        throw StateError('No Bot Skill binding repository was configured.');
+      }
+      try {
+        for (final binding in skillBindings) {
+          await bindingRepository.save(binding);
+        }
+      } catch (_) {
+        await _botRepository.deleteBot(bot.id);
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> updateBot(Bot bot) =>
+      _runMutation('bot_update_failed', () => _botRepository.updateBot(bot));
+
+  Future<void> deleteBot(String id) =>
+      _runMutation('bot_delete_failed', () => _botRepository.deleteBot(id));
+
+  Future<void> _runMutation(
+    String failureCode,
+    Future<void> Function() operation,
+  ) async {
+    _error = null;
+    _commandState = const CommandState.submitting();
+    notifyListeners();
+    try {
+      await operation();
+      _commandState = const CommandState.succeeded();
+    } on Object catch (error) {
+      final failure = AppFailure.from(error, code: failureCode);
+      _commandState = CommandState.failed(failure);
+      _error = failure;
+      rethrow;
+    } finally {
+      if (!_disposed) notifyListeners();
     }
   }
 
-  Future<void> updateBot(Bot bot) => _botRepository.updateBot(bot);
-
-  Future<void> deleteBot(String id) => _botRepository.deleteBot(id);
-
   void _handleBotsChanged(List<Bot> bots) {
     if (_disposed) return;
+    final previous = {for (final bot in _bots) bot.id: bot};
+    final next = {for (final bot in bots) bot.id: bot};
+    final changedIds =
+        {
+          ...previous.keys,
+          ...next.keys,
+        }.where((id) => previous[id] != next[id]).toSet();
     _applyBots(bots);
-    if (_isPersistingModelMetadata) {
-      _reloadMetricsAfterModelMetadataPersistence = true;
-      return;
-    }
-    _scheduleMetricsLoad();
+    _scheduleMetricsLoad(changedIds);
   }
 
   void _applyBots(List<Bot> bots, {bool notify = true}) {
@@ -201,8 +272,17 @@ class BotListViewModel extends ChangeNotifier {
     });
   }
 
-  Future<void> _loadCardMetrics(List<Bot> bots, {bool notify = true}) async {
+  Future<void> _loadCardMetrics(
+    List<Bot> bots, {
+    Set<String>? affectedBotIds,
+    bool notify = true,
+  }) async {
     final generation = ++_metricsLoadGeneration;
+    final requestedIds = affectedBotIds ?? {for (final bot in bots) bot.id};
+    final selectedBots = [
+      for (final bot in bots)
+        if (requestedIds.contains(bot.id)) bot,
+    ];
     var mcpServers = _mcpServers;
     final mcpRepository = _mcpServerRepository;
     if (mcpServers == null && mcpRepository != null) {
@@ -214,49 +294,76 @@ class BotListViewModel extends ChangeNotifier {
     final serversById = {
       for (final server in mcpServers ?? const <McpServer>[]) server.id: server,
     };
-    final entries = await Future.wait(
-      bots.map((bot) => _loadBotCardMetrics(bot, serversById)),
-    );
+    final selectedIds = selectedBots.map((bot) => bot.id).toSet();
+    final messageRepository = _messageRepository;
+    final usageByBot =
+        messageRepository is BotScopedMessageMetricsRepository
+            ? await messageRepository.getTokenUsageForBots(selectedIds)
+            : Map<String, ModelTokenUsage>.fromEntries(
+              await Future.wait(
+                selectedBots.map(
+                  (bot) async => MapEntry(
+                    bot.id,
+                    await (messageRepository?.getTokenUsageForBot(bot.id) ??
+                        Future.value(ModelTokenUsage.empty)),
+                  ),
+                ),
+              ),
+            );
+    final bindingRepository = _botSkillBindingRepository;
+    final bindingCounts =
+        bindingRepository is BotScopedSkillBindingMetricsRepository
+            ? await bindingRepository.getBindingCountsForBots(selectedIds)
+            : Map<String, int>.fromEntries(
+              await Future.wait(
+                selectedBots.map(
+                  (bot) async => MapEntry(
+                    bot.id,
+                    (await (bindingRepository?.getForBot(bot.id) ??
+                            Future.value(const <BotSkillBinding>[])))
+                        .length,
+                  ),
+                ),
+              ),
+            );
+    final entries = <(String, BotCardMetrics)>[
+      for (final bot in selectedBots)
+        _buildBotCardMetrics(
+          bot,
+          serversById,
+          usageByBot[bot.id] ?? ModelTokenUsage.empty,
+          bindingCounts[bot.id] ?? 0,
+        ),
+    ];
     if (_disposed || generation != _metricsLoadGeneration) return;
+    final activeIds = bots.map((bot) => bot.id).toSet();
     _cardMetrics = Map<String, BotCardMetrics>.unmodifiable({
+      for (final entry in _cardMetrics.entries)
+        if (activeIds.contains(entry.key) && !selectedIds.contains(entry.key))
+          entry.key: entry.value,
       for (final entry in entries) entry.$1: entry.$2,
     });
-    await _persistModelMetadata(
-      entries.map((entry) => entry.$3).whereType<Bot>(),
-    );
     if (notify) notifyListeners();
   }
 
-  Future<(String, BotCardMetrics, Bot?)> _loadBotCardMetrics(
+  (String, BotCardMetrics) _buildBotCardMetrics(
     Bot bot,
     Map<String, McpServer> serversById,
-  ) async {
-    final usageFuture =
-        _messageRepository?.getTokenUsageForBot(bot.id) ??
-        Future<ModelTokenUsage>.value(ModelTokenUsage.empty);
-    final bindingsFuture =
-        _botSkillBindingRepository?.getForBot(bot.id) ??
-        Future<List<BotSkillBinding>>.value(const []);
-    final modelInfoFuture = _loadModelInfoForCard(bot);
-    final (usage, bindings, modelInfo) =
-        await (usageFuture, bindingsFuture, modelInfoFuture).wait;
-    final contextWindowTokens =
-        bot.configuredContextWindowTokens ?? modelInfo?.contextWindowTokens;
+    ModelTokenUsage usage,
+    int bindingCount,
+  ) {
+    final contextWindowTokens = bot.configuredContextWindowTokens;
     final providerModalities = _providerModalities(bot);
     final inputModalities = _resolveInputModalities(
       bot.configuredInputModalities,
-      modelInfo?.inputModalities,
+      null,
       providerModalities.$1,
     );
     final outputModalities = _resolveOutputModalities(
       bot.configuredOutputModalities,
-      modelInfo?.outputModalities,
+      null,
       providerModalities.$2,
     );
-    final metadataBackfill =
-        _hasMissingModelMetadata(bot, modelInfo)
-            ? _withModelMetadata(bot, modelInfo!)
-            : null;
     final serverNames =
         bot.mcpServerIds
             .map((id) => serversById[id]?.name.trim())
@@ -272,90 +379,12 @@ class BotListViewModel extends ChangeNotifier {
       BotCardMetrics(
         tokenUsage: usage,
         mcpServerNames: List<String>.unmodifiable(serverNames),
-        skillCount: bindings.length,
+        skillCount: bindingCount,
         contextWindowTokens: contextWindowTokens,
         inputModalities: inputModalities,
         outputModalities: outputModalities,
       ),
-      metadataBackfill,
     );
-  }
-
-  bool _hasMissingModelMetadata(Bot bot, AiModelInfo? modelInfo) {
-    if (modelInfo == null) return false;
-    return (bot.configuredContextWindowTokens == null &&
-            modelInfo.contextWindowTokens != null) ||
-        (bot.configuredInputModalities == null &&
-            modelInfo.inputModalities.isNotEmpty) ||
-        (bot.configuredOutputModalities == null &&
-            modelInfo.outputModalities.isNotEmpty);
-  }
-
-  Bot _withModelMetadata(Bot bot, AiModelInfo modelInfo) {
-    return Bot(
-      id: bot.id,
-      name: bot.name,
-      avatar: bot.avatar,
-      provider: bot.provider,
-      baseURL: bot.baseURL,
-      apiKey: bot.apiKey,
-      apiType: bot.apiType,
-      model: bot.model,
-      systemPrompt: bot.systemPrompt,
-      parameters: {
-        ...?bot.parameters,
-        if (bot.configuredContextWindowTokens == null &&
-            modelInfo.contextWindowTokens != null)
-          Bot.parameterContextWindowTokens: modelInfo.contextWindowTokens,
-        if (bot.configuredInputModalities == null &&
-            modelInfo.inputModalities.isNotEmpty)
-          Bot.parameterInputModalities: [
-            for (final modality in modelInfo.inputModalities) modality.value,
-          ],
-        if (bot.configuredOutputModalities == null &&
-            modelInfo.outputModalities.isNotEmpty)
-          Bot.parameterOutputModalities: [
-            for (final modality in modelInfo.outputModalities) modality.value,
-          ],
-      },
-      createTimestamp: bot.createTimestamp,
-      modifyTimestamp: bot.modifyTimestamp,
-    );
-  }
-
-  Future<void> _persistModelMetadata(Iterable<Bot> bots) async {
-    final backfills = bots.toList(growable: false);
-    if (backfills.isEmpty || _disposed) return;
-    _isPersistingModelMetadata = true;
-    try {
-      for (final bot in backfills) {
-        if (_disposed) return;
-        try {
-          await _botRepository.updateBot(bot);
-        } on Object {
-          // The card can still use the fetched value for this session.
-        }
-      }
-    } finally {
-      _isPersistingModelMetadata = false;
-      if (_reloadMetricsAfterModelMetadataPersistence && !_disposed) {
-        _reloadMetricsAfterModelMetadataPersistence = false;
-        _scheduleMetricsLoad();
-      }
-    }
-  }
-
-  Future<AiModelInfo?> _loadModelInfoForCard(Bot bot) async {
-    if (bot.configuredContextWindowTokens != null &&
-        bot.configuredInputModalities != null &&
-        bot.configuredOutputModalities != null) {
-      return null;
-    }
-    try {
-      return await _aiProviderRepository.getModelInfo(bot);
-    } on Object {
-      return null;
-    }
   }
 
   (List<InputModality>, List<OutputModality>) _providerModalities(Bot bot) {
@@ -395,17 +424,29 @@ class BotListViewModel extends ChangeNotifier {
         : const [OutputModality.text],
   );
 
-  void _scheduleMetricsLoad() {
-    if (_disposed || _metricsLoadScheduled) return;
+  void _scheduleMetricsLoad([Set<String>? botIds]) {
+    if (_disposed) return;
+    if (botIds == null) {
+      _reloadAllMetrics = true;
+      _pendingMetricBotIds.clear();
+    } else if (!_reloadAllMetrics) {
+      _pendingMetricBotIds.addAll(botIds);
+    }
+    if (_metricsLoadScheduled) return;
     _metricsLoadScheduled = true;
     scheduleMicrotask(() async {
       _metricsLoadScheduled = false;
       if (_disposed) return;
+      final affected =
+          _reloadAllMetrics ? null : Set<String>.of(_pendingMetricBotIds);
+      _reloadAllMetrics = false;
+      _pendingMetricBotIds.clear();
+      if (affected?.isEmpty == true) return;
       try {
-        await _loadCardMetrics(_bots);
+        await _loadCardMetrics(_bots, affectedBotIds: affected);
       } catch (error) {
         if (_disposed) return;
-        _error = error;
+        _error = AppFailure.from(error, code: 'bot_metrics_load_failed');
         notifyListeners();
       }
     });
@@ -417,6 +458,8 @@ class BotListViewModel extends ChangeNotifier {
     _botSubscription.cancel();
     _messageSubscription?.cancel();
     _bindingSubscription?.cancel();
+    _messageMetricSubscription?.cancel();
+    _bindingMetricSubscription?.cancel();
     _mcpSubscription?.cancel();
     super.dispose();
   }

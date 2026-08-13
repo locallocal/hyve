@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/legal_document.dart';
+import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 
 class LegalDocumentViewModel extends ChangeNotifier {
@@ -13,12 +14,12 @@ class LegalDocumentViewModel extends ChangeNotifier {
   final LegalDocumentRepository _repository;
 
   String _content = '';
-  Object? _error;
+  AppFailure? _error;
   bool _isLoading = false;
   bool _hasLoaded = false;
 
   String get content => _content;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get isLoading => _isLoading;
 
   Future<void> load({
@@ -35,7 +36,7 @@ class LegalDocumentViewModel extends ChangeNotifier {
         localeName: localeName,
       );
     } catch (error) {
-      _error = error;
+      _error = AppFailure.from(error, code: 'legal_document_load_failed');
       _content = fallbackContent;
     } finally {
       _hasLoaded = true;

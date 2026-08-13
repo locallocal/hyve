@@ -36,6 +36,27 @@ class LocalDatabaseService {
     );
   }
 
+  Future<void> insertBotWithSkillBindings(
+    Map<String, Object?> bot,
+    Iterable<Map<String, Object?>> bindings,
+  ) async {
+    final database = await _databaseProvider();
+    await database.transaction((transaction) async {
+      await transaction.insert(
+        'bots',
+        bot,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      for (final binding in bindings) {
+        await transaction.insert(
+          'bot_skill_bindings',
+          binding,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
   Future<void> updateBot(String id, Map<String, Object?> values) async {
     final database = await _databaseProvider();
     await database.update('bots', values, where: 'id = ?', whereArgs: [id]);
@@ -43,7 +64,44 @@ class LocalDatabaseService {
 
   Future<void> deleteBot(String id) async {
     final database = await _databaseProvider();
+    final chatRows = await database.query(
+      'chats',
+      columns: const ['id'],
+      where: 'bot_id = ?',
+      whereArgs: [id],
+    );
     await database.transaction((transaction) async {
+      await transaction.delete(
+        'skill_activations',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'messages',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'conversation_skill_pins',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'conversation_summary_segments',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'conversation_memory_items',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'conversation_memory_state',
+        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
+        whereArgs: [id],
+      );
+      await transaction.delete('chats', where: 'bot_id = ?', whereArgs: [id]);
       await transaction.delete(
         'bot_skill_bindings',
         where: 'bot_id = ?',
@@ -56,6 +114,9 @@ class LocalDatabaseService {
       );
       await transaction.delete('bots', where: 'id = ?', whereArgs: [id]);
     });
+    for (final row in chatRows) {
+      _advanceMessageRevision(row['id']?.toString() ?? '');
+    }
   }
 
   Future<List<Map<String, Object?>>> loadSkills() async {
@@ -512,6 +573,21 @@ class LocalDatabaseService {
     );
   }
 
+  Future<List<Map<String, Object?>>> loadBotSkillBindingCounts(
+    Iterable<String> botIds,
+  ) async {
+    final ids = botIds.toSet().toList(growable: false);
+    if (ids.isEmpty) return const [];
+    final database = await _databaseProvider();
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return database.rawQuery('''
+      SELECT bot_id, COUNT(*) AS binding_count
+      FROM bot_skill_bindings
+      WHERE bot_id IN ($placeholders)
+      GROUP BY bot_id
+      ''', ids);
+  }
+
   Future<void> upsertBotSkillBinding(Map<String, Object?> values) async {
     final database = await _databaseProvider();
     await database.insert(
@@ -681,8 +757,48 @@ class LocalDatabaseService {
       'messages',
       where: 'chat_id = ?',
       whereArgs: [chatId],
-      orderBy: 'timestamp ASC',
+      orderBy: 'timestamp ASC, message_id ASC',
     );
+  }
+
+  Future<List<Map<String, Object?>>> loadMessagePage(
+    String chatId, {
+    int? beforeTimestamp,
+    String? beforeMessageId,
+    required int limit,
+  }) async {
+    if (limit < 1 || limit > 200) {
+      throw ArgumentError.value(limit, 'limit', 'Must be between 1 and 200.');
+    }
+    final database = await _databaseProvider();
+    final hasCursor = beforeTimestamp != null && beforeMessageId != null;
+    return database.query(
+      'messages',
+      where:
+          hasCursor
+              ? 'chat_id = ? AND '
+                  '(timestamp < ? OR (timestamp = ? AND message_id < ?))'
+              : 'chat_id = ?',
+      whereArgs:
+          hasCursor
+              ? [chatId, beforeTimestamp, beforeTimestamp, beforeMessageId]
+              : [chatId],
+      orderBy: 'timestamp DESC, message_id DESC',
+      limit: limit + 1,
+    );
+  }
+
+  Future<Set<String>> loadBotIdsForChat(String chatId) async {
+    final database = await _databaseProvider();
+    final records = await database.query(
+      'messages',
+      columns: const ['bot_id'],
+      distinct: true,
+      where: 'chat_id = ? AND bot_id != ?',
+      whereArgs: [chatId, ''],
+    );
+    return {for (final record in records) record['bot_id']?.toString() ?? ''}
+      ..remove('');
   }
 
   Future<List<Map<String, Object?>>> loadConversationMemoryState(
@@ -982,6 +1098,30 @@ class LocalDatabaseService {
       [botId],
     );
     return rows.single;
+  }
+
+  Future<List<Map<String, Object?>>> loadTokenUsageForBots(
+    Iterable<String> botIds,
+  ) async {
+    final ids = botIds.toSet().toList(growable: false);
+    if (ids.isEmpty) return const [];
+    final database = await _databaseProvider();
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return database.rawQuery('''
+      SELECT
+        bot_id,
+        COALESCE(SUM(input_token_count), 0) AS input_token_count,
+        COALESCE(SUM(output_token_count), 0) AS output_token_count,
+        COALESCE(SUM(
+          CASE
+            WHEN total_token_count > 0 THEN total_token_count
+            ELSE input_token_count + output_token_count
+          END
+        ), 0) AS total_token_count
+      FROM token_usage_records
+      WHERE bot_id IN ($placeholders)
+      GROUP BY bot_id
+      ''', ids);
   }
 
   Future<List<Map<String, Object?>>> loadTokenUsageByChatForBot(

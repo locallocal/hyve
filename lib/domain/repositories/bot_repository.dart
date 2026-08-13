@@ -13,3 +13,12 @@ abstract interface class BotRepository {
 
   Future<void> deleteBot(String id);
 }
+
+/// Optional aggregate capability implemented by repositories that can persist
+/// a Bot and its Skill bindings in one database transaction.
+abstract interface class BotAggregateRepository implements BotRepository {
+  Future<void> addBotWithSkillBindings(
+    Bot bot,
+    Iterable<BotSkillBinding> bindings,
+  );
+}

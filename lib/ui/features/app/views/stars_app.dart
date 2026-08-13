@@ -9,6 +9,7 @@ import 'package:stars/utils/utils.dart';
 import 'package:stars/utils/dot_curved_bottom_nav.dart';
 import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
@@ -68,12 +69,20 @@ class _StarsBootstrapAppState extends State<StarsBootstrapApp> {
           return StartupShell(
             title: 'Stars',
             message: '启动失败，请重试',
-            details: _viewModel.error?.toString(),
+            details:
+                _viewModel.error == null
+                    ? null
+                    : safeFailureMessage(context, _viewModel.error!),
             onRetry: _retryBootstrap,
           );
         }
 
-        return MyApp(dependencies: _dependencies, initialProfile: profile);
+        return MyApp(
+          dependencies: _dependencies,
+          initialProfile: profile,
+          startupCapabilitiesReport: _viewModel.capabilitiesReport,
+          onRetryStartupCapabilities: _viewModel.retryCapabilities,
+        );
       },
     );
   }
@@ -218,11 +227,15 @@ class StartupShell extends StatelessWidget {
 class MyApp extends StatefulWidget {
   final Profile initialProfile;
   final AppDependencies dependencies;
+  final StartupCapabilitiesReport startupCapabilitiesReport;
+  final Future<void> Function()? onRetryStartupCapabilities;
 
   const MyApp({
     super.key,
     required this.initialProfile,
     required this.dependencies,
+    this.startupCapabilitiesReport = StartupCapabilitiesReport.empty,
+    this.onRetryStartupCapabilities,
   });
 
   @override
@@ -321,7 +334,11 @@ class _MyAppState extends State<MyApp> {
         }
         return supportedLocales.first;
       },
-      home: MainPage(showExecutionStatus: _viewModel.showExecutionStatus),
+      home: MainPage(
+        showExecutionStatus: _viewModel.showExecutionStatus,
+        startupCapabilitiesReport: widget.startupCapabilitiesReport,
+        onRetryStartupCapabilities: widget.onRetryStartupCapabilities,
+      ),
     );
   }
 
@@ -380,7 +397,11 @@ class _MyAppState extends State<MyApp> {
               child: ShadAppBuilder(child: child!),
             );
           },
-          home: MainPage(showExecutionStatus: _viewModel.showExecutionStatus),
+          home: MainPage(
+            showExecutionStatus: _viewModel.showExecutionStatus,
+            startupCapabilitiesReport: widget.startupCapabilitiesReport,
+            onRetryStartupCapabilities: widget.onRetryStartupCapabilities,
+          ),
         );
       },
     );
@@ -388,9 +409,16 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key, this.showExecutionStatus = true});
+  const MainPage({
+    super.key,
+    this.showExecutionStatus = true,
+    this.startupCapabilitiesReport = StartupCapabilitiesReport.empty,
+    this.onRetryStartupCapabilities,
+  });
 
   final bool showExecutionStatus;
+  final StartupCapabilitiesReport startupCapabilitiesReport;
+  final Future<void> Function()? onRetryStartupCapabilities;
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -481,30 +509,51 @@ class _MainPageState extends State<MainPage> {
       ),
     ];
 
+    final pageBody =
+        isDesktopOrTablet
+            ? DesktopLayout(
+              currentIndex: _viewModel.currentIndex,
+              onPageChanged: _onPageChanged,
+              pages: pages,
+              selectedChatId: _viewModel.selectedChatId,
+              selectedChatBot: _viewModel.selectedChatBot,
+              selectedBot: _viewModel.selectedBot,
+              isEditingBot: _viewModel.isEditingSelectedBot,
+              showExecutionStatus: widget.showExecutionStatus,
+              selectedProfileSection: _viewModel.selectedProfileSection,
+              onProfileSectionChanged: _viewModel.selectProfileSection,
+              onCreateChat: _requestCreateChat,
+              onAddBot: () {
+                _botListKey.currentState?.openAddBotPage();
+              },
+              onSearchRequested: _focusCurrentListSearch,
+              avatarPicker: _botListViewModel.pickAvatar,
+              onBotUpdated: _onBotUpdated,
+              onBotDeleted: _onBotDeleted,
+            )
+            : IndexedStack(index: _viewModel.currentIndex, children: pages);
+    final issues = widget.startupCapabilitiesReport.issues;
     return Scaffold(
-      body:
-          isDesktopOrTablet
-              ? DesktopLayout(
-                currentIndex: _viewModel.currentIndex,
-                onPageChanged: _onPageChanged,
-                pages: pages,
-                selectedChatId: _viewModel.selectedChatId,
-                selectedChatBot: _viewModel.selectedChatBot,
-                selectedBot: _viewModel.selectedBot,
-                isEditingBot: _viewModel.isEditingSelectedBot,
-                showExecutionStatus: widget.showExecutionStatus,
-                selectedProfileSection: _viewModel.selectedProfileSection,
-                onProfileSectionChanged: _viewModel.selectProfileSection,
-                onCreateChat: _requestCreateChat,
-                onAddBot: () {
-                  _botListKey.currentState?.openAddBotPage();
-                },
-                onSearchRequested: _focusCurrentListSearch,
-                avatarPicker: _botListViewModel.pickAvatar,
-                onBotUpdated: _onBotUpdated,
-                onBotDeleted: _onBotDeleted,
-              )
-              : IndexedStack(index: _viewModel.currentIndex, children: pages),
+      body: Column(
+        children: [
+          if (issues.isNotEmpty)
+            MaterialBanner(
+              key: const ValueKey<String>('startup-capability-diagnostics'),
+              content: Text(
+                issues
+                    .map((issue) => '${issue.id}: ${issue.diagnosticCode}')
+                    .join('\n'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: widget.onRetryStartupCapabilities,
+                  child: Text(S.of(context).retry),
+                ),
+              ],
+            ),
+          Expanded(child: pageBody),
+        ],
+      ),
       bottomNavigationBar:
           isDesktopOrTablet
               ? null

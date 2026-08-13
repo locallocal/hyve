@@ -51,32 +51,90 @@ class ChatViewModel extends ChangeNotifier {
   final ChatGenerationViewModel generationViewModel;
 
   List<Message> _messages = const [];
-  Object? _historyError;
+  AppFailure? _historyError;
   bool _isLoading = false;
+  bool _isLoadingEarlier = false;
+  bool _hasEarlierMessages = false;
+  MessageCursor? _earlierCursor;
 
   List<Message> get messages => _messages;
   List<Message>? get cachedMessages {
     final repository = _messageRepository;
+    if (repository is PaginatedMessageRepository) {
+      final page = repository.peekMessagePage(chatId);
+      if (page == null) return null;
+      _applyPageState(page);
+      return page.messages;
+    }
     return repository is CachedMessageRepository
         ? repository.peekMessages(chatId)
         : null;
   }
 
-  Object? get historyError => _historyError;
+  AppFailure? get historyError => _historyError;
   bool get isLoading => _isLoading;
+  bool get isLoadingEarlier => _isLoadingEarlier;
+  bool get hasEarlierMessages => _hasEarlierMessages;
 
   Future<void> loadMessages() async {
     _isLoading = true;
     _historyError = null;
     notifyListeners();
     try {
-      _messages = await _messageRepository.getMessages(chatId);
+      final repository = _messageRepository;
+      if (repository is PaginatedMessageRepository) {
+        final page = await repository.getMessagePage(chatId);
+        _messages = page.messages;
+        _applyPageState(page);
+      } else {
+        _messages = await repository.getMessages(chatId);
+        _hasEarlierMessages = false;
+        _earlierCursor = null;
+      }
     } catch (error) {
-      _historyError = error;
+      _historyError = AppFailure.from(
+        error,
+        code: 'message_history_load_failed',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<List<Message>> loadEarlierMessages() async {
+    if (_isLoadingEarlier || !_hasEarlierMessages) return _messages;
+    final repository = _messageRepository;
+    final cursor = _earlierCursor;
+    if (repository is! PaginatedMessageRepository || cursor == null) {
+      _hasEarlierMessages = false;
+      return _messages;
+    }
+    _isLoadingEarlier = true;
+    notifyListeners();
+    try {
+      final page = await repository.getMessagePage(chatId, before: cursor);
+      final byId = <String, Message>{
+        for (final message in page.messages) message.messageId: message,
+        for (final message in _messages) message.messageId: message,
+      };
+      _messages = List<Message>.unmodifiable(
+        byId.values.toList()..sort(_compareMessages),
+      );
+      _applyPageState(page);
+      return _messages;
+    } catch (error) {
+      _historyError = AppFailure.from(error, code: 'message_page_load_failed');
+      rethrow;
+    } finally {
+      _isLoadingEarlier = false;
+      notifyListeners();
+    }
+  }
+
+  void _applyPageState(MessagePage page) {
+    _hasEarlierMessages = page.hasMore;
+    _earlierCursor = page.nextCursor;
   }
 
   String createId(String prefix) => _messageRepository.createId(prefix);
@@ -170,6 +228,14 @@ class ChatViewModel extends ChangeNotifier {
 
   Future<String?> selectFile() => _attachmentRepository.selectFile();
 
+  Future<List<String>> persistAssets(Iterable<String> sourcePaths) {
+    final repository = _attachmentRepository;
+    if (repository is! ConversationAssetRepository) {
+      throw const AppFailure.storage('conversation_asset_store_unavailable');
+    }
+    return repository.persistAssets(chatId: chatId, sourcePaths: sourcePaths);
+  }
+
   Future<List<String>> generateImage({
     required String prompt,
     required String size,
@@ -220,5 +286,17 @@ class ChatViewModel extends ChangeNotifier {
     referenceImages: referenceImages,
   );
 
+  Future<bool> cancelMedia() {
+    final repository = _aiProviderRepository;
+    if (repository is! CancelableMediaRepository) return Future.value(false);
+    return repository.cancelMedia(bot.id);
+  }
+
   void notifyChatListChanged() => _chatRepository.invalidate();
+}
+
+int _compareMessages(Message left, Message right) {
+  final timestamp = left.timestamp.compareTo(right.timestamp);
+  if (timestamp != 0) return timestamp;
+  return left.messageId.compareTo(right.messageId);
 }

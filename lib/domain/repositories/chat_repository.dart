@@ -19,3 +19,19 @@ abstract interface class ChatRepository {
 
   void invalidate();
 }
+
+abstract interface class BotChatDeletionStage {
+  List<String> get chatIds;
+
+  Future<void> rollback();
+
+  Future<void> commit();
+}
+
+/// Files are staged before the Bot aggregate transaction and committed only
+/// after SQLite succeeds.
+abstract interface class BotChatDeletionParticipant {
+  Future<BotChatDeletionStage> stageChatsForBotDeletion(String botId);
+
+  void completeStagedBotDeletion(BotChatDeletionStage stage);
+}

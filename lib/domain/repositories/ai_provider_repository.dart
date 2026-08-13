@@ -227,4 +227,9 @@ abstract interface class AiProviderRepository {
   });
 }
 
+abstract interface class CancelableMediaRepository
+    implements AiProviderRepository {
+  Future<bool> cancelMedia(String botId);
+}
+
 void _ignoreResponse(String _) {}

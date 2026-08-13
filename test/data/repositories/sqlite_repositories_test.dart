@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/repositories/sqlite_bot_repository.dart';
@@ -10,6 +13,7 @@ import 'package:stars/data/repositories/sqlite_profile_repository.dart';
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:stars/data/services/bot_api_key_cipher.dart';
+import 'package:stars/data/services/conversation_summary_storage.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/domain/models/models.dart';
@@ -104,22 +108,122 @@ void main() {
       );
       await repository.upsertMessage(original);
 
-      final firstLoad = await repository.getMessages('chat-cache');
-      final cachedLoad = await repository.getMessages('chat-cache');
-      expect(cachedLoad, same(firstLoad));
-      expect(repository.peekMessages('chat-cache'), same(firstLoad));
+      final firstPage = await repository.getMessagePage('chat-cache');
+      final cachedPage = await repository.getMessagePage('chat-cache');
+      expect(cachedPage, same(firstPage));
+      expect(repository.peekMessages('chat-cache'), same(firstPage.messages));
 
       await repository.upsertMessage(original.copyWith(content: 'after'));
-      final updatedLoad = await repository.getMessages('chat-cache');
-      expect(updatedLoad, isNot(same(firstLoad)));
-      expect(updatedLoad.single.content, 'after');
-      expect(repository.peekMessages('chat-cache'), same(updatedLoad));
+      final updatedPage = await repository.getMessagePage('chat-cache');
+      expect(updatedPage, isNot(same(firstPage)));
+      expect(updatedPage.messages.single.content, 'after');
+      expect(repository.peekMessages('chat-cache'), same(updatedPage.messages));
 
       await localDatabase.clearChatHistory('chat-cache', timestamp);
       expect(repository.peekMessages('chat-cache'), isNull);
       expect(await repository.getMessages('chat-cache'), isEmpty);
     },
   );
+
+  test('message pages use a stable timestamp and id cursor', () async {
+    final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    addTearDown(repository.dispose);
+    final bot = _bot();
+    final timestamp = DateTime(2026, 8, 10, 10);
+    await botRepository.addBot(bot);
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-paged',
+          botId: bot.id,
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
+    await repository.upsertMessages([
+      for (var index = 0; index < 55; index++)
+        Message(
+          messageId: 'message-${index.toString().padLeft(3, '0')}',
+          turnId: 'turn-$index',
+          chatId: 'chat-paged',
+          botId: bot.id,
+          senderId: 'me',
+          content: '$index',
+          timestamp: timestamp,
+        ),
+    ]);
+
+    final recent = await repository.getMessagePage('chat-paged');
+    final older = await repository.getMessagePage(
+      'chat-paged',
+      before: recent.nextCursor,
+    );
+
+    expect(recent.messages, hasLength(50));
+    expect(recent.messages.first.messageId, 'message-005');
+    expect(recent.messages.last.messageId, 'message-054');
+    expect(recent.hasMore, isTrue);
+    expect(older.messages, hasLength(5));
+    expect(older.messages.first.messageId, 'message-000');
+    expect(older.messages.last.messageId, 'message-004');
+    expect(older.hasMore, isFalse);
+  });
+
+  test('a growing cached window keeps its earlier-page cursor', () async {
+    final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    addTearDown(repository.dispose);
+    final bot = _bot();
+    final timestamp = DateTime(2026, 8, 10, 11);
+    await botRepository.addBot(bot);
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-growing-page',
+          botId: bot.id,
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
+    await repository.upsertMessages([
+      for (var index = 0; index < 50; index++)
+        Message(
+          messageId: 'growing-${index.toString().padLeft(3, '0')}',
+          turnId: 'turn-$index',
+          chatId: 'chat-growing-page',
+          botId: bot.id,
+          senderId: 'me',
+          content: '$index',
+          timestamp: timestamp.add(Duration(milliseconds: index)),
+        ),
+    ]);
+    final initial = await repository.getMessagePage('chat-growing-page');
+    expect(initial.hasMore, isFalse);
+
+    await repository.upsertMessage(
+      Message(
+        messageId: 'growing-050',
+        turnId: 'turn-50',
+        chatId: 'chat-growing-page',
+        botId: bot.id,
+        senderId: 'me',
+        content: '50',
+        timestamp: timestamp.add(const Duration(milliseconds: 50)),
+      ),
+    );
+
+    final current = repository.peekMessagePage('chat-growing-page')!;
+    expect(current.messages, hasLength(50));
+    expect(current.hasMore, isTrue);
+    final earlier = await repository.getMessagePage(
+      'chat-growing-page',
+      before: current.nextCursor,
+    );
+    expect(earlier.messages.single.messageId, 'growing-000');
+  });
 
   test('bot update persists every field with millisecond timestamps', () async {
     final original = _bot();
@@ -278,6 +382,14 @@ void main() {
     expect(usage.inputTokens, 180);
     expect(usage.outputTokens, 60);
     expect(usage.effectiveTotalTokens, 240);
+    final batchedUsage = await repository.getTokenUsageForBots([
+      'bot-1',
+      'bot-2',
+      'missing',
+    ]);
+    expect(batchedUsage['bot-1']?.effectiveTotalTokens, 240);
+    expect(batchedUsage['bot-2']?.effectiveTotalTokens, 2000);
+    expect(batchedUsage['missing'], ModelTokenUsage.empty);
 
     final usageByChat = await repository.getTokenUsageByChatForBot('bot-1');
     expect(usageByChat.keys, ['chat-1', 'chat-2']);
@@ -380,6 +492,103 @@ void main() {
     await botRepository.deleteBot(bot.id);
 
     expect(await bindingRepository.getForBot(bot.id), isEmpty);
+  });
+
+  test('Bot and Skill bindings roll back as one transaction', () async {
+    final bot = _bot();
+    await database.execute('''
+      CREATE TRIGGER fail_binding_insert
+      BEFORE INSERT ON bot_skill_bindings
+      BEGIN
+        SELECT RAISE(ABORT, 'injected binding failure');
+      END
+    ''');
+
+    await expectLater(
+      botRepository.addBotWithSkillBindings(bot, [
+        BotSkillBinding(
+          botId: bot.id,
+          skillId: 'user:test',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ]),
+      throwsA(anything),
+    );
+
+    expect(await localDatabase.loadBot(bot.id), isEmpty);
+    expect(await bindingRepository.getForBot(bot.id), isEmpty);
+  });
+
+  test('Bot deletion rolls back all database rows on failure', () async {
+    final bot = _bot();
+    final timestamp = DateTime(2026, 8, 10);
+    await botRepository.addBot(bot);
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-delete-rollback',
+          botId: bot.id,
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
+    final messages = SqliteMessageRepository(localDatabase: localDatabase);
+    addTearDown(messages.dispose);
+    await messages.upsertMessage(
+      Message(
+        messageId: 'message-delete-rollback',
+        turnId: 'turn-delete-rollback',
+        chatId: 'chat-delete-rollback',
+        botId: bot.id,
+        senderId: 'me',
+        content: 'keep me',
+        timestamp: timestamp,
+      ),
+    );
+    final documents = await Directory.systemTemp.createTemp(
+      'stars-bot-delete-',
+    );
+    addTearDown(() async {
+      if (await documents.exists()) await documents.delete(recursive: true);
+    });
+    final chatDirectory = await Directory(
+      path.join(documents.path, 'chats', 'chat-delete-rollback'),
+    ).create(recursive: true);
+    final attachment = File(path.join(chatDirectory.path, 'attachment.txt'));
+    await attachment.writeAsString('keep attachment');
+    final stagedChatRepository = SqliteChatRepository(
+      localDatabase: localDatabase,
+      conversationSummaryStorage: ConversationSummaryStorage(
+        documentsDirectoryProvider: () async => documents,
+      ),
+    );
+    final stagedBotRepository = SqliteBotRepository(
+      localDatabase: localDatabase,
+      chatRepository: stagedChatRepository,
+      apiKeyCipher: apiKeyCipher,
+    );
+    addTearDown(stagedBotRepository.dispose);
+    addTearDown(stagedChatRepository.dispose);
+    await database.execute('''
+      CREATE TRIGGER fail_bot_delete
+      BEFORE DELETE ON bots
+      BEGIN
+        SELECT RAISE(ABORT, 'injected bot delete failure');
+      END
+    ''');
+
+    await expectLater(stagedBotRepository.deleteBot(bot.id), throwsA(anything));
+
+    expect(await localDatabase.loadBot(bot.id), hasLength(1));
+    expect(await localDatabase.loadChat('chat-delete-rollback'), hasLength(1));
+    expect(
+      await localDatabase.loadMessages('chat-delete-rollback'),
+      hasLength(1),
+    );
+    expect(await attachment.readAsString(), 'keep attachment');
   });
 
   test('Skill activation audit records round-trip by run', () async {

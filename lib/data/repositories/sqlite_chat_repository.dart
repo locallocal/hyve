@@ -9,7 +9,8 @@ import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_memory_repository.dart';
 import 'package:stars/utils/utils.dart';
 
-class SqliteChatRepository implements ChatRepository {
+class SqliteChatRepository
+    implements ChatRepository, BotChatDeletionParticipant {
   SqliteChatRepository({
     required LocalDatabaseService localDatabase,
     ConversationMemoryRepository? conversationMemoryRepository,
@@ -103,14 +104,53 @@ class SqliteChatRepository implements ChatRepository {
 
   @override
   Future<void> deleteChatsForBot(String botId) async {
+    final stage = await stageChatsForBotDeletion(botId);
+    try {
+      for (final id in stage.chatIds) {
+        await _localDatabase.deleteChat(id);
+      }
+    } catch (_) {
+      await stage.rollback();
+      rethrow;
+    }
+    await stage.commit();
+    completeStagedBotDeletion(stage);
+  }
+
+  @override
+  Future<BotChatDeletionStage> stageChatsForBotDeletion(String botId) async {
     final chats = await getChats(forceRefresh: true);
-    final matchingIds = [
+    final chatIds = <String>[
       for (final chat in chats)
         if (chat.botId == botId) chat.id,
     ];
-    for (final id in matchingIds) {
-      await deleteChat(id);
+    final staged = <StagedConversationDeletion>[];
+    final storage = _conversationSummaryStorage;
+    try {
+      if (storage != null) {
+        for (final chatId in chatIds) {
+          final deletion = await storage.stageForChatDeletion(chatId);
+          if (deletion != null) staged.add(deletion);
+        }
+      }
+    } catch (_) {
+      for (final deletion in staged.reversed) {
+        await deletion.rollback();
+      }
+      rethrow;
     }
+    return _SqliteBotChatDeletionStage(
+      chatIds: List.unmodifiable(chatIds),
+      deletions: staged,
+      deleteUnstagedDirectories: storage == null,
+    );
+  }
+
+  @override
+  void completeStagedBotDeletion(BotChatDeletionStage stage) {
+    final deleted = stage.chatIds.toSet();
+    _cache = _cache?.where((chat) => !deleted.contains(chat.id)).toList();
+    _emit();
   }
 
   @override
@@ -194,4 +234,40 @@ class SqliteChatRepository implements ChatRepository {
 
   @visibleForTesting
   Future<void> dispose() => _changes.close();
+}
+
+final class _SqliteBotChatDeletionStage implements BotChatDeletionStage {
+  _SqliteBotChatDeletionStage({
+    required this.chatIds,
+    required List<StagedConversationDeletion> deletions,
+    required this.deleteUnstagedDirectories,
+  }) : _deletions = deletions;
+
+  @override
+  final List<String> chatIds;
+  final List<StagedConversationDeletion> _deletions;
+  final bool deleteUnstagedDirectories;
+
+  @override
+  Future<void> rollback() async {
+    for (final deletion in _deletions.reversed) {
+      await deletion.rollback();
+    }
+  }
+
+  @override
+  Future<void> commit() async {
+    for (final deletion in _deletions) {
+      await deletion.commit();
+    }
+    if (deleteUnstagedDirectories) {
+      for (final chatId in chatIds) {
+        try {
+          await deleteChatDirectory(chatId);
+        } on Object catch (error) {
+          debugPrint('Failed to delete chat directory for $chatId: $error');
+        }
+      }
+    }
+  }
 }

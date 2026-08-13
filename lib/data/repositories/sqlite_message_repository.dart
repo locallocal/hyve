@@ -1,25 +1,36 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:stars/data/models/local_records.dart';
 import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 
-class SqliteMessageRepository implements CachedMessageRepository {
+class SqliteMessageRepository
+    implements
+        CachedMessageRepository,
+        PaginatedMessageRepository,
+        BotScopedMessageMetricsRepository {
   SqliteMessageRepository({required LocalDatabaseService localDatabase})
     : _localDatabase = localDatabase;
 
   final LocalDatabaseService _localDatabase;
   final StreamController<void> _changes = StreamController<void>.broadcast();
-  final LinkedHashMap<String, _CachedMessages> _messageCache =
-      LinkedHashMap<String, _CachedMessages>();
+  final StreamController<Set<String>> _botMetricChanges =
+      StreamController<Set<String>>.broadcast();
+  final LinkedHashMap<String, _CachedMessagePage> _messageCache =
+      LinkedHashMap<String, _CachedMessagePage>();
   int _identitySequence = 0;
 
   static const int _maxCachedChats = 5;
+  static const int _messageWindowSize = 50;
 
   @override
   Stream<void> get changes => _changes.stream;
+
+  @override
+  Stream<Set<String>> get botMetricChanges => _botMetricChanges.stream;
 
   @override
   String createId(String prefix) {
@@ -37,38 +48,70 @@ class SqliteMessageRepository implements CachedMessageRepository {
 
   @override
   Future<List<Message>> getMessages(String chatId) async {
-    final cached = peekMessages(chatId);
-    if (cached != null) return cached;
-
-    final revisionBeforeLoad = _localDatabase.messageRevision(chatId);
     final records = await _localDatabase.loadMessages(chatId);
-    final messages = List<Message>.unmodifiable(
+    return List<Message>.unmodifiable(
       records.map((record) => MessageRecord(record).toDomain()),
     );
-    if (_localDatabase.messageRevision(chatId) == revisionBeforeLoad) {
-      _cacheMessages(chatId, revisionBeforeLoad, messages);
+  }
+
+  @override
+  Future<MessagePage> getMessagePage(
+    String chatId, {
+    MessageCursor? before,
+    int limit = _messageWindowSize,
+  }) async {
+    if (before == null && limit == _messageWindowSize) {
+      final cached = peekMessagePage(chatId);
+      if (cached != null) return cached;
     }
-    return messages;
+    final revisionBeforeLoad = _localDatabase.messageRevision(chatId);
+    final records = await _localDatabase.loadMessagePage(
+      chatId,
+      beforeTimestamp: before?.timestamp.millisecondsSinceEpoch,
+      beforeMessageId: before?.messageId,
+      limit: limit,
+    );
+    final hasMore = records.length > limit;
+    final selected = records.take(limit).toList(growable: false).reversed;
+    final messages = List<Message>.unmodifiable(
+      selected.map((record) => MessageRecord(record).toDomain()),
+    );
+    final page = MessagePage(
+      messages: messages,
+      hasMore: hasMore,
+      nextCursor:
+          hasMore && messages.isNotEmpty
+              ? MessageCursor(
+                timestamp: messages.first.timestamp,
+                messageId: messages.first.messageId,
+              )
+              : null,
+    );
+    if (before == null &&
+        limit == _messageWindowSize &&
+        _localDatabase.messageRevision(chatId) == revisionBeforeLoad) {
+      _cachePage(chatId, revisionBeforeLoad, page);
+    }
+    return page;
   }
 
   @override
   List<Message>? peekMessages(String chatId) {
+    return peekMessagePage(chatId)?.messages;
+  }
+
+  @override
+  MessagePage? peekMessagePage(String chatId) {
     final cached = _messageCache.remove(chatId);
     if (cached == null) return null;
     if (cached.revision != _localDatabase.messageRevision(chatId)) return null;
-
-    // Removing and reinserting makes this a small LRU cache. It keeps recent
-    // conversations fast without retaining every chat opened by the user.
     _messageCache[chatId] = cached;
-    return cached.messages;
+    return cached.page;
   }
 
-  void _cacheMessages(String chatId, int revision, List<Message> messages) {
+  void _cachePage(String chatId, int revision, MessagePage page) {
     _messageCache.remove(chatId);
-    _messageCache[chatId] = _CachedMessages(
-      revision: revision,
-      messages: messages,
-    );
+    _messageCache[chatId] = _CachedMessagePage(revision: revision, page: page);
     while (_messageCache.length > _maxCachedChats) {
       _messageCache.remove(_messageCache.keys.first);
     }
@@ -101,6 +144,23 @@ class SqliteMessageRepository implements CachedMessageRepository {
   }
 
   @override
+  Future<Map<String, ModelTokenUsage>> getTokenUsageForBots(
+    Iterable<String> botIds,
+  ) async {
+    final ids = botIds.toSet();
+    final records = await _localDatabase.loadTokenUsageForBots(ids);
+    return Map<String, ModelTokenUsage>.unmodifiable({
+      for (final id in ids) id: ModelTokenUsage.empty,
+      for (final record in records)
+        record['bot_id']?.toString() ?? '': ModelTokenUsage(
+          inputTokens: _readCount(record['input_token_count']),
+          outputTokens: _readCount(record['output_token_count']),
+          totalTokens: _readCount(record['total_token_count']),
+        ),
+    });
+  }
+
+  @override
   Future<Map<String, ModelTokenUsage>> getTokenUsageByChatForBot(
     String botId,
   ) async {
@@ -123,6 +183,9 @@ class SqliteMessageRepository implements CachedMessageRepository {
     );
     _updateCachedMessages(identified.chatId, [identified]);
     _changes.add(null);
+    if (identified.botId.isNotEmpty) {
+      _botMetricChanges.add({identified.botId});
+    }
     return identified;
   }
 
@@ -140,14 +203,19 @@ class SqliteMessageRepository implements CachedMessageRepository {
       _updateCachedMessages(entry.key, entry.value);
     }
     _changes.add(null);
+    final botIds =
+        identified.map((message) => message.botId).toSet()..remove('');
+    if (botIds.isNotEmpty) _botMetricChanges.add(botIds);
     return List<Message>.unmodifiable(identified);
   }
 
   @override
   Future<void> deleteMessages(String chatId) async {
+    final botIds = await _localDatabase.loadBotIdsForChat(chatId);
     await _localDatabase.deleteMessages(chatId);
     _messageCache.remove(chatId);
     _changes.add(null);
+    if (botIds.isNotEmpty) _botMetricChanges.add(botIds);
   }
 
   void _updateCachedMessages(String chatId, Iterable<Message> updates) {
@@ -156,7 +224,7 @@ class SqliteMessageRepository implements CachedMessageRepository {
     final currentRevision = _localDatabase.messageRevision(chatId);
     if (currentRevision != cached.revision + 1) return;
 
-    final messages = List<Message>.of(cached.messages);
+    final messages = List<Message>.of(cached.page.messages);
     final indexesById = <String, int>{
       for (var index = 0; index < messages.length; index++)
         if (messages[index].messageId.isNotEmpty)
@@ -171,12 +239,24 @@ class SqliteMessageRepository implements CachedMessageRepository {
         messages[index] = message;
       }
     }
-    messages.sort((left, right) => left.timestamp.compareTo(right.timestamp));
-    _cacheMessages(
-      chatId,
-      currentRevision,
-      List<Message>.unmodifiable(messages),
+    messages.sort(_compareMessages);
+    final trimmed = messages.length > _messageWindowSize;
+    if (trimmed) {
+      messages.removeRange(0, messages.length - _messageWindowSize);
+    }
+    final hasMore = cached.page.hasMore || trimmed;
+    final page = MessagePage(
+      messages: List<Message>.unmodifiable(messages),
+      hasMore: hasMore,
+      nextCursor:
+          hasMore && messages.isNotEmpty
+              ? MessageCursor(
+                timestamp: messages.first.timestamp,
+                messageId: messages.first.messageId,
+              )
+              : null,
     );
+    _cachePage(chatId, currentRevision, page);
   }
 
   List<ModelTokenUsageRecord> _toTokenUsageRecords(
@@ -202,13 +282,25 @@ class SqliteMessageRepository implements CachedMessageRepository {
       }),
     );
   }
+
+  @visibleForTesting
+  Future<void> dispose() async {
+    await _changes.close();
+    await _botMetricChanges.close();
+  }
 }
 
-class _CachedMessages {
-  const _CachedMessages({required this.revision, required this.messages});
+class _CachedMessagePage {
+  const _CachedMessagePage({required this.revision, required this.page});
 
   final int revision;
-  final List<Message> messages;
+  final MessagePage page;
+}
+
+int _compareMessages(Message left, Message right) {
+  final timestamp = left.timestamp.compareTo(right.timestamp);
+  if (timestamp != 0) return timestamp;
+  return left.messageId.compareTo(right.messageId);
 }
 
 int _readCount(Object? value) {

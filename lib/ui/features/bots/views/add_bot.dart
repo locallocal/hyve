@@ -152,7 +152,7 @@ class _AddBotPageState extends State<AddBotPage> {
         });
       }
     } on Object catch (error) {
-      _showError(error.toString());
+      if (mounted) _showError(safeFailureMessage(context, error));
     }
   } // 添加加载状态变量
 
@@ -215,7 +215,7 @@ class _AddBotPageState extends State<AddBotPage> {
         _showError(S.of(context).noModelsRetrieved);
       }
     } on Object catch (error) {
-      _showError(error.toString());
+      if (mounted) _showError(safeFailureMessage(context, error));
     } finally {
       if (mounted) {
         setState(() {
@@ -486,7 +486,7 @@ class _AddBotPageState extends State<AddBotPage> {
         navigator.pop();
       }
     } on Object catch (error) {
-      _showError(error.toString());
+      if (mounted) _showError(safeFailureMessage(context, error));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

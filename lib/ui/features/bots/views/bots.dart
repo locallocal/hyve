@@ -5,6 +5,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/logo.dart';
 import 'package:stars/ui/core/widgets/model_modalities.dart';
 import 'package:stars/ui/features/bots/views/add_bot.dart';
@@ -143,7 +144,11 @@ class ContactsPageState extends State<ContactsPage> {
     );
 
     if (confirm != true || !mounted) return;
-    await widget.viewModel.deleteBot(bot.id);
+    try {
+      await widget.viewModel.deleteBot(bot.id);
+    } on Object {
+      return;
+    }
     if (!mounted) return;
     final remainingBots = contacts
         .where((item) => item.id != bot.id)
@@ -170,7 +175,21 @@ class ContactsPageState extends State<ContactsPage> {
   Widget _buildPage(BuildContext context) {
     final isDesktop = isDesktopOrTabletPlatform(context);
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize;
-    final body = isLoading ? _buildLoadingState() : _buildBody(isDesktop);
+    final content = isLoading ? _buildLoadingState() : _buildBody(isDesktop);
+    final failure =
+        widget.viewModel.commandState.failure ?? widget.viewModel.error;
+    final body = Column(
+      children: [
+        if (failure != null)
+          StarsInlineErrorAlert(
+            error: safeFailureMessage(context, failure),
+            isDesktop: isDesktop,
+            onDismiss: widget.viewModel.clearError,
+            alertKey: const ValueKey<String>('bot-command-error'),
+          ),
+        Expanded(child: content),
+      ],
+    );
 
     if (!isDesktop) {
       return Scaffold(
@@ -367,57 +386,7 @@ class ContactsPageState extends State<ContactsPage> {
                 child: Icon(Icons.edit_square, size: 18),
               ),
               CustomSlidableAction(
-                onPressed: (context) async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Center(
-                          child: Text(
-                            S.of(context).confirmDelete,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.fontSize,
-                            ),
-                          ),
-                        ),
-                        content: Text(
-                          desktopConversationText(
-                            context,
-                            S.of(context).confirmDeleteBot(bot.name),
-                          ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(
-                              S.of(context).cancel,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text(
-                              S.of(context).delete,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (confirm == true) {
-                    await widget.viewModel.deleteBot(bot.id);
-                  }
-                },
+                onPressed: (_) => _deleteBot(bot),
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onSurface,
                 child: Icon(Icons.delete_rounded, size: 20),

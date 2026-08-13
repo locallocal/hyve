@@ -35,12 +35,8 @@ int themeModeToInt(ThemeMode value) {
 Future<void> createChatDirectory(String chatId) async {
   final appDir = await getApplicationDocumentsDirectory();
   final chatDir = Directory(path.join(appDir.path, 'chats', chatId));
-  try {
-    if (!await chatDir.exists()) {
-      await chatDir.create(recursive: true);
-    }
-  } catch (e) {
-    debugPrint('Create chat directory $chatDir failed: $e');
+  if (!await chatDir.exists()) {
+    await chatDir.create(recursive: true);
   }
 }
 

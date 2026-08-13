@@ -1,4 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:stars/domain/models/models.dart';
+import 'package:stars/generated/l10n.dart';
+
+/// Maps arbitrary failures to localized, product-safe copy. Raw exception
+/// strings remain available only through [AppFailure.debugCause].
+String safeFailureMessage(BuildContext context, Object error) {
+  final failure = AppFailure.from(error);
+  if (failure.code == 'bot_required_fields_missing') {
+    return S.of(context).fillRequiredFields;
+  }
+  return switch (failure.kind) {
+    AppFailureKind.cancelled => S.of(context).replyCancelled,
+    AppFailureKind.networkTimeout => S.of(context).statusTimedOut,
+    _ => S.of(context).errorLoadingContent,
+  };
+}
 
 /// Shows a floating informational message using the current Material shell.
 void showSnackBar(BuildContext context, String message) {

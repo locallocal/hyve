@@ -9,3 +9,10 @@ abstract interface class BotSkillBindingRepository {
 
   Future<void> remove(String botId, String skillId);
 }
+
+abstract interface class BotScopedSkillBindingMetricsRepository
+    implements BotSkillBindingRepository {
+  Stream<Set<String>> get botMetricChanges;
+
+  Future<Map<String, int>> getBindingCountsForBots(Iterable<String> botIds);
+}

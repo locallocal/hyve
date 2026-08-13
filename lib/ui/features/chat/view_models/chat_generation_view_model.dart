@@ -354,7 +354,7 @@ class ChatGenerationViewModel extends ChangeNotifier
         await _finalizeRun(
           runId,
           ProviderTerminalType.failed,
-          error: error.toString(),
+          error: AppFailure.from(error, code: 'generation_prepare_failed').code,
         );
       }
       return false;
@@ -394,7 +394,7 @@ class ChatGenerationViewModel extends ChangeNotifier
         _preflightCancellationRuns.remove(runId);
         _snapshot = _snapshot.copyWith(
           lifecycle: ChatRunLifecycle.failed,
-          error: error.toString(),
+          error: AppFailure.from(error, code: 'generation_start_failed').code,
           userPersisted: false,
         );
         _completeTerminal(ChatRunLifecycle.failed);
@@ -473,7 +473,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       await _finalizeRun(
         runId,
         ProviderTerminalType.failed,
-        error: error.toString(),
+        error: AppFailure.from(error, code: 'generation_persist_failed').code,
       );
       return false;
     }
@@ -493,7 +493,11 @@ class ChatGenerationViewModel extends ChangeNotifier
                   provider.isCancelled
                       ? ProviderTerminalType.cancelled
                       : ProviderTerminalType.failed,
-                  error: error.toString(),
+                  error:
+                      AppFailure.from(
+                        error,
+                        code: 'generation_partial_persist_failed',
+                      ).code,
                 ),
               );
             }
@@ -554,7 +558,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           if (_isActiveRun(runId)) {
             _snapshot = _snapshot.copyWith(
               lifecycle: ChatRunLifecycle.active,
-              error: 'Cancellation is not supported by this provider.',
+              error: 'provider_cancellation_not_supported',
             );
             notifyListeners();
           }
@@ -571,7 +575,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           !isPreflight) {
         _snapshot = _snapshot.copyWith(
           lifecycle: ChatRunLifecycle.active,
-          error: 'Cancellation timed out; the request may still be active.',
+          error: 'provider_cancellation_timeout',
         );
         notifyListeners();
       }
@@ -725,7 +729,11 @@ class ChatGenerationViewModel extends ChangeNotifier
                   cancellationToken.isCancelled
                       ? ProviderTerminalType.cancelled
                       : ProviderTerminalType.failed,
-                  error: error.toString(),
+                  error:
+                      AppFailure.from(
+                        error,
+                        code: 'agent_generation_failed',
+                      ).code,
                 ),
               );
             }
@@ -966,7 +974,15 @@ class ChatGenerationViewModel extends ChangeNotifier
 
   void _onProviderTerminal(String runId, ProviderTerminalEvent event) {
     if (!_isActiveRun(runId) || _finalizingRuns.contains(runId)) return;
-    unawaited(_finalizeRun(runId, event.type, error: event.error));
+    final rawError = event.error;
+    final error =
+        rawError == null
+            ? null
+            : AppFailure.from(
+              rawError,
+              code: 'provider_generation_failed',
+            ).code;
+    unawaited(_finalizeRun(runId, event.type, error: error));
   }
 
   Future<void> _finalizeRun(
@@ -1047,7 +1063,11 @@ class ChatGenerationViewModel extends ChangeNotifier
         terminalPersisted = true;
       } catch (persistenceError) {
         lifecycle = ChatRunLifecycle.failed;
-        error = 'Failed to save the generated response: $persistenceError';
+        error =
+            AppFailure.from(
+              persistenceError,
+              code: 'generation_response_persist_failed',
+            ).code;
         terminalMessage = terminalDraft.copyWith(
           terminalOutcome: MessageTerminalOutcome.failed,
           hasPartialContent: hasGeneratedContent,
@@ -1285,6 +1305,7 @@ class ChatGenerationRegistry {
 
   final Map<String, ChatGenerationViewModel> _viewModels = {};
   final Set<String> _nonCancellableRuns = {};
+  final Map<String, Future<bool> Function()> _externalRunCancellers = {};
   final MessagePersister _messagePersister;
   final LastMessageUpdater _lastMessageUpdater;
   final ProviderFactory _providerFactory;
@@ -1328,16 +1349,32 @@ class ChatGenerationRegistry {
   bool hasBlockingRun(String? chatId) =>
       chatId != null &&
       (_nonCancellableRuns.contains(chatId) ||
+          _externalRunCancellers.containsKey(chatId) ||
           (maybeViewModel(chatId)?.hasBlockingRun ?? false));
 
   bool supportsCancellationForRun(String? chatId) =>
       chatId != null &&
       !_nonCancellableRuns.contains(chatId) &&
-      (maybeViewModel(chatId)?.snapshot.supportsCancellation ?? false);
+      (_externalRunCancellers.containsKey(chatId) ||
+          (maybeViewModel(chatId)?.snapshot.supportsCancellation ?? false));
 
   Future<bool> stopForNavigation(String? chatId) async {
     if (chatId != null && _nonCancellableRuns.contains(chatId)) return false;
+    final externalCanceller =
+        chatId == null ? null : _externalRunCancellers[chatId];
+    if (externalCanceller != null) return externalCanceller();
     return await maybeViewModel(chatId)?.stopForNavigation() ?? true;
+  }
+
+  void setCancellableExternalRun(
+    String chatId,
+    Future<bool> Function()? canceller,
+  ) {
+    if (canceller == null) {
+      _externalRunCancellers.remove(chatId);
+    } else {
+      _externalRunCancellers[chatId] = canceller;
+    }
   }
 
   void setNonCancellableRunActive(String chatId, bool active) {
@@ -1351,6 +1388,7 @@ class ChatGenerationRegistry {
   void remove(String chatId) {
     final viewModel = _viewModels[chatId];
     if (_nonCancellableRuns.contains(chatId) ||
+        _externalRunCancellers.containsKey(chatId) ||
         viewModel == null ||
         viewModel.hasBlockingRun) {
       return;
@@ -1365,5 +1403,6 @@ class ChatGenerationRegistry {
     }
     _viewModels.clear();
     _nonCancellableRuns.clear();
+    _externalRunCancellers.clear();
   }
 }

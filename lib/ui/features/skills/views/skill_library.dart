@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/generated/l10n.dart';
+import 'package:stars/ui/core/widgets/common.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
 import 'package:stars/utils/theme.dart';
@@ -193,7 +194,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     icon: const Icon(LucideIcons.circleAlert),
                     title: Text(
-                      strings.skillImportFailed(viewModel.error.toString()),
+                      strings.skillImportFailed(
+                        safeFailureMessage(context, viewModel.error!),
+                      ),
                     ),
                     trailing: ShadTooltip(
                       builder:
@@ -552,7 +555,10 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
       _showMessage(context, S.of(context).skillImportSucceeded);
     } catch (error) {
       if (!context.mounted) return;
-      _showMessage(context, S.of(context).skillImportFailed(error.toString()));
+      _showMessage(
+        context,
+        S.of(context).skillImportFailed(safeFailureMessage(context, error)),
+      );
     }
   }
 
@@ -570,7 +576,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     try {
       await viewModel.refreshCatalogs();
     } catch (error) {
-      if (context.mounted) _showMessage(context, error.toString());
+      if (context.mounted) {
+        _showMessage(context, safeFailureMessage(context, error));
+      }
     }
   }
 
@@ -584,7 +592,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
         _showMessage(context, S.of(context).skillImportSucceeded);
       }
     } catch (error) {
-      if (context.mounted) _showMessage(context, error.toString());
+      if (context.mounted) {
+        _showMessage(context, safeFailureMessage(context, error));
+      }
     }
   }
 
@@ -624,7 +634,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
         _showMessage(context, strings.skillScriptSettingUpdated);
       }
     } catch (error) {
-      if (context.mounted) _showMessage(context, error.toString());
+      if (context.mounted) {
+        _showMessage(context, safeFailureMessage(context, error));
+      }
     }
   }
 
@@ -694,7 +706,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
         );
       }
     } catch (error) {
-      if (context.mounted) _showMessage(context, error.toString());
+      if (context.mounted) {
+        _showMessage(context, safeFailureMessage(context, error));
+      }
     }
   }
 
@@ -758,7 +772,9 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
     try {
       await viewModel.uninstall(skill.id);
     } catch (error) {
-      if (context.mounted) _showMessage(context, error.toString());
+      if (context.mounted) {
+        _showMessage(context, safeFailureMessage(context, error));
+      }
     }
   }
 
@@ -1200,7 +1216,11 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
                             } catch (error) {
                               if (mounted) {
                                 ShadSonner.of(this.context).show(
-                                  ShadToast(title: Text(error.toString())),
+                                  ShadToast(
+                                    title: Text(
+                                      safeFailureMessage(this.context, error),
+                                    ),
+                                  ),
                                 );
                               }
                             }

@@ -4,8 +4,10 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/data/services/ai/provider_service.dart';
 
 class Tencent extends Provider {
+  static const String defaultApiModelsUrl =
+      'https://tokenhub.tencentmaas.com/v1/models';
   static const String defaultApiChatUrl =
-      'https://api.hunyuan.cloud.tencent.com/v1/chat/completions';
+      'https://tokenhub.tencentmaas.com/v1/chat/completions';
 
   Tencent(super.bot);
 
@@ -16,35 +18,37 @@ class Tencent extends Provider {
 
   @override
   bool supportDeepThinking() {
-    if (bot.model.startsWith('hunyuan-t1')) {
-      return true;
-    }
+    // TokenHub model capability metadata is authoritative; old Hunyuan name
+    // rules are intentionally not carried into the new platform.
     return false;
   }
 
   @override
   List<InputModality> getInputModalites() {
-    switch (bot.model) {
-      case 'hunyuan-turbos-vision':
-      case 'hunyuan-standard-vision':
-      case 'hunyuan-lite-vision':
-      case 'hunyuan-turbo-vision':
-      case 'hunyuan-vision':
-        return [InputModality.text, InputModality.image];
-    }
-    return [InputModality.text];
+    return bot.configuredInputModalities ?? const [InputModality.text];
   }
 
   @override
   List<OutputModality> getOutputModalites() {
-    return [OutputModality.text];
+    return bot.configuredOutputModalities ?? const [OutputModality.text];
   }
 
   @override
   Future<List<AiModelInfo>> fetchModels() async {
-    throw UnsupportedError(
-      "${bot.apiType} does not expose an external model catalog.",
+    final url =
+        bot.baseURL.isNotEmpty ? '${bot.baseURL}models' : defaultApiModelsUrl;
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ${bot.apiKey}',
+      },
     );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw AppFailure.providerRejected('tencent_model_catalog_rejected');
+    }
+    final data = decodeProviderResponse(utf8.decode(response.bodyBytes));
+    return providerModelInfos(data['data']);
   }
 
   @override

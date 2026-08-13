@@ -4210,7 +4210,8 @@ void main() {
       );
       final submit = find.byKey(const ValueKey<String>('add-bot-submit'));
       expect(alert, findsOneWidget);
-      expect(find.textContaining('模型服务不可用'), findsOneWidget);
+      expect(find.text('加载内容时出错，请稍后再试。'), findsOneWidget);
+      expect(find.textContaining('模型服务不可用'), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
       expect(
         find.ancestor(of: alert, matching: find.byType(StarsInlineErrorAlert)),
@@ -4249,7 +4250,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(alert, findsOneWidget);
-      expect(find.textContaining('保存失败'), findsOneWidget);
+      expect(find.text('加载内容时出错，请稍后再试。'), findsOneWidget);
+      expect(find.textContaining('保存失败'), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
       expect(find.byIcon(Icons.add_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);

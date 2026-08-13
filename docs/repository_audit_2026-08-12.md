@@ -5,12 +5,13 @@
 > 审计范围：`lib/`、`test/`、桌面平台工程、数据库 schema/迁移、依赖与现有文档
 > 报告性质：代码静态审计与本地质量门禁结果，不包含真实供应商账号联调和 Windows/macOS/Linux 实机视觉验收
 > 整改记录：2026-08-13 已按产品决策关闭 HIST-01、HIST-02、HIST-03，并移除全部历史数据库升级逻辑；当前只保留 v16 Schema，其他版本会在打开前整库删除并重新创建，不执行任何历史数据迁移。v16 用新的 schema 世代隔离曾由旧迁移路径产生的 v15 混合结构。
+> 整改记录：2026-08-14 已关闭 BIZ-01 至 BIZ-09：补齐 Bot/MCP 跨资源事务与补偿、附件原子持久化、媒体超时取消、供应商退场迁移、Bot 命令反馈、安全错误模型、启动能力报告、Bot 指标批量增量刷新，以及消息游标分页与有界缓存。
 
 ## 1. 技术摘要
 
 仓库的基础质量并不差：分层目录已经建立，Dart 严格分析在 `data/domain/ui` 生效，API Key 使用平台安全存储中的主密钥做 AES-GCM 加密，MCP/Skill/会话记忆等高风险模块有较完整的单元测试。本次基线下 `dart analyze` 无问题，`flutter test` 的 432 项测试全部通过。
 
-主要风险来自“实现已经快速扩展，但约束没有同步收紧”：桌面 UI 仍处于 Material 与 Shad、旧兼容 token 与新语义 token 并存的迁移态；若干 View 继续承担文件复制、媒体生成、持久化编排和供应商能力判断；原审计发现的破坏性数据库迁移已通过停止所有历史升级路径关闭，但这也形成了明确的非兼容版本政策；SQLite、安全存储和文件系统之间的操作仍没有统一提交/补偿协议；现有测试也没有覆盖视觉回归和端到端桌面流程。
+主要风险来自“实现已经快速扩展，但约束没有同步收紧”：桌面 UI 仍处于 Material 与 Shad、旧兼容 token 与新语义 token 并存的迁移态；若干 View 继续承担较多领域编排；原审计发现的破坏性数据库迁移已通过停止所有历史升级路径关闭，但这也形成了明确的非兼容版本政策。BIZ-01 至 BIZ-09 已补齐核心业务可靠性边界，剩余风险主要集中在架构收敛、视觉回归、端到端桌面流程和发布治理。
 
 本次共记录 37 项：
 
@@ -21,12 +22,12 @@
 | P2 | 21 | 中期会持续放大 UI 漂移、可靠性、性能、测试和发布风险 |
 | P3 | 8 | 低风险规范、文档和清理项，可随相关模块改造一并完成 |
 
-建议先完成四件事：固化非当前数据库版本的自动重置契约；把聊天媒体与 Bot/MCP 多资源写入收敛到 Use Case；统一媒体请求超时/取消；为桌面端统一组件、错误反馈和视觉回归基线。之后再拆分超大文件、清理依赖与发布元数据。
+非当前数据库版本的自动重置契约、聊天附件与 Bot/MCP 多资源写入、媒体请求超时/取消、统一错误反馈和长会话分页已经完成。后续优先项是继续收敛 View 中的编排、建立桌面视觉与端到端基线，再拆分超大文件、清理依赖与发布元数据。
 
 ## 2. 已有保障与正向发现
 
 - 静态分析通过，且 [`lib/data/analysis_options.yaml`](../lib/data/analysis_options.yaml)、[`lib/domain/analysis_options.yaml`](../lib/domain/analysis_options.yaml)、[`lib/ui/analysis_options.yaml`](../lib/ui/analysis_options.yaml) 已启用 `strict-casts`、`strict-inference` 和 `strict-raw-types`。
-- 原审计基线共有 88 个测试文件、432 项通过的测试，覆盖 AI provider、MCP endpoint policy、MCP tool adapter、Skill 包路径穿越、签名、沙箱、会话压缩和 Repository 缓存；整改后数据库测试改为当前 Schema 与旧版本整库重置契约。
+- 原审计基线共有 88 个测试文件、432 项通过的测试，覆盖 AI provider、MCP endpoint policy、MCP tool adapter、Skill 包路径穿越、签名、沙箱、会话压缩和 Repository 缓存；整改后数据库测试改为当前 Schema 与旧版本整库重置契约，BIZ-01 至 BIZ-09 整改后的全量测试为 448 项通过。
 - Bot API Key 使用 AES-GCM、随机 256 位主密钥和 Bot ID 关联数据；旧明文 Key 会在读取时懒迁移。证据见 [`bot_api_key_cipher.dart`](../lib/data/services/bot_api_key_cipher.dart#L14-L109) 和 [`sqlite_bot_repository.dart`](../lib/data/repositories/sqlite_bot_repository.dart#L119-L138)。
 - MCP access token/stdio 环境变量进入平台安全存储而不是 SQLite，且服务 ID 经过格式约束。证据见 [`secure_mcp_credential_store.dart`](../lib/data/services/mcp/secure_mcp_credential_store.dart#L7-L85)。
 - 会话摘要文件删除已经采用 stage/commit/rollback，消息缓存也有限制为最近 5 个会话。这两处说明仓库已有可复用的补偿事务和有界缓存思路，见 [`sqlite_chat_repository.dart`](../lib/data/repositories/sqlite_chat_repository.dart#L79-L101) 与 [`sqlite_message_repository.dart`](../lib/data/repositories/sqlite_message_repository.dart#L15-L74)。
@@ -39,20 +40,20 @@
 | HIST-01 | P1 | 已按策略关闭 | v13/v14 MCP 迁移曾直接删除并重建表；现已移除全部升级逻辑 | 历史数据库不再受支持，旧库会被整库重置 |
 | HIST-02 | P1 | 已关闭 | 升级库与新装库约束不一致；v16 只存在最新 Schema 创建路径 | 旧 v15 混合 Schema 会被删除，不会被误认为当前结构 |
 | HIST-03 | P1 | 已关闭 | 迁移测试不能代表真实旧库；迁移实现和伪历史 Schema fixture 均已删除 | 只验证当前 Schema 精确快照与版本重置策略 |
-| BIZ-01 | P1 | 已确认 | Bot、Skill、Chat、MCP、凭证跨资源写入缺少原子性/补偿 | 失败后产生半完成状态或孤儿凭证 |
-| BIZ-02 | P1 | 已确认 | 附件复制改坏扩展名、可能覆盖同名文件，并静默忽略失败 | 用户以为附件已发送，实际内容丢失 |
-| BIZ-03 | P1 | 设计风险 | 媒体任务标为不可取消，多处 HTTP 调用没有统一超时 | 请求挂起时阻断切换、删除和退出 |
-| BIZ-04 | P1 | 仓库专项审计已确认 | 默认供应商仍包含已迁移/退场端点 | 新建 Bot 后模型列表或请求直接失败 |
+| BIZ-01 | P1 | 已关闭 | Bot+Skill 使用数据库事务；Bot+Chat 文件和 MCP 凭证使用 stage/rollback 补偿 | 故障注入验证失败后不产生半完成状态 |
+| BIZ-02 | P1 | 已关闭 | 附件由 Repository 内容寻址、保留扩展名并整批原子复制 | 复制失败阻止消息发送并清理暂存文件 |
+| BIZ-03 | P1 | 已关闭 | 媒体请求具备统一 overall timeout、可取消注册和隔离任务终止 | 挂起请求可取消且不会永久阻断导航 |
+| BIZ-04 | P1 | 已关闭 | Nebius/Tencent 已迁移；Kluster/Lambda/Search1Api 已从新建入口隐藏 | 历史 Bot 保留迁移或退场提示 |
 | ARCH-01 | P1 | 已确认 | Chat/AddBot/EditBot View 承担大量领域编排 | 重复逻辑、修复不一致、难以可靠测试 |
 | HIST-04 | P2 | 已确认 | 声明了 MCP 外键但未启用 SQLite foreign keys | `ON DELETE CASCADE` 实际不生效 |
 | HIST-05 | P2 | 已确认 | 历史 JSON/时间字段损坏时静默转空值或 1970 年 | 数据损坏不可观测，展示和排序异常 |
 | HIST-06 | P2 | 缺口 | 无数据库备份/导出和 downgrade 策略 | 迁移失败或回滚版本时恢复能力弱 |
 | HIST-08 | P2 | 已确认 | 消息仅按毫秒时间排序，没有稳定次序键 | 同时间戳消息和旧消息顺序不确定 |
-| BIZ-05 | P2 | 已确认 | Bot 编辑、删除失败缺少页面内错误呈现 | 异常冒泡，用户不知道保存/删除结果 |
-| BIZ-06 | P2 | 已确认 | 错误模型以 `Object/Exception/toString()` 为主 | 内部错误泄漏、无法稳定本地化与重试 |
-| BIZ-07 | P2 | 已确认 | 启动能力初始化大量吞掉异常且不记录诊断 | MCP/Skill 能力静默降级，难以排障 |
-| BIZ-08 | P2 | 设计风险 | Bot 卡片指标对每个 Bot 并发查询多个来源并可能访问网络 | N+1、限流、首屏抖动和重复写入 |
-| BIZ-09 | P2 | 已确认 | 会话一次加载全部消息，无分页/窗口化数据接口 | 长会话启动耗时和内存随历史线性增长 |
+| BIZ-05 | P2 | 已关闭 | Bot create/update/delete 共享命令状态与页面内错误反馈 | 写操作失败可见、可关闭且不会成为未处理回调 |
+| BIZ-06 | P2 | 已关闭 | 引入类型化 `AppFailure`，UI 仅展示本地化安全文案 | 原始异常只保留在诊断 cause，不再作为产品文案 |
+| BIZ-07 | P2 | 已关闭 | 启动返回 required/optional 能力报告并提供可见诊断和重试 | MCP/Skill 降级不再静默 |
+| BIZ-08 | P2 | 已关闭 | 指标改为数据库批量聚合和按 Bot ID 增量刷新 | 卡片刷新不再访问 provider 或回写 Bot |
+| BIZ-09 | P2 | 已关闭 | Repository 提供稳定 cursor 分页、50 条窗口与 5 会话缓存 | UI 首次只加载最近页，上滚再取历史 |
 | ARCH-02 | P2 | 已确认 | 3 个 UI ViewModel 直接导入 data service | 与仓库架构文档的依赖方向冲突 |
 | ARCH-03 | P2 | 已确认 | MessageList View 直接调用文件、相册、分享、URL 插件 | 平台副作用难以替换和单测 |
 | ARCH-04 | P2 | 设计风险 | 会话草稿使用进程级静态 Map，删除会话不清理 | 长期占用内存并持有已失效 File 引用 |
@@ -128,7 +129,7 @@ schema 仅在 `mcp_tools.server_id` 上声明 `ON DELETE CASCADE`，见 [`databa
 
 ## 5. 业务逻辑与可靠性审计
 
-### BIZ-01：跨资源操作会部分提交（P1）
+### BIZ-01：跨资源操作会部分提交（P1，已关闭）
 
 已确认的路径包括：
 
@@ -138,53 +139,71 @@ schema 仅在 `mcp_tools.server_id` 上声明 `ON DELETE CASCADE`，见 [`databa
 
 建议为单数据库操作增加 LocalDatabaseService 事务 API；跨 SQLite/文件/安全存储采用明确的 saga：stage、commit、rollback、recovery journal。会话摘要已有 stage/commit/rollback，可抽为通用模式。刷新远端目录不应决定本地保存是否成功，应返回“已保存，刷新失败”的部分成功状态。
 
-### BIZ-02：附件复制可能静默丢失或覆盖（P1）
+整改：Bot 与 Skill binding 由同一 SQLite transaction 写入；删除 Bot 时 Chat、消息、Memory、Skill、usage 和 Bot 在同一 transaction 删除，整个会话目录先 stage，失败 rollback、成功 commit。MCP 凭证先写并在数据库失败时恢复，删除时凭证失败不会删除数据库记录；远端 Tool 刷新失败改为部分成功 warning。相关测试覆盖数据库触发器和凭证读写删除故障。
+
+### BIZ-02：附件复制可能静默丢失或覆盖（P1，已关闭）
 
 Chat View 将目标名写成 `${fileName}_$timestamp`，例如 `photo.png_123`，扩展名不再位于结尾；同毫秒、同 basename 的文件还可能互相覆盖。每个复制异常仅 `debugPrint` 后继续，最终用户消息仍会被发送，只是附件路径缺失，见 [`chat.dart`](../lib/ui/features/chat/views/chat.dart#L966-L1005)。上游 `createChatDirectory` 也吞掉目录创建异常，见 [`utils.dart`](../lib/utils/utils.dart#L34-L45)。
 
 建议将附件持久化下沉到 `AttachmentRepository/ConversationAssetStore`，使用内容摘要或 UUID 命名，并保留原扩展名；全部复制成功后再持久化消息。若允许部分成功，必须在发送前列出失败文件并让用户确认。
 
-### BIZ-03：不可取消媒体任务缺少统一超时（P1）
+整改：附件复制已下沉到 `ConversationAssetRepository`，目标名使用 SHA-256 内容摘要和原始小写扩展名；同一消息的图片与文件作为一个批次先写临时文件，全部完成后再 rename。任一来源缺失或复制失败会清理整批暂存/新提交文件并阻止消息发送，目录创建错误不再被吞掉。
+
+### BIZ-03：不可取消媒体任务缺少统一超时（P1，已关闭）
 
 图片、语音、音乐、视频流程在 View 中注册为 non-cancellable run，见 [`chat.dart`](../lib/ui/features/chat/views/chat.dart#L1538-L1582)。AI adapter 中仍有大量顶层 `http.get/post` 未统一包裹 timeout，例如 [`nebius.dart`](../lib/data/services/ai/nebius.dart#L184-L226) 和 [`volcano_engine.dart`](../lib/data/services/ai/volcano_engine.dart#L200-L230)。本次静态计数为 48 个 provider/service 文件、54 处顶层 HTTP 调用，而 `.timeout(...)` 仅 26 处，且多数是模型列表或 Tool session，并非所有媒体请求。
 
 结果是网络半开或服务端不结束响应时，用户既不能取消，也会被导航守卫阻止切换/删除。建议统一注入 `http.Client` 与请求策略，定义 connect/read/overall timeout、取消 token、轮询上限和可重试错误；媒体任务应该可取消或可后台化，而不是永久阻塞当前会话。
 
-### BIZ-04：仓库已记录但尚未修复的 provider 失效项（P1）
+整改：图片、语音、音乐、视频统一经过媒体请求策略，默认 overall timeout 为 2 分钟；生产请求运行在可终止 isolate，取消或超时会直接终止包括 HTTP/轮询在内的任务。媒体运行已注册为可取消外部 run，导航、删除和退出守卫可先停止任务；超时和取消返回类型化错误。
+
+### BIZ-04：仓库已记录但尚未修复的 provider 失效项（P1，已关闭）
 
 仓库自己的 2026-08-03 专项审计已指出 Nebius AI Studio 迁移、Kluster 退场、Tencent 旧平台即将关闭等问题，见 [`model_providers_and_capabilities_2026-08-03.md`](model_providers_and_capabilities_2026-08-03.md#L333-L418)。当前代码仍将 Nebius 默认地址设为 `api.studio.nebius.com`，见 [`provider_catalog.dart`](../lib/domain/models/provider_catalog.dart#L131-L134) 和 [`nebius.dart`](../lib/data/services/ai/nebius.dart#L8-L13)，Kluster 也仍作为可选 provider 请求旧端点。
 
 这项结论沿用仓库现有专项审计，本轮未使用真实账号重新验证外部 API。建议将专项文档中的“退场/迁移”状态真正接入 provider registry：默认隐藏不可用入口，为历史 Bot 保留只读迁移提示，使用 capability metadata 代替旧模型 ID 字符串判断。
 
-### BIZ-05：Bot 写操作失败没有稳定反馈（P2）
+整改：Nebius 默认地址和图片端点迁至 Token Factory，Tencent 迁至 TokenHub 并实现 `/models`；两者移除旧模型 ID 能力猜测，改读 Bot 持久化能力元数据。Kluster、Lambda 和 Search1Api 从新建 provider 列表隐藏，但 adapter 仍可读取历史 Bot，并在详情页显示稳定的迁移/退场信息。
+
+### BIZ-05：Bot 写操作失败没有稳定反馈（P2，已关闭）
 
 新增 Bot 已改为 `StarsInlineErrorAlert`，但编辑保存的 `try/finally` 没有 `catch`，见 [`edit_bot.dart`](../lib/ui/features/bots/views/edit_bot.dart#L1306-L1391)；详情删除同样只有 `finally`，见 [`edit_bot.dart`](../lib/ui/features/bots/views/edit_bot.dart#L1782-L1868)；卡片删除直接 await Repository，见 [`bots.dart`](../lib/ui/features/bots/views/bots.dart#L117-L159)。异常可能成为未处理的异步回调，页面只恢复按钮状态，用户不知道数据是否写入。
 
 建议为 Bot create/update/delete 共享一个表单命令状态：idle/submitting/succeeded/failed，错误统一经过 domain error mapper，再用同一个 inline alert 呈现；成功提示和“部分成功”也使用统一组件。
 
-### BIZ-06：异常字符串直接成为产品文案（P2）
+整改：Bot 列表 ViewModel 的 create/update/delete 共用 `CommandState`；新增、编辑、详情删除、卡片和移动端滑动删除均捕获失败，并通过同一 `StarsInlineErrorAlert` 呈现可关闭的安全错误。提交期间清除旧错误，失败不会再成为未处理的异步回调。
+
+### BIZ-06：异常字符串直接成为产品文案（P2，已关闭）
 
 UI 层有 38 处 `error.toString()`/`e.toString()`，ViewModel 普遍暴露 `Object? error`；provider 层大量重新抛出通用 `Exception('...$e')`。这会出现 `Exception:`、`Bad state:`、英文/中文混杂、嵌套异常等内容，也无法可靠判断是否可重试、是否鉴权失败、是否需要保留表单。
 
 建议建立 `AppFailure`/sealed error：`validation`、`authentication`、`networkTimeout`、`rateLimited`、`providerRejected`、`storage`、`migration`、`unknown`，携带安全的 code、用户文案参数、debug cause 和 retryability。UI 只展示本地化安全文案，完整 cause 进入受控诊断日志。
 
-### BIZ-07：启动时静默吞掉能力初始化失败（P2）
+整改：已建立上述类型化 `AppFailure`（另含 `cancelled`），ViewModel 暴露稳定错误类型和 code，原始 cause 仅保留在 `debugCause`。所有 UI 异常展示统一经过 `safeFailureMessage`，生成终止事件、Agent Loop、Skill 资源读取和会话压缩也只持久化安全 code；MCP 的稳定领域错误码仍可映射为专用本地化文案。
+
+### BIZ-07：启动时静默吞掉能力初始化失败（P2，已关闭）
 
 [`AppDependencies.createStartupViewModel`](../lib/ui/core/dependency_injection/app_dependencies.dart#L464-L503) 对系统 Skill 校验、MCP cache、脚本 catalog 和在线 catalog 的所有异常均 `on Object` 后忽略。安全上“失败关闭”是合理的，但当前没有持久化诊断或用户可见的降级清单。
 
 建议返回 `StartupCapabilitiesReport`，区分 required/optional、available/degraded/failed；安全能力继续 fail closed，同时在设置页提供不含 secret 的诊断、重试和修复入口。
 
-### BIZ-08：Bot 卡片指标存在 N+1 与重复加载（P2）
+整改：启动初始化现在返回 `StartupCapabilitiesReport`，逐项记录系统 Skill、MCP cache、脚本 catalog 和在线 catalog 的 available/degraded/failed、required、diagnostic code 与 retryability。异常能力继续 fail closed；应用顶部展示不含 secret 的诊断清单和重试入口。
+
+### BIZ-08：Bot 卡片指标存在 N+1 与重复加载（P2，已关闭）
 
 Bot、消息、Skill binding、MCP 任一变化都会调度整批指标刷新，见 [`bot_list_view_model.dart`](../lib/ui/features/bots/view_models/bot_list_view_model.dart#L53-L63)。刷新对所有 Bot 执行 `Future.wait`，每个 Bot 又读取 usage、binding、model info，见 [`bot_list_view_model.dart`](../lib/ui/features/bots/view_models/bot_list_view_model.dart#L204-L242)；缺少模型元数据时还可能访问 provider 并逐条回写 Bot。
 
 Bot 数量增大后会形成无上限并发、供应商限流和列表抖动。建议数据库侧批量聚合 usage/binding/MCP 数量；模型元数据使用带 TTL 的独立 cache；只刷新受事件影响的 Bot，并限制网络并发。
 
-### BIZ-09：长会话没有数据分页（P2）
+整改：usage 和 Skill binding 改为按 Bot ID 集合执行数据库聚合查询，Repository 事件携带受影响 Bot ID；MCP 只在名称/存在性变化时刷新绑定该 server 的 Bot。卡片刷新不再查询 provider，也不再隐式回写模型元数据，因此消除了该路径的网络并发、限流和重复写入问题。
+
+### BIZ-09：长会话没有数据分页（P2，已关闭）
 
 [`LocalDatabaseService.loadMessages`](../lib/data/services/local_database_service.dart#L678-L685) 一次返回一个 chat 的全部记录，Repository 和 ChatPage 随后全部转为领域对象并常驻列表。`ListView.builder` 只解决 Widget 懒构建，不会降低数据库读取、JSON 解码和内存中的消息数量。
 
 建议 Repository 提供 cursor/sequence 分页：首次加载最近 N 条，向上滚动加载更早页；上下文压缩 use case 直接按需要查询，不依赖 UI 已加载的全部记录。缓存也应以窗口而不是完整会话为单位。
+
+整改：消息 Repository 新增 `(timestamp, message_id)` 稳定 cursor，首次读取最近 50 条，反向滚动到阈值后加载更早页；缓存仅保存 5 个会话的 50 条窗口，窗口增长仍保留前页 cursor。用于上下文组装/压缩的完整历史查询与 UI 分页接口分离，不依赖 UI 当前窗口。
 
 ### BIZ-10：时间展示的自然日语义不准确（P3）
 
@@ -333,12 +352,12 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 | 风险面 | 当前覆盖 | 建议新增 |
 | --- | --- | --- |
 | 数据库版本 | 已覆盖当前 Schema 精确快照、当前库重开、任意非当前版本删除并重建 | 增加空文件、损坏库和未来版本的重置覆盖 |
-| 跨资源写入 | 会话摘要有 stage/rollback 测试 | Bot+Skill、Bot+Chats、MCP+credential 的每一步 fault injection 和恢复 journal |
-| 附件/媒体 | ViewModel/provider 局部测试 | 同名文件、无扩展名、目录不可写、复制半失败、超时、取消、重启恢复 |
+| 跨资源写入 | 已覆盖 Bot+Skill transaction、Bot+Chat 文件 rollback、MCP credential 读写删与数据库故障注入 | 进一步增加进程中断后的持久化 recovery journal 测试 |
+| 附件/媒体 | 已覆盖同名文件、扩展名、批次回滚、overall timeout 和取消 | 增加目录只读和媒体任务重启恢复 |
 | 桌面 UI | 大量 widget/semantics 测试 | golden、焦点 traversal、context menu 键盘入口、多语言溢出、三个 breakpoint |
 | 架构规则 | 只检查 domain models 不导入 Flutter/data/ui | UI→data 禁止、View→plugin 禁止、data/domain→ui 禁止、组合根白名单 |
 | Provider | 多个 adapter 单测和 catalog test | 统一 contract test：timeout、typed error、取消、非法 JSON、usage-only event、secret redaction |
-| 长会话性能 | 未见基准 | 1k/10k 消息的读取、首帧、滚动、内存和压缩 benchmark |
+| 长会话性能 | 已覆盖稳定 cursor、同时间戳、窗口增长和前页连续性；尚无基准 | 1k/10k 消息的读取、首帧、滚动、内存和压缩 benchmark |
 | 正式构建 | 本地 analyze/test | Linux/Windows/macOS 至少 build smoke；签名前校验 bundle ID、权限和 secure storage |
 
 ## 10. 建议治理路线

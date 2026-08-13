@@ -29,7 +29,7 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
   late final StreamSubscription<void> _messageSubscription;
   late final StreamSubscription<List<Chat>> _chatSubscription;
 
-  Object? _error;
+  AppFailure? _error;
   bool _isLoading = false;
   bool _loadScheduled = false;
   bool _disposed = false;
@@ -41,7 +41,7 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
   ModelTokenUsage get visibleTotalUsage => _timeline.visibleTotalUsage;
   DateTime? get selectedDay => _timeline.selectedDay;
   TokenUsageGranularity get granularity => _timeline.granularity;
-  Object? get error => _error;
+  AppFailure? get error => _error;
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
@@ -57,7 +57,7 @@ class ChatTokenUsageViewModel extends ChangeNotifier {
       _timeline.replaceRecords(records);
     } catch (error) {
       if (_disposed || generation != _loadGeneration) return;
-      _error = error;
+      _error = AppFailure.from(error, code: 'chat_usage_load_failed');
     } finally {
       if (!_disposed && generation == _loadGeneration) {
         _isLoading = false;

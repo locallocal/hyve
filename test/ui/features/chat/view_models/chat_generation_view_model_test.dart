@@ -533,7 +533,7 @@ void main() {
       expect(controller.hasBlockingRun, isTrue);
     });
 
-    test('registry blocks navigation for a non-text generation', () async {
+    test('registry cancels a non-text generation for navigation', () async {
       final registry = ChatGenerationRegistry(
         messagePersister: (message) async => message,
         lastMessageUpdater: (_, _) async {},
@@ -541,11 +541,17 @@ void main() {
       );
       addTearDown(registry.clear);
 
-      registry.setNonCancellableRunActive('media-chat', true);
+      var cancellations = 0;
+      registry.setCancellableExternalRun('media-chat', () async {
+        cancellations += 1;
+        return true;
+      });
       expect(registry.hasBlockingRun('media-chat'), isTrue);
-      expect(await registry.stopForNavigation('media-chat'), isFalse);
+      expect(registry.supportsCancellationForRun('media-chat'), isTrue);
+      expect(await registry.stopForNavigation('media-chat'), isTrue);
+      expect(cancellations, 1);
 
-      registry.setNonCancellableRunActive('media-chat', false);
+      registry.setCancellableExternalRun('media-chat', null);
       expect(registry.hasBlockingRun('media-chat'), isFalse);
       expect(await registry.stopForNavigation('media-chat'), isTrue);
     });

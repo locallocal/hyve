@@ -22,8 +22,16 @@ void main() {
   ];
 
   test('every supported locale defines all settings page messages', () {
-    final profileSource =
-        File('lib/ui/features/profile/views/profile.dart').readAsStringSync();
+    final profileSource = Directory('lib/ui/features/profile/views')
+        .listSync()
+        .whereType<File>()
+        .where(
+          (file) =>
+              file.uri.pathSegments.last.startsWith('profile') &&
+              file.path.endsWith('.dart'),
+        )
+        .map((file) => file.readAsStringSync())
+        .join('\n');
     final settingsKeys =
         RegExp(
           r'S\.of\([^)]*\)\s*\.\s*([A-Za-z0-9_]+)',

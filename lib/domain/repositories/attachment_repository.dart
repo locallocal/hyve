@@ -14,4 +14,6 @@ abstract interface class ConversationAssetRepository
     required String chatId,
     required Iterable<String> sourcePaths,
   });
+
+  Future<String> getOutputDirectory(String chatId);
 }

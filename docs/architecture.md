@@ -30,7 +30,9 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 
 旧 `lib/pages` 也已完成迁移并删除。应用入口 `main.dart` 只负责平台初始化和启动；应用
 壳、功能页面与组件全部位于 UI 分层目录。相机、相册和文件选择通过
-`AttachmentRepository` 注入 ViewModel，View 不直接调用选择器插件。
+`AttachmentRepository` 注入 ViewModel；消息保存、分享和外链打开通过
+`MessageActionRepository` 注入 ViewModel，View 不直接调用平台插件。会话草稿由有界
+`ConversationDraftRepository` 管理，并在会话删除时清理。
 
 ## 功能开发顺序
 
@@ -46,10 +48,13 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 
 - View 不导入 `sqflite`、HTTP 客户端或旧静态数据 Service。
 - 除 `AppDependencies` 组合根外，View 与 ViewModel 不导入 Data 层实现。
+- View 不直接导入文件选择、相册保存、系统分享或外链打开插件。
 - Repository 向上只暴露领域模型，不暴露数据库记录。
 - ViewModel 对列表状态使用不可变快照，异步异常转换为可呈现状态。
 - 删除/更新操作先完成持久化，再发布变更通知。
 - Data、Domain、UI 新分层目录启用 `strict-casts`、`strict-inference` 和
   `strict-raw-types`。
+- 排除生成代码后，单个生产 Dart library/part 文件不超过 1000 行；超出时应按职责和
+  状态边界拆分。
 - AI 厂商适配器当前保留项目通用 lint；其上层领域契约与 Repository 实现继续使用严格
   分析。新增厂商响应解析优先定义 DTO，避免扩展动态 Map 边界。

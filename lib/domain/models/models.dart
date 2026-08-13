@@ -6,6 +6,7 @@ export 'chat.dart';
 export 'command_state.dart';
 export 'conversation_history.dart';
 export 'conversation_memory.dart';
+export 'conversation_draft.dart';
 export 'message.dart';
 export 'message_page.dart';
 export 'mcp.dart';

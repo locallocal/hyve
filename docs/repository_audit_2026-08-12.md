@@ -6,6 +6,7 @@
 > 报告性质：代码静态审计与本地质量门禁结果，不包含真实供应商账号联调和 Windows/macOS/Linux 实机视觉验收
 > 整改记录：2026-08-13 已按产品决策关闭 HIST-01、HIST-02、HIST-03，并移除全部历史数据库升级逻辑；当前只保留 v16 Schema，其他版本会在打开前整库删除并重新创建，不执行任何历史数据迁移。v16 用新的 schema 世代隔离曾由旧迁移路径产生的 v15 混合结构。
 > 整改记录：2026-08-14 已关闭 BIZ-01 至 BIZ-09：补齐 Bot/MCP 跨资源事务与补偿、附件原子持久化、媒体超时取消、供应商退场迁移、Bot 命令反馈、安全错误模型、启动能力报告、Bot 指标批量增量刷新，以及消息游标分页与有界缓存。
+> 整改记录：2026-08-14 已关闭 ARCH-01 至 ARCH-06：领域编排下沉到用例，UI/Data 依赖方向由门禁约束，平台消息操作经 Repository 注入，会话草稿改为有界仓库并随会话删除清理，所有非生成生产 Dart 文件均不超过 1000 行，Bots 不可达桌面分支已删除。
 
 ## 1. 技术摘要
 
@@ -44,7 +45,7 @@
 | BIZ-02 | P1 | 已关闭 | 附件由 Repository 内容寻址、保留扩展名并整批原子复制 | 复制失败阻止消息发送并清理暂存文件 |
 | BIZ-03 | P1 | 已关闭 | 媒体请求具备统一 overall timeout、可取消注册和隔离任务终止 | 挂起请求可取消且不会永久阻断导航 |
 | BIZ-04 | P1 | 已关闭 | Nebius/Tencent 已迁移；Kluster/Lambda/Search1Api 已从新建入口隐藏 | 历史 Bot 保留迁移或退场提示 |
-| ARCH-01 | P1 | 已确认 | Chat/AddBot/EditBot View 承担大量领域编排 | 重复逻辑、修复不一致、难以可靠测试 |
+| ARCH-01 | P1 | 已关闭 | Chat/AddBot/EditBot 领域编排已下沉到可测试用例 | View 仅收集输入、调用命令并渲染结果 |
 | HIST-04 | P2 | 已确认 | 声明了 MCP 外键但未启用 SQLite foreign keys | `ON DELETE CASCADE` 实际不生效 |
 | HIST-05 | P2 | 已确认 | 历史 JSON/时间字段损坏时静默转空值或 1970 年 | 数据损坏不可观测，展示和排序异常 |
 | HIST-06 | P2 | 缺口 | 无数据库备份/导出和 downgrade 策略 | 迁移失败或回滚版本时恢复能力弱 |
@@ -54,10 +55,10 @@
 | BIZ-07 | P2 | 已关闭 | 启动返回 required/optional 能力报告并提供可见诊断和重试 | MCP/Skill 降级不再静默 |
 | BIZ-08 | P2 | 已关闭 | 指标改为数据库批量聚合和按 Bot ID 增量刷新 | 卡片刷新不再访问 provider 或回写 Bot |
 | BIZ-09 | P2 | 已关闭 | Repository 提供稳定 cursor 分页、50 条窗口与 5 会话缓存 | UI 首次只加载最近页，上滚再取历史 |
-| ARCH-02 | P2 | 已确认 | 3 个 UI ViewModel 直接导入 data service | 与仓库架构文档的依赖方向冲突 |
-| ARCH-03 | P2 | 已确认 | MessageList View 直接调用文件、相册、分享、URL 插件 | 平台副作用难以替换和单测 |
-| ARCH-04 | P2 | 设计风险 | 会话草稿使用进程级静态 Map，删除会话不清理 | 长期占用内存并持有已失效 File 引用 |
-| ARCH-05 | P2 | 已确认 | 17 个生产 Dart 文件超过 1000 行 | 审查、复用、局部重建和回归成本过高 |
+| ARCH-02 | P2 | 已关闭 | UI ViewModel 仅依赖 domain contract/use case | architecture test 禁止非组合根 UI 导入 data |
+| ARCH-03 | P2 | 已关闭 | MessageList 通过 MessageActionViewModel 调用平台能力 | 保存取消、失败和不支持链接可独立测试 |
+| ARCH-04 | P2 | 已关闭 | 草稿由有界 LRU Repository 管理并校验附件 | 删除 Chat/Bot 时同步清理草稿 |
+| ARCH-05 | P2 | 已关闭 | 超大文件已按职责拆为 library parts | 非生成生产 Dart 文件全部不超过 1000 行 |
 | UI-01 | P2 | 已确认 | 桌面 Material/Shad、Lucide/Material Icon、SnackBar/Sonner 并存 | 同页面交互密度和反馈风格不一致 |
 | UI-02 | P2 | 已确认 | 多个桌面图标按钮为 28–34px，绕过 44px 共享按钮 | 命中区域和键盘/语义实现不一致 |
 | UI-03 | P2 | 已确认 | 新旧 token、`Theme.of`、`ShadTheme`、直接颜色并存 | 主题与高对比模式容易局部漂移 |
@@ -68,7 +69,7 @@
 | ENG-04 | P2 | 已确认 | 全平台仍使用 `com.example.stars` 等占位标识 | 正式签名、升级、凭证命名和商店发布受阻 |
 | HIST-07 | P3 | 已确认 | `chats` 新装 schema 将 `INTEGER` 写为 `INTERGER` | SQLite 可运行但 schema 不规范、工具识别不稳定 |
 | BIZ-10 | P3 | 已确认 | 相对时间按 24 小时差而非自然日，未来时间显示“刚刚” | 列表时间语义不准确且日期未本地化 |
-| ARCH-06 | P3 | 已确认 | Bots 列表保留永远不可达的 desktop 分支 | 维护者会误改无效代码 |
+| ARCH-06 | P3 | 已关闭 | Bots 桌面 Grid 与移动 List 已显式分离 | 不可达 MenuAnchor 分支已删除 |
 | UI-05 | P3 | 已确认 | `isDesktopOrTabletPlatform` 实际只判断桌面 | 命名误导响应式边界 |
 | ENG-05 | P3 | 候选 | 至少 7 个直接零引用依赖可评估移除 | 构建面、升级面和许可证面增大 |
 | ENG-06 | P3 | 已确认 | 桌面 Spec 仍引用已删除的 `lib/pages` 和旧 token 目标 | 文档不能作为当前验收基线 |
@@ -213,13 +214,15 @@ Bot 数量增大后会形成无上限并发、供应商限流和列表抖动。�
 
 ## 6. 架构与代码组织审计
 
-### ARCH-01：核心 View 仍在执行领域编排（P1）
+### ARCH-01：核心 View 仍在执行领域编排（P1，已关闭）
 
 [`chat.dart`](../lib/ui/features/chat/views/chat.dart) 有 1748 行，直接复制附件、构造 user/assistant/failed Message、控制 run registry、调用媒体 provider、更新 chat preview 并处理补偿；图片、语音、音乐、视频四条流程高度重复。AddBot/EditBot 也在 View 中组装完整 Bot parameters、读取 MCP catalog、创建 provider 并判断能力，证据见 [`add_bot.dart`](../lib/ui/features/bots/views/add_bot.dart#L402-L495) 和 [`add_bot.dart`](../lib/ui/features/bots/views/add_bot.dart#L1822-L1906)。
 
 这与 [`docs/architecture.md`](architecture.md) 中“View 只负责渲染、布局、焦点、动画、路由和弹窗”直接冲突。建议新增 `CreateBot`、`UpdateBot`、`DeleteBot`、`GenerateMediaTurn`、`PersistConversationAssets` use case；ViewModel 暴露不可变 state 和命令，View 仅采集表单输入与渲染。
 
-### ARCH-02：UI ViewModel 直接依赖 data service（P2）
+整改：新增 Bot command/build、媒体 turn、用户消息创建与会话附件持久化用例。四类媒体消息的构造、附件落盘、provider 调用、终态持久化、预览更新和失败补偿均由 `GenerateMediaTurn` 统一处理；AddBot/EditBot 只提交语义化 `BotDraft`，不再自行拼装持久化参数结构。
+
+### ARCH-02：UI ViewModel 直接依赖 data service（P2，已关闭）
 
 下列非组合根文件直接 import data 实现：
 
@@ -229,19 +232,25 @@ Bot 数量增大后会形成无上限并发、供应商限流和列表抖动。�
 
 建议在 domain 定义 capability/repository contract，把具体 service 留在 `AppDependencies`。同时扩展 architecture test，禁止 `lib/ui/**` 导入 `package:stars/data/`，仅允许组合根白名单。
 
-### ARCH-03：展示组件直接调用平台插件（P2）
+整改：MCP/Skill catalog 通过 domain controller contract 注入；会话历史、Skill inventory、MCP inventory tool session 移入 domain use case。新增 architecture test，除 `AppDependencies` 组合根外，`lib/ui/**` 直接导入 data 会使测试失败。
+
+### ARCH-03：展示组件直接调用平台插件（P2，已关闭）
 
 [`message_list.dart`](../lib/ui/features/chat/views/message_list.dart#L1-L20) 直接依赖 file picker、gallery saver、share_plus 和 url_launcher，并在 View 内执行保存/分享/外链操作，见 [`message_list.dart`](../lib/ui/features/chat/views/message_list.dart#L1260-L1325)。仓库架构文档却声明平台选择器应通过 Repository 注入。
 
 建议建立 `MessageActionViewModel` 或 `PlatformShareRepository`、`MediaExportRepository`、`ExternalLinkRepository`；UI 只发出 action。这样可以测试权限失败、取消保存、平台不支持和错误映射。
 
-### ARCH-04：草稿状态是无界进程级静态 Map（P2）
+整改：新增 `MessageActionRepository`、平台实现和 `MessageActionViewModel`。MessageList 不再导入 file picker、gallery saver、share_plus 或 url_launcher；保存取消、平台异常、安全链接校验均有独立测试和架构门禁。
+
+### ARCH-04：草稿状态是无界进程级静态 Map（P2，已关闭）
 
 [`ChatPageState`](../lib/ui/features/chat/views/chat.dart#L41-L50) 用静态 Map 保存文本、图片、文件和 pending draft。文本清空时会移除当前 key，但删除 Chat 没有调用统一清理 API，Map 也没有容量或生命周期；File 对象可能长期指向已删除路径。
 
 建议抽成有界 `DraftRepository`，监听 Chat 删除，定义每会话容量和附件有效性检查；若需要重启恢复则持久化文本和安全的临时文件引用，否则至少在 app lifecycle/删除时清理。
 
-### ARCH-05：超大文件成为主要变更热点（P2）
+整改：新增容量为 20 的内存 LRU `ConversationDraftRepository`，仅保存路径并在读取时过滤失效附件。ChatPage 不再持有静态草稿 Map；单个 Chat 删除和 Bot 聚合删除完成后都会清理对应草稿。本阶段按产品范围不提供跨重启草稿兼容或持久化。
+
+### ARCH-05：超大文件成为主要变更热点（P2，已关闭）
 
 排除生成代码后，生产代码约 69,245 行；17 个文件超过 1000 行，32 个超过 500 行。最大的变更热点包括：
 
@@ -259,11 +268,15 @@ Bot 数量增大后会形成无上限并发、供应商限流和列表抖动。�
 
 拆分应按职责和状态边界进行，不建议只按 Widget 数量机械切文件。先把副作用移出 View，再拆纯展示组件。
 
-### ARCH-06：Bots 列表存在不可达代码（P3）
+整改：在副作用下沉后，按消息 action/bubble/process、Bot 表单/命令/Skill、MCP 卡片/详情/编辑器、主题 token/组件/facade、数据库能力区、生成状态机事件/持久化/registry 等职责拆分。新增 1000 行架构门禁；当前排除生成代码后没有生产 Dart 文件超过该阈值。
+
+### ARCH-06：Bots 列表存在不可达代码（P3，已关闭）
 
 [`_buildBotsList`](../lib/ui/features/bots/views/bots.dart#L226-L258) 在 `isDesktop` 时已经直接返回 Grid；后面的 ListView itemBuilder 又判断 `if (isDesktop)` 并构建另一套 MenuAnchor 桌面 item，见 [`bots.dart`](../lib/ui/features/bots/views/bots.dart#L259-L331)，该分支永远不可达。
 
 建议删除死分支并让方法显式拆为 `_buildDesktopGrid`/`_buildMobileList`。这也能避免未来修复错误地落在无效实现上。
+
+整改：`_buildBotsList` 仅负责选择 `_buildDesktopGrid` 或 `_buildMobileList`，移动列表中不可达的 desktop `MenuAnchor` 实现已删除。
 
 ## 7. 桌面端 UI 一致性审计
 

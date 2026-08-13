@@ -4,7 +4,7 @@ import 'package:stars/data/repositories/sqlite_conversation_history_repository.d
 import 'package:stars/data/repositories/sqlite_message_repository.dart';
 import 'package:stars/data/services/database_service.dart';
 import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/tools/conversation_history_tools.dart';
+import 'package:stars/domain/use_cases/conversation_history_tools.dart';
 import 'package:stars/domain/models/models.dart';
 
 void main() {

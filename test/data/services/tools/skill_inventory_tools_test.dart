@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/tools/skill_inventory_tools.dart';
+import 'package:stars/domain/use_cases/skill_inventory_tools.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 

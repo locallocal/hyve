@@ -2,6 +2,8 @@ import 'package:stars/data/repositories/ai_provider_repository_impl.dart';
 import 'package:stars/data/repositories/attachment_repository_impl.dart';
 import 'package:stars/data/repositories/feedback_repository_impl.dart';
 import 'package:stars/data/repositories/legal_document_repository_impl.dart';
+import 'package:stars/data/repositories/memory_conversation_draft_repository.dart';
+import 'package:stars/data/repositories/platform_message_action_repository.dart';
 import 'package:stars/data/repositories/file_skill_repository.dart';
 import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
 import 'package:stars/data/repositories/sqlite_mcp_inventory_repository.dart';
@@ -61,9 +63,11 @@ import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
 import 'package:stars/domain/repositories/conversation_memory_repository.dart';
 import 'package:stars/domain/repositories/conversation_history_repository.dart';
+import 'package:stars/domain/repositories/conversation_draft_repository.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:stars/domain/repositories/message_action_repository.dart';
 import 'package:stars/domain/repositories/model_usage_repository.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
@@ -82,10 +86,12 @@ import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:stars/ui/features/bots/view_models/bot_form_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
@@ -132,11 +138,16 @@ class AppDependencies {
     required this.bundledSkillLoader,
     required this.createChat,
     required this.generationRegistry,
+    ConversationDraftRepository? conversationDraftRepository,
+    MessageActionRepository? messageActionRepository,
     this.skillEcosystemRepository,
     this.skillScriptCatalogService,
     this.skillCatalogService,
     this.skillOrganizationPolicyBundleService,
-  });
+  }) : conversationDraftRepository =
+           conversationDraftRepository ?? MemoryConversationDraftRepository(),
+       messageActionRepository =
+           messageActionRepository ?? const PlatformMessageActionRepository();
 
   factory AppDependencies.production() {
     final databaseService = DatabaseService();
@@ -149,10 +160,12 @@ class AppDependencies {
       localDatabase: localDatabase,
       storage: conversationSummaryStorage,
     );
+    final conversationDraftRepository = MemoryConversationDraftRepository();
     final chatRepository = SqliteChatRepository(
       localDatabase: localDatabase,
       conversationMemoryRepository: conversationMemoryRepository,
       conversationSummaryStorage: conversationSummaryStorage,
+      conversationDraftRepository: conversationDraftRepository,
     );
     final messageRepository = SqliteMessageRepository(
       localDatabase: localDatabase,
@@ -420,6 +433,7 @@ class AppDependencies {
       skillCatalogService: skillCatalogService,
       skillOrganizationPolicyBundleService:
           skillOrganizationPolicyBundleService,
+      conversationDraftRepository: conversationDraftRepository,
     );
   }
 
@@ -455,6 +469,8 @@ class AppDependencies {
   final BundledSkillLoader bundledSkillLoader;
   final CreateChat createChat;
   final ChatGenerationRegistry generationRegistry;
+  final ConversationDraftRepository conversationDraftRepository;
+  final MessageActionRepository messageActionRepository;
   final SkillEcosystemRepository? skillEcosystemRepository;
   final SkillScriptCatalogService? skillScriptCatalogService;
   final SkillCatalogService? skillCatalogService;
@@ -567,6 +583,11 @@ class AppDependencies {
     mcpServerRepository: mcpServerRepository,
   );
 
+  BotFormViewModel createBotFormViewModel() => BotFormViewModel(
+    mcpServerRepository: mcpServerRepository,
+    aiProviderRepository: aiProviderRepository,
+  );
+
   BotTokenUsageViewModel createBotTokenUsageViewModel(String botId) =>
       BotTokenUsageViewModel(
         botId: botId,
@@ -652,6 +673,10 @@ class AppDependencies {
     conversationHistoryRepository: conversationHistoryRepository,
     mcpInventoryRepository: mcpInventoryRepository,
     skillInventoryRepository: skillInventoryRepository,
+    conversationDraftRepository: conversationDraftRepository,
+    messageActionViewModel: MessageActionViewModel(
+      repository: messageActionRepository,
+    ),
   );
 
   ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>

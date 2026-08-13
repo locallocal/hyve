@@ -123,7 +123,7 @@ class SqliteBotRepository implements BotAggregateRepository {
     }
     await stage?.commit();
     if (stage != null && deletionParticipant != null) {
-      deletionParticipant.completeStagedBotDeletion(stage);
+      await deletionParticipant.completeStagedBotDeletion(stage);
     } else {
       // Compatibility for injected repositories. Production always uses the
       // staged participant above.

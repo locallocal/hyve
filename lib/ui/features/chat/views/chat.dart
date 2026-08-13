@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:stars/domain/use_cases/generate_media_turn.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/dependency_injection/app_scope.dart';
 import 'package:stars/ui/core/widgets/common.dart';
@@ -21,6 +22,9 @@ import 'package:stars/utils/theme.dart';
 import 'package:stars/utils/utils.dart';
 
 // 聊天页面
+part 'chat_workspace.dart';
+part 'chat_draft_and_media.dart';
+
 class ChatPage extends StatefulWidget {
   final Bot bot;
   final String id;
@@ -40,13 +44,6 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   static const double _followLatestThreshold = 96;
   static final Set<String> _composerFocusRequests = <String>{};
-  static final Map<String, String> _draftsByChat = <String, String>{};
-  static final Map<String, List<File>> _draftImagesByChat =
-      <String, List<File>>{};
-  static final Map<String, List<File>> _draftFilesByChat =
-      <String, List<File>>{};
-  static final Map<String, _PendingChatDraft> _pendingDraftsByChat =
-      <String, _PendingChatDraft>{};
 
   static void requestComposerFocus(String chatId) {
     _composerFocusRequests.add(chatId);
@@ -80,7 +77,6 @@ class ChatPageState extends State<ChatPage> {
   String _streamingResponse = '';
   String _reasoningResponse = '';
   ModelTokenUsage _streamingTokenUsage = ModelTokenUsage.empty;
-  Stopwatch? _processStopwatch;
   final List<MessageToolCall> _toolCalls = [];
   final List<MessageCommandExecution> _commandExecutions = [];
   final List<MessageSkillActivation> _skillActivations = [];
@@ -96,15 +92,8 @@ class ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     _autofocusComposer = _composerFocusRequests.remove(widget.id);
-    final pendingDraft = _pendingDraftsByChat[widget.id];
-    _pendingDraftText = pendingDraft?.text;
-    _pendingDraftImages = pendingDraft?.images ?? const [];
-    _pendingDraftFiles = pendingDraft?.files ?? const [];
-    _messageController = TextEditingController(
-      text: _draftsByChat[widget.id] ?? '',
-    )..addListener(_persistTextDraft);
-    _selectedImages.addAll(_draftImagesByChat[widget.id] ?? const []);
-    _selectedFiles.addAll(_draftFilesByChat[widget.id] ?? const []);
+    _messageController =
+        TextEditingController()..addListener(_persistTextDraft);
     _scrollController.addListener(_handleScrollPositionChanged);
   }
 
@@ -120,6 +109,7 @@ class ChatPageState extends State<ChatPage> {
         _chatViewModel.generationViewModel
           ..addListener(_handleGenerationChanged);
     _handleGenerationChanged();
+    unawaited(_restoreConversationDraft());
     _loadMessages();
   }
 
@@ -302,7 +292,7 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    _persistAttachmentDrafts();
+    if (_dependenciesInitialized) unawaited(_persistDraft());
     if (_dependenciesInitialized) {
       _generationViewModel.removeListener(_handleGenerationChanged);
       _chatViewModel.dispose();
@@ -316,25 +306,34 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void _persistTextDraft() {
-    final value = _messageController.text;
-    if (value.isEmpty) {
-      _draftsByChat.remove(widget.id);
-    } else {
-      _draftsByChat[widget.id] = value;
-    }
+    if (_dependenciesInitialized) unawaited(_persistDraft());
   }
 
-  void _persistAttachmentDrafts() {
-    if (_selectedImages.isEmpty) {
-      _draftImagesByChat.remove(widget.id);
-    } else {
-      _draftImagesByChat[widget.id] = List<File>.of(_selectedImages);
-    }
-    if (_selectedFiles.isEmpty) {
-      _draftFilesByChat.remove(widget.id);
-    } else {
-      _draftFilesByChat[widget.id] = List<File>.of(_selectedFiles);
-    }
+  Future<void> _persistDraft() => _chatViewModel.writeDraft(
+    ConversationDraft(
+      text: _messageController.text,
+      imagePaths: [for (final image in _selectedImages) image.path],
+      filePaths: [for (final file in _selectedFiles) file.path],
+    ),
+  );
+
+  Future<void> _restoreConversationDraft() async {
+    final draft = await _chatViewModel.readDraft();
+    if (!mounted || draft == null) return;
+    setState(() {
+      if (_messageController.text.isEmpty) {
+        _messageController.text = draft.text;
+        _messageController.selection = TextSelection.collapsed(
+          offset: draft.text.length,
+        );
+      }
+      if (_selectedImages.isEmpty) {
+        _selectedImages.addAll(draft.imagePaths.map(File.new));
+      }
+      if (_selectedFiles.isEmpty) {
+        _selectedFiles.addAll(draft.filePaths.map(File.new));
+      }
+    });
   }
 
   void _handleScrollPositionChanged() {
@@ -410,6 +409,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         _selectedImages.add(File(imagePath));
       });
+      unawaited(_persistDraft());
     }
   }
 
@@ -420,6 +420,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         _selectedImages.add(File(imagePath));
       });
+      unawaited(_persistDraft());
     }
   }
 
@@ -430,6 +431,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         _selectedFiles.add(File(filePath));
       });
+      unawaited(_persistDraft());
     }
   }
 
@@ -466,35 +468,24 @@ class ChatPageState extends State<ChatPage> {
     if (!hasText && !hasImages && !hasFiles) return;
 
     final messageText = _messageController.text;
+    final imageAttachmentDetail = S.of(context).imageAttachment;
+    final fileAttachmentDetail = S.of(context).fileAttachment;
     final history = List<Message>.of(_messages);
     _pendingDraftText = messageText;
     _pendingDraftImages = List<File>.of(_selectedImages);
     _pendingDraftFiles = List<File>.of(_selectedFiles);
-    _pendingDraftsByChat[widget.id] = _PendingChatDraft(
-      text: messageText,
-      images: _pendingDraftImages,
-      files: _pendingDraftFiles,
-    );
+    await _persistDraft();
     String? optimisticMessageId;
     try {
       final (imagePaths, filePaths) = await _persistSelectedAttachments();
 
-      final turnId = _chatViewModel.createId('turn');
-      final userMessage = Message(
-        messageId: _chatViewModel.createId('message'),
-        turnId: turnId,
-        chatId: widget.id,
-        botId: widget.bot.id,
-        senderId: _currentUserId,
+      final userMessage = _chatViewModel.createUserMessage(
+        currentUserId: _currentUserId,
         content: messageText,
-        images: imagePaths,
-        files: filePaths,
-        processInfo: _buildProcessInfo(
-          imagePaths: imagePaths,
-          filePaths: filePaths,
-          fileStatus: 'attached',
-        ),
-        timestamp: DateTime.now(),
+        imagePaths: imagePaths,
+        filePaths: filePaths,
+        imageDetail: imageAttachmentDetail,
+        fileDetail: fileAttachmentDetail,
       );
       optimisticMessageId = userMessage.messageId;
 
@@ -626,269 +617,6 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildDesktopWorkspace(BuildContext context, double? fontSize) {
-    return Container(
-      color: StarsDesktopTheme.workspaceBackground(context),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: StarsDesktopTheme.panelBackground(context),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  DesktopThemeTokens.formPagePadding.left,
-                  0,
-                  DesktopThemeTokens.formPagePadding.right,
-                  0,
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: StarsDesktopTheme.contentMaxWidth,
-                    ),
-                    child: SizedBox(
-                      key: const ValueKey<String>('desktop-chat-content'),
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: _buildConversationBody(
-                        context,
-                        fontSize,
-                        isDesktop: true,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            _buildDesktopInputSection(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopInputSection(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        DesktopThemeTokens.formPagePadding.left,
-        8,
-        DesktopThemeTokens.formPagePadding.right,
-        18,
-      ),
-      decoration: BoxDecoration(
-        color: StarsDesktopTheme.panelBackground(context),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: StarsDesktopTheme.inputMaxWidth,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildAttachmentsBar(desktopMode: true),
-              _buildToolApprovalCard(isDesktop: true),
-              _buildGenerationAlert(isDesktop: true),
-              MessageInput(
-                provider: _provider,
-                controller: _messageController,
-                requestInProgress: _isTyping,
-                canCancel: _isCancellable,
-                isStopping: _isStopping,
-                autofocus: _autofocusComposer,
-                focusRequestToken: _composerFocusToken,
-                hasPendingAttachments:
-                    _selectedFiles.isNotEmpty || _selectedImages.isNotEmpty,
-                desktopMode: true,
-                onCameraPressed: getAttachImageFromCamera,
-                onGalleryPressed: getAttachImageFromGallery,
-                onFilePressed: getAttacheFile,
-                onImageSizeSelected: (size) {
-                  setState(() {
-                    _selectedImageSize = size;
-                  });
-                },
-                onImageStyleSelected: (style) {
-                  setState(() {
-                    _selectedImageStype = style;
-                  });
-                },
-                onVideoRatioSelected: (ratio) {
-                  setState(() {
-                    _selectedVideoRatio = ratio;
-                  });
-                },
-                onSend: _sendMessage,
-                onCancelRequest: _cancelRequest,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConversationBody(
-    BuildContext context,
-    double? fontSize, {
-    bool isDesktop = false,
-  }) {
-    if (_isLoading) {
-      return Center(
-        child:
-            isDesktop
-                ? const SizedBox(width: 120, child: ShadProgress())
-                : const CircularProgressIndicator(),
-      );
-    }
-    if (_historyError != null && _messages.isEmpty) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: ShadAlert.destructive(
-            icon: Icon(
-              isDesktop ? LucideIcons.circleAlert : Icons.error_outline,
-            ),
-            title: Text(S.of(context).unableToLoadMessages),
-            description: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_historyError!),
-                const SizedBox(height: 12),
-                ShadButton.outline(
-                  size: ShadButtonSize.sm,
-                  onPressed: _loadMessages,
-                  leading: const Icon(LucideIcons.refreshCw, size: 16),
-                  child: Text(S.of(context).retry),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    final conversation =
-        _messages.isEmpty
-            ? WelcomeView(
-              bot: widget.bot,
-              fontSize: fontSize,
-              isDesktop: isDesktop,
-            )
-            : Column(
-              children: [
-                MessageList(
-                  messages: _messages,
-                  messageRevision: _messageRevision,
-                  scrollController: _scrollController,
-                  isStreaming: _isStreaming,
-                  streamingResponse: _streamingResponse,
-                  streamingProcessInfo: _buildStreamingProcessInfo(),
-                  streamingTokenUsage: _streamingTokenUsage,
-                  currentUserId: _currentUserId,
-                  deepThinking: _provider.getDeepThinking(),
-                  reasoningResponse: _reasoningResponse,
-                  isDesktop: isDesktop,
-                  showExecutionStatus: widget.showExecutionStatus,
-                ),
-                AssistantTypingIndicator(
-                  botName: widget.bot.name,
-                  isResponding: _isTyping,
-                  streamingResponse: _streamingResponse,
-                  reasoningResponse: _reasoningResponse,
-                  isDesktop: isDesktop,
-                ),
-              ],
-            );
-
-    return Stack(
-      children: [
-        Positioned.fill(child: conversation),
-        if (_showJumpToLatest && _messages.isNotEmpty)
-          Positioned(
-            right: isDesktop ? 20 : 12,
-            bottom: _isTyping ? 60 : 12,
-            child:
-                isDesktop
-                    ? ShadButton.secondary(
-                      size: ShadButtonSize.sm,
-                      onPressed: _jumpToLatest,
-                      leading: const Icon(LucideIcons.arrowDown, size: 16),
-                      child: Text(S.of(context).jumpToLatest),
-                    )
-                    : FilledButton.tonalIcon(
-                      onPressed: _jumpToLatest,
-                      icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                      label: Text(S.of(context).jumpToLatest),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(0, 32),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildAttachmentsBar({bool desktopMode = false}) {
-    if (_selectedFiles.isEmpty && _selectedImages.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return ImageAttachments(
-      images: _selectedImages,
-      files: _selectedFiles,
-      desktopMode: desktopMode,
-      onClearAll: () {
-        setState(() {
-          _selectedImages.clear();
-          _selectedFiles.clear();
-        });
-      },
-      onRemoveImage: (index) {
-        setState(() {
-          _selectedImages.removeAt(index);
-        });
-      },
-      onRemoveFile: (index) {
-        setState(() {
-          _selectedFiles.removeAt(index);
-        });
-      },
-    );
-  }
-
-  Widget _buildGenerationAlert({required bool isDesktop}) {
-    final error = _generationError;
-    if (error == null || error.isEmpty) return const SizedBox.shrink();
-
-    return ChatGenerationErrorAlert(
-      error: error,
-      isDesktop: isDesktop,
-      onDismiss: _dismissGenerationError,
-    );
-  }
-
-  Widget _buildToolApprovalCard({required bool isDesktop}) {
-    final approval = _generationViewModel.snapshot.pendingToolApproval;
-    if (approval == null) return const SizedBox.shrink();
-    return ToolApprovalCard(
-      request: approval,
-      desktopMode: isDesktop,
-      onDecision: _generationViewModel.resolveToolApproval,
-    );
-  }
-
-  void _dismissGenerationError() {
-    setState(() {
-      _generationError = null;
-    });
-  }
-
   Future<void> requestClearChat() async {
     final shouldClear = await showClearChatDialog(context, widget.bot.name);
     if (!mounted) return;
@@ -922,9 +650,8 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Future<bool> _confirmStopBeforeMutation() async {
-    final registry = _chatViewModel.generationRegistry;
-    if (!registry.hasBlockingRun(widget.id)) return true;
-    if (!registry.supportsCancellationForRun(widget.id)) {
+    if (!_chatViewModel.hasBlockingRun) return true;
+    if (!_chatViewModel.supportsRunCancellation) {
       setState(() {
         _generationError = S.of(context).activeRequestCannotCancel;
       });
@@ -934,7 +661,7 @@ class ChatPageState extends State<ChatPage> {
     final shouldStop = await showStopGenerationBeforeLeavingDialog(context);
     if (!shouldStop || !mounted) return false;
 
-    final stopped = await registry.stopForNavigation(widget.id);
+    final stopped = await _chatViewModel.stopActiveRun();
     if (!stopped && mounted) {
       setState(() {
         _generationError = S.of(context).activeRequestCannotCancel;
@@ -946,9 +673,7 @@ class ChatPageState extends State<ChatPage> {
   Future<void> _cancelRequest() async {
     if (!_isCancellable) return;
     setState(() => _isStopping = true);
-    final cancelled = await _chatViewModel.generationRegistry.stopForNavigation(
-      widget.id,
-    );
+    final cancelled = await _chatViewModel.stopActiveRun();
     if (!mounted) return;
     if (cancelled) {
       if (isDesktopOrTabletPlatform(context)) {
@@ -961,601 +686,9 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<bool> stopActiveRunForNavigation() =>
-      _chatViewModel.generationRegistry.stopForNavigation(widget.id);
+  Future<bool> stopActiveRunForNavigation() => _chatViewModel.stopActiveRun();
 
-  void _restorePendingDraft() {
-    final text = _pendingDraftText;
-    if (text != null && _messageController.text.isEmpty) {
-      _messageController.text = text;
-      _messageController.selection = TextSelection.collapsed(
-        offset: _messageController.text.length,
-      );
-    }
-    if (_selectedImages.isEmpty) {
-      _selectedImages.addAll(_pendingDraftImages);
-    }
-    if (_selectedFiles.isEmpty) {
-      _selectedFiles.addAll(_pendingDraftFiles);
-    }
-    _clearPendingDraft();
-  }
-
-  void _clearPendingDraft() {
-    _pendingDraftsByChat.remove(widget.id);
-    _pendingDraftText = null;
-    _pendingDraftImages = const [];
-    _pendingDraftFiles = const [];
-  }
-
-  Future<List<String>> _getSelectedImagePaths() async {
-    return _chatViewModel.persistAssets(
-      _selectedImages.map((image) => image.path),
-    );
-  }
-
-  Future<List<String>> _getSelectedFilePaths() async {
-    return _chatViewModel.persistAssets(
-      _selectedFiles.map((file) => file.path),
-    );
-  }
-
-  Future<(List<String>, List<String>)> _persistSelectedAttachments() async {
-    final imageSources = _selectedImages.map((image) => image.path).toList();
-    final fileSources = _selectedFiles.map((file) => file.path).toList();
-    final persisted = await _chatViewModel.persistAssets([
-      ...imageSources,
-      ...fileSources,
-    ]);
-    return (
-      List<String>.unmodifiable(persisted.take(imageSources.length)),
-      List<String>.unmodifiable(persisted.skip(imageSources.length)),
-    );
-  }
-
-  Future<void> _generateImage() async {
-    final prompt = _messageController.text.trim();
-    if (prompt.isEmpty) {
-      showSnackBar(context, S.of(context).pleaseEnterImageDescription);
-      return;
-    }
-    final chatId = widget.id;
-    final bot = widget.bot;
-    final runId = _chatViewModel.createId('run');
-    final turnId = _chatViewModel.createId('turn');
-    final originalImages = List<File>.of(_selectedImages);
-    final imageAttachmentDetail = S.of(context).imageAttachment;
-    final imageResultDetail = S.of(context).imageResult;
-    final generatedPreview = S.of(context).generatedImage;
-    var userPersisted = false;
-    _beginMediaRun(chatId);
-
-    try {
-      _startProcessTracking();
-      final imagePaths = await _getSelectedImagePaths();
-      final userMessage = Message(
-        messageId: '$runId:user',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: _currentUserId,
-        content: prompt,
-        images: imagePaths,
-        processInfo: _buildProcessInfo(
-          imagePaths: imagePaths,
-          fileStatus: 'attached',
-          imageDetail: imageAttachmentDetail,
-        ),
-        timestamp: DateTime.now(),
-      );
-      if (mounted) {
-        setState(() {
-          _messages.add(userMessage);
-          _messageRevision += 1;
-          _selectedImages.clear();
-          _messageController.clear();
-        });
-      }
-      await _chatViewModel.upsertMessage(userMessage);
-      userPersisted = true;
-      try {
-        await _chatViewModel.updateLastMessage(userMessage.content);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      final imageDirPath = await getChatDirectoryPath(chatId);
-      final imagePath = await _chatViewModel.generateImage(
-        prompt: prompt,
-        size: _selectedImageSize,
-        outputDirectory: imageDirPath,
-        referenceImages: imagePaths,
-        style: _selectedImageStype,
-      );
-
-      final botMessage = Message(
-        messageId: '$runId:assistant',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: bot.id,
-        content: '',
-        images: imagePath,
-        processInfo: _buildProcessInfo(
-          durationMs: _stopProcessTracking(),
-          imagePaths: imagePath,
-          fileStatus: 'created',
-          imageDetail: imageResultDetail,
-        ),
-        terminalOutcome: MessageTerminalOutcome.completed,
-        timestamp: DateTime.now(),
-      );
-      final persistedBot = await _chatViewModel.upsertMessage(botMessage);
-      try {
-        await _chatViewModel.updateLastMessage(generatedPreview);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      if (mounted) {
-        setState(() {
-          _messages.add(persistedBot);
-          _messageRevision += 1;
-        });
-        _scheduleScrollToLatest(animate: true);
-      }
-    } catch (e) {
-      final failedMessage =
-          userPersisted
-              ? await _persistMediaFailure(
-                runId: runId,
-                turnId: turnId,
-                chatId: chatId,
-                botId: bot.id,
-                durationMs: _stopProcessTracking(),
-              )
-              : null;
-      _resetProcessTracking();
-      if (mounted) {
-        setState(() {
-          var messagesChanged = false;
-          if (!userPersisted) {
-            final previousLength = _messages.length;
-            _messages.removeWhere((message) => message.runId == runId);
-            messagesChanged = _messages.length != previousLength;
-            if (_messageController.text.isEmpty) {
-              _messageController.text = prompt;
-            }
-            if (_selectedImages.isEmpty) {
-              _selectedImages.addAll(originalImages);
-            }
-          } else if (failedMessage != null &&
-              !_messages.any(
-                (message) => message.messageId == failedMessage.messageId,
-              )) {
-            _messages.add(failedMessage);
-            messagesChanged = true;
-          }
-          if (messagesChanged) _messageRevision += 1;
-          _generationError = S
-              .of(context)
-              .generateImageFailed(safeFailureMessage(context, e));
-        });
-      }
-    } finally {
-      _finishMediaRun(chatId);
-    }
-  }
-
-  Future<void> _generateSpeech() async {
-    final prompt = _messageController.text.trim();
-    if (prompt.isEmpty) {
-      showSnackBar(context, S.of(context).pleaseEnterSpeechDescription);
-      return;
-    }
-    final chatId = widget.id;
-    final bot = widget.bot;
-    final runId = _chatViewModel.createId('run');
-    final turnId = _chatViewModel.createId('turn');
-    final speechResultDetail = S.of(context).speechResult;
-    final generatedPreview = S.of(context).speechGenerated;
-    var userPersisted = false;
-    _beginMediaRun(chatId);
-
-    try {
-      _startProcessTracking();
-      final userMessage = Message(
-        messageId: '$runId:user',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: _currentUserId,
-        content: prompt,
-        timestamp: DateTime.now(),
-      );
-      setState(() {
-        _messages.add(userMessage);
-        _messageRevision += 1;
-        _messageController.clear();
-      });
-      await _chatViewModel.upsertMessage(userMessage);
-      userPersisted = true;
-      try {
-        await _chatViewModel.updateLastMessage(userMessage.content);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      List<String> voiceTypes = [];
-      try {
-        voiceTypes = _provider.getSupportVoicTypes();
-      } catch (e) {
-        // 忽略不支持的方法调用
-      }
-
-      String voiceType = '';
-      if (voiceTypes.isNotEmpty) {
-        voiceType = voiceTypes.first;
-      }
-
-      final outputDirPath = await getChatDirectoryPath(chatId);
-      final audioPath = await _chatViewModel.generateSpeech(
-        prompt: prompt,
-        voiceType: voiceType,
-        outputDirectory: outputDirPath,
-      );
-      final botMessage = Message(
-        messageId: '$runId:assistant',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: bot.id,
-        content: '',
-        audio: audioPath,
-        processInfo: _buildProcessInfo(
-          durationMs: _stopProcessTracking(),
-          audioPath: audioPath,
-          fileStatus: 'created',
-          audioDetail: speechResultDetail,
-        ),
-        terminalOutcome: MessageTerminalOutcome.completed,
-        timestamp: DateTime.now(),
-      );
-      final persistedBot = await _chatViewModel.upsertMessage(botMessage);
-      try {
-        await _chatViewModel.updateLastMessage(generatedPreview);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      if (mounted) {
-        setState(() {
-          _messages.add(persistedBot);
-          _messageRevision += 1;
-        });
-        _scheduleScrollToLatest(animate: true);
-      }
-    } catch (e) {
-      final failedMessage =
-          userPersisted
-              ? await _persistMediaFailure(
-                runId: runId,
-                turnId: turnId,
-                chatId: chatId,
-                botId: bot.id,
-                durationMs: _stopProcessTracking(),
-              )
-              : null;
-      _resetProcessTracking();
-      if (mounted) {
-        setState(() {
-          var messagesChanged = false;
-          if (!userPersisted) {
-            final previousLength = _messages.length;
-            _messages.removeWhere((message) => message.runId == runId);
-            messagesChanged = _messages.length != previousLength;
-            if (_messageController.text.isEmpty) {
-              _messageController.text = prompt;
-            }
-          } else if (failedMessage != null &&
-              !_messages.any(
-                (message) => message.messageId == failedMessage.messageId,
-              )) {
-            _messages.add(failedMessage);
-            messagesChanged = true;
-          }
-          if (messagesChanged) _messageRevision += 1;
-          _generationError = S
-              .of(context)
-              .generateSpeechFailed(safeFailureMessage(context, e));
-        });
-      }
-    } finally {
-      _finishMediaRun(chatId);
-    }
-  }
-
-  Future<void> _generateMusic() async {
-    final prompt = _messageController.text.trim();
-    if (prompt.isEmpty) {
-      showSnackBar(context, S.of(context).pleaseEnterMusicDescription);
-      return;
-    }
-    final chatId = widget.id;
-    final bot = widget.bot;
-    final runId = _chatViewModel.createId('run');
-    final turnId = _chatViewModel.createId('turn');
-    final originalFiles = List<File>.of(_selectedFiles);
-    final referenceAudioDetail = S.of(context).referenceAudio;
-    final musicResultDetail = S.of(context).musicResult;
-    final generatedPreview = S.of(context).musicGenerated;
-    var userPersisted = false;
-    _beginMediaRun(chatId);
-
-    try {
-      _startProcessTracking();
-      final filePahts = await _getSelectedFilePaths();
-      var referMusicPath = '';
-      if (filePahts.isNotEmpty) {
-        referMusicPath = filePahts.first;
-      }
-
-      final userMessage = Message(
-        messageId: '$runId:user',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: _currentUserId,
-        content: prompt,
-        music: referMusicPath,
-        processInfo: _buildProcessInfo(
-          musicPath: referMusicPath,
-          fileStatus: 'attached',
-          musicDetail: referenceAudioDetail,
-        ),
-        timestamp: DateTime.now(),
-      );
-      if (mounted) {
-        setState(() {
-          _messages.add(userMessage);
-          _messageRevision += 1;
-          _messageController.clear();
-          _selectedFiles.clear();
-        });
-      }
-      await _chatViewModel.upsertMessage(userMessage);
-      userPersisted = true;
-      try {
-        await _chatViewModel.updateLastMessage(userMessage.content);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      final musicDirPath = await getChatDirectoryPath(chatId);
-      final musicPath = await _chatViewModel.generateMusic(
-        prompt: prompt,
-        outputDirectory: musicDirPath,
-        referenceMusic: referMusicPath,
-      );
-      final botMessage = Message(
-        messageId: '$runId:assistant',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: bot.id,
-        content: '',
-        audio: musicPath,
-        processInfo: _buildProcessInfo(
-          durationMs: _stopProcessTracking(),
-          musicPath: musicPath,
-          fileStatus: 'created',
-          musicDetail: musicResultDetail,
-        ),
-        terminalOutcome: MessageTerminalOutcome.completed,
-        timestamp: DateTime.now(),
-      );
-      final persistedBot = await _chatViewModel.upsertMessage(botMessage);
-      try {
-        await _chatViewModel.updateLastMessage(generatedPreview);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      if (mounted) {
-        setState(() {
-          _messages.add(persistedBot);
-          _messageRevision += 1;
-        });
-        _scheduleScrollToLatest(animate: true);
-      }
-    } catch (e) {
-      final failedMessage =
-          userPersisted
-              ? await _persistMediaFailure(
-                runId: runId,
-                turnId: turnId,
-                chatId: chatId,
-                botId: bot.id,
-                durationMs: _stopProcessTracking(),
-              )
-              : null;
-      _resetProcessTracking();
-      if (mounted) {
-        setState(() {
-          var messagesChanged = false;
-          if (!userPersisted) {
-            final previousLength = _messages.length;
-            _messages.removeWhere((message) => message.runId == runId);
-            messagesChanged = _messages.length != previousLength;
-            if (_messageController.text.isEmpty) {
-              _messageController.text = prompt;
-            }
-            if (_selectedFiles.isEmpty) {
-              _selectedFiles.addAll(originalFiles);
-            }
-          } else if (failedMessage != null &&
-              !_messages.any(
-                (message) => message.messageId == failedMessage.messageId,
-              )) {
-            _messages.add(failedMessage);
-            messagesChanged = true;
-          }
-          if (messagesChanged) _messageRevision += 1;
-          _generationError = S
-              .of(context)
-              .generateMusicFailed(safeFailureMessage(context, e));
-        });
-      }
-    } finally {
-      _finishMediaRun(chatId);
-    }
-  }
-
-  Future<void> _generateVideo() async {
-    final prompt = _messageController.text.trim();
-    if (prompt.isEmpty) {
-      showSnackBar(context, S.of(context).pleaseEnterVideoDescription);
-      return;
-    }
-    final chatId = widget.id;
-    final bot = widget.bot;
-    final runId = _chatViewModel.createId('run');
-    final turnId = _chatViewModel.createId('turn');
-    final originalImages = List<File>.of(_selectedImages);
-    final imageAttachmentDetail = S.of(context).imageAttachment;
-    final videoResultDetail = S.of(context).videoResult;
-    final generatedPreview = S.of(context).videoGenerated;
-    var userPersisted = false;
-    _beginMediaRun(chatId);
-
-    try {
-      _startProcessTracking();
-      final imagePaths = await _getSelectedImagePaths();
-      final userMessage = Message(
-        messageId: '$runId:user',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: _currentUserId,
-        content: prompt,
-        images: imagePaths,
-        processInfo: _buildProcessInfo(
-          imagePaths: imagePaths,
-          fileStatus: 'attached',
-          imageDetail: imageAttachmentDetail,
-        ),
-        timestamp: DateTime.now(),
-      );
-      if (mounted) {
-        setState(() {
-          _messages.add(userMessage);
-          _messageRevision += 1;
-          _messageController.clear();
-          _selectedImages.clear();
-        });
-      }
-      await _chatViewModel.upsertMessage(userMessage);
-      userPersisted = true;
-      try {
-        await _chatViewModel.updateLastMessage(userMessage.content);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      final videoDirPath = await getChatDirectoryPath(chatId);
-      final videoPath = await _chatViewModel.generateVideo(
-        prompt: prompt,
-        ratio: _selectedVideoRatio,
-        outputDirectory: videoDirPath,
-        referenceImages: imagePaths,
-      );
-      final botMessage = Message(
-        messageId: '$runId:assistant',
-        turnId: turnId,
-        runId: runId,
-        chatId: chatId,
-        botId: bot.id,
-        senderId: bot.id,
-        content: '',
-        video: videoPath,
-        processInfo: _buildProcessInfo(
-          durationMs: _stopProcessTracking(),
-          videoPath: videoPath,
-          fileStatus: 'created',
-          videoDetail: videoResultDetail,
-        ),
-        terminalOutcome: MessageTerminalOutcome.completed,
-        timestamp: DateTime.now(),
-      );
-      final persistedBot = await _chatViewModel.upsertMessage(botMessage);
-      try {
-        await _chatViewModel.updateLastMessage(generatedPreview);
-      } catch (error) {
-        debugPrint('Failed to update chat preview for $chatId: $error');
-      }
-
-      if (mounted) {
-        setState(() {
-          _messages.add(persistedBot);
-          _messageRevision += 1;
-        });
-        _scheduleScrollToLatest(animate: true);
-      }
-    } catch (e) {
-      final failedMessage =
-          userPersisted
-              ? await _persistMediaFailure(
-                runId: runId,
-                turnId: turnId,
-                chatId: chatId,
-                botId: bot.id,
-                durationMs: _stopProcessTracking(),
-              )
-              : null;
-      _resetProcessTracking();
-      if (mounted) {
-        setState(() {
-          var messagesChanged = false;
-          if (!userPersisted) {
-            final previousLength = _messages.length;
-            _messages.removeWhere((message) => message.runId == runId);
-            messagesChanged = _messages.length != previousLength;
-            if (_messageController.text.isEmpty) {
-              _messageController.text = prompt;
-            }
-            if (_selectedImages.isEmpty) {
-              _selectedImages.addAll(originalImages);
-            }
-          } else if (failedMessage != null &&
-              !_messages.any(
-                (message) => message.messageId == failedMessage.messageId,
-              )) {
-            _messages.add(failedMessage);
-            messagesChanged = true;
-          }
-          if (messagesChanged) _messageRevision += 1;
-          _generationError = S
-              .of(context)
-              .generateVideoFailed(safeFailureMessage(context, e));
-        });
-      }
-    } finally {
-      _finishMediaRun(chatId);
-    }
-  }
-
-  void _beginMediaRun(String chatId) {
-    _chatViewModel.generationRegistry.setCancellableExternalRun(
-      chatId,
-      _chatViewModel.cancelMedia,
-    );
+  void _beginMediaRun(String _) {
     setState(() {
       _isTyping = true;
       _isCancellable = true;
@@ -1563,36 +696,7 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<Message?> _persistMediaFailure({
-    required String runId,
-    required String turnId,
-    required String chatId,
-    required String botId,
-    int? durationMs,
-  }) async {
-    try {
-      return await _chatViewModel.upsertMessage(
-        Message(
-          messageId: '$runId:assistant',
-          turnId: turnId,
-          runId: runId,
-          chatId: chatId,
-          botId: botId,
-          senderId: botId,
-          content: '',
-          processInfo: MessageProcessInfo(durationMs: durationMs),
-          terminalOutcome: MessageTerminalOutcome.failed,
-          timestamp: DateTime.now(),
-        ),
-      );
-    } catch (error) {
-      debugPrint('Failed to persist media failure for $chatId: $error');
-      return null;
-    }
-  }
-
-  void _finishMediaRun(String chatId) {
-    _chatViewModel.generationRegistry.setCancellableExternalRun(chatId, null);
+  void _finishMediaRun(String _) {
     if (!mounted) return;
     setState(() {
       _isTyping = false;
@@ -1601,38 +705,12 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _startProcessTracking() {
-    _processStopwatch
-      ?..stop()
-      ..reset();
-    _processStopwatch = Stopwatch()..start();
-    _toolCalls.clear();
-    _commandExecutions.clear();
-    _skillActivations.clear();
-  }
-
-  int? _stopProcessTracking() {
-    final elapsedMilliseconds = _processStopwatch?.elapsedMilliseconds;
-    _processStopwatch?.stop();
-    return elapsedMilliseconds;
-  }
-
-  void _resetProcessTracking() {
-    _processStopwatch
-      ?..stop()
-      ..reset();
-    _toolCalls.clear();
-    _commandExecutions.clear();
-    _skillActivations.clear();
-  }
-
   MessageProcessInfo _buildStreamingProcessInfo() {
     if (!_isStreaming && !_isTyping) {
       return const MessageProcessInfo();
     }
 
     return _buildProcessInfo(
-      durationMs: _processStopwatch?.elapsedMilliseconds,
       reasoningStatus: _provider.getDeepThinking() ? 'streaming' : '',
       toolCalls: _toolCalls,
       commandExecutions: _commandExecutions,
@@ -1752,16 +830,4 @@ class ChatGenerationErrorAlert extends StatelessWidget {
     messageKey: const ValueKey<String>('chat-generation-error-message'),
     dismissKey: const ValueKey<String>('dismiss-chat-generation-error'),
   );
-}
-
-class _PendingChatDraft {
-  const _PendingChatDraft({
-    required this.text,
-    required this.images,
-    required this.files,
-  });
-
-  final String text;
-  final List<File> images;
-  final List<File> files;
 }

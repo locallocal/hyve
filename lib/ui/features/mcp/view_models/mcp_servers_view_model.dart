@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 
@@ -34,7 +34,7 @@ final class McpServersViewModel extends ChangeNotifier {
   McpServersViewModel({
     required McpServerRepository repository,
     required McpCredentialStore credentialStore,
-    required McpCatalogService catalogService,
+    required McpCatalogController catalogService,
     DateTime Function()? now,
   }) : _repository = repository,
        _credentialStore = credentialStore,
@@ -47,7 +47,7 @@ final class McpServersViewModel extends ChangeNotifier {
 
   final McpServerRepository _repository;
   final McpCredentialStore _credentialStore;
-  final McpCatalogService _catalogService;
+  final McpCatalogController _catalogService;
   final DateTime Function() _now;
   late final StreamSubscription<List<McpServer>> _repositoryChangesSubscription;
 

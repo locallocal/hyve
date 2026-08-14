@@ -5,6 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/data/services/bot_api_key_cipher.dart';
 
+import '../../helpers/memory_secure_storage.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -66,5 +68,46 @@ void main() {
 
     expect(await cipher.encrypt(botId: 'bot-1', apiKey: ''), isEmpty);
     expect(await cipher.decrypt(botId: 'bot-1', encrypted: ''), isEmpty);
+  });
+
+  test('migrates the legacy Apple master key namespace on read', () async {
+    final legacyStorage = MemorySecureStorage();
+    final encrypted = await SecureBotApiKeyCipher(
+      storage: legacyStorage,
+    ).encrypt(botId: 'bot-1', apiKey: 'sk-legacy-value');
+    final currentStorage = MemorySecureStorage();
+
+    final decrypted = await SecureBotApiKeyCipher(
+      storage: currentStorage,
+      legacyStorage: legacyStorage,
+    ).decrypt(botId: 'bot-1', encrypted: encrypted);
+
+    expect(decrypted, 'sk-legacy-value');
+    expect(currentStorage.values, contains('stars.bot.api-key.master.v1'));
+    expect(
+      legacyStorage.values,
+      isNot(contains('stars.bot.api-key.master.v1')),
+    );
+  });
+
+  test('does not migrate an invalid legacy Apple master key', () async {
+    final encrypted = await SecureBotApiKeyCipher(
+      storage: MemorySecureStorage(),
+    ).encrypt(botId: 'bot-1', apiKey: 'sk-value');
+    final legacyStorage = MemorySecureStorage({
+      'stars.bot.api-key.master.v1': base64UrlEncode([1, 2, 3]),
+    });
+    final currentStorage = MemorySecureStorage();
+
+    await expectLater(
+      SecureBotApiKeyCipher(
+        storage: currentStorage,
+        legacyStorage: legacyStorage,
+      ).decrypt(botId: 'bot-1', encrypted: encrypted),
+      throwsFormatException,
+    );
+
+    expect(currentStorage.values, isEmpty);
+    expect(legacyStorage.values, contains('stars.bot.api-key.master.v1'));
   });
 }

@@ -1,0 +1,79 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stars/data/services/bot_api_key_cipher.dart';
+import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
+
+void main() {
+  const applicationId = 'io.github.locallocal.stars';
+
+  test('all platform release identifiers use the Stars application id', () {
+    final expectedConfiguration = <String, String>{
+      'android/app/build.gradle.kts': applicationId,
+      'android/app/src/main/kotlin/io/github/locallocal/stars/MainActivity.kt':
+          'package $applicationId',
+      'ios/Runner.xcodeproj/project.pbxproj': applicationId,
+      'macos/Runner/Configs/AppInfo.xcconfig': applicationId,
+      'macos/Runner.xcodeproj/project.pbxproj': applicationId,
+      'linux/CMakeLists.txt': applicationId,
+      'windows/runner/Runner.rc': '"CompanyName", "locallocal"',
+    };
+
+    for (final entry in expectedConfiguration.entries) {
+      final file = File(entry.key);
+      expect(file.existsSync(), isTrue, reason: entry.key);
+      expect(file.readAsStringSync(), contains(entry.value), reason: entry.key);
+    }
+  });
+
+  test('template release identifiers cannot return', () {
+    const roots = ['android', 'ios', 'macos', 'linux', 'windows', 'lib'];
+    const legacyMigrationAllowlist = {
+      'lib/data/services/bot_api_key_cipher.dart',
+      'lib/data/services/mcp/secure_mcp_credential_store.dart',
+    };
+    const textFileSuffixes = {
+      '.dart',
+      '.gradle',
+      '.h',
+      '.kt',
+      '.kts',
+      '.plist',
+      '.pbxproj',
+      '.rc',
+      '.xcconfig',
+      'CMakeLists.txt',
+    };
+    for (final root in roots) {
+      final files = Directory(
+        root,
+      ).listSync(recursive: true).whereType<File>().where((file) {
+        final path = file.path.replaceAll('\\', '/');
+        final parts = path.split('/');
+        return !parts.any((part) => part.startsWith('.')) &&
+            !parts.contains('build') &&
+            textFileSuffixes.any(path.endsWith);
+      });
+      for (final file in files) {
+        final path = file.path.replaceAll('\\', '/');
+        if (legacyMigrationAllowlist.contains(path)) continue;
+        expect(
+          file.readAsStringSync(),
+          isNot(contains('com.example')),
+          reason: file.path,
+        );
+      }
+    }
+  });
+
+  test('secure storage namespaces follow the application id', () {
+    expect(
+      SecureBotApiKeyCipher.secureStorageAccountName,
+      '$applicationId.bot.api-key',
+    );
+    expect(
+      SecureMcpCredentialStore.secureStorageAccountName,
+      '$applicationId.mcp.credentials',
+    );
+  });
+}

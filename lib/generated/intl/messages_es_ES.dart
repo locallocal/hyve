@@ -33,49 +33,86 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "Chat con ${botName} eliminado";
 
-  static String m6(botName) =>
-      "¿Estás seguro de que quieres borrar todo el historial de chat con \"${botName}\"? Esta acción no se puede deshacer.";
+  static String m6(error) => "Could not clear chat history: ${error}";
 
   static String m7(botName) =>
-      "Eliminar el bot también eliminará todos los chats asociados. ¿Estás seguro de que quieres eliminar ${botName}?";
+      "¿Estás seguro de que quieres borrar todo el historial de chat con \"${botName}\"? Esta acción no se puede deshacer.";
 
   static String m8(botName) =>
+      "Eliminar el bot también eliminará todos los chats asociados. ¿Estás seguro de que quieres eliminar ${botName}?";
+
+  static String m9(botName) =>
       "Eliminar el chat borrará todo el historial de conversación. ¿Estás seguro de que quieres eliminar el chat con ${botName}?";
 
-  static String m9(name) =>
-      "¿Desinstalar ${name}? También se eliminarán las vinculaciones con bots.";
-
-  static String m10(year) => "© ${year} Equipo Stars";
+  static String m10(name) =>
+      "Delete ${name}? Its cached Tool catalog and secure credential will also be removed.";
 
   static String m11(name) =>
+      "¿Desinstalar ${name}? También se eliminarán las vinculaciones con bots.";
+
+  static String m12(year) => "© ${year} Equipo Stars";
+
+  static String m13(error) => "Could not create the chat: ${error}";
+
+  static String m14(error) => "Could not delete the chat: ${error}";
+
+  static String m15(name) =>
       "Permitir que ${name} registre sus scripts declarados como herramientas. Cada llamada seguirá requiriendo aprobación.";
 
-  static String m12(language) => "Idioma cambiado a ${language}";
+  static String m16(count) => "${count} files";
 
-  static String m13(minutes) => "hace ${minutes} minutos";
+  static String m17(error) => "Generate image failed: ${error}";
 
-  static String m14(count) => "Se han recuperado ${count} modelos con éxito";
+  static String m18(error) => "Could not generate music: ${error}";
 
-  static String m15(count) => "${count} ejecuciones de comandos";
+  static String m19(error) => "Could not generate speech: ${error}";
 
-  static String m16(duration) => "Duración ${duration}";
+  static String m20(error) => "Could not generate video: ${error}";
 
-  static String m17(count) => "${count} cambios de archivos";
+  static String m21(count) => "${count} items";
 
-  static String m18(count) => "${count} llamadas a herramientas";
+  static String m22(language) => "Idioma cambiado a ${language}";
 
-  static String m19(error) => "Error al obtener respuesta: ${error}";
+  static String m23(error) => "MCP connection failed: ${error}";
 
-  static String m20(error) => "No se pudo importar la habilidad: ${error}";
+  static String m24(count) => "${count} configured (values hidden)";
 
-  static String m21(duration) => "Pensamiento completado · ${duration}";
+  static String m25(minutes) => "hace ${minutes} minutos";
+
+  static String m26(count) => "Se han recuperado ${count} modelos con éxito";
+
+  static String m27(count) => "${count} ejecuciones de comandos";
+
+  static String m28(duration) => "Duración ${duration}";
+
+  static String m29(count) => "${count} cambios de archivos";
+
+  static String m30(count) => "${count} llamadas a herramientas";
+
+  static String m31(error) => "Error al obtener respuesta: ${error}";
+
+  static String m32(error) => "Could not save image: ${error}";
+
+  static String m33(error) => "Could not share image: ${error}";
+
+  static String m34(error) => "No se pudo importar la habilidad: ${error}";
+
+  static String m35(duration) => "Pensamiento completado · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("Bots"),
     "about": MessageLookupByLibrary.simpleMessage("Acerca de"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Acerca de Stars"),
+    "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
+      "The active request cannot be cancelled. Wait for it to finish.",
+    ),
+    "activeRequestCannotStop": MessageLookupByLibrary.simpleMessage(
+      "The active request cannot be stopped",
+    ),
+    "addAttachment": MessageLookupByLibrary.simpleMessage("Attachment"),
     "addBot": MessageLookupByLibrary.simpleMessage("Añadir bot"),
+    "addMcpServer": MessageLookupByLibrary.simpleMessage("Add MCP Server"),
     "addSkill": MessageLookupByLibrary.simpleMessage("Añadir habilidad"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "Ajustar tamaño de fuente de la aplicación",
@@ -104,10 +141,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt del sistema",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Stars lo administra y lo añade a cada solicitud al modelo. Los identificadores del agente y la conversación actuales se agregan en tiempo de ejecución y no se pueden editar.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars lo administra y lo añade a cada solicitud al modelo. Los identificadores del agente y la conversación actuales se agregan en tiempo de ejecución y no se pueden editar.",
+    ),
+    "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
+    "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
+    "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
     "autoActivation": MessageLookupByLibrary.simpleMessage("Automática"),
     "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Permite que los modelos compatibles activen esta habilidad según su descripción.",
@@ -121,22 +160,36 @@ class MessageLookup extends MessageLookupByLibrary {
     "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
       "Los resúmenes automáticos pueden ser inexactos. El mensaje actual siempre tiene prioridad.",
     ),
+    "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
+      "Back to daily usage",
+    ),
+    "basicInformation": MessageLookupByLibrary.simpleMessage(
+      "Basic Information",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("Avatar del bot"),
     "botDeleted": m1,
     "botGreeting": m2,
+    "botInformation": MessageLookupByLibrary.simpleMessage("Bot Information"),
     "botIsTyping": m3,
     "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
       "Activa herramientas MCP para este agente. Las llamadas requieren confirmación de forma predeterminada.",
     ),
     "botName": MessageLookupByLibrary.simpleMessage("Nombre del bot"),
+    "botSearchScope": MessageLookupByLibrary.simpleMessage(
+      "Search filters the list by bot name.",
+    ),
     "botSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
       "Elige las instrucciones reutilizables disponibles para este bot.",
     ),
+    "botUnavailableTitle": MessageLookupByLibrary.simpleMessage(
+      "This bot is unavailable",
+    ),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("Cancelar"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("Cambiar avatar"),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
     "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
       "Estado de ejecución del chat",
@@ -144,17 +197,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "Historial de chat borrado",
     ),
+    "chatSearchScope": MessageLookupByLibrary.simpleMessage(
+      "Search matches bot names and the latest message.",
+    ),
     "chats": MessageLookupByLibrary.simpleMessage("Chats"),
+    "chooseFromGallery": MessageLookupByLibrary.simpleMessage("Gallery"),
     "clear": MessageLookupByLibrary.simpleMessage("Borrar"),
+    "clearAttachments": MessageLookupByLibrary.simpleMessage(
+      "Clear attachments",
+    ),
     "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
       "Borrar memoria automática",
     ),
     "clearChat": MessageLookupByLibrary.simpleMessage("Limpiar chat"),
+    "clearChatFailed": m6,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "Borrar historial de chat",
     ),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
       "Borrar habilidades fijadas",
+    ),
+    "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
+    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
+      "Select a day to view hourly usage",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "Haz clic en + en la esquina superior derecha para añadir un bot",
@@ -174,13 +239,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Estado de compactación",
     ),
     "confirm": MessageLookupByLibrary.simpleMessage("Confirmar"),
-    "confirmClearChat": m6,
+    "confirmClearChat": m7,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
       "Confirmar eliminación",
     ),
-    "confirmDeleteBot": m7,
-    "confirmDeleteChat": m8,
-    "confirmUninstallSkill": m9,
+    "confirmDeleteBot": m8,
+    "confirmDeleteChat": m9,
+    "confirmDeleteMcpServer": m10,
+    "confirmUninstallSkill": m11,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "Información de contacto (opcional)",
     ),
@@ -196,10 +262,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "conversationSummary": MessageLookupByLibrary.simpleMessage(
       "Resumen de la conversación",
     ),
-    "copyright": m10,
+    "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
+      "Token share by conversation",
+    ),
+    "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
+    "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Copy installation location",
+    ),
+    "copyright": m12,
+    "createChatFailed": m13,
+    "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
+    "creationTime": MessageLookupByLibrary.simpleMessage("Creation Time"),
     "customProvider": MessageLookupByLibrary.simpleMessage(
       "Proveedor personalizado...",
     ),
+    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("Modo oscuro"),
     "deepThinking": MessageLookupByLibrary.simpleMessage(
       "Razonamiento profundo",
@@ -210,6 +287,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Eliminar"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("Eliminar bot"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("Eliminar chat"),
+    "deleteChatFailed": m14,
+    "deleteMcpServer": MessageLookupByLibrary.simpleMessage(
+      "Delete MCP Server",
+    ),
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
       "Acerca de e información legal",
     ),
@@ -233,6 +314,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gestiona tu perfil, apariencia, idioma y soporte de la aplicación.",
     ),
     "details": MessageLookupByLibrary.simpleMessage("Detalles"),
+    "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
+    "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
     "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
       "Desactivar sin confirmación para todas",
     ),
@@ -244,6 +327,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "edit": MessageLookupByLibrary.simpleMessage("Editar"),
     "editBot": MessageLookupByLibrary.simpleMessage("Editar bot"),
+    "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
     "editMemory": MessageLookupByLibrary.simpleMessage("Editar memoria"),
     "editName": MessageLookupByLibrary.simpleMessage("Editar nombre"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -258,7 +342,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Activar scripts",
     ),
-    "enableSkillScriptsDescription": m11,
+    "enableSkillScriptsDescription": m15,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "¿Activar scripts aislados?",
     ),
@@ -316,6 +400,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "Por favor, obtenga primero la lista de modelos",
     ),
+    "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
+    "fileCount": m16,
+    "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("Estado de archivos"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Música"),
     "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("Voz"),
@@ -331,6 +418,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Tamaño de fuente actualizado",
     ),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("Olvidar"),
+    "generateImageFailed": m17,
+    "generateMusicFailed": m18,
+    "generateSpeechFailed": m19,
+    "generateVideoFailed": m20,
+    "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
+    "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
+    "generatingImage": MessageLookupByLibrary.simpleMessage(
+      "Generating image, please wait...",
+    ),
     "generationFailed": MessageLookupByLibrary.simpleMessage(
       "Error de generación",
     ),
@@ -340,8 +436,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage(
       "Ayuda y Comentarios",
     ),
+    "hideApiKey": MessageLookupByLibrary.simpleMessage("Hide API Key"),
+    "hideInspector": MessageLookupByLibrary.simpleMessage("Hide Bot Info"),
+    "hideSidebar": MessageLookupByLibrary.simpleMessage("Hide Sidebar"),
     "home": MessageLookupByLibrary.simpleMessage("Inicio"),
+    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
     "idle": MessageLookupByLibrary.simpleMessage("Inactivo"),
+    "imageAttachment": MessageLookupByLibrary.simpleMessage("Image attachment"),
+    "imageResult": MessageLookupByLibrary.simpleMessage("Image result"),
+    "imageSavedToGallery": MessageLookupByLibrary.simpleMessage(
+      "Image saved to gallery",
+    ),
+    "imageSize": MessageLookupByLibrary.simpleMessage("Image Size"),
+    "imageStyle": MessageLookupByLibrary.simpleMessage("Image Style"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage(
       "Importar carpeta de habilidades",
     ),
@@ -351,6 +458,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "importingSkill": MessageLookupByLibrary.simpleMessage(
       "Importando habilidad…",
     ),
+    "includesDuration": MessageLookupByLibrary.simpleMessage(
+      "Includes duration",
+    ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("Tokens de entrada"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "Instalar actualización",
@@ -358,23 +468,128 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidSummary": MessageLookupByLibrary.simpleMessage(
       "El resumen generado no superó la validación",
     ),
+    "itemCount": m21,
+    "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Ahora mismo"),
-    "languageChanged": m12,
+    "languageChanged": m22,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Ajustes de idioma",
     ),
     "lightMode": MessageLookupByLibrary.simpleMessage("Modo claro"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to open this link.",
+    ),
+    "localMcpDisabledDescription": MessageLookupByLibrary.simpleMessage(
+      "Local process-based MCP servers remain disabled pending a platform security review.",
+    ),
     "manageMemory": MessageLookupByLibrary.simpleMessage("Administrar memoria"),
     "manualActivation": MessageLookupByLibrary.simpleMessage("Por mensaje"),
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "Selecciona la habilidad en el campo de mensaje cuando la necesites.",
     ),
+    "mcpAccessToken": MessageLookupByLibrary.simpleMessage(
+      "OAuth / bearer access token",
+    ),
+    "mcpArguments": MessageLookupByLibrary.simpleMessage("Arguments"),
+    "mcpArgumentsDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one argument per line.",
+    ),
+    "mcpAuthentication": MessageLookupByLibrary.simpleMessage("Authentication"),
+    "mcpAuthorizationRequired": MessageLookupByLibrary.simpleMessage(
+      "Authorization required",
+    ),
+    "mcpCommand": MessageLookupByLibrary.simpleMessage("Command"),
+    "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
+      "Executable name or absolute path. The command runs directly without a shell.",
+    ),
+    "mcpCommunicationChannel": MessageLookupByLibrary.simpleMessage(
+      "Communication channel",
+    ),
+    "mcpConnected": MessageLookupByLibrary.simpleMessage("Connected"),
+    "mcpConnecting": MessageLookupByLibrary.simpleMessage("Connecting"),
+    "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
+      "Connection error",
+    ),
+    "mcpConnectionFailed": m23,
+    "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
+    "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
+    "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP endpoint",
+    ),
+    "mcpEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables",
+    ),
+    "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
+    ),
+    "mcpHiddenEnvironmentVariableCount": m24,
+    "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
+      "Remote MCP endpoints must use HTTPS.",
+    ),
+    "mcpInvalidStdioEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables must use one KEY=VALUE entry per line.",
+    ),
+    "mcpLocalProcessSecurityDescription": MessageLookupByLibrary.simpleMessage(
+      "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
+    ),
+    "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
+      "Local process security",
+    ),
     "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
       "Sin confirmación",
     ),
+    "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("None"),
+    "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
+      "Private, local, and link-local MCP endpoints are blocked.",
+    ),
+    "mcpProcessId": MessageLookupByLibrary.simpleMessage("Process ID (PID)"),
+    "mcpProcessNotRunning": MessageLookupByLibrary.simpleMessage("Not running"),
+    "mcpProcessRunning": MessageLookupByLibrary.simpleMessage("Running"),
+    "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
+    "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
+    "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    ),
+    "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
+      "The MCP request timed out.",
+    ),
+    "mcpSecureEnvironmentVariables": MessageLookupByLibrary.simpleMessage(
+      "Secure environment variables",
+    ),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("Server details"),
+    "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("Servidores MCP"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "Conecta servidores MCP y descubre sus catálogos de herramientas. Configura las herramientas después de crear un agente.",
+    ),
+    "mcpStdioPipeChannel": MessageLookupByLibrary.simpleMessage(
+      "stdin / stdout / stderr (operating system pipes)",
+    ),
+    "mcpStdioProcessAndChannel": MessageLookupByLibrary.simpleMessage(
+      "Local process and communication",
+    ),
+    "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
+      "The stdio MCP command could not be started.",
+    ),
+    "mcpTokenLeaveBlank": MessageLookupByLibrary.simpleMessage(
+      "Leave blank to keep the existing secure credential.",
+    ),
+    "mcpTokenStoredSecurely": MessageLookupByLibrary.simpleMessage(
+      "Stored in the operating system\'s secure credential store.",
+    ),
+    "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
+      "This Tool has an unsupported input schema and cannot be selected.",
+    ),
+    "mcpTools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "mcpTransport": MessageLookupByLibrary.simpleMessage("Transport"),
+    "mcpTransportStdio": MessageLookupByLibrary.simpleMessage(
+      "stdio (local process)",
+    ),
+    "mcpTransportStreamableHttp": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP",
+    ),
+    "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
+      "The MCP server uses an unsupported protocol version.",
     ),
     "memoryArtifact": MessageLookupByLibrary.simpleMessage("Artefacto"),
     "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
@@ -386,16 +601,47 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("Preferencia"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("Pregunta abierta"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("Tarea"),
+    "messageCopied": MessageLookupByLibrary.simpleMessage(
+      "Message copied to clipboard",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
       "Escribe un mensaje...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
-    "minutesAgo": m13,
+    "minutesAgo": m25,
+    "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
+    "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
+    "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
+    "modalityMulti": MessageLookupByLibrary.simpleMessage("Multimodal"),
+    "modalityMusic": MessageLookupByLibrary.simpleMessage("Music"),
+    "modalityRealtime": MessageLookupByLibrary.simpleMessage("Realtime"),
+    "modalitySpeech": MessageLookupByLibrary.simpleMessage("Speech"),
+    "modalityText": MessageLookupByLibrary.simpleMessage("Text"),
+    "modalityVideo": MessageLookupByLibrary.simpleMessage("Video"),
     "model": MessageLookupByLibrary.simpleMessage("Modelo"),
-    "modelsRetrievedSuccess": m14,
+    "modelConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Model Configuration",
+    ),
+    "modelContextWindow": MessageLookupByLibrary.simpleMessage(
+      "Model Context Size",
+    ),
+    "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
+    "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
+    "modelsRetrievedSuccess": m26,
+    "modificationTime": MessageLookupByLibrary.simpleMessage(
+      "Modification Time",
+    ),
+    "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
+    "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
     "name": MessageLookupByLibrary.simpleMessage("Nombre"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("Nombre actualizado"),
+    "newBotWorkspaceHint": MessageLookupByLibrary.simpleMessage(
+      "New bots remain in the workspace for editing.",
+    ),
     "newChat": MessageLookupByLibrary.simpleMessage("Nuevo chat"),
+    "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
+      "A new chat opens directly in the workspace.",
+    ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "No hay herramientas MCP conectadas disponibles.",
     ),
@@ -415,8 +661,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "noConversationSummary": MessageLookupByLibrary.simpleMessage(
       "Todavía no hay un resumen de la conversación disponible.",
     ),
+    "noMatchingBots": MessageLookupByLibrary.simpleMessage(
+      "No matching bots found",
+    ),
+    "noMatchingChats": MessageLookupByLibrary.simpleMessage(
+      "No matching chats found",
+    ),
+    "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
+      "No matching MCP servers found",
+    ),
+    "noMatchingMcpTools": MessageLookupByLibrary.simpleMessage(
+      "No matching tools found",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "No se encontraron habilidades coincidentes",
+    ),
+    "noMcpServers": MessageLookupByLibrary.simpleMessage("No MCP Servers"),
+    "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    ),
+    "noMcpToolsDiscovered": MessageLookupByLibrary.simpleMessage(
+      "No Tools discovered. Check the connection and refresh.",
     ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "No se han recuperado modelos",
@@ -427,8 +692,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "Importa una carpeta de Agent Skills o un ZIP que contenga SKILL.md.",
     ),
+    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
+      "No token usage recorded",
+    ),
+    "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
     "nothingToCompact": MessageLookupByLibrary.simpleMessage(
       "No hay suficiente contexto anterior para compactar",
+    ),
+    "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
+      "Delete this orphaned chat or recreate the missing bot.",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Tokens de salida"),
     "partialResponse": MessageLookupByLibrary.simpleMessage(
@@ -445,24 +717,39 @@ class MessageLookup extends MessageLookupByLibrary {
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Por favor, introduzca primero la clave API",
     ),
+    "pleaseEnterImageDescription": MessageLookupByLibrary.simpleMessage(
+      "Please enter a description for image generation",
+    ),
+    "pleaseEnterMusicDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for music generation",
+    ),
+    "pleaseEnterSpeechDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for speech generation",
+    ),
+    "pleaseEnterVideoDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for video generation",
+    ),
     "previewText": MessageLookupByLibrary.simpleMessage(
       "Vista previa del texto",
     ),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidad",
     ),
-    "processCommandCount": m15,
-    "processDuration": m16,
-    "processFileCount": m17,
+    "processCommandCount": m27,
+    "processDuration": m28,
+    "processFileCount": m29,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Información del proceso",
     ),
-    "processToolCount": m18,
+    "processToolCount": m30,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Proporcione sus sugerencias y comentarios",
     ),
     "provider": MessageLookupByLibrary.simpleMessage("Proveedor"),
+    "providerInformation": MessageLookupByLibrary.simpleMessage(
+      "Provider Information",
+    ),
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage(
       "Razonamiento completado",
     ),
@@ -473,12 +760,22 @@ class MessageLookup extends MessageLookupByLibrary {
       "Razonamiento interrumpido",
     ),
     "rebuildMemory": MessageLookupByLibrary.simpleMessage("Reconstruir"),
+    "referenceAudio": MessageLookupByLibrary.simpleMessage("Reference audio"),
     "refresh": MessageLookupByLibrary.simpleMessage("Actualizar"),
+    "refreshMcpTools": MessageLookupByLibrary.simpleMessage("Refresh Tools"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "Actualizar catálogos",
     ),
     "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "Actualizando catálogos…",
+    ),
+    "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("Remote MCP only"),
+    "removeFileAttachment": MessageLookupByLibrary.simpleMessage("Remove file"),
+    "removeImageAttachment": MessageLookupByLibrary.simpleMessage(
+      "Remove image",
+    ),
+    "removeMcpServer": MessageLookupByLibrary.simpleMessage(
+      "Remove MCP Server",
     ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("Quitar habilidad"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
@@ -490,16 +787,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "Restablecer valores predeterminados",
     ),
-    "responseError": m19,
+    "responseError": m31,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("Restaurar"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "Turnos recientes conservados",
     ),
+    "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "Ejecutar prueba",
     ),
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
+    "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Guardar cambios"),
+    "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
+    "saveImageFailed": m32,
+    "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not save to gallery",
+    ),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
+    "searchBots": MessageLookupByLibrary.simpleMessage("Search bots"),
+    "searchChats": MessageLookupByLibrary.simpleMessage("Search conversations"),
+    "searchMcpServers": MessageLookupByLibrary.simpleMessage(
+      "Search MCP servers",
+    ),
+    "searchMcpTools": MessageLookupByLibrary.simpleMessage("Search tools"),
     "searchMemory": MessageLookupByLibrary.simpleMessage(
       "Buscar en la memoria",
     ),
@@ -515,9 +826,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("Seleccionar tema"),
     "send": MessageLookupByLibrary.simpleMessage("Enviar"),
     "settings": MessageLookupByLibrary.simpleMessage("Ajustes"),
+    "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
+    "shareImageFailed": m33,
+    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
+      "Image from Stars",
+    ),
+    "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "Mostrar detalles de ejecución en los mensajes de la conversación.",
     ),
+    "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
+    "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),
     "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
       "Recursos disponibles",
     ),
@@ -540,7 +859,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Desactivada"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Activada"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Archivos"),
-    "skillImportFailed": m20,
+    "skillImportFailed": m34,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Habilidad importada",
     ),
@@ -591,6 +910,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Firma verificada",
     ),
     "skillSource": MessageLookupByLibrary.simpleMessage("Origen"),
+    "skillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Installation location",
+    ),
+    "skillStorageLocationCopied": MessageLookupByLibrary.simpleMessage(
+      "Installation location copied to clipboard",
+    ),
     "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("Automática"),
     "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
       "Actualización disponible",
@@ -606,6 +931,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Notas de validación",
     ),
     "skillVersion": MessageLookupByLibrary.simpleMessage("Versión"),
+    "speechGenerated": MessageLookupByLibrary.simpleMessage("Speech generated"),
+    "speechResult": MessageLookupByLibrary.simpleMessage("Speech result"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "Envía un mensaje en el campo de texto de abajo para comenzar a chatear",
     ),
@@ -630,6 +957,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "statusSkipped": MessageLookupByLibrary.simpleMessage("Omitido"),
     "statusTimedOut": MessageLookupByLibrary.simpleMessage("Tiempo agotado"),
     "statusUnknown": MessageLookupByLibrary.simpleMessage("Desconocido"),
+    "stop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "stopAndContinue": MessageLookupByLibrary.simpleMessage(
+      "Stop and continue",
+    ),
+    "stopGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
+      "Stop generation before leaving?",
+    ),
+    "stopGenerationBeforeLeavingDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "The partial response will be kept.",
+        ),
+    "stopping": MessageLookupByLibrary.simpleMessage("Stopping…"),
     "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
       "Información estructurada del proceso",
     ),
@@ -639,7 +978,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "summarizedTurns": MessageLookupByLibrary.simpleMessage(
       "Mensajes resumidos",
     ),
+    "supported": MessageLookupByLibrary.simpleMessage("Supported"),
+    "supportsMcp": MessageLookupByLibrary.simpleMessage("Supports MCP"),
+    "supportsSkills": MessageLookupByLibrary.simpleMessage("Supports Skills"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("Prompt del sistema"),
+    "takePhoto": MessageLookupByLibrary.simpleMessage("Camera"),
     "testSkill": MessageLookupByLibrary.simpleMessage("Probar"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "Probar descripción",
@@ -657,8 +1000,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Pensamiento completado",
     ),
-    "thinkingCompletedWithDuration": m21,
+    "thinkingCompletedWithDuration": m35,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
+    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
+    "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "Permitido una vez",
     ),
@@ -674,7 +1019,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "toolSourceSkillScript": MessageLookupByLibrary.simpleMessage(
       "Script de habilidad",
     ),
+    "totalTokens": MessageLookupByLibrary.simpleMessage("Total tokens"),
+    "tryDifferentSearch": MessageLookupByLibrary.simpleMessage(
+      "Try a different search, or create a new item.",
+    ),
     "typing": MessageLookupByLibrary.simpleMessage("Escribiendo..."),
+    "unableToLoadBots": MessageLookupByLibrary.simpleMessage(
+      "Unable to load bots",
+    ),
+    "unableToLoadChats": MessageLookupByLibrary.simpleMessage(
+      "Unable to load chats",
+    ),
+    "unableToLoadMessages": MessageLookupByLibrary.simpleMessage(
+      "Unable to load messages",
+    ),
+    "unavailableBot": MessageLookupByLibrary.simpleMessage("Unavailable bot"),
     "uninstall": MessageLookupByLibrary.simpleMessage("Desinstalar"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "Desinstalar habilidad",
@@ -684,6 +1043,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "uploadImage": MessageLookupByLibrary.simpleMessage("Subir imagen"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("Acuerdo de usuario"),
     "version": MessageLookupByLibrary.simpleMessage("Versión 1.0.0"),
+    "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
+    "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("Ver resumen"),
+    "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
+      "Wait for generation to finish before leaving this chat.",
+    ),
+    "waitForGenerationToFinish": MessageLookupByLibrary.simpleMessage(
+      "Wait for generation to finish.",
+    ),
+    "webSearch": MessageLookupByLibrary.simpleMessage("Web Search"),
   };
 }

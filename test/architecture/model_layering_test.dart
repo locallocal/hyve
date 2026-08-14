@@ -57,10 +57,28 @@ void main() {
     }
   });
 
+  test('data and domain layers never depend on UI', () {
+    for (final root in const ['lib/data', 'lib/domain']) {
+      final files = Directory(root)
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'));
+
+      for (final file in files) {
+        expect(
+          file.readAsStringSync(),
+          isNot(contains('package:stars/ui/')),
+          reason: '${file.path} imports the UI layer',
+        );
+      }
+    }
+  });
+
   test('views do not invoke platform action plugins directly', () {
     const pluginImports = <String>[
       'package:file_picker/',
       'package:gallery_saver_plus/',
+      'package:image_picker/',
       'package:share_plus/',
       'package:url_launcher/',
     ];

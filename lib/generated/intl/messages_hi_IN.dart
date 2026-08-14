@@ -33,49 +33,86 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "${botName} के साथ चैट हटा दी गई";
 
-  static String m6(botName) =>
-      "क्या आप वाकई \"${botName}\" के साथ सभी चैट इतिहास मिटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती है।";
+  static String m6(error) => "Could not clear chat history: ${error}";
 
   static String m7(botName) =>
-      "बॉट हटाने से संबंधित सभी चैट भी हट जाएंगी। क्या आप वाकई ${botName} को हटाना चाहते हैं?";
+      "क्या आप वाकई \"${botName}\" के साथ सभी चैट इतिहास मिटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती है।";
 
   static String m8(botName) =>
+      "बॉट हटाने से संबंधित सभी चैट भी हट जाएंगी। क्या आप वाकई ${botName} को हटाना चाहते हैं?";
+
+  static String m9(botName) =>
       "चैट हटाने से सभी चैट इतिहास मिट जाएगा। क्या आप वाकई ${botName} के साथ चैट हटाना चाहते हैं?";
 
-  static String m9(name) =>
-      "${name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।";
-
-  static String m10(year) => "© ${year} Stars टीम";
+  static String m10(name) =>
+      "Delete ${name}? Its cached Tool catalog and secure credential will also be removed.";
 
   static String m11(name) =>
+      "${name} को अनइंस्टॉल करें? बॉट से इसके संबंध भी हटा दिए जाएँगे।";
+
+  static String m12(year) => "© ${year} Stars टीम";
+
+  static String m13(error) => "Could not create the chat: ${error}";
+
+  static String m14(error) => "Could not delete the chat: ${error}";
+
+  static String m15(name) =>
       "${name} को घोषित स्क्रिप्ट टूल के रूप में पंजीकृत करने दें। हर कॉल को फिर भी स्वीकृति चाहिए।";
 
-  static String m12(language) => "भाषा ${language} में बदली गई";
+  static String m16(count) => "${count} files";
 
-  static String m13(minutes) => "${minutes} मिनट पहले";
+  static String m17(error) => "Generate image failed: ${error}";
 
-  static String m14(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+  static String m18(error) => "Could not generate music: ${error}";
 
-  static String m15(count) => "${count} कमांड निष्पादन";
+  static String m19(error) => "Could not generate speech: ${error}";
 
-  static String m16(duration) => "अवधि ${duration}";
+  static String m20(error) => "Could not generate video: ${error}";
 
-  static String m17(count) => "${count} फ़ाइल बदलाव";
+  static String m21(count) => "${count} items";
 
-  static String m18(count) => "${count} टूल कॉल";
+  static String m22(language) => "भाषा ${language} में बदली गई";
 
-  static String m19(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m23(error) => "MCP connection failed: ${error}";
 
-  static String m20(error) => "कौशल आयात नहीं हो सका: ${error}";
+  static String m24(count) => "${count} configured (values hidden)";
 
-  static String m21(duration) => "सोचना पूर्ण · ${duration}";
+  static String m25(minutes) => "${minutes} मिनट पहले";
+
+  static String m26(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+
+  static String m27(count) => "${count} कमांड निष्पादन";
+
+  static String m28(duration) => "अवधि ${duration}";
+
+  static String m29(count) => "${count} फ़ाइल बदलाव";
+
+  static String m30(count) => "${count} टूल कॉल";
+
+  static String m31(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+
+  static String m32(error) => "Could not save image: ${error}";
+
+  static String m33(error) => "Could not share image: ${error}";
+
+  static String m34(error) => "कौशल आयात नहीं हो सका: ${error}";
+
+  static String m35(duration) => "सोचना पूर्ण · ${duration}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("बॉट्स"),
     "about": MessageLookupByLibrary.simpleMessage("के बारे में"),
     "aboutApp": MessageLookupByLibrary.simpleMessage("Stars के बारे में"),
+    "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
+      "The active request cannot be cancelled. Wait for it to finish.",
+    ),
+    "activeRequestCannotStop": MessageLookupByLibrary.simpleMessage(
+      "The active request cannot be stopped",
+    ),
+    "addAttachment": MessageLookupByLibrary.simpleMessage("Attachment"),
     "addBot": MessageLookupByLibrary.simpleMessage("बॉट जोड़ें"),
+    "addMcpServer": MessageLookupByLibrary.simpleMessage("Add MCP Server"),
     "addSkill": MessageLookupByLibrary.simpleMessage("कौशल जोड़ें"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage(
       "एप्लिकेशन फॉन्ट साइज़ समायोजित करें",
@@ -102,10 +139,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "सिस्टम प्रॉम्प्ट",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
+    ),
+    "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
+    "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
+    "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
     "autoActivation": MessageLookupByLibrary.simpleMessage("स्वचालित"),
     "autoActivationDescription": MessageLookupByLibrary.simpleMessage(
       "समर्थित मॉडल इस कौशल को उसके विवरण के आधार पर सक्रिय कर सकते हैं।",
@@ -117,22 +156,36 @@ class MessageLookup extends MessageLookupByLibrary {
     "automaticSummaryWarning": MessageLookupByLibrary.simpleMessage(
       "स्वचालित सारांश गलत हो सकते हैं। वर्तमान संदेश हमेशा प्राथमिक है।",
     ),
+    "backToDailyUsage": MessageLookupByLibrary.simpleMessage(
+      "Back to daily usage",
+    ),
+    "basicInformation": MessageLookupByLibrary.simpleMessage(
+      "Basic Information",
+    ),
     "botAddedSuccess": m0,
     "botAvatar": MessageLookupByLibrary.simpleMessage("बॉट अवतार"),
     "botDeleted": m1,
     "botGreeting": m2,
+    "botInformation": MessageLookupByLibrary.simpleMessage("Bot Information"),
     "botIsTyping": m3,
     "botMcpToolsDescription": MessageLookupByLibrary.simpleMessage(
       "इस एजेंट के लिए MCP टूल चालू करें। डिफ़ॉल्ट रूप से टूल कॉल की पुष्टि आवश्यक है।",
     ),
     "botName": MessageLookupByLibrary.simpleMessage("बॉट का नाम"),
+    "botSearchScope": MessageLookupByLibrary.simpleMessage(
+      "Search filters the list by bot name.",
+    ),
     "botSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
     "botSkillsDescription": MessageLookupByLibrary.simpleMessage(
       "इस बॉट के लिए उपलब्ध दोबारा इस्तेमाल किए जा सकने वाले निर्देश चुनें।",
     ),
+    "botUnavailableTitle": MessageLookupByLibrary.simpleMessage(
+      "This bot is unavailable",
+    ),
     "botUpdated": m4,
     "cancel": MessageLookupByLibrary.simpleMessage("रद्द करें"),
     "changeAvatar": MessageLookupByLibrary.simpleMessage("अवतार बदलें"),
+    "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
     "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
       "चैट निष्पादन स्थिति",
@@ -140,17 +193,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage(
       "चैट इतिहास मिटा दिया गया",
     ),
+    "chatSearchScope": MessageLookupByLibrary.simpleMessage(
+      "Search matches bot names and the latest message.",
+    ),
     "chats": MessageLookupByLibrary.simpleMessage("चैट्स"),
+    "chooseFromGallery": MessageLookupByLibrary.simpleMessage("Gallery"),
     "clear": MessageLookupByLibrary.simpleMessage("मिटाएं"),
+    "clearAttachments": MessageLookupByLibrary.simpleMessage(
+      "Clear attachments",
+    ),
     "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage(
       "स्वचालित स्मृति साफ़ करें",
     ),
     "clearChat": MessageLookupByLibrary.simpleMessage("चैट साफ़ करें"),
+    "clearChatFailed": m6,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage(
       "चैट इतिहास साफ़ करें",
     ),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage(
       "बातचीत के पिन हटाएँ",
+    ),
+    "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
+    "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
+      "Select a day to view hourly usage",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage(
       "बॉट जोड़ने के लिए ऊपरी दाएं कोने में + पर क्लिक करें",
@@ -166,13 +231,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "compactionFailed": MessageLookupByLibrary.simpleMessage("विफल"),
     "compactionStatus": MessageLookupByLibrary.simpleMessage("संपीड़न स्थिति"),
     "confirm": MessageLookupByLibrary.simpleMessage("पुष्टि करें"),
-    "confirmClearChat": m6,
+    "confirmClearChat": m7,
     "confirmDelete": MessageLookupByLibrary.simpleMessage(
       "हटाने की पुष्टि करें",
     ),
-    "confirmDeleteBot": m7,
-    "confirmDeleteChat": m8,
-    "confirmUninstallSkill": m9,
+    "confirmDeleteBot": m8,
+    "confirmDeleteChat": m9,
+    "confirmDeleteMcpServer": m10,
+    "confirmUninstallSkill": m11,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage(
       "संपर्क जानकारी (वैकल्पिक)",
     ),
@@ -186,8 +252,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "conversationSummary": MessageLookupByLibrary.simpleMessage(
       "वार्तालाप सारांश",
     ),
-    "copyright": m10,
+    "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
+      "Token share by conversation",
+    ),
+    "copyApiKey": MessageLookupByLibrary.simpleMessage("Copy API Key"),
+    "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Copy installation location",
+    ),
+    "copyright": m12,
+    "createChatFailed": m13,
+    "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
+    "creationTime": MessageLookupByLibrary.simpleMessage("Creation Time"),
     "customProvider": MessageLookupByLibrary.simpleMessage("कस्टम प्रदाता..."),
+    "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("डार्क मोड"),
     "deepThinking": MessageLookupByLibrary.simpleMessage("गहन चिंतन"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
@@ -196,6 +273,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("हटाएं"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("बॉट हटाएं"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("चैट हटाएं"),
+    "deleteChatFailed": m14,
+    "deleteMcpServer": MessageLookupByLibrary.simpleMessage(
+      "Delete MCP Server",
+    ),
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage(
       "ऐप के बारे में और कानूनी जानकारी",
     ),
@@ -219,6 +300,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
     ),
     "details": MessageLookupByLibrary.simpleMessage("विवरण"),
+    "directPlayback": MessageLookupByLibrary.simpleMessage("Ready to play"),
+    "directPreview": MessageLookupByLibrary.simpleMessage("Ready to preview"),
     "disableAllMcpToolNoApproval": MessageLookupByLibrary.simpleMessage(
       "सभी के लिए बिना पुष्टि बंद करें",
     ),
@@ -230,6 +313,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "edit": MessageLookupByLibrary.simpleMessage("संपादित करें"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
+    "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
     "editMemory": MessageLookupByLibrary.simpleMessage("स्मृति संपादित करें"),
     "editName": MessageLookupByLibrary.simpleMessage("नाम संपादित करें"),
     "emptyResponseError": MessageLookupByLibrary.simpleMessage(
@@ -244,7 +328,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट सक्षम करें",
     ),
-    "enableSkillScriptsDescription": m11,
+    "enableSkillScriptsDescription": m15,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "अलग की गई कौशल स्क्रिप्ट सक्षम करें?",
     ),
@@ -300,6 +384,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले मॉडल सूची प्राप्त करें",
     ),
+    "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
+    "fileCount": m16,
+    "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("फ़ाइल स्थिति"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("संगीत"),
     "fileTypeSpeech": MessageLookupByLibrary.simpleMessage("वाणी"),
@@ -315,6 +402,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "फॉन्ट साइज़ अपडेट किया गया",
     ),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("भूलें"),
+    "generateImageFailed": m17,
+    "generateMusicFailed": m18,
+    "generateSpeechFailed": m19,
+    "generateVideoFailed": m20,
+    "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
+    "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
+    "generatingImage": MessageLookupByLibrary.simpleMessage(
+      "Generating image, please wait...",
+    ),
     "generationFailed": MessageLookupByLibrary.simpleMessage("जनरेशन विफल"),
     "generationFailedPartial": MessageLookupByLibrary.simpleMessage(
       "जनरेशन विफल · आंशिक उत्तर रखा गया",
@@ -322,8 +418,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "helpAndFeedback": MessageLookupByLibrary.simpleMessage(
       "सहायता और प्रतिक्रिया",
     ),
+    "hideApiKey": MessageLookupByLibrary.simpleMessage("Hide API Key"),
+    "hideInspector": MessageLookupByLibrary.simpleMessage("Hide Bot Info"),
+    "hideSidebar": MessageLookupByLibrary.simpleMessage("Hide Sidebar"),
     "home": MessageLookupByLibrary.simpleMessage("होम"),
+    "hourlyTokenUsage": MessageLookupByLibrary.simpleMessage("Hourly usage"),
     "idle": MessageLookupByLibrary.simpleMessage("निष्क्रिय"),
+    "imageAttachment": MessageLookupByLibrary.simpleMessage("Image attachment"),
+    "imageResult": MessageLookupByLibrary.simpleMessage("Image result"),
+    "imageSavedToGallery": MessageLookupByLibrary.simpleMessage(
+      "Image saved to gallery",
+    ),
+    "imageSize": MessageLookupByLibrary.simpleMessage("Image Size"),
+    "imageStyle": MessageLookupByLibrary.simpleMessage("Image Style"),
     "importSkillFolder": MessageLookupByLibrary.simpleMessage(
       "कौशल फ़ोल्डर आयात करें",
     ),
@@ -333,6 +440,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "importingSkill": MessageLookupByLibrary.simpleMessage(
       "कौशल आयात हो रहा है…",
     ),
+    "includesDuration": MessageLookupByLibrary.simpleMessage(
+      "Includes duration",
+    ),
     "inputTokens": MessageLookupByLibrary.simpleMessage("इनपुट टोकन"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage(
       "अपडेट इंस्टॉल करें",
@@ -340,10 +450,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidSummary": MessageLookupByLibrary.simpleMessage(
       "सारांश सत्यापन में विफल रहा",
     ),
+    "itemCount": m21,
+    "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
-    "languageChanged": m12,
+    "languageChanged": m22,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to open this link.",
+    ),
+    "localMcpDisabledDescription": MessageLookupByLibrary.simpleMessage(
+      "Local process-based MCP servers remain disabled pending a platform security review.",
+    ),
     "manageMemory": MessageLookupByLibrary.simpleMessage(
       "स्मृति प्रबंधित करें",
     ),
@@ -351,12 +469,109 @@ class MessageLookup extends MessageLookupByLibrary {
     "manualActivationDescription": MessageLookupByLibrary.simpleMessage(
       "ज़रूरत होने पर संदेश लिखने की जगह से कौशल चुनें।",
     ),
+    "mcpAccessToken": MessageLookupByLibrary.simpleMessage(
+      "OAuth / bearer access token",
+    ),
+    "mcpArguments": MessageLookupByLibrary.simpleMessage("Arguments"),
+    "mcpArgumentsDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one argument per line.",
+    ),
+    "mcpAuthentication": MessageLookupByLibrary.simpleMessage("Authentication"),
+    "mcpAuthorizationRequired": MessageLookupByLibrary.simpleMessage(
+      "Authorization required",
+    ),
+    "mcpCommand": MessageLookupByLibrary.simpleMessage("Command"),
+    "mcpCommandDescription": MessageLookupByLibrary.simpleMessage(
+      "Executable name or absolute path. The command runs directly without a shell.",
+    ),
+    "mcpCommunicationChannel": MessageLookupByLibrary.simpleMessage(
+      "Communication channel",
+    ),
+    "mcpConnected": MessageLookupByLibrary.simpleMessage("Connected"),
+    "mcpConnecting": MessageLookupByLibrary.simpleMessage("Connecting"),
+    "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
+      "Connection error",
+    ),
+    "mcpConnectionFailed": m23,
+    "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
+    "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
+    "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP endpoint",
+    ),
+    "mcpEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables",
+    ),
+    "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
+    ),
+    "mcpHiddenEnvironmentVariableCount": m24,
+    "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
+      "Remote MCP endpoints must use HTTPS.",
+    ),
+    "mcpInvalidStdioEnvironment": MessageLookupByLibrary.simpleMessage(
+      "Environment variables must use one KEY=VALUE entry per line.",
+    ),
+    "mcpLocalProcessSecurityDescription": MessageLookupByLibrary.simpleMessage(
+      "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
+    ),
+    "mcpLocalProcessSecurityTitle": MessageLookupByLibrary.simpleMessage(
+      "Local process security",
+    ),
     "mcpNoApprovalRequired": MessageLookupByLibrary.simpleMessage(
       "पुष्टि के बिना",
     ),
+    "mcpNoAuthentication": MessageLookupByLibrary.simpleMessage("None"),
+    "mcpPrivateEndpointBlocked": MessageLookupByLibrary.simpleMessage(
+      "Private, local, and link-local MCP endpoints are blocked.",
+    ),
+    "mcpProcessId": MessageLookupByLibrary.simpleMessage("Process ID (PID)"),
+    "mcpProcessNotRunning": MessageLookupByLibrary.simpleMessage("Not running"),
+    "mcpProcessRunning": MessageLookupByLibrary.simpleMessage("Running"),
+    "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
+    "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
+    "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    ),
+    "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
+      "The MCP request timed out.",
+    ),
+    "mcpSecureEnvironmentVariables": MessageLookupByLibrary.simpleMessage(
+      "Secure environment variables",
+    ),
+    "mcpServerDetails": MessageLookupByLibrary.simpleMessage("Server details"),
+    "mcpServerName": MessageLookupByLibrary.simpleMessage("Server name"),
     "mcpServers": MessageLookupByLibrary.simpleMessage("MCP सर्वर"),
     "mcpServersDescription": MessageLookupByLibrary.simpleMessage(
       "MCP सर्वर कनेक्ट करें और उनके टूल कैटलॉग खोजें। एजेंट बनाने के बाद टूल कॉन्फ़िगर करें।",
+    ),
+    "mcpStdioPipeChannel": MessageLookupByLibrary.simpleMessage(
+      "stdin / stdout / stderr (operating system pipes)",
+    ),
+    "mcpStdioProcessAndChannel": MessageLookupByLibrary.simpleMessage(
+      "Local process and communication",
+    ),
+    "mcpStdioStartFailed": MessageLookupByLibrary.simpleMessage(
+      "The stdio MCP command could not be started.",
+    ),
+    "mcpTokenLeaveBlank": MessageLookupByLibrary.simpleMessage(
+      "Leave blank to keep the existing secure credential.",
+    ),
+    "mcpTokenStoredSecurely": MessageLookupByLibrary.simpleMessage(
+      "Stored in the operating system\'s secure credential store.",
+    ),
+    "mcpToolSchemaUnsupported": MessageLookupByLibrary.simpleMessage(
+      "This Tool has an unsupported input schema and cannot be selected.",
+    ),
+    "mcpTools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "mcpTransport": MessageLookupByLibrary.simpleMessage("Transport"),
+    "mcpTransportStdio": MessageLookupByLibrary.simpleMessage(
+      "stdio (local process)",
+    ),
+    "mcpTransportStreamableHttp": MessageLookupByLibrary.simpleMessage(
+      "Streamable HTTP",
+    ),
+    "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
+      "The MCP server uses an unsupported protocol version.",
     ),
     "memoryArtifact": MessageLookupByLibrary.simpleMessage("आर्टिफैक्ट"),
     "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
@@ -368,14 +583,45 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("पसंद"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("खुला प्रश्न"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("कार्य"),
+    "messageCopied": MessageLookupByLibrary.simpleMessage(
+      "Message copied to clipboard",
+    ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
-    "minutesAgo": m13,
+    "minutesAgo": m25,
+    "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
+    "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
+    "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
+    "modalityMulti": MessageLookupByLibrary.simpleMessage("Multimodal"),
+    "modalityMusic": MessageLookupByLibrary.simpleMessage("Music"),
+    "modalityRealtime": MessageLookupByLibrary.simpleMessage("Realtime"),
+    "modalitySpeech": MessageLookupByLibrary.simpleMessage("Speech"),
+    "modalityText": MessageLookupByLibrary.simpleMessage("Text"),
+    "modalityVideo": MessageLookupByLibrary.simpleMessage("Video"),
     "model": MessageLookupByLibrary.simpleMessage("मॉडल"),
-    "modelsRetrievedSuccess": m14,
+    "modelConfiguration": MessageLookupByLibrary.simpleMessage(
+      "Model Configuration",
+    ),
+    "modelContextWindow": MessageLookupByLibrary.simpleMessage(
+      "Model Context Size",
+    ),
+    "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
+    "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
+    "modelsRetrievedSuccess": m26,
+    "modificationTime": MessageLookupByLibrary.simpleMessage(
+      "Modification Time",
+    ),
+    "musicGenerated": MessageLookupByLibrary.simpleMessage("Music generated"),
+    "musicResult": MessageLookupByLibrary.simpleMessage("Music result"),
     "name": MessageLookupByLibrary.simpleMessage("नाम"),
     "nameUpdated": MessageLookupByLibrary.simpleMessage("नाम अपडेट किया गया"),
+    "newBotWorkspaceHint": MessageLookupByLibrary.simpleMessage(
+      "New bots remain in the workspace for editing.",
+    ),
     "newChat": MessageLookupByLibrary.simpleMessage("नई चैट"),
+    "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
+      "A new chat opens directly in the workspace.",
+    ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "कोई कनेक्टेड MCP टूल उपलब्ध नहीं है।",
     ),
@@ -395,8 +641,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "noConversationSummary": MessageLookupByLibrary.simpleMessage(
       "अभी कोई वार्तालाप सारांश उपलब्ध नहीं है।",
     ),
+    "noMatchingBots": MessageLookupByLibrary.simpleMessage(
+      "No matching bots found",
+    ),
+    "noMatchingChats": MessageLookupByLibrary.simpleMessage(
+      "No matching chats found",
+    ),
+    "noMatchingMcpServers": MessageLookupByLibrary.simpleMessage(
+      "No matching MCP servers found",
+    ),
+    "noMatchingMcpTools": MessageLookupByLibrary.simpleMessage(
+      "No matching tools found",
+    ),
     "noMatchingSkills": MessageLookupByLibrary.simpleMessage(
       "कोई मिलता-जुलता कौशल नहीं मिला",
+    ),
+    "noMcpServers": MessageLookupByLibrary.simpleMessage("No MCP Servers"),
+    "noMcpServersDescription": MessageLookupByLibrary.simpleMessage(
+      "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    ),
+    "noMcpToolsDiscovered": MessageLookupByLibrary.simpleMessage(
+      "No Tools discovered. Check the connection and refresh.",
     ),
     "noModelsRetrieved": MessageLookupByLibrary.simpleMessage(
       "कोई मॉडल प्राप्त नहीं हुआ",
@@ -407,8 +672,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSkillsInstalledDescription": MessageLookupByLibrary.simpleMessage(
       "SKILL.md वाला Agent Skills फ़ोल्डर या ZIP आयात करें।",
     ),
+    "noTokenUsageRecorded": MessageLookupByLibrary.simpleMessage(
+      "No token usage recorded",
+    ),
+    "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
     "nothingToCompact": MessageLookupByLibrary.simpleMessage(
       "संपीड़ित करने के लिए पर्याप्त पुराना संदर्भ नहीं है",
+    ),
+    "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
+      "Delete this orphaned chat or recreate the missing bot.",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
@@ -421,30 +693,55 @@ class MessageLookup extends MessageLookupByLibrary {
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले API कुंजी दर्ज करें",
     ),
+    "pleaseEnterImageDescription": MessageLookupByLibrary.simpleMessage(
+      "Please enter a description for image generation",
+    ),
+    "pleaseEnterMusicDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for music generation",
+    ),
+    "pleaseEnterSpeechDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for speech generation",
+    ),
+    "pleaseEnterVideoDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter a description for video generation",
+    ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
-    "processCommandCount": m15,
-    "processDuration": m16,
-    "processFileCount": m17,
+    "processCommandCount": m27,
+    "processDuration": m28,
+    "processFileCount": m29,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "प्रक्रिया जानकारी",
     ),
-    "processToolCount": m18,
+    "processToolCount": m30,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
     ),
     "provider": MessageLookupByLibrary.simpleMessage("प्रदाता"),
+    "providerInformation": MessageLookupByLibrary.simpleMessage(
+      "Provider Information",
+    ),
     "reasoningCompleted": MessageLookupByLibrary.simpleMessage("तर्क पूर्ण"),
     "reasoningInProgress": MessageLookupByLibrary.simpleMessage("तर्क जारी"),
     "reasoningInterrupted": MessageLookupByLibrary.simpleMessage("तर्क बाधित"),
     "rebuildMemory": MessageLookupByLibrary.simpleMessage("पुनर्निर्माण"),
+    "referenceAudio": MessageLookupByLibrary.simpleMessage("Reference audio"),
     "refresh": MessageLookupByLibrary.simpleMessage("ताज़ा करें"),
+    "refreshMcpTools": MessageLookupByLibrary.simpleMessage("Refresh Tools"),
     "refreshSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "कैटलॉग रीफ़्रेश करें",
     ),
     "refreshingSkillCatalogs": MessageLookupByLibrary.simpleMessage(
       "कैटलॉग रीफ़्रेश हो रहे हैं…",
+    ),
+    "remoteMcpOnly": MessageLookupByLibrary.simpleMessage("Remote MCP only"),
+    "removeFileAttachment": MessageLookupByLibrary.simpleMessage("Remove file"),
+    "removeImageAttachment": MessageLookupByLibrary.simpleMessage(
+      "Remove image",
+    ),
+    "removeMcpServer": MessageLookupByLibrary.simpleMessage(
+      "Remove MCP Server",
     ),
     "removeSkill": MessageLookupByLibrary.simpleMessage("कौशल हटाएँ"),
     "replyCancelled": MessageLookupByLibrary.simpleMessage(
@@ -456,16 +753,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
-    "responseError": m19,
+    "responseError": m31,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("पुनर्स्थापित करें"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "हाल के रखे गए चरण",
     ),
+    "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "runSkillDescriptionTest": MessageLookupByLibrary.simpleMessage(
       "जाँच चलाएँ",
     ),
     "save": MessageLookupByLibrary.simpleMessage("सहेजें"),
+    "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
+    "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
+    "saveImageFailed": m32,
+    "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not save to gallery",
+    ),
+    "savingChanges": MessageLookupByLibrary.simpleMessage("Saving..."),
+    "searchBots": MessageLookupByLibrary.simpleMessage("Search bots"),
+    "searchChats": MessageLookupByLibrary.simpleMessage("Search conversations"),
+    "searchMcpServers": MessageLookupByLibrary.simpleMessage(
+      "Search MCP servers",
+    ),
+    "searchMcpTools": MessageLookupByLibrary.simpleMessage("Search tools"),
     "searchMemory": MessageLookupByLibrary.simpleMessage("स्मृति खोजें"),
     "searchSkills": MessageLookupByLibrary.simpleMessage("कौशल खोजें"),
     "selectBot": MessageLookupByLibrary.simpleMessage("बॉट चुनें"),
@@ -475,9 +786,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectTheme": MessageLookupByLibrary.simpleMessage("थीम चुनें"),
     "send": MessageLookupByLibrary.simpleMessage("भेजें"),
     "settings": MessageLookupByLibrary.simpleMessage("सेटिंग्स"),
+    "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
+    "shareImageFailed": m33,
+    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
+      "Image from Stars",
+    ),
+    "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "बातचीत के संदेशों में निष्पादन विवरण दिखाएँ।",
     ),
+    "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
+    "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),
     "skillAssetsAvailable": MessageLookupByLibrary.simpleMessage(
       "एसेट उपलब्ध हैं",
     ),
@@ -496,7 +815,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("चालू"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
-    "skillImportFailed": m20,
+    "skillImportFailed": m34,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "कौशल आयात किया गया",
     ),
@@ -549,6 +868,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "सत्यापित हस्ताक्षर",
     ),
     "skillSource": MessageLookupByLibrary.simpleMessage("स्रोत"),
+    "skillStorageLocation": MessageLookupByLibrary.simpleMessage(
+      "Installation location",
+    ),
+    "skillStorageLocationCopied": MessageLookupByLibrary.simpleMessage(
+      "Installation location copied to clipboard",
+    ),
     "skillUpdateAutomatic": MessageLookupByLibrary.simpleMessage("स्वचालित"),
     "skillUpdateAvailable": MessageLookupByLibrary.simpleMessage(
       "अपडेट उपलब्ध",
@@ -562,6 +887,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "सत्यापन टिप्पणियाँ",
     ),
     "skillVersion": MessageLookupByLibrary.simpleMessage("संस्करण"),
+    "speechGenerated": MessageLookupByLibrary.simpleMessage("Speech generated"),
+    "speechResult": MessageLookupByLibrary.simpleMessage("Speech result"),
     "startChatPrompt": MessageLookupByLibrary.simpleMessage(
       "चैट शुरू करने के लिए नीचे इनपुट फील्ड में संदेश भेजें",
     ),
@@ -584,12 +911,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "statusSkipped": MessageLookupByLibrary.simpleMessage("छोड़ा गया"),
     "statusTimedOut": MessageLookupByLibrary.simpleMessage("समय समाप्त"),
     "statusUnknown": MessageLookupByLibrary.simpleMessage("अज्ञात"),
+    "stop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "stopAndContinue": MessageLookupByLibrary.simpleMessage(
+      "Stop and continue",
+    ),
+    "stopGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
+      "Stop generation before leaving?",
+    ),
+    "stopGenerationBeforeLeavingDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "The partial response will be kept.",
+        ),
+    "stopping": MessageLookupByLibrary.simpleMessage("Stopping…"),
     "structuredProcessInfo": MessageLookupByLibrary.simpleMessage(
       "संरचित प्रक्रिया जानकारी",
     ),
     "submitFeedback": MessageLookupByLibrary.simpleMessage("प्रतिक्रिया भेजें"),
     "summarizedTurns": MessageLookupByLibrary.simpleMessage("सारांशित संदेश"),
+    "supported": MessageLookupByLibrary.simpleMessage("Supported"),
+    "supportsMcp": MessageLookupByLibrary.simpleMessage("Supports MCP"),
+    "supportsSkills": MessageLookupByLibrary.simpleMessage("Supports Skills"),
     "systemPrompt": MessageLookupByLibrary.simpleMessage("सिस्टम प्रॉम्प्ट"),
+    "takePhoto": MessageLookupByLibrary.simpleMessage("Camera"),
     "testSkill": MessageLookupByLibrary.simpleMessage("जाँचें"),
     "testSkillDescription": MessageLookupByLibrary.simpleMessage(
       "विवरण जाँचें",
@@ -605,8 +948,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
-    "thinkingCompletedWithDuration": m21,
+    "thinkingCompletedWithDuration": m35,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
+    "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
+    "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
     "toolApprovalAllowOnce": MessageLookupByLibrary.simpleMessage(
       "एक बार अनुमति",
     ),
@@ -622,7 +967,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "toolSourceSkillScript": MessageLookupByLibrary.simpleMessage(
       "स्किल स्क्रिप्ट",
     ),
+    "totalTokens": MessageLookupByLibrary.simpleMessage("Total tokens"),
+    "tryDifferentSearch": MessageLookupByLibrary.simpleMessage(
+      "Try a different search, or create a new item.",
+    ),
     "typing": MessageLookupByLibrary.simpleMessage("टाइप कर रहा है..."),
+    "unableToLoadBots": MessageLookupByLibrary.simpleMessage(
+      "Unable to load bots",
+    ),
+    "unableToLoadChats": MessageLookupByLibrary.simpleMessage(
+      "Unable to load chats",
+    ),
+    "unableToLoadMessages": MessageLookupByLibrary.simpleMessage(
+      "Unable to load messages",
+    ),
+    "unavailableBot": MessageLookupByLibrary.simpleMessage("Unavailable bot"),
     "uninstall": MessageLookupByLibrary.simpleMessage("अनइंस्टॉल करें"),
     "uninstallSkill": MessageLookupByLibrary.simpleMessage(
       "कौशल अनइंस्टॉल करें",
@@ -632,6 +991,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "uploadImage": MessageLookupByLibrary.simpleMessage("छवि अपलोड करें"),
     "userAgreement": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता समझौता"),
     "version": MessageLookupByLibrary.simpleMessage("संस्करण 1.0.0"),
+    "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
+    "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("सारांश देखें"),
+    "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
+      "Wait for generation to finish before leaving this chat.",
+    ),
+    "waitForGenerationToFinish": MessageLookupByLibrary.simpleMessage(
+      "Wait for generation to finish.",
+    ),
+    "webSearch": MessageLookupByLibrary.simpleMessage("Web Search"),
   };
 }

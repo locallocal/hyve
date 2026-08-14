@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
 import 'package:stars/domain/models/models.dart';
 
+import '../../../helpers/memory_secure_storage.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -63,4 +65,41 @@ void main() {
       await expectLater(store.read('server-1'), throwsFormatException);
     },
   );
+
+  test('migrates and removes a legacy Apple credential on read', () async {
+    final legacyStorage = MemorySecureStorage();
+    final credential = McpCredential(accessToken: 'legacy-access-token');
+    await SecureMcpCredentialStore(
+      storage: legacyStorage,
+    ).write('server-1', credential);
+    final currentStorage = MemorySecureStorage();
+
+    final restored = await SecureMcpCredentialStore(
+      storage: currentStorage,
+      legacyStorage: legacyStorage,
+    ).read('server-1');
+
+    expect(restored?.accessToken, 'legacy-access-token');
+    expect(currentStorage.values, contains('stars.mcp.credential.server-1'));
+    expect(
+      legacyStorage.values,
+      isNot(contains('stars.mcp.credential.server-1')),
+    );
+  });
+
+  test('does not migrate a malformed legacy Apple credential', () async {
+    final legacyStorage = MemorySecureStorage({
+      'stars.mcp.credential.server-1': '{"accessToken":"old-shape"}',
+    });
+    final currentStorage = MemorySecureStorage();
+    final store = SecureMcpCredentialStore(
+      storage: currentStorage,
+      legacyStorage: legacyStorage,
+    );
+
+    await expectLater(store.read('server-1'), throwsFormatException);
+
+    expect(currentStorage.values, isEmpty);
+    expect(legacyStorage.values, contains('stars.mcp.credential.server-1'));
+  });
 }

@@ -18,7 +18,7 @@ void main() {
     'intl_es_ES.arb',
     'intl_hi_IN.arb',
     'intl_pt_BR.arb',
-    'intl_it_it.arb',
+    'intl_it_IT.arb',
   ];
 
   test('every supported locale defines all settings page messages', () {

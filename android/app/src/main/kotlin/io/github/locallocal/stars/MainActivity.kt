@@ -1,4 +1,4 @@
-package com.example.stars
+package io.github.locallocal.stars
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter

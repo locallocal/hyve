@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract interface class BotApiKeyCipher {
@@ -17,25 +18,44 @@ abstract interface class BotApiKeyCipher {
 /// versioned ciphertext is stored in the Bot row. The Bot id is authenticated
 /// as associated data so ciphertext cannot be moved between Bots.
 final class SecureBotApiKeyCipher implements BotApiKeyCipher {
-  SecureBotApiKeyCipher({FlutterSecureStorage? storage, Cipher? cipher})
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            aOptions: AndroidOptions(),
-            iOptions: IOSOptions(accountName: 'com.example.stars.bot.api-key'),
-            mOptions: MacOsOptions(
-              accountName: 'com.example.stars.bot.api-key',
-            ),
-          ),
-      _cipher = cipher ?? AesGcm.with256bits();
+  SecureBotApiKeyCipher({
+    FlutterSecureStorage? storage,
+    FlutterSecureStorage? legacyStorage,
+    Cipher? cipher,
+  }) : _storage =
+           storage ??
+           const FlutterSecureStorage(
+             aOptions: AndroidOptions(),
+             iOptions: IOSOptions(accountName: secureStorageAccountName),
+             mOptions: MacOsOptions(accountName: secureStorageAccountName),
+           ),
+       _legacyStorage =
+           legacyStorage ??
+           (storage == null && _usesLegacyAppleNamespace
+               ? const FlutterSecureStorage(
+                 aOptions: AndroidOptions(),
+                 iOptions: IOSOptions(accountName: legacyStorageAccountName),
+                 mOptions: MacOsOptions(accountName: legacyStorageAccountName),
+               )
+               : null),
+       _cipher = cipher ?? AesGcm.with256bits();
 
   static const envelopePrefix = 'stars:bot-api-key:v1:';
+  static const secureStorageAccountName =
+      'io.github.locallocal.stars.bot.api-key';
+  static const legacyStorageAccountName = 'com.example.stars.bot.api-key';
   static const _keyStorageKey = 'stars.bot.api-key.master.v1';
   static const _secretKeyLength = 32;
 
   final FlutterSecureStorage _storage;
+  final FlutterSecureStorage? _legacyStorage;
   final Cipher _cipher;
   Future<SecretKey>? _secretKey;
+
+  static bool get _usesLegacyAppleNamespace =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   @override
   bool isEncrypted(String value) => value.startsWith(envelopePrefix);
@@ -87,11 +107,25 @@ final class SecureBotApiKeyCipher implements BotApiKeyCipher {
   Future<SecretKey> _loadSecretKey() => _secretKey ??= _readSecretKey();
 
   Future<SecretKey> _readSecretKey() async {
-    final stored = await _storage.read(key: _keyStorageKey);
+    var stored = await _storage.read(key: _keyStorageKey);
+    final legacyStorage = _legacyStorage;
+    var migrateLegacy = false;
+    if (stored == null && legacyStorage != null) {
+      stored = await legacyStorage.read(key: _keyStorageKey);
+      migrateLegacy = stored != null;
+    }
     if (stored != null) {
       final bytes = base64Url.decode(stored);
       if (bytes.length != _secretKeyLength) {
         throw const FormatException('Bot API key master key is invalid.');
+      }
+      if (migrateLegacy) {
+        await _storage.write(key: _keyStorageKey, value: stored);
+        try {
+          await legacyStorage!.delete(key: _keyStorageKey);
+        } on Object {
+          // The new copy is authoritative; a later run can retry cleanup.
+        }
       }
       return SecretKey(bytes);
     }

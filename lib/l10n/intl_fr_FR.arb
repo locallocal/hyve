@@ -360,9 +360,9 @@
     "minutesAgo": "il y a {minutes} minutes",
     "@minutesAgo": {
         "placeholders": {
-        "minutes": {
-            "type": "int"
-        }
+            "minutes": {
+                "type": "int"
+            }
         }
     },
     "justNow": "À l'instant",
@@ -373,7 +373,7 @@
     "@chatDeleted": {
         "placeholders": {
             "botName": {
-            "type": "String"
+                "type": "String"
             }
         }
     },
@@ -388,9 +388,9 @@
     "confirmDeleteChat": "La suppression de la discussion effacera tout l'historique des conversations. Êtes-vous sûr de vouloir supprimer la discussion avec {botName}?",
     "@confirmDeleteChat": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "deleteBot": "Supprimer le bot",
@@ -400,9 +400,9 @@
     "confirmDeleteBot": "La suppression du bot supprimera également toutes les discussions associées. Êtes-vous sûr de vouloir supprimer {botName}?",
     "@confirmDeleteBot": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "saveChanges": "Enregistrer les modifications",
@@ -412,9 +412,9 @@
     "botUpdated": "Bot {botName} a été mis à jour",
     "@botUpdated": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "Bots": "Bots",
@@ -588,7 +588,9 @@
     "skillImportFailed": "Impossible d’importer la compétence : {error}",
     "@skillImportFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "details": "Détails",
@@ -599,7 +601,9 @@
     "confirmUninstallSkill": "Désinstaller {name} ? Les associations aux Bots seront également supprimées.",
     "@confirmUninstallSkill": {
         "placeholders": {
-            "name": {"type": "String"}
+            "name": {
+                "type": "String"
+            }
         }
     },
     "skillVersion": "Version",
@@ -709,5 +713,188 @@
     "memoryTask": "Tâche",
     "memoryQuestion": "Question ouverte",
     "memoryArtifact": "Artefact",
-    "memoryCorrection": "Correction"
+    "memoryCorrection": "Correction",
+    "savingChanges": "Saving...",
+    "changesSaved": "Saved",
+    "messageCopied": "Message copied to clipboard",
+    "webSearch": "Web Search",
+    "takePhoto": "Camera",
+    "chooseFromGallery": "Gallery",
+    "addAttachment": "Attachment",
+    "attachedImages": "Attached Images",
+    "attachedFiles": "Attached Files",
+    "pleaseEnterImageDescription": "Please enter a description for image generation",
+    "generateImageFailed": "Generate image failed: {error}",
+    "generatingImage": "Generating image, please wait...",
+    "generatedImage": "Image generated",
+    "noMatchingChats": "No matching chats found",
+    "searchChats": "Search conversations",
+    "searchBots": "Search bots",
+    "hideSidebar": "Hide Sidebar",
+    "showSidebar": "Show Sidebar",
+    "hideInspector": "Hide Bot Info",
+    "showInspector": "Show Bot Info",
+    "botInformation": "Bot Information",
+    "jumpToLatest": "Jump to Latest",
+    "imageStyle": "Image Style",
+    "imageSize": "Image Size",
+    "stop": "Stop",
+    "generating": "Generating…",
+    "stopping": "Stopping…",
+    "basicInformation": "Basic Information",
+    "creationTime": "Creation Time",
+    "modificationTime": "Modification Time",
+    "providerInformation": "Provider Information",
+    "modelConfiguration": "Model Configuration",
+    "modelContextWindow": "Model Context Size",
+    "modelInputModalities": "Input",
+    "modelOutputModalities": "Output",
+    "modalityText": "Text",
+    "modalityImage": "Image",
+    "modalityFile": "File",
+    "modalityAudio": "Audio",
+    "modalityVideo": "Video",
+    "modalityRealtime": "Realtime",
+    "modalitySpeech": "Speech",
+    "modalityMusic": "Music",
+    "modalityMulti": "Multimodal",
+    "supportsSkills": "Supports Skills",
+    "supportsMcp": "Supports MCP",
+    "supported": "Supported",
+    "notSupported": "Not supported",
+    "tokens": "tokens",
+    "copyApiKey": "Copy API Key",
+    "showApiKey": "Show API Key",
+    "hideApiKey": "Hide API Key",
+    "noMatchingBots": "No matching bots found",
+    "tryDifferentSearch": "Try a different search, or create a new item.",
+    "chatSearchScope": "Search matches bot names and the latest message.",
+    "newChatWorkspaceHint": "A new chat opens directly in the workspace.",
+    "botSearchScope": "Search filters the list by bot name.",
+    "newBotWorkspaceHint": "New bots remain in the workspace for editing.",
+    "retry": "Retry",
+    "unableToLoadChats": "Unable to load chats",
+    "clearSearch": "Clear search",
+    "unavailableBot": "Unavailable bot",
+    "botUnavailableTitle": "This bot is unavailable",
+    "orphanedChatGuidance": "Delete this orphaned chat or recreate the missing bot.",
+    "activeRequestCannotStop": "The active request cannot be stopped",
+    "waitForGenerationToFinish": "Wait for generation to finish.",
+    "waitForGenerationBeforeLeaving": "Wait for generation to finish before leaving this chat.",
+    "activeRequestCannotCancel": "The active request cannot be cancelled. Wait for it to finish.",
+    "attachments": "Attachments",
+    "itemCount": "{count} items",
+    "fileCount": "{count} files",
+    "clearAttachments": "Clear attachments",
+    "removeImageAttachment": "Remove image",
+    "removeFileAttachment": "Remove file",
+    "imageAttachment": "Image attachment",
+    "imageResult": "Image result",
+    "fileAttachment": "File attachment",
+    "fileResult": "File result",
+    "speechResult": "Speech result",
+    "referenceAudio": "Reference audio",
+    "musicResult": "Music result",
+    "videoResult": "Video result",
+    "directPlayback": "Ready to play",
+    "directPreview": "Ready to preview",
+    "saveImage": "Save image",
+    "shareImage": "Share image",
+    "saveToGalleryFailed": "Could not save to gallery",
+    "imageSavedToGallery": "Image saved to gallery",
+    "saveImageFailed": "Could not save image: {error}",
+    "shareImageFailed": "Could not share image: {error}",
+    "sharedImageFromStars": "Image from Stars",
+    "includesDuration": "Includes duration",
+    "pleaseEnterSpeechDescription": "Enter a description for speech generation",
+    "speechGenerated": "Speech generated",
+    "generateSpeechFailed": "Could not generate speech: {error}",
+    "pleaseEnterMusicDescription": "Enter a description for music generation",
+    "musicGenerated": "Music generated",
+    "generateMusicFailed": "Could not generate music: {error}",
+    "pleaseEnterVideoDescription": "Enter a description for video generation",
+    "videoGenerated": "Video generated",
+    "generateVideoFailed": "Could not generate video: {error}",
+    "linkOpenFailed": "Unable to open this link.",
+    "unableToLoadBots": "Unable to load bots",
+    "creatingChat": "Creating…",
+    "createChatFailed": "Could not create the chat: {error}",
+    "stopGenerationBeforeLeaving": "Stop generation before leaving?",
+    "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
+    "stopAndContinue": "Stop and continue",
+    "unableToLoadMessages": "Unable to load messages",
+    "clearChatFailed": "Could not clear chat history: {error}",
+    "deleteChatFailed": "Could not delete the chat: {error}",
+    "tokenUsage": "Token usage",
+    "conversationTokenShare": "Token share by conversation",
+    "totalTokens": "Total tokens",
+    "noTokenUsageRecorded": "No token usage recorded",
+    "dailyTokenUsage": "Daily usage",
+    "hourlyTokenUsage": "Hourly usage",
+    "backToDailyUsage": "Back to daily usage",
+    "clickDayForHourlyUsage": "Select a day to view hourly usage",
+    "skillStorageLocation": "Installation location",
+    "copySkillStorageLocation": "Copy installation location",
+    "skillStorageLocationCopied": "Installation location copied to clipboard",
+    "searchMcpServers": "Search MCP servers",
+    "noMatchingMcpServers": "No matching MCP servers found",
+    "searchMcpTools": "Search tools",
+    "noMatchingMcpTools": "No matching tools found",
+    "addMcpServer": "Add MCP Server",
+    "removeMcpServer": "Remove MCP Server",
+    "remoteMcpOnly": "Remote MCP only",
+    "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
+    "mcpLocalProcessSecurityTitle": "Local process security",
+    "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
+    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
+    "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
+    "mcpAuthorizationRequired": "Authorization required",
+    "mcpRequestTimedOut": "The MCP request timed out.",
+    "mcpUnsupportedProtocol": "The MCP server uses an unsupported protocol version.",
+    "mcpStdioStartFailed": "The stdio MCP command could not be started.",
+    "mcpInvalidStdioEnvironment": "Environment variables must use one KEY=VALUE entry per line.",
+    "mcpConnectionFailed": "MCP connection failed: {error}",
+    "deleteMcpServer": "Delete MCP Server",
+    "confirmDeleteMcpServer": "Delete {name}? Its cached Tool catalog and secure credential will also be removed.",
+    "mcpTools": "Tools",
+    "refreshMcpTools": "Refresh Tools",
+    "mcpServerDetails": "Server details",
+    "editMcpServer": "Edit MCP Server",
+    "noMcpToolsDiscovered": "No Tools discovered. Check the connection and refresh.",
+    "mcpToolSchemaUnsupported": "This Tool has an unsupported input schema and cannot be selected.",
+    "mcpConnected": "Connected",
+    "mcpConnecting": "Connecting",
+    "mcpConnectionError": "Connection error",
+    "mcpDisconnected": "Disconnected",
+    "mcpServerName": "Server name",
+    "mcpConnectionSettings": "Connection",
+    "mcpTransport": "Transport",
+    "mcpTransportStreamableHttp": "Streamable HTTP",
+    "mcpTransportStdio": "stdio (local process)",
+    "mcpEndpoint": "Streamable HTTP endpoint",
+    "mcpCommand": "Command",
+    "mcpCommandDescription": "Executable name or absolute path. The command runs directly without a shell.",
+    "mcpArguments": "Arguments",
+    "mcpArgumentsDescription": "Enter one argument per line.",
+    "mcpStdioProcessAndChannel": "Local process and communication",
+    "mcpProcessStatus": "Process status",
+    "mcpProcessRunning": "Running",
+    "mcpProcessNotRunning": "Not running",
+    "mcpProcessId": "Process ID (PID)",
+    "mcpProcessStartedAt": "Started at",
+    "mcpSecureEnvironmentVariables": "Secure environment variables",
+    "mcpHiddenEnvironmentVariableCount": "{count} configured (values hidden)",
+    "mcpCommunicationChannel": "Communication channel",
+    "mcpStdioPipeChannel": "stdin / stdout / stderr (operating system pipes)",
+    "mcpEnvironment": "Environment variables",
+    "mcpEnvironmentDescription": "Enter one KEY=VALUE per line. Values are stored in the operating system's secure credential store; leave blank while editing to keep existing values.",
+    "mcpAuthentication": "Authentication",
+    "mcpNoAuthentication": "None",
+    "mcpAccessToken": "OAuth / bearer access token",
+    "mcpTokenStoredSecurely": "Stored in the operating system's secure credential store.",
+    "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
+    "saveAndConnect": "Save and connect",
+    "noMcpServers": "No MCP Servers",
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
 }

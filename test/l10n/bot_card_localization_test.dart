@@ -55,7 +55,7 @@ void main() {
           locale.languageCode == 'en'
               ? 'intl_en.arb'
               : locale.languageCode == 'it'
-              ? 'intl_it_it.arb'
+              ? 'intl_it_IT.arb'
               : 'intl_${locale.languageCode}_${locale.countryCode}.arb';
       final messages =
           jsonDecode(File('lib/l10n/$fileName').readAsStringSync())

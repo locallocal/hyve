@@ -25,8 +25,9 @@ local SQLite database.
   and iOS.
 - **Light, dark, and high-contrast themes** — adapt the interface to different
   environments and accessibility preferences.
-- **English and Simplified Chinese** — switch the application language from
-  the profile settings.
+- **12 interface languages** — switch between English, Simplified Chinese,
+  Traditional Chinese, Japanese, French, German, Korean, Russian, Spanish,
+  Hindi, Brazilian Portuguese, and Italian from profile settings.
 
 The complete provider registry is available in
 [`ai_provider_repository_impl.dart`](lib/data/repositories/ai_provider_repository_impl.dart).
@@ -35,8 +36,8 @@ The complete provider registry is available in
 
 ### Prerequisites
 
-- [Flutter](https://docs.flutter.dev/get-started/install) with Dart 3.7 or
-  later
+- [Flutter](https://docs.flutter.dev/get-started/install) 3.44.6 (pinned in
+  `.fvmrc`) with Dart 3.7 or later
 - A configured desktop or mobile Flutter toolchain for your target platform
 - An API key for your chosen cloud provider, or a reachable local service such
   as Ollama
@@ -61,17 +62,43 @@ configuration, so protect access to your device and application data.
 Install dependencies and run the standard checks:
 
 ```bash
-flutter pub get
-dart analyze
+flutter pub get --enforce-lockfile
+dart run tool/sync_localizations.dart --check
+dart run intl_utils:generate
+dart run tool/check_format.dart
+dart analyze --fatal-infos
 flutter test
-dart format --output=none --set-exit-if-changed .
+flutter build linux --release
 ```
 
-To format the project after making changes, run:
+`intl_utils` is the only localization generator. Generated files under
+`lib/generated/` are committed and checked for regeneration drift in CI, but
+are intentionally excluded from the formatter. Format only changed,
+non-generated Dart files, for example:
 
 ```bash
-dart format .
+dart format lib/ui/features/example.dart test/example_test.dart
 ```
+
+Every locale must contain the same message keys and placeholders as
+`lib/l10n/intl_en.arb`. When bootstrapping untranslated messages,
+`dart run tool/sync_localizations.dart --write` adds explicit English
+fallbacks; replace them with translations before release.
+
+GitHub Actions runs the locked dependency install, localization drift check,
+non-generated format check, analyzer, architecture/database gates, full test
+suite, and Linux release build on pull requests and `main`.
+
+### Local disk and CI caches
+
+`build/` and `.dart_tool/` are generated and ignored by Git. If local caches
+become stale or disk usage is too high, run `flutter clean`; remove
+`.dart_tool/` only when deeper dependency/build-hook cleanup is needed, then
+restore it with `flutter pub get --enforce-lockfile`.
+
+CI caches only the pinned Flutter SDK and pub package cache, keyed by platform,
+SDK version, architecture, and `pubspec.lock`. It does not cache the repository
+`build/` or `.dart_tool/` directories.
 
 ## Architecture
 
@@ -90,6 +117,9 @@ decisions used by the project.
 
 ## Contributing
 
-Contributions are welcome. Create a focused branch, keep changes covered by
-tests where practical, run the checks above, and open a pull request with a
-clear description of the problem and solution.
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md), then open a focused pull request. Report
+vulnerabilities privately according to [SECURITY.md](SECURITY.md). User-visible
+changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+
+Stars is available under the [MIT License](LICENSE).

@@ -166,7 +166,7 @@ void main() {
       (locale: Locale('es', 'ES'), fileName: 'intl_es_ES.arb'),
       (locale: Locale('hi', 'IN'), fileName: 'intl_hi_IN.arb'),
       (locale: Locale('pt', 'BR'), fileName: 'intl_pt_BR.arb'),
-      (locale: Locale('it', 'IT'), fileName: 'intl_it_it.arb'),
+      (locale: Locale('it', 'IT'), fileName: 'intl_it_IT.arb'),
     ];
 
     for (final entry in locales) {

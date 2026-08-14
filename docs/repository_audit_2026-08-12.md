@@ -8,12 +8,13 @@
 > 整改记录：2026-08-14 已关闭 HIST-04 至 HIST-08：当前 v17 Schema 启用并补齐外键，所有 SQLite 记录按最新字段严格解码；启动执行完整性检查并维护仅限 v17 的数据库/会话资产滚动备份；时间类型统一为 INTEGER；消息 SQL、分页游标与内存缓存统一使用稳定的 timestamp/message_id 顺序。v16 及更早版本会连同关联会话目录和旧备份直接删除，不迁移、不导入。
 > 整改记录：2026-08-14 已关闭 BIZ-01 至 BIZ-09：补齐 Bot/MCP 跨资源事务与补偿、附件原子持久化、媒体超时取消、供应商退场迁移、Bot 命令反馈、安全错误模型、启动能力报告、Bot 指标批量增量刷新，以及消息游标分页与有界缓存。
 > 整改记录：2026-08-14 已关闭 ARCH-01 至 ARCH-06：领域编排下沉到用例，UI/Data 依赖方向由门禁约束，平台消息操作经 Repository 注入，会话草稿改为有界仓库并随会话删除清理，所有非生成生产 Dart 文件均不超过 1000 行，Bots 不可达桌面分支已删除。
+> 整改记录：2026-08-14 已关闭 ENG-01 至 ENG-08：新增固定 Flutter 版本的 CI 与 Dependabot，分离生成代码和格式门禁，统一 `intl_utils` 及 12 语言契约，全平台发布标识改为 `io.github.locallocal.stars` 并迁移旧 Apple 凭证，清理 7 个无直接引用依赖，同步桌面/架构文档、公共治理文件与缓存指南。
 
 ## 1. 技术摘要
 
 仓库的基础质量并不差：分层目录已经建立，Dart 严格分析在 `data/domain/ui` 生效，API Key 使用平台安全存储中的主密钥做 AES-GCM 加密，MCP/Skill/会话记忆等高风险模块有较完整的单元测试。本次基线下 `dart analyze` 无问题，`flutter test` 的 432 项测试全部通过。
 
-主要风险来自“实现已经快速扩展，但约束没有同步收紧”：桌面 UI 仍处于 Material 与 Shad、旧兼容 token 与新语义 token 并存的迁移态；若干 View 继续承担较多领域编排；原审计发现的破坏性数据库迁移已通过停止所有历史升级路径关闭，但这也形成了明确的非兼容版本政策。BIZ-01 至 BIZ-09 已补齐核心业务可靠性边界，剩余风险主要集中在架构收敛、视觉回归、端到端桌面流程和发布治理。
+原审计的主要风险来自“实现已经快速扩展，但约束没有同步收紧”。截至 2026-08-14，BIZ-01 至 BIZ-09、ARCH-01 至 ARCH-06、UI-01 至 UI-05 和 ENG-01 至 ENG-08 已完成整改：核心业务可靠性、分层依赖、桌面视觉回归、端到端流程和发布工程均已有自动门禁。破坏性数据库历史升级则以明确的单一当前 Schema 政策关闭。
 
 本次共记录 37 项：
 
@@ -24,7 +25,7 @@
 | P2 | 21 | 中期会持续放大 UI 漂移、可靠性、性能、测试和发布风险 |
 | P3 | 8 | 低风险规范、文档和清理项，可随相关模块改造一并完成 |
 
-非当前数据库版本的自动重置契约、聊天附件与 Bot/MCP 多资源写入、媒体请求超时/取消、统一错误反馈和长会话分页已经完成。后续优先项是继续收敛 View 中的编排、建立桌面视觉与端到端基线，再拆分超大文件、清理依赖与发布元数据。
+非当前数据库版本的自动重置契约、聊天附件与 Bot/MCP 多资源写入、媒体请求超时/取消、统一错误反馈、长会话分页、桌面视觉/端到端基线、依赖清理与发布元数据均已完成。后续优先项回到未关闭的产品语义与长会话性能项。
 
 ## 2. 已有保障与正向发现
 
@@ -64,18 +65,18 @@
 | UI-02 | P2 | 已关闭 | 桌面 icon action 全部复用 44×44 共享命中区 | Tooltip、Focus、Semantics 与 disabled 状态统一 |
 | UI-03 | P2 | 已关闭 | 颜色状态收敛至 ThemeExtension，尺寸/形状收敛至最新 spec | 旧 token 与 compatibility facade 已删除 |
 | UI-04 | P2 | 已关闭 | 已建立 108 个桌面视觉组合和完整桌面交互流 | 可发现主题、本地化、宽度与 overlay 回归 |
-| ENG-01 | P2 | 已确认 | 仓库没有 CI 工作流 | README 中的质量门禁无法自动执行 |
-| ENG-02 | P2 | 已确认 | README 的格式检查命令在生成代码上失败 | 本地/未来 CI 无法保持绿色 |
-| ENG-03 | P2 | 已确认 | 两套本地化生成入口并存，README 的语言数已过期 | 生成结果、格式和文档容易漂移 |
-| ENG-04 | P2 | 已确认 | 全平台仍使用 `com.example.stars` 等占位标识 | 正式签名、升级、凭证命名和商店发布受阻 |
+| ENG-01 | P2 | 已关闭 | CI 锁定 Flutter，执行依赖、l10n、format、analyze、test 和 Linux build | PR/`main` 自动执行质量门禁 |
+| ENG-02 | P2 | 已关闭 | 非生成 Dart 由跨平台脚本执行 format check | `lib/generated/**` 改由重新生成 diff 门禁管理 |
+| ENG-03 | P2 | 已关闭 | 本地化统一为 `intl_utils`，12 语言键/占位符与 UI smoke 必过 | 生成结果、文件命名和文档可自动复核 |
+| ENG-04 | P2 | 已关闭 | 全平台与安全存储统一 `io.github.locallocal.stars` | Apple 旧凭证首次读取时迁移并清理 |
 | HIST-07 | P3 | 已关闭 | v17 时间字段统一为 `INTEGER NOT NULL` | Schema 快照验证声明类型 |
 | BIZ-10 | P3 | 已确认 | 相对时间按 24 小时差而非自然日，未来时间显示“刚刚” | 列表时间语义不准确且日期未本地化 |
 | ARCH-06 | P3 | 已关闭 | Bots 桌面 Grid 与移动 List 已显式分离 | 不可达 MenuAnchor 分支已删除 |
 | UI-05 | P3 | 已关闭 | 平台判断统一为 `isDesktopPlatform` | 响应式尺寸继续由 breakpoint 判断 |
-| ENG-05 | P3 | 候选 | 至少 7 个直接零引用依赖可评估移除 | 构建面、升级面和许可证面增大 |
-| ENG-06 | P3 | 已确认 | 桌面 Spec 仍引用已删除的 `lib/pages` 和旧 token 目标 | 文档不能作为当前验收基线 |
-| ENG-07 | P3 | 已确认 | 缺少 LICENSE/SECURITY/CONTRIBUTING/CHANGELOG | 公共仓库治理和发布追踪不完整 |
-| ENG-08 | P3 | 本地环境 | `build/` 与 `.dart_tool/` 合计约 3 GB | 开发机清理和 CI 缓存策略可优化；两者均未被 Git 跟踪 |
+| ENG-05 | P3 | 已关闭 | 7 个零直接引用依赖已移除，锁文件已更新 | Dependabot 每月检查 pub 与 Actions 更新 |
+| ENG-06 | P3 | 已关闭 | 桌面 Spec 与架构文档已对齐当前路径、token、breakpoint 和例外 | 强制依赖方向与桌面组件规则由测试固化 |
+| ENG-07 | P3 | 已关闭 | 已补 MIT LICENSE、SECURITY、CONTRIBUTING、CHANGELOG 与 CODE_OF_CONDUCT | 贡献、漏洞报告和发布记录有稳定入口 |
+| ENG-08 | P3 | 已关闭 | README 明确本地清理和可再生边界；CI 只缓存 SDK/pub cache | 不缓存仓库 `build/` 或 `.dart_tool/` |
 
 ## 4. 历史数据与数据库兼容审计
 
@@ -335,49 +336,65 @@ UI 层静态计数有 346 处 `Theme.of`、49 处 `ShadTheme.of`、60 处直接 
 
 ## 8. 工程化、测试与发布规范审计
 
-### ENG-01：质量门禁没有进入 CI（P2）
+### ENG-01：质量门禁没有进入 CI（P2，已关闭）
 
 仓库没有 `.github/workflows` 或其他 CI 配置。虽然 README 要求 `dart analyze`、`flutter test`、`dart format`，但无法保证 PR/主分支实际执行。
 
 建议最小 CI 包含：固定 Flutter 版本、`flutter pub get --enforce-lockfile`、analyze、非生成代码 format check、全量 test、Linux desktop build；数据库迁移矩阵和 architecture dependency test 设为必过。供应商真实 API 测试应使用手动/定时、无 secret 输出的独立工作流。
 
-### ENG-02：当前格式门禁失败（P2）
+整改：`.github/workflows/ci.yml` 从 `.fvmrc` 锁定 Flutter 3.44.6，依次执行 enforce-lockfile、l10n 一致性与重生成 diff、非生成 format、fatal-info analyze、architecture 目录、当前 Schema 契约、全量 test 和 Linux release build。工作流只有 `contents: read` 权限，不注入供应商 secret。
+
+### ENG-02：当前格式门禁失败（P2，已关闭）
 
 本次执行 README 中的 `dart format --output=none --set-exit-if-changed .` 返回 exit code 1，共报告 9 个生成文件需格式化，包括 `lib/generated/l10n.dart` 和多个 `messages_*.dart`；工作树未被修改。Analyzer 已排除生成目录，但 formatter 没有。
 
 建议选择一个明确策略：要么生成器产物不入库并在构建时生成；要么入库但 CI 重新生成后只检查 diff；要么 format check 显式排除 `lib/generated/**`。不要让开发文档给出的标准命令天然失败。
 
-### ENG-03：本地化生成和文档不一致（P2）
+整改：`tool/check_format.dart` 跨平台收集生产、测试、集成和 tool Dart 文件，显式排除 `lib/generated/**`；生成目录改由 CI 重新生成后的 Git diff 检查。README 和 CONTRIBUTING 均使用这两个入口。
+
+### ENG-03：本地化生成和文档不一致（P2，已关闭）
 
 [`pubspec.yaml`](../pubspec.yaml#L98-L145) 同时启用 Flutter `generate: true` 和 `flutter_intl/intl_utils`，生成代码又被提交。README 仍写“English and Simplified Chinese”，但 [`app_localizations.dart`](../lib/l10n/app_localizations.dart#L3-L16) 与设置页实际支持 12 个 locale。
 
 建议只保留一种生成链路，补 `l10n.yaml`/明确命令与 CI diff 检查；统一 locale 文件命名（当前 `intl_it_it.arb` 大小写也与 `it_IT` 不一致）；更新 README，并为每种语言检查 key parity 和最小 UI smoke test。
 
-### ENG-04：发布标识仍是模板值（P2）
+整改：移除 Flutter gen-l10n 入口，保留项目既有 `S` API 的 `intl_utils` 作为唯一生成器；意大利语文件改为 `intl_it_IT.arb`。12 个 catalog 现与英文模板保持 485 个消息键及占位符一致，未完成翻译的新键使用显式英文回退；新契约测试为每个 locale 构建最小 UI。README 列出全部 12 种语言和唯一生成命令。
+
+### ENG-04：发布标识仍是模板值（P2，已关闭）
 
 Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、Windows CompanyName 均仍使用 `com.example.stars`/`com.example`。平台安全存储 accountName 也沿用该命名，见 [`bot_api_key_cipher.dart`](../lib/data/services/bot_api_key_cipher.dart#L20-L29) 与 [`secure_mcp_credential_store.dart`](../lib/data/services/mcp/secure_mcp_credential_store.dart#L7-L19)。
 
 正式发布后再变更 bundle/application ID 通常会被平台视为不同应用，也会影响安全存储访问和升级路径。建议在发布前确定组织反向域名，形成一次性迁移清单，并验证旧测试包凭证是否需要导入/清理。
 
-### ENG-05：依赖可清理候选（P3）
+整改：仓库所有者对应的稳定反向标识确定为 `io.github.locallocal.stars`，已同步 Android namespace/applicationId 与 Kotlin 路径、iOS/macOS app 和 test bundle ID、Linux application ID、Windows CompanyName/copyright 以及两类安全存储 accountName。iOS/macOS 首次读取新账户未命中时会从 `com.example...` 旧账户迁移并尝试清理；回归测试验证 Bot 主密钥和 MCP 凭证迁移。发布配置测试阻止模板标识回归。
+
+### ENG-05：依赖可清理候选（P3，已关闭）
 
 对 `lib/` 和 `test/` 的直接 package import 扫描中，下列依赖为零引用候选：`cupertino_icons`、`dart_openai`、`google_generative_ai`、`flex_color_scheme`、`dot_curved_bottom_nav`、`elegant_nav_bar`、`sidebarx`。`sqlite3` 虽无直接 import，但 pubspec 注释说明用于桌面 build hook，不列入移除候选。
 
 零直接引用不等于一定可删；应逐个执行移除、`flutter pub get`、全平台 build/test，并检查插件注册和资产用途。完成后启用依赖更新机器人或定期 `flutter pub outdated` 审查。
 
-### ENG-06：架构和桌面 Spec 已漂移（P3）
+整改：七个候选均已从直接依赖移除并重新解析锁文件；`sqlite3` 仍作为桌面 build hook 的显式依赖保留。`.github/dependabot.yml` 每月检查 pub 与 GitHub Actions 依赖。
+
+### ENG-06：架构和桌面 Spec 已漂移（P3，已关闭）
 
 [`windows_linux_desktop_style_adjustment_spec.md`](specs/windows_linux_desktop_style_adjustment_spec.md) 仍引用已删除的 `lib/pages/*`，并把 20–24px 大圆角、外层 gap 作为目标；当前桌面 token 实际以 6–8px 圆角、零 shell gap 为主，见 [`theme.dart`](../lib/utils/theme.dart#L688-L751)。架构文档声称 View 不直接调用选择器、ViewModel 不导入 data 实现，也与现状不符。
 
 建议不要简单把文档改成“现状即正确”：先确认当前桌面视觉方向，再更新组件规范、路径、breakpoint 和验收截图；架构文档中的强制约束应转成自动测试，否则降级为“目标状态/迁移中”并列出例外。
 
-### ENG-07：公共仓库治理文件缺失（P3）
+整改：桌面 Spec 已重写为当前实现基线，明确 UI 分层路径、6–8px 形状、零 shell gap、960/1200/1500 断点、overlay/focus 行为、组件矩阵和 108 场景视觉验收。架构文档新增自动门禁与唯一组合根例外；测试新增 data/domain→ui 禁止并扩展 View 平台插件列表。
+
+### ENG-07：公共仓库治理文件缺失（P3，已关闭）
 
 当前 Git 跟踪文件中没有 LICENSE、SECURITY.md、CONTRIBUTING.md、CHANGELOG.md、CODE_OF_CONDUCT.md。README 却明确邀请贡献。建议至少补许可证、漏洞报告渠道、开发/测试/迁移约定和用户可见变更日志；provider 与数据库变更尤其需要 release note。
 
-### ENG-08：本地构建缓存体积较大（P3）
+整改：已添加 MIT `LICENSE`、私密漏洞报告和时效约定、包含 l10n/架构/数据库/provider/release note 规则的贡献指南、`CHANGELOG.md` 以及 Contributor Covenant 2.1 行为准则；README 提供统一入口。
+
+### ENG-08：本地构建缓存体积较大（P3，已关闭）
 
 审计环境中仓库目录约 3.2 GB，其中 `build/` 约 2.1 GB、`.dart_tool/` 约 933 MB；两者均被 `.gitignore` 排除且没有被 Git 跟踪，不属于仓库污染。可在开发文档增加按需 `flutter clean`、CI cache key 和磁盘排障说明，避免每次 CI 无差别缓存整个 build 目录。
+
+整改：README 已区分可安全再生的 `build/` 与 `.dart_tool/`，说明 `flutter clean`、深度清理和 enforce-lockfile 恢复步骤。CI 通过 Flutter Action 只缓存按 OS/channel/version/architecture 分区的 SDK 和按 `pubspec.lock` 变化的 pub cache，不缓存仓库生成目录。
 
 ## 9. 测试与验证缺口
 
@@ -389,7 +406,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 | 跨资源写入 | 已覆盖 Bot+Skill transaction、Bot+Chat 文件 rollback、MCP credential 读写删与数据库故障注入 | 进一步增加进程中断后的持久化 recovery journal 测试 |
 | 附件/媒体 | 已覆盖同名文件、扩展名、批次回滚、overall timeout 和取消 | 增加目录只读和媒体任务重启恢复 |
 | 桌面 UI | 大量 widget/semantics 测试 | golden、焦点 traversal、context menu 键盘入口、多语言溢出、三个 breakpoint |
-| 架构规则 | 只检查 domain models 不导入 Flutter/data/ui | UI→data 禁止、View→plugin 禁止、data/domain→ui 禁止、组合根白名单 |
+| 架构规则 | 已检查 UI→data、View→plugin、data/domain→ui、组合根白名单和桌面组件 | 新例外必须在架构文档说明边界和退出计划 |
 | Provider | 多个 adapter 单测和 catalog test | 统一 contract test：timeout、typed error、取消、非法 JSON、usage-only event、secret redaction |
 | 长会话性能 | 已覆盖稳定 cursor、同时间戳、窗口增长和前页连续性；尚无基准 | 1k/10k 消息的读取、首帧、滚动、内存和压缩 benchmark |
 | 正式构建 | 本地 analyze/test | Linux/Windows/macOS 至少 build smoke；签名前校验 bundle ID、权限和 secure storage |
@@ -422,8 +439,8 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 1. 消息分页、Bot 指标批量查询、模型元数据 TTL cache 和并发限制。
 2. 按职责拆分 1000+ 行热点文件，先移副作用、后拆 Widget。
-3. 上线 CI、架构依赖测试、当前 Schema 契约测试和 desktop build smoke。
-4. 清理候选依赖、统一 l10n 生成、替换平台占位 ID、补治理文件。
+3. 已配置 CI、架构依赖测试、当前 Schema 契约测试和 desktop build smoke。
+4. 已清理候选依赖、统一 l10n 生成、替换平台占位 ID 并补齐治理文件。
 
 ## 11. 完成定义与复核指标
 
@@ -459,6 +476,19 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 | 测试 Dart | 约 26,505 行 |
 | Git 跟踪文件 | 581 |
 
+### ENG-01 至 ENG-08 整改复核（2026-08-14）
+
+| 检查 | 结果 |
+| --- | --- |
+| `flutter pub get --enforce-lockfile` | 通过 |
+| `dart run tool/sync_localizations.dart --check` | 通过；12 个 catalog 均为 485 个消息键 |
+| `dart run intl_utils:generate` 二次重生成 | 通过；14 个生成 Dart 文件 checksum 无变化 |
+| `dart run tool/check_format.dart` | 通过；391 个非生成 Dart 文件无格式漂移 |
+| `dart analyze --fatal-infos` | 通过，No issues found |
+| `flutter test` | 通过，514 tests |
+| `flutter build linux --release` | 通过，生成 x64 release bundle |
+| `git diff --check` | 通过 |
+
 ### 限制
 
 - 未连接真实 OpenAI/Anthropic/国内外 provider 账号，因此 provider 的外部可用性沿用仓库 2026-08-03 专项审计，仍需发布前联调复核。
@@ -470,7 +500,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 1. 当前按测试阶段决策自动删除非当前版本数据库；进入正式发布前是否继续采用该策略，需要再次确认。
 2. 当前决策不提供旧库离线导出或恢复能力；如需改变，必须作为新的显式能力单独立项。
-3. 桌面视觉最终采用当前紧凑 6–8px 圆角，还是旧 Spec 的 20–24px 大圆角工作台？需要先定方向再统一。
-4. 会话删除后 token usage 被保留到删除 Bot 是明确产品需求，还是历史实现？现有测试将其视为预期行为。
-5. 草稿是否需要跨重启恢复？答案会决定 DraftRepository 使用内存、有界临时目录还是 SQLite。
-6. 正式 bundle/application ID 和发布组织名是什么？该决定会影响安全存储迁移与商店升级路径。
+3. 会话删除后 token usage 被保留到删除 Bot 是明确产品需求，还是历史实现？现有测试将其视为预期行为。
+4. 草稿是否需要跨重启恢复？答案会决定 DraftRepository 使用内存、有界临时目录还是 SQLite。
+
+本轮已确认两项工程决策：桌面继续采用紧凑 6–8px 视觉基线；正式应用标识与安全存储命名空间为 `io.github.locallocal.stars`。

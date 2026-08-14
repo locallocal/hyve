@@ -58,3 +58,18 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
   状态边界拆分。
 - AI 厂商适配器当前保留项目通用 lint；其上层领域契约与 Repository 实现继续使用严格
   分析。新增厂商响应解析优先定义 DTO，避免扩展动态 Map 边界。
+
+## 自动门禁与例外
+
+上述约束由 `test/architecture/model_layering_test.dart` 自动检查，而不是只依赖代码审查：
+
+- `data`、`domain` 禁止导入 `ui`；领域模型还禁止依赖 Flutter 和 `data`。
+- `ui` 禁止导入 `data`，唯一例外是生产组合根
+  `lib/ui/core/dependency_injection/app_dependencies.dart`。
+- 所有 View 禁止直接导入文件/图片选择、相册保存、系统分享和外链插件。
+- 非生成生产 Dart 文件保持在 1000 行以内。
+- 桌面专用视图必须使用共享语义 token、组件、菜单、图标动作和通知入口。
+
+`test/architecture/release_configuration_test.dart` 另行锁定全平台发布标识和安全存储
+命名。CI 将整个 `test/architecture/` 目录设为独立必过步骤；新增例外必须先在本文档说明
+边界和退出计划，再以最小白名单加入测试。

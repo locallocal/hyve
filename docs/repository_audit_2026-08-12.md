@@ -8,13 +8,13 @@
 > 整改记录：2026-08-14 已关闭 HIST-04 至 HIST-08：当前 v17 Schema 启用并补齐外键，所有 SQLite 记录按最新字段严格解码；启动执行完整性检查并维护仅限 v17 的数据库/会话资产滚动备份；时间类型统一为 INTEGER；消息 SQL、分页游标与内存缓存统一使用稳定的 timestamp/message_id 顺序。v16 及更早版本会连同关联会话目录和旧备份直接删除，不迁移、不导入。
 > 整改记录：2026-08-14 已关闭 BIZ-01 至 BIZ-09：补齐 Bot/MCP 跨资源事务与补偿、附件原子持久化、媒体超时取消、供应商退场迁移、Bot 命令反馈、安全错误模型、启动能力报告、Bot 指标批量增量刷新，以及消息游标分页与有界缓存。
 > 整改记录：2026-08-14 已关闭 ARCH-01 至 ARCH-06：领域编排下沉到用例，UI/Data 依赖方向由门禁约束，平台消息操作经 Repository 注入，会话草稿改为有界仓库并随会话删除清理，所有非生成生产 Dart 文件均不超过 1000 行，Bots 不可达桌面分支已删除。
-> 整改记录：2026-08-14 已关闭 ENG-01 至 ENG-08：新增固定 Flutter 版本的 CI 与 Dependabot，分离生成代码和格式门禁，统一 `intl_utils` 及 12 语言契约，全平台发布标识改为 `io.github.locallocal.stars` 并迁移旧 Apple 凭证，清理 7 个无直接引用依赖，同步桌面/架构文档、公共治理文件与缓存指南。
+> 整改记录：2026-08-14 已关闭 ENG-02 至 ENG-08：保留 Dependabot，分离生成代码和格式检查，统一 `intl_utils` 及 12 语言契约，全平台发布标识改为 `io.github.locallocal.stars` 并迁移旧 Apple 凭证，清理 7 个无直接引用依赖，同步桌面/架构文档、公共治理文件与缓存指南。仓库级 CI 配置随后按维护者要求移除，ENG-01 重新打开。
 
 ## 1. 技术摘要
 
 仓库的基础质量并不差：分层目录已经建立，Dart 严格分析在 `data/domain/ui` 生效，API Key 使用平台安全存储中的主密钥做 AES-GCM 加密，MCP/Skill/会话记忆等高风险模块有较完整的单元测试。本次基线下 `dart analyze` 无问题，`flutter test` 的 432 项测试全部通过。
 
-原审计的主要风险来自“实现已经快速扩展，但约束没有同步收紧”。截至 2026-08-14，BIZ-01 至 BIZ-09、ARCH-01 至 ARCH-06、UI-01 至 UI-05 和 ENG-01 至 ENG-08 已完成整改：核心业务可靠性、分层依赖、桌面视觉回归、端到端流程和发布工程均已有自动门禁。破坏性数据库历史升级则以明确的单一当前 Schema 政策关闭。
+原审计的主要风险来自“实现已经快速扩展，但约束没有同步收紧”。截至 2026-08-14，BIZ-01 至 BIZ-09、ARCH-01 至 ARCH-06、UI-01 至 UI-05 和 ENG-02 至 ENG-08 已完成整改；ENG-01 因仓库级 CI 配置被移除而重新打开。核心业务可靠性、分层依赖、桌面视觉回归和端到端流程仍有本地自动测试，破坏性数据库历史升级则以明确的单一当前 Schema 政策关闭。
 
 本次共记录 37 项：
 
@@ -65,7 +65,7 @@
 | UI-02 | P2 | 已关闭 | 桌面 icon action 全部复用 44×44 共享命中区 | Tooltip、Focus、Semantics 与 disabled 状态统一 |
 | UI-03 | P2 | 已关闭 | 颜色状态收敛至 ThemeExtension，尺寸/形状收敛至最新 spec | 旧 token 与 compatibility facade 已删除 |
 | UI-04 | P2 | 已关闭 | 已建立 108 个桌面视觉组合和完整桌面交互流 | 可发现主题、本地化、宽度与 overlay 回归 |
-| ENG-01 | P2 | 已关闭 | CI 锁定 Flutter，执行依赖、l10n、format、analyze、test 和 Linux build | PR/`main` 自动执行质量门禁 |
+| ENG-01 | P2 | 待处理 | 仓库级 CI 配置已按维护者要求移除 | PR/`main` 当前不会自动执行质量门禁 |
 | ENG-02 | P2 | 已关闭 | 非生成 Dart 由跨平台脚本执行 format check | `lib/generated/**` 改由重新生成 diff 门禁管理 |
 | ENG-03 | P2 | 已关闭 | 本地化统一为 `intl_utils`，12 语言键/占位符与 UI smoke 必过 | 生成结果、文件命名和文档可自动复核 |
 | ENG-04 | P2 | 已关闭 | 全平台与安全存储统一 `io.github.locallocal.stars` | Apple 旧凭证首次读取时迁移并清理 |
@@ -76,7 +76,7 @@
 | ENG-05 | P3 | 已关闭 | 7 个零直接引用依赖已移除，锁文件已更新 | Dependabot 每月检查 pub 与 Actions 更新 |
 | ENG-06 | P3 | 已关闭 | 桌面 Spec 与架构文档已对齐当前路径、token、breakpoint 和例外 | 强制依赖方向与桌面组件规则由测试固化 |
 | ENG-07 | P3 | 已关闭 | 已补 MIT LICENSE、SECURITY、CONTRIBUTING、CHANGELOG 与 CODE_OF_CONDUCT | 贡献、漏洞报告和发布记录有稳定入口 |
-| ENG-08 | P3 | 已关闭 | README 明确本地清理和可再生边界；CI 只缓存 SDK/pub cache | 不缓存仓库 `build/` 或 `.dart_tool/` |
+| ENG-08 | P3 | 已关闭 | README 明确本地清理和可再生边界 | 仓库不跟踪或配置缓存 `build/`、`.dart_tool/` |
 
 ## 4. 历史数据与数据库兼容审计
 
@@ -336,13 +336,13 @@ UI 层静态计数有 346 处 `Theme.of`、49 处 `ShadTheme.of`、60 处直接 
 
 ## 8. 工程化、测试与发布规范审计
 
-### ENG-01：质量门禁没有进入 CI（P2，已关闭）
+### ENG-01：质量门禁没有进入 CI（P2，待处理）
 
 仓库没有 `.github/workflows` 或其他 CI 配置。虽然 README 要求 `dart analyze`、`flutter test`、`dart format`，但无法保证 PR/主分支实际执行。
 
 建议最小 CI 包含：固定 Flutter 版本、`flutter pub get --enforce-lockfile`、analyze、非生成代码 format check、全量 test、Linux desktop build；数据库迁移矩阵和 architecture dependency test 设为必过。供应商真实 API 测试应使用手动/定时、无 secret 输出的独立工作流。
 
-整改：`.github/workflows/ci.yml` 从 `.fvmrc` 锁定 Flutter 3.44.6，依次执行 enforce-lockfile、l10n 一致性与重生成 diff、非生成 format、fatal-info analyze、architecture 目录、当前 Schema 契约、全量 test 和 Linux release build。工作流只有 `contents: read` 权限，不注入供应商 secret。
+状态：曾增加固定 Flutter 3.44.6 的 GitHub Actions 工作流，但随后按维护者要求删除；当前只保留本地检查命令，不再宣称 PR/主分支有自动质量门禁。
 
 ### ENG-02：当前格式门禁失败（P2，已关闭）
 
@@ -350,7 +350,7 @@ UI 层静态计数有 346 处 `Theme.of`、49 处 `ShadTheme.of`、60 处直接 
 
 建议选择一个明确策略：要么生成器产物不入库并在构建时生成；要么入库但 CI 重新生成后只检查 diff；要么 format check 显式排除 `lib/generated/**`。不要让开发文档给出的标准命令天然失败。
 
-整改：`tool/check_format.dart` 跨平台收集生产、测试、集成和 tool Dart 文件，显式排除 `lib/generated/**`；生成目录改由 CI 重新生成后的 Git diff 检查。README 和 CONTRIBUTING 均使用这两个入口。
+整改：`tool/check_format.dart` 跨平台收集生产、测试、集成和 tool Dart 文件，显式排除 `lib/generated/**`；生成目录在本地重新生成后通过 Git diff 复核。README 和 CONTRIBUTING 均使用这两个入口。
 
 ### ENG-03：本地化生成和文档不一致（P2，已关闭）
 
@@ -394,7 +394,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 审计环境中仓库目录约 3.2 GB，其中 `build/` 约 2.1 GB、`.dart_tool/` 约 933 MB；两者均被 `.gitignore` 排除且没有被 Git 跟踪，不属于仓库污染。可在开发文档增加按需 `flutter clean`、CI cache key 和磁盘排障说明，避免每次 CI 无差别缓存整个 build 目录。
 
-整改：README 已区分可安全再生的 `build/` 与 `.dart_tool/`，说明 `flutter clean`、深度清理和 enforce-lockfile 恢复步骤。CI 通过 Flutter Action 只缓存按 OS/channel/version/architecture 分区的 SDK 和按 `pubspec.lock` 变化的 pub cache，不缓存仓库生成目录。
+整改：README 已区分可安全再生的 `build/` 与 `.dart_tool/`，说明 `flutter clean`、深度清理和 enforce-lockfile 恢复步骤；仓库不跟踪这些目录，也未配置仓库级 CI 构建缓存。
 
 ## 9. 测试与验证缺口
 
@@ -439,7 +439,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 
 1. 消息分页、Bot 指标批量查询、模型元数据 TTL cache 和并发限制。
 2. 按职责拆分 1000+ 行热点文件，先移副作用、后拆 Widget。
-3. 已配置 CI、架构依赖测试、当前 Schema 契约测试和 desktop build smoke。
+3. 已配置架构依赖测试、当前 Schema 契约测试和 desktop build smoke 的本地入口；仓库级 CI 已移除。
 4. 已清理候选依赖、统一 l10n 生成、替换平台占位 ID 并补齐治理文件。
 
 ## 11. 完成定义与复核指标
@@ -476,7 +476,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 | 测试 Dart | 约 26,505 行 |
 | Git 跟踪文件 | 581 |
 
-### ENG-01 至 ENG-08 整改复核（2026-08-14）
+### ENG-02 至 ENG-08 本地整改复核（2026-08-14）
 
 | 检查 | 结果 |
 | --- | --- |
@@ -485,7 +485,7 @@ Android applicationId/namespace、iOS/macOS bundle ID、Linux application ID、W
 | `dart run intl_utils:generate` 二次重生成 | 通过；14 个生成 Dart 文件 checksum 无变化 |
 | `dart run tool/check_format.dart` | 通过；391 个非生成 Dart 文件无格式漂移 |
 | `dart analyze --fatal-infos` | 通过，No issues found |
-| `flutter test` | 通过，514 tests |
+| `flutter test` | 通过，513 tests |
 | `flutter build linux --release` | 通过，生成 x64 release bundle |
 | `git diff --check` | 通过 |
 

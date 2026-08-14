@@ -72,9 +72,9 @@ flutter build linux --release
 ```
 
 `intl_utils` is the only localization generator. Generated files under
-`lib/generated/` are committed and checked for regeneration drift in CI, but
-are intentionally excluded from the formatter. Format only changed,
-non-generated Dart files, for example:
+`lib/generated/` are committed and intentionally excluded from the formatter.
+After regenerating, review their Git diff together with the catalog changes.
+Format only changed, non-generated Dart files, for example:
 
 ```bash
 dart format lib/ui/features/example.dart test/example_test.dart
@@ -85,20 +85,12 @@ Every locale must contain the same message keys and placeholders as
 `dart run tool/sync_localizations.dart --write` adds explicit English
 fallbacks; replace them with translations before release.
 
-GitHub Actions runs the locked dependency install, localization drift check,
-non-generated format check, analyzer, architecture/database gates, full test
-suite, and Linux release build on pull requests and `main`.
-
-### Local disk and CI caches
+### Local disk caches
 
 `build/` and `.dart_tool/` are generated and ignored by Git. If local caches
 become stale or disk usage is too high, run `flutter clean`; remove
 `.dart_tool/` only when deeper dependency/build-hook cleanup is needed, then
 restore it with `flutter pub get --enforce-lockfile`.
-
-CI caches only the pinned Flutter SDK and pub package cache, keyed by platform,
-SDK version, architecture, and `pubspec.lock`. It does not cache the repository
-`build/` or `.dart_tool/` directories.
 
 ## Architecture
 

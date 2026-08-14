@@ -71,5 +71,5 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 - 桌面专用视图必须使用共享语义 token、组件、菜单、图标动作和通知入口。
 
 `test/architecture/release_configuration_test.dart` 另行锁定全平台发布标识和安全存储
-命名。CI 将整个 `test/architecture/` 目录设为独立必过步骤；新增例外必须先在本文档说明
-边界和退出计划，再以最小白名单加入测试。
+命名。提交前必须运行整个 `test/architecture/` 目录；新增例外必须先在本文档说明边界和
+退出计划，再以最小白名单加入测试。

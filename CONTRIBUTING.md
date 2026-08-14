@@ -24,7 +24,7 @@ flutter build linux --release
 
 Generated localization sources under `lib/generated/` are committed but are
 excluded from the formatter. Regenerate them with `intl_utils`; do not edit
-them by hand. CI regenerates them and rejects any diff.
+them by hand. Review the regenerated Git diff before committing it.
 
 ## Localization changes
 

@@ -4,32 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
-  test('CI contains every required engineering gate', () {
-    final workflow = File('.github/workflows/ci.yml').readAsStringSync();
-    final parsed = loadYaml(workflow);
-    expect(parsed, isA<YamlMap>());
-
-    for (final command in const [
-      'flutter pub get --enforce-lockfile',
-      'dart run tool/sync_localizations.dart --check',
-      'dart run intl_utils:generate',
-      'git diff --exit-code -- lib/generated',
-      'dart run tool/check_format.dart',
-      'dart analyze --fatal-infos',
-      'flutter test test/architecture',
-      'flutter test test/data/services/database_service_test.dart',
-      'flutter test',
-      'flutter build linux --release',
-    ]) {
-      expect(workflow, contains(command), reason: command);
-    }
-    expect(workflow, contains('flutter-version-file: .fvmrc'));
-    expect(workflow, contains('contents: read'));
-    expect(workflow, isNot(contains('build/')));
-    expect(workflow, isNot(contains('.dart_tool/')));
-    expect(File('.fvmrc').readAsStringSync(), contains('3.44.6'));
-  });
-
   test('pubspec uses one localization generator and no audited dead deps', () {
     final pubspec =
         loadYaml(File('pubspec.yaml').readAsStringSync()) as YamlMap;

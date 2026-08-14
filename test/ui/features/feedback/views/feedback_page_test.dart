@@ -99,6 +99,35 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets('empty feedback uses the feedback-specific validation message', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    final viewModel = FeedbackViewModel(
+      feedbackRepository: const _FakeFeedbackRepository(),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('feedback-submit-button')),
+      );
+      await tester.pump();
+
+      expect(find.text('请输入反馈内容'), findsOneWidget);
+      expect(find.text('请填写智能体名称、API地址和API密钥'), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
 }
 
 Widget _harness(

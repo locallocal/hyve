@@ -60,7 +60,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     if (feedbackController.text.trim().isEmpty) {
       showStarsNotice(
         context,
-        S.of(context).fillRequiredFields,
+        S.of(context).feedbackContentRequired,
         tone: StarsNoticeTone.warning,
       );
       return;

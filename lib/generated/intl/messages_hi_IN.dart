@@ -139,10 +139,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "सिस्टम प्रॉम्प्ट",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -685,12 +684,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("आउटपुट टोकन"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("आंशिक उत्तर"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("ऑडियो रोकें"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("उत्पादन रोकें"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("पिन करें"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "इस बातचीत के लिए चयनित कौशल पिन करें",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("पिन किया गया"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("ऑडियो चलाएँ"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "कृपया पहले API कुंजी दर्ज करें",
     ),

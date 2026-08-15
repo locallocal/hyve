@@ -559,6 +559,8 @@
     "outputTokens": "Выходные токены",
     "uploadImage": "Загрузить изображение",
     "uploadFile": "Загрузить файл",
+    "playAudio": "Воспроизвести аудио",
+    "pauseAudio": "Приостановить аудио",
     "deepThinking": "Глубокое мышление",
     "desktopPersonalInformation": "Личная информация",
     "desktopAppearanceAndLanguage": "Внешний вид и язык",

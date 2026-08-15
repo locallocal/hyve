@@ -559,6 +559,8 @@
     "outputTokens": "आउटपुट टोकन",
     "uploadImage": "छवि अपलोड करें",
     "uploadFile": "फ़ाइल अपलोड करें",
+    "playAudio": "ऑडियो चलाएँ",
+    "pauseAudio": "ऑडियो रोकें",
     "deepThinking": "गहन चिंतन",
     "desktopPersonalInformation": "व्यक्तिगत जानकारी",
     "desktopAppearanceAndLanguage": "दिखावट और भाषा",

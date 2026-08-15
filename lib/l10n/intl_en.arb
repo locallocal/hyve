@@ -535,6 +535,14 @@
     "@uploadFile": {
         "description": "Upload file button text"
     },
+    "playAudio": "Play audio",
+    "@playAudio": {
+        "description": "Play audio button tooltip"
+    },
+    "pauseAudio": "Pause audio",
+    "@pauseAudio": {
+        "description": "Pause audio button tooltip"
+    },
     "takePhoto": "Camera",
     "@takePhoto": {
         "description": "Take photo option text"

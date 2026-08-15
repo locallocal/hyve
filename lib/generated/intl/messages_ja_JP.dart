@@ -604,12 +604,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("出力トークン"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回答"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("音声を一時停止"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("生成を一時停止"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("固定"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "選択したスキルをこの会話に固定",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("固定済み"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("音声を再生"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "APIキーを先に入力してください",
     ),

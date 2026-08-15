@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/generated/l10n.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/utils/utils.dart';
 
@@ -144,6 +145,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = isDesktopPlatform(context);
+    final playPauseLabel =
+        _isPlaying ? S.of(context).pauseAudio : S.of(context).playAudio;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -153,7 +156,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
             if (isDesktop)
               StarsDesktopIconAction(
                 focusNode: _playButtonFocusNode,
-                label: _isPlaying ? '暂停播放' : '播放音频',
+                label: playPauseLabel,
                 variant: ShadButtonVariant.outline,
                 icon: _isPlaying ? LucideIcons.pause : LucideIcons.play,
                 foregroundColor:
@@ -169,14 +172,20 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                  tooltip: playPauseLabel,
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size.square(48),
+                    maximumSize: const Size.square(48),
+                  ),
+                  icon: Icon(
+                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                    semanticLabel: playPauseLabel,
+                  ),
                   color:
                       _isPlaying
                           ? Theme.of(context).colorScheme.error
                           : Theme.of(context).colorScheme.primary,
-                  onPressed: () async {
-                    _togglePlay();
-                  },
+                  onPressed: _togglePlay,
                 ),
               ),
             const SizedBox(width: 8.0),

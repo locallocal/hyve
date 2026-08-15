@@ -141,10 +141,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt système",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Géré par Stars et ajouté à chaque requête au modèle. Les identifiants de l’agent et de la conversation en cours sont ajoutés à l’exécution et ne sont pas modifiables.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Géré par Stars et ajouté à chaque requête au modèle. Les identifiants de l’agent et de la conversation en cours sont ajoutés à l’exécution et ne sont pas modifiables.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -705,6 +704,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "partialResponse": MessageLookupByLibrary.simpleMessage(
       "Réponse partielle",
     ),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage(
+      "Mettre l’audio en pause",
+    ),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Mettre en pause la génération",
     ),
@@ -713,6 +715,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Épingler la sélection pour cette conversation",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("Épinglée"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("Lire l’audio"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Veuillez d\'abord saisir la clé API",
     ),

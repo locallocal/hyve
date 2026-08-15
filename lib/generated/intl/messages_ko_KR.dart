@@ -595,12 +595,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("출력 토큰"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("부분 응답"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("오디오 일시정지"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("생성 일시 중지"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("고정"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "선택한 스킬을 이 대화에 고정",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("고정됨"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("오디오 재생"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "API 키를 먼저 입력하세요",
     ),

@@ -559,6 +559,8 @@
     "outputTokens": "Tokens de saída",
     "uploadImage": "Enviar imagem",
     "uploadFile": "Enviar arquivo",
+    "playAudio": "Reproduzir áudio",
+    "pauseAudio": "Pausar áudio",
     "deepThinking": "Raciocínio profundo",
     "desktopPersonalInformation": "Informações pessoais",
     "desktopAppearanceAndLanguage": "Aparência e idioma",

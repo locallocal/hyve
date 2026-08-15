@@ -1229,6 +1229,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(430, 900);
     addTearDown(tester.view.reset);
+    final semantics = tester.ensureSemantics();
 
     final bot = Bot(
       id: 'bot-mobile-detail',
@@ -1252,50 +1253,137 @@ void main() {
     addTearDown(viewModel.dispose);
     await viewModel.load();
 
-    await _withMobilePlatform(() async {
-      await tester.pumpWidget(
-        _shadHarness(
-          brightness: Brightness.light,
-          homeBuilder:
-              (context) => Scaffold(
-                body: ContactsPage(viewModel: viewModel, onBotSelected: (_) {}),
-              ),
-        ),
-      );
-      await tester.pumpAndSettle();
+    try {
+      await _withMobilePlatform(() async {
+        await tester.pumpWidget(
+          _shadHarness(
+            brightness: Brightness.light,
+            homeBuilder:
+                (context) => Scaffold(
+                  body: ContactsPage(
+                    viewModel: viewModel,
+                    onBotSelected: (_) {},
+                  ),
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text(bot.name));
-      await tester.pumpAndSettle();
+        final addBotButton = find.byWidgetPredicate(
+          (widget) => widget is IconButton && widget.tooltip == '添加智能体',
+        );
+        final addBotAction = find.descendant(
+          of: addBotButton,
+          matching: find.bySemanticsLabel('添加智能体'),
+        );
+        expect(addBotButton, findsOneWidget);
+        expect(addBotAction, findsOneWidget);
+        expect(tester.getSize(addBotButton), const Size.square(48));
+        expect(
+          tester.getSemantics(addBotAction),
+          matchesSemantics(
+            label: '添加智能体',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: true,
+            isFocusable: true,
+            hasFocusAction: true,
+            hasTapAction: true,
+          ),
+        );
 
-      final page = tester.widget<EditBotPage>(find.byType(EditBotPage));
-      expect(page.readOnly, isTrue);
-      expect(find.text('详情'), findsOneWidget);
-      expect(find.text('保存修改'), findsNothing);
-      expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
-      expect(find.byType(TextField), findsNothing);
-      expect(find.byType(ShadInput), findsNothing);
-      expect(find.byType(ShadTextarea), findsNothing);
-      final providerDetail = find.byKey(
-        const ValueKey<String>('bot-detail-provider'),
-      );
-      await tester.ensureVisible(providerDetail);
-      await tester.pumpAndSettle();
-      final providerLabel = find.descendant(
-        of: providerDetail,
-        matching: find.text('供应商'),
-      );
-      final providerValue = find.descendant(
-        of: providerDetail,
-        matching: find.text('OpenAI'),
-      );
-      expect(providerDetail, findsOneWidget);
-      expect(providerLabel, findsOneWidget);
-      expect(providerValue, findsOneWidget);
-      expect(
-        tester.getTopLeft(providerLabel).dy,
-        lessThan(tester.getTopLeft(providerValue).dy),
-      );
-    });
+        await tester.tap(find.text(bot.name));
+        await tester.pumpAndSettle();
+
+        final page = tester.widget<EditBotPage>(find.byType(EditBotPage));
+        expect(page.readOnly, isTrue);
+        expect(find.text('详情'), findsOneWidget);
+        expect(find.text('保存修改'), findsNothing);
+        expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
+        expect(find.byType(TextField), findsNothing);
+        expect(find.byType(ShadInput), findsNothing);
+        expect(find.byType(ShadTextarea), findsNothing);
+        final providerDetail = find.byKey(
+          const ValueKey<String>('bot-detail-provider'),
+        );
+        await tester.ensureVisible(providerDetail);
+        await tester.pumpAndSettle();
+        final providerLabel = find.descendant(
+          of: providerDetail,
+          matching: find.text('供应商'),
+        );
+        final providerValue = find.descendant(
+          of: providerDetail,
+          matching: find.text('OpenAI'),
+        );
+        expect(providerDetail, findsOneWidget);
+        expect(providerLabel, findsOneWidget);
+        expect(providerValue, findsOneWidget);
+        expect(
+          tester.getTopLeft(providerLabel).dy,
+          lessThan(tester.getTopLeft(providerValue).dy),
+        );
+      });
+    } finally {
+      semantics.dispose();
+    }
+  });
+
+  testWidgets('mobile chat app bar exposes a named 48px new chat action', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(430, 900);
+    addTearDown(tester.view.reset);
+    final semantics = tester.ensureSemantics();
+    final botRepository = _BotCardTestBotRepository(const []);
+    final viewModel = ChatListViewModel(
+      chatRepository: _BotCardTestChatRepository(),
+      botRepository: botRepository,
+    );
+    addTearDown(viewModel.dispose);
+    await viewModel.load();
+
+    try {
+      await _withMobilePlatform(() async {
+        await tester.pumpWidget(
+          _shadHarness(
+            brightness: Brightness.light,
+            homeBuilder:
+                (context) => ChatListPage(
+                  viewModel: viewModel,
+                  onChatSelected: (_, _) {},
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final newChatButton = find.byWidgetPredicate(
+          (widget) => widget is IconButton && widget.tooltip == '新建聊天',
+        );
+        final newChatAction = find.descendant(
+          of: newChatButton,
+          matching: find.bySemanticsLabel('新建聊天'),
+        );
+        expect(newChatButton, findsOneWidget);
+        expect(newChatAction, findsOneWidget);
+        expect(tester.getSize(newChatButton), const Size.square(48));
+        expect(
+          tester.getSemantics(newChatAction),
+          matchesSemantics(
+            label: '新建聊天',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: true,
+            isFocusable: true,
+            hasFocusAction: true,
+            hasTapAction: true,
+          ),
+        );
+      });
+    } finally {
+      semantics.dispose();
+    }
   });
 
   test('main shell distinguishes bot details from bot editing', () {

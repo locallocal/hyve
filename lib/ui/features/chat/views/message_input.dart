@@ -419,7 +419,7 @@ class _MessageInputState extends State<MessageInput> {
         return _buildCircleActionButton(
           context,
           icon: Icons.add_rounded,
-          tooltip: S.of(context).uploadFile,
+          tooltip: S.of(context).addAttachment,
           active: controller.isOpen || widget.hasPendingAttachments,
           onPressed: () {
             if (controller.isOpen) {
@@ -906,34 +906,42 @@ class _MessageInputState extends State<MessageInput> {
         onPressed: onPressed,
       );
     }
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color:
-            active
-                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.10)
-                : StarsDesktopTokens.of(context).controlFill,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
+    final foregroundColor =
+        active
+            ? Theme.of(context).colorScheme.primary
+            : StarsDesktopTokens.of(context).secondaryText;
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(48),
+        maximumSize: const Size.square(48),
+        padding: EdgeInsets.zero,
+      ),
+      icon: DecoratedBox(
+        decoration: BoxDecoration(
           color:
               active
-                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
-                  : StarsDesktopTokens.of(context).separator,
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.10)
+                  : StarsDesktopTokens.of(context).controlFill,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                active
+                    ? Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.2)
+                    : StarsDesktopTokens.of(context).separator,
+          ),
         ),
-      ),
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: onPressed,
-        style: IconButton.styleFrom(
-          minimumSize: const Size(34, 34),
-          maximumSize: const Size(34, 34),
-          padding: EdgeInsets.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        child: SizedBox.square(
+          dimension: 34,
+          child: Center(
+            child: Icon(icon, color: foregroundColor, semanticLabel: tooltip),
+          ),
         ),
-        color:
-            active
-                ? Theme.of(context).colorScheme.primary
-                : StarsDesktopTokens.of(context).secondaryText,
-        icon: Icon(icon),
       ),
     );
   }

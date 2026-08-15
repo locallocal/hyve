@@ -535,6 +535,14 @@
     "@uploadFile": {
         "description": "上传文件按钮文本"
     },
+    "playAudio": "播放音频",
+    "@playAudio": {
+        "description": "播放音频按钮提示"
+    },
+    "pauseAudio": "暂停播放",
+    "@pauseAudio": {
+        "description": "暂停音频按钮提示"
+    },
     "takePhoto": "拍照",
     "@takePhoto": {
         "description": "拍照选项文本"

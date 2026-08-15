@@ -548,10 +548,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("輸出 Token"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回覆"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("暫停播放"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("暫停生成"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("固定"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在目前會話固定已選技能"),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("已固定"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("播放音訊"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage("請先輸入API密鑰"),
     "pleaseEnterImageDescription": MessageLookupByLibrary.simpleMessage(
       "Please enter a description for image generation",

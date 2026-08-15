@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -286,6 +287,63 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  testWidgets(
+    'mobile attachment action has a named 48px target and opens its menu',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final semantics = tester.ensureSemantics();
+      final controller = TextEditingController();
+      var cameraCalls = 0;
+      addTearDown(controller.dispose);
+
+      try {
+        await _pumpMessageInput(
+          tester,
+          controller: controller,
+          desktopMode: false,
+          viewport: const Size(430, 900),
+          provider: _FakeProvider(
+            _bot,
+            inputModalities: const [
+              InputModality.text,
+              InputModality.image,
+              InputModality.file,
+            ],
+          ),
+          onCamera: () => cameraCalls += 1,
+        );
+
+        final attachmentAction = find.bySemanticsLabel('上传附件');
+        expect(attachmentAction, findsOneWidget);
+        expect(tester.getSize(attachmentAction), const Size.square(48));
+        expect(
+          tester.getSemantics(attachmentAction),
+          matchesSemantics(
+            label: '上传附件',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: true,
+            isFocusable: true,
+            hasFocusAction: true,
+            hasTapAction: true,
+          ),
+        );
+
+        await tester.tap(attachmentAction);
+        await tester.pumpAndSettle();
+        final cameraAction = find.widgetWithText(MenuItemButton, '拍照');
+        expect(cameraAction, findsOneWidget);
+
+        await tester.tap(cameraAction);
+        await tester.pumpAndSettle();
+        expect(cameraCalls, 1);
+      } finally {
+        semantics.dispose();
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
 }
 
 Widget _harness(Widget child) {
@@ -328,6 +386,9 @@ Future<void> _pumpMessageInput(
   AiProvider? provider,
   VoidCallback? onSend,
   VoidCallback? onCancel,
+  VoidCallback? onCamera,
+  bool desktopMode = true,
+  Size viewport = const Size(1000, 800),
 }) async {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -365,23 +426,22 @@ Future<void> _pumpMessageInput(
             home: Builder(
               builder:
                   (context) => MediaQuery(
-                    data: MediaQuery.of(context).copyWith(
-                      size: const Size(1000, 800),
-                      disableAnimations: true,
-                    ),
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(size: viewport, disableAnimations: true),
                     child: Scaffold(
                       body: Align(
                         alignment: Alignment.topCenter,
                         child: SizedBox(
-                          width: 700,
+                          width: desktopMode ? 700 : viewport.width,
                           child: MessageInput(
                             provider: provider ?? _FakeProvider(_bot),
                             controller: controller,
                             requestInProgress: requestInProgress,
                             canCancel: canCancel,
                             isStopping: isStopping,
-                            desktopMode: true,
-                            onCameraPressed: _noop,
+                            desktopMode: desktopMode,
+                            onCameraPressed: onCamera ?? _noop,
                             onGalleryPressed: _noop,
                             onFilePressed: _noop,
                             onImageSizeSelected: _ignoreString,
@@ -418,16 +478,21 @@ class _FakeProvider extends AiProvider {
     super.bot, {
     this.supportsWebSearch = false,
     this.supportsDeepThinking = false,
+    this.inputModalities = const [InputModality.text],
   });
 
   final bool supportsWebSearch;
   final bool supportsDeepThinking;
+  final List<InputModality> inputModalities;
 
   @override
   bool supportWebSearch() => supportsWebSearch;
 
   @override
   bool supportDeepThinking() => supportsDeepThinking;
+
+  @override
+  List<InputModality> getInputModalites() => inputModalities;
 
   @override
   Future<void> generateText(List<ChatMessage> messages) async {}

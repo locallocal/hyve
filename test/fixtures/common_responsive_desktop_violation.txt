@@ -1,0 +1,5 @@
+// Deliberately invalid desktop styling in a generically named responsive file.
+final isDesktop = isDesktopPlatform(context);
+final radius = BorderRadius.circular(isDesktop ? 12 : 16);
+final icon = isDesktop ? Icons.play_arrow : Icons.touch_app;
+final color = isDesktop ? Colors.red : Theme.of(context).colorScheme.primary;

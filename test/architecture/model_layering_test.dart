@@ -234,11 +234,49 @@ void main() {
     }
   });
 
+  test(
+    'responsive desktop branches use shared shape, icon, and color tokens',
+    () {
+      final responsiveFiles = Directory('lib/ui')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'))
+          .where((file) => _containsDesktopBranch(file.readAsStringSync()));
+
+      for (final file in responsiveFiles) {
+        final violations = _responsiveDesktopViolations(
+          file.readAsStringSync(),
+        );
+        expect(
+          violations,
+          isEmpty,
+          reason: '${file.path} bypasses desktop design tokens: $violations',
+        );
+      }
+    },
+  );
+
+  test('desktop branch guard catches violations in a generic file fixture', () {
+    final fixture =
+        File(
+          'test/fixtures/common_responsive_desktop_violation.txt',
+        ).readAsStringSync();
+
+    expect(_containsDesktopBranch(fixture), isTrue);
+    expect(
+      _responsiveDesktopViolations(fixture),
+      containsAll(<String>[
+        'raw desktop radius',
+        'Material icon in desktop branch',
+        'product color in desktop branch',
+      ]),
+    );
+  });
+
   test('desktop icon actions and notices have one implementation', () {
     const directShadIconButtonAllowlist = <String>{
       'lib/ui/core/widgets/desktop_chat_primitives.dart',
       'lib/ui/features/app/views/desktop_layout_toolbar.dart',
-      'lib/ui/features/chat/views/audio_player_widget.dart',
     };
     final uiFiles = Directory('lib/ui')
         .listSync(recursive: true)
@@ -262,6 +300,16 @@ void main() {
         );
       }
     }
+
+    final audioPlayer =
+        File(
+          'lib/ui/features/chat/views/audio_player_widget.dart',
+        ).readAsStringSync();
+    expect(audioPlayer, contains('StarsDesktopIconAction('));
+    expect(audioPlayer, contains('LucideIcons.pause'));
+    expect(audioPlayer, contains('LucideIcons.play'));
+    expect(audioPlayer, isNot(contains('width: 48')));
+    expect(audioPlayer, isNot(contains('height: 48')));
   });
 
   test('legacy desktop theme and platform aliases stay removed', () {
@@ -306,4 +354,41 @@ void main() {
     );
     expect(File('test_driver/integration_test.dart').existsSync(), isTrue);
   });
+}
+
+bool _containsDesktopBranch(String source) => RegExp(
+  r'\b(?:isDesktopPlatform|isDesktop|_isDesktop|desktopMode)\b',
+).hasMatch(source);
+
+List<String> _responsiveDesktopViolations(String source) {
+  final normalized = source.replaceAll(RegExp(r'\s+'), ' ');
+  const desktopCondition = r'(?:(?:widget\.)?_?isDesktop|desktopMode)';
+  final violations = <String>[];
+
+  final radiusSelectedInsideCall = RegExp(
+    'BorderRadius\\.circular\\(\\s*$desktopCondition\\b',
+  );
+  final rawRadiusInDesktopDecoration = RegExp(
+    '$desktopCondition\\s*\\?\\s*BoxDecoration\\(.{0,600}?'
+    r'borderRadius:\s*BorderRadius\.circular\(',
+  );
+  if (radiusSelectedInsideCall.hasMatch(normalized) ||
+      rawRadiusInDesktopDecoration.hasMatch(normalized)) {
+    violations.add('raw desktop radius');
+  }
+
+  if (RegExp(
+    '$desktopCondition\\s*\\?\\s*(?:const\\s+)?'
+    r'(?:Icon\(\s*)?Icons\.',
+  ).hasMatch(normalized)) {
+    violations.add('Material icon in desktop branch');
+  }
+
+  if (RegExp(
+    '$desktopCondition\\s*\\?\\s*Colors\\.(?!transparent\\b)',
+  ).hasMatch(normalized)) {
+    violations.add('product color in desktop branch');
+  }
+
+  return violations;
 }

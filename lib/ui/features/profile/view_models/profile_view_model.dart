@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class ProfileViewModel extends ChangeNotifier {
+class ProfileViewModel extends DisposableChangeNotifier {
   ProfileViewModel({
     required ProfileRepository profileRepository,
     required AttachmentRepository attachmentRepository,
@@ -26,34 +26,42 @@ class ProfileViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
+    if (isDisposed) return;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _applyProfile(await _profileRepository.getProfile(), notify: false);
+      final profile = await _profileRepository.getProfile();
+      if (isDisposed) return;
+      _applyProfile(profile, notify: false);
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'profile_load_failed');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> save(Profile profile) async {
+    if (isDisposed) return;
     await _profileRepository.updateProfile(profile);
+    if (isDisposed) return;
     _applyProfile(profile);
   }
 
   Future<String?> pickAvatar() => _attachmentRepository.selectImage();
 
   void _applyProfile(Profile profile, {bool notify = true}) {
+    if (isDisposed) return;
     _profile = profile;
     if (notify) notifyListeners();
   }
 
   @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
+  void disposeResources() {
+    unawaited(_subscription.cancel());
   }
 }

@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/legal_document.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/legal_document_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class LegalDocumentViewModel extends ChangeNotifier {
+class LegalDocumentViewModel extends DisposableChangeNotifier {
   LegalDocumentViewModel({
     required LegalDocumentType type,
     required LegalDocumentRepository repository,
@@ -26,22 +26,27 @@ class LegalDocumentViewModel extends ChangeNotifier {
     required String localeName,
     required String fallbackContent,
   }) async {
-    if (_hasLoaded || _isLoading) return;
+    if (isDisposed || _hasLoaded || _isLoading) return;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _content = await _repository.getDocument(
+      final content = await _repository.getDocument(
         type: _type,
         localeName: localeName,
       );
+      if (isDisposed) return;
+      _content = content;
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'legal_document_load_failed');
       _content = fallbackContent;
     } finally {
-      _hasLoaded = true;
-      _isLoading = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _hasLoaded = true;
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 }

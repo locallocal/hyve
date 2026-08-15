@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class MainShellViewModel extends ChangeNotifier {
+class MainShellViewModel extends DisposableChangeNotifier {
   MainShellViewModel({required BotRepository botRepository})
     : _botRepository = botRepository;
 
@@ -78,14 +78,18 @@ class MainShellViewModel extends ChangeNotifier {
   }
 
   Future<void> updateBot(Bot bot) async {
+    if (isDisposed) return;
     await _botRepository.updateBot(bot);
+    if (isDisposed) return;
     applyBotUpdate(bot);
   }
 
   Future<void> deleteSelectedBot() async {
+    if (isDisposed) return;
     final botId = _selectedBot?.id;
     if (botId == null) return;
     await _botRepository.deleteBot(botId);
+    if (isDisposed) return;
     if (_selectedChatBot?.id == botId) {
       _selectedChatId = null;
       _selectedChatBot = null;

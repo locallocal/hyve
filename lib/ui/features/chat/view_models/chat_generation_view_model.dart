@@ -7,6 +7,7 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/use_cases/agent_run_coordinator.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
 part 'chat_generation_events.dart';
 part 'chat_generation_persistence.dart';
@@ -203,7 +204,7 @@ String _defaultMessageIdFactory(String prefix) {
 /// A fresh AI provider session is created for every run. Its callbacks capture
 /// the run id, so a late token from an older request cannot be reduced into a
 /// newer run even if the user stops and sends again quickly.
-class ChatGenerationViewModel extends ChangeNotifier
+class ChatGenerationViewModel extends DisposableChangeNotifier
     implements ToolApprovalHandler {
   static const Duration defaultPartialPersistenceInterval = Duration(
     milliseconds: 250,
@@ -273,8 +274,10 @@ class ChatGenerationViewModel extends ChangeNotifier
   ContextAssemblyReport? get contextAssemblyReport => _contextAssemblyReport;
   AiProvider get capabilityProvider => _capabilityProvider;
   bool get hasBlockingRun => _snapshot.lifecycle.isRunning;
+  bool get _acceptsAsyncCallbacks => !isDisposed;
 
   void updateBot(Bot bot) {
+    if (isDisposed) return;
     if (_bot == bot) return;
     if (hasBlockingRun) {
       _pendingBot = bot;
@@ -311,7 +314,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     required Message userMessage,
     required TextGenerationPreparer prepare,
   }) async {
-    if (hasBlockingRun) return false;
+    if (isDisposed || hasBlockingRun) return false;
 
     final runId = _messageIdFactory('run');
     final turnId =
@@ -353,6 +356,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     try {
       prepared = await prepare(identifiedUser);
     } catch (error) {
+      if (isDisposed) return false;
       _preparingRuns.remove(runId);
       if (_isActiveRun(runId) && !_snapshot.lifecycle.isTerminal) {
         await _finalizeRun(
@@ -363,6 +367,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       }
       return false;
     }
+    if (isDisposed) return false;
     _preparingRuns.remove(runId);
 
     if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) return false;
@@ -518,8 +523,10 @@ class ChatGenerationViewModel extends ChangeNotifier
   Future<ChatRunLifecycle> cancel({
     Duration timeout = const Duration(seconds: 5),
   }) async {
+    if (isDisposed) return _snapshot.lifecycle;
     final runId = _snapshot.runId;
     final provider = _runProvider;
+    final terminalFuture = _terminalCompleter?.future;
     if (runId == null || provider == null || !hasBlockingRun) {
       return _snapshot.lifecycle;
     }
@@ -571,8 +578,9 @@ class ChatGenerationViewModel extends ChangeNotifier
       }
     }
 
+    if (terminalFuture == null) return _snapshot.lifecycle;
     try {
-      return await _terminalCompleter!.future.timeout(timeout);
+      return await terminalFuture.timeout(timeout);
     } on TimeoutException {
       if (_isActiveRun(runId) &&
           _snapshot.lifecycle == ChatRunLifecycle.stopping &&
@@ -588,6 +596,7 @@ class ChatGenerationViewModel extends ChangeNotifier
   }
 
   Future<bool> stopForNavigation() async {
+    if (isDisposed) return true;
     if (!hasBlockingRun) return true;
     if (!_snapshot.supportsCancellation) return false;
     final result = await cancel();
@@ -595,6 +604,7 @@ class ChatGenerationViewModel extends ChangeNotifier
   }
 
   void acknowledgeTerminal() {
+    if (isDisposed) return;
     if (!_snapshot.lifecycle.isTerminal) return;
     _snapshot = _snapshot.copyWith(
       lifecycle: ChatRunLifecycle.idle,
@@ -640,17 +650,17 @@ class ChatGenerationViewModel extends ChangeNotifier
         cancellationToken.whenCancelled.then((_) => ToolApprovalDecision.deny),
       ]);
     } finally {
-      if (identical(_toolApprovalCompleter, completer)) {
+      if (_isActiveRun(request.runId) &&
+          identical(_toolApprovalCompleter, completer)) {
         _toolApprovalCompleter = null;
-        if (_isActiveRun(request.runId)) {
-          _snapshot = _snapshot.copyWith(clearPendingToolApproval: true);
-          notifyListeners();
-        }
+        _snapshot = _snapshot.copyWith(clearPendingToolApproval: true);
+        notifyListeners();
       }
     }
   }
 
   void resolveToolApproval(ToolApprovalDecision decision) {
+    if (isDisposed) return;
     final completer = _toolApprovalCompleter;
     if (completer == null || completer.isCompleted) return;
     completer.complete(decision);
@@ -683,6 +693,7 @@ class ChatGenerationViewModel extends ChangeNotifier
     _partialPersistenceTimer?.cancel();
     _partialPersistenceTimer = null;
     await _partialPersistenceQueue;
+    if (!_isActiveRun(runId)) return;
 
     var lifecycle = switch (providerTerminal) {
       ProviderTerminalType.completed => ChatRunLifecycle.completed,
@@ -757,6 +768,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           hasPartialContent: hasGeneratedContent,
         );
       }
+      if (!_isActiveRun(runId)) return;
       if (terminalPersisted && terminalMessage.content.isNotEmpty) {
         try {
           await _lastMessageUpdater(chatId, terminalMessage.content);
@@ -766,6 +778,7 @@ class ChatGenerationViewModel extends ChangeNotifier
           );
         }
       }
+      if (!_isActiveRun(runId)) return;
       final observer = _terminalMessageObserver;
       if (terminalPersisted && observer != null) {
         unawaited(
@@ -783,10 +796,7 @@ class ChatGenerationViewModel extends ChangeNotifier
       }
     }
 
-    if (!_isActiveRun(runId)) {
-      _finalizingRuns.remove(runId);
-      return;
-    }
+    if (!_isActiveRun(runId)) return;
     _snapshot = _snapshot.copyWith(
       lifecycle: lifecycle,
       error: error,
@@ -827,9 +837,30 @@ class ChatGenerationViewModel extends ChangeNotifier
   }
 
   @override
-  void dispose() {
+  void disposeResources() {
     _partialPersistenceTimer?.cancel();
     _partialPersistenceTimer = null;
-    super.dispose();
+    _agentCancellationToken?.cancel();
+    final approvalCompleter = _toolApprovalCompleter;
+    if (approvalCompleter != null && !approvalCompleter.isCompleted) {
+      approvalCompleter.complete(ToolApprovalDecision.deny);
+    }
+    _toolApprovalCompleter = null;
+    final terminalCompleter = _terminalCompleter;
+    if (terminalCompleter != null && !terminalCompleter.isCompleted) {
+      terminalCompleter.complete(ChatRunLifecycle.cancelled);
+    }
+    _terminalCompleter = null;
+    final provider = _runProvider;
+    if (provider != null && provider.supportsCancellation) {
+      unawaited(
+        provider.cancelRequest().then<void>((_) {}).catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
+          debugPrint('Failed to cancel disposed chat run: $error');
+        }),
+      );
+    }
   }
 }

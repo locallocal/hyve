@@ -8,6 +8,35 @@ import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.da
 
 void main() {
   group('ChatGenerationViewModel', () {
+    test(
+      'dispose cancels an active run without publishing terminal state',
+      () async {
+        final harness = _ControllerHarness(cancellable: true);
+        final controller = harness.controller;
+
+        expect(
+          await controller.startText(
+            userMessage: _userMessage(),
+            messages: <ChatMessage>[
+              ChatMessage(role: 'user', content: 'Hello'),
+            ],
+          ),
+          isTrue,
+        );
+        final provider = harness.runProvider;
+        expect(controller.snapshot.lifecycle, ChatRunLifecycle.active);
+
+        controller.dispose();
+        provider.emitToken('too late');
+        await _flushAsyncWork();
+
+        expect(provider.cancelRequests, 1);
+        expect(controller.snapshot.lifecycle, ChatRunLifecycle.active);
+        expect(controller.snapshot.streamingResponse, isEmpty);
+        controller.dispose();
+      },
+    );
+
     test('completed terminal is idempotent and ignores late tokens', () async {
       final harness = _ControllerHarness(cancellable: true);
       final controller = harness.controller;

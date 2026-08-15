@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class ChatListViewModel extends ChangeNotifier {
+class ChatListViewModel extends DisposableChangeNotifier {
   ChatListViewModel({
     required ChatRepository chatRepository,
     required BotRepository botRepository,
@@ -36,6 +36,7 @@ class ChatListViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
+    if (isDisposed) return;
     final generation = ++_loadGeneration;
     _isLoading = true;
     _error = null;
@@ -45,15 +46,15 @@ class ChatListViewModel extends ChangeNotifier {
         _chatRepository.getChats(),
         _botRepository.getBots(),
       ]);
-      if (generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _chats = List<Chat>.unmodifiable(results[0] as List<Chat>);
       _bots = List<Bot>.unmodifiable(results[1] as List<Bot>);
       _applyFilter();
     } catch (error) {
-      if (generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'chat_list_load_failed');
     } finally {
-      if (generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration) {
         _isLoading = false;
         notifyListeners();
       }
@@ -87,9 +88,8 @@ class ChatListViewModel extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
-    _chatSubscription.cancel();
-    _botSubscription.cancel();
-    super.dispose();
+  void disposeResources() {
+    unawaited(_chatSubscription.cancel());
+    unawaited(_botSubscription.cancel());
   }
 }

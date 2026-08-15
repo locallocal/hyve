@@ -96,6 +96,52 @@ void main() {
     expect(useCases, contains('enum McpServerMutationOutcome'));
   });
 
+  test('async ChangeNotifiers use disposal guards', () {
+    const auditedViewModels = <String>[
+      'lib/ui/features/app/view_models/main_shell_view_model.dart',
+      'lib/ui/features/app/view_models/startup_view_model.dart',
+      'lib/ui/features/bots/view_models/bot_skill_view_model.dart',
+      'lib/ui/features/chat/view_models/chat_generation_view_model.dart',
+      'lib/ui/features/chat/view_models/chat_skill_view_model.dart',
+      'lib/ui/features/chat/view_models/chat_view_model.dart',
+      'lib/ui/features/chat/view_models/conversation_memory_view_model.dart',
+      'lib/ui/features/chats/view_models/chat_list_view_model.dart',
+      'lib/ui/features/feedback/view_models/feedback_view_model.dart',
+      'lib/ui/features/mcp/view_models/mcp_servers_view_model.dart',
+      'lib/ui/features/profile/view_models/legal_document_view_model.dart',
+      'lib/ui/features/profile/view_models/profile_view_model.dart',
+    ];
+
+    for (final path in auditedViewModels) {
+      final source = File(path).readAsStringSync();
+      expect(
+        source,
+        contains('extends DisposableChangeNotifier'),
+        reason: '$path can publish an async completion after disposal',
+      );
+    }
+
+    final directAsyncNotifiers = Directory('lib/ui')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'))
+        .where((file) {
+          final source = file.readAsStringSync();
+          return source.contains('extends ChangeNotifier') &&
+              source.contains('Future<') &&
+              source.contains('notifyListeners');
+        });
+
+    for (final file in directAsyncNotifiers) {
+      final source = file.readAsStringSync();
+      expect(
+        RegExp(r'bool _(?:isDisposed|disposed)').hasMatch(source),
+        isTrue,
+        reason: '${file.path} has no disposal guard',
+      );
+    }
+  });
+
   test('views do not invoke platform action plugins directly', () {
     const pluginImports = <String>[
       'package:file_picker/',

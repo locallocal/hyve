@@ -1,7 +1,8 @@
 part of 'chat_generation_view_model.dart';
 
 extension _ChatGenerationPersistence on ChatGenerationViewModel {
-  bool _isActiveRun(String runId) => _snapshot.runId == runId;
+  bool _isActiveRun(String runId) =>
+      _acceptsAsyncCallbacks && _snapshot.runId == runId;
 
   bool _canReduceProviderEvent(String runId) =>
       _isActiveRun(runId) &&

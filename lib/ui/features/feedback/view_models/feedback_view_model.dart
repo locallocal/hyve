@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/feedback_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class FeedbackViewModel extends ChangeNotifier {
+class FeedbackViewModel extends DisposableChangeNotifier {
   FeedbackViewModel({required FeedbackRepository feedbackRepository})
     : _feedbackRepository = feedbackRepository;
 
@@ -15,7 +15,7 @@ class FeedbackViewModel extends ChangeNotifier {
 
   Future<bool> submit({required String content, String? contact}) async {
     final normalizedContent = content.trim();
-    if (normalizedContent.isEmpty || _isSubmitting) return false;
+    if (isDisposed || normalizedContent.isEmpty || _isSubmitting) return false;
     _isSubmitting = true;
     _error = null;
     notifyListeners();
@@ -26,11 +26,15 @@ class FeedbackViewModel extends ChangeNotifier {
       );
       return true;
     } catch (error) {
-      _error = AppFailure.from(error, code: 'feedback_submit_failed');
+      if (!isDisposed) {
+        _error = AppFailure.from(error, code: 'feedback_submit_failed');
+      }
       return false;
     } finally {
-      _isSubmitting = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isSubmitting = false;
+        notifyListeners();
+      }
     }
   }
 }

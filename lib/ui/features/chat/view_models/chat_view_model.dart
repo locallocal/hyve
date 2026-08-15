@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/attachment_repository.dart';
@@ -15,10 +14,11 @@ import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_user_message.dart';
 import 'package:stars/domain/use_cases/generate_media_turn.dart';
 import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
 
-class ChatViewModel extends ChangeNotifier {
+class ChatViewModel extends DisposableChangeNotifier {
   ChatViewModel({
     required this.chatId,
     required this.bot,
@@ -85,6 +85,7 @@ class ChatViewModel extends ChangeNotifier {
   bool _isLoadingEarlier = false;
   bool _hasEarlierMessages = false;
   MessageCursor? _earlierCursor;
+  int _historyLoadGeneration = 0;
 
   List<Message> get messages => _messages;
   List<Message>? get cachedMessages {
@@ -106,6 +107,8 @@ class ChatViewModel extends ChangeNotifier {
   bool get hasEarlierMessages => _hasEarlierMessages;
 
   Future<void> loadMessages() async {
+    if (isDisposed) return;
+    final generation = ++_historyLoadGeneration;
     _isLoading = true;
     _historyError = null;
     notifyListeners();
@@ -113,26 +116,34 @@ class ChatViewModel extends ChangeNotifier {
       final repository = _messageRepository;
       if (repository is PaginatedMessageRepository) {
         final page = await repository.getMessagePage(chatId);
+        if (isDisposed || generation != _historyLoadGeneration) return;
         _messages = page.messages;
         _applyPageState(page);
       } else {
-        _messages = await repository.getMessages(chatId);
+        final messages = await repository.getMessages(chatId);
+        if (isDisposed || generation != _historyLoadGeneration) return;
+        _messages = messages;
         _hasEarlierMessages = false;
         _earlierCursor = null;
       }
     } catch (error) {
+      if (isDisposed || generation != _historyLoadGeneration) return;
       _historyError = AppFailure.from(
         error,
         code: 'message_history_load_failed',
       );
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!isDisposed && generation == _historyLoadGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<List<Message>> loadEarlierMessages() async {
-    if (_isLoadingEarlier || !_hasEarlierMessages) return _messages;
+    if (isDisposed || _isLoadingEarlier || !_hasEarlierMessages) {
+      return _messages;
+    }
     final repository = _messageRepository;
     final cursor = _earlierCursor;
     if (repository is! PaginatedMessageRepository || cursor == null) {
@@ -143,6 +154,7 @@ class ChatViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final page = await repository.getMessagePage(chatId, before: cursor);
+      if (isDisposed) return _messages;
       final byId = <String, Message>{
         for (final message in page.messages) message.messageId: message,
         for (final message in _messages) message.messageId: message,
@@ -153,11 +165,14 @@ class ChatViewModel extends ChangeNotifier {
       _applyPageState(page);
       return _messages;
     } catch (error) {
+      if (isDisposed) return _messages;
       _historyError = AppFailure.from(error, code: 'message_page_load_failed');
       rethrow;
     } finally {
-      _isLoadingEarlier = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isLoadingEarlier = false;
+        notifyListeners();
+      }
     }
   }
 

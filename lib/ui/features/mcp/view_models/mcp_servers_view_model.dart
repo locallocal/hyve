@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-final class McpServersViewModel extends ChangeNotifier {
+final class McpServersViewModel extends DisposableChangeNotifier {
   McpServersViewModel({
     required McpServerRepository repository,
     required McpCatalogController catalogService,
@@ -48,6 +48,7 @@ final class McpServersViewModel extends ChangeNotifier {
       _catalogService.getStdioProcessInfo(serverId);
 
   void _handleRepositoryChanges(List<McpServer> _) {
+    if (isDisposed) return;
     unawaited(_load(clearError: false));
   }
 
@@ -66,6 +67,7 @@ final class McpServersViewModel extends ChangeNotifier {
   Future<void> load() => _load(clearError: true);
 
   Future<void> _load({required bool clearError}) async {
+    if (isDisposed) return;
     final generation = ++_loadGeneration;
     _isLoading = true;
     if (clearError) _error = null;
@@ -77,17 +79,17 @@ final class McpServersViewModel extends ChangeNotifier {
           (server) async => (server.id, await _repository.getTools(server.id)),
         ),
       );
-      if (generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _servers = servers;
       _toolsByServer = Map.unmodifiable({
         for (final (serverId, tools) in catalogs) serverId: tools,
       });
     } catch (error) {
-      if (generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration) {
         _error = AppFailure.from(error, code: 'mcp_load_failed');
       }
     } finally {
-      if (generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration) {
         _isLoading = false;
         notifyListeners();
       }
@@ -95,15 +97,18 @@ final class McpServersViewModel extends ChangeNotifier {
   }
 
   Future<bool> saveAndConnect(McpServerDraft draft) async {
+    if (isDisposed) return false;
     _error = null;
     _warning = null;
     final result = await _saveAndConnect(
       draft,
       onCommitted: (commit) {
+        if (isDisposed) return;
         _busyServerId = commit.server.id;
         _publishSavedServer(commit.server, clearTools: commit.clearTools);
       },
     );
+    if (isDisposed) return result.isCommitted;
     _busyServerId = null;
     await _reloadPreservingFeedback(
       error: result.failure,
@@ -136,21 +141,25 @@ final class McpServersViewModel extends ChangeNotifier {
   }
 
   Future<bool> refresh(String serverId) async {
+    if (isDisposed) return false;
     _error = null;
     _warning = null;
     await _runForServer(
       serverId,
       () => _catalogService.refreshServer(serverId),
     );
+    if (isDisposed) return false;
     return _error == null;
   }
 
   Future<void> deleteServer(McpServer server) async {
+    if (isDisposed) return;
     _error = null;
     _warning = null;
     _busyServerId = server.id;
     notifyListeners();
     final result = await _deleteServer(server);
+    if (isDisposed) return;
     _busyServerId = null;
     await _reloadPreservingFeedback(
       error: result.failure,
@@ -170,31 +179,33 @@ final class McpServersViewModel extends ChangeNotifier {
       await operation();
     } on Object catch (error) {
       failure = AppFailure.from(error, code: 'mcp_operation_failed');
-    } finally {
-      _busyServerId = null;
-      await load();
-      if (failureIsWarning) {
-        _warning = failure;
-      } else {
-        _error = failure;
-      }
-      notifyListeners();
     }
+    if (isDisposed) return;
+    _busyServerId = null;
+    await load();
+    if (isDisposed) return;
+    if (failureIsWarning) {
+      _warning = failure;
+    } else {
+      _error = failure;
+    }
+    notifyListeners();
   }
 
   Future<void> _reloadPreservingFeedback({
     AppFailure? error,
     AppFailure? warning,
   }) async {
+    if (isDisposed) return;
     await load();
+    if (isDisposed) return;
     _error = error ?? _error;
     _warning = warning;
     notifyListeners();
   }
 
   @override
-  void dispose() {
+  void disposeResources() {
     unawaited(_repositoryChangesSubscription.cancel());
-    super.dispose();
   }
 }

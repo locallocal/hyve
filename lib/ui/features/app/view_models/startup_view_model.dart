@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/profile_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-class StartupViewModel extends ChangeNotifier {
+class StartupViewModel extends DisposableChangeNotifier {
   StartupViewModel({
     required ProfileRepository profileRepository,
     Future<StartupCapabilitiesReport> Function()? capabilityInitializer,
@@ -25,14 +25,17 @@ class StartupViewModel extends ChangeNotifier {
   bool get hasError => _error != null;
 
   Future<void> load() async {
+    if (isDisposed) return;
     final generation = ++_loadGeneration;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       final profile = await _profileRepository.getProfile();
+      if (isDisposed || generation != _loadGeneration) return;
+      StartupCapabilitiesReport capabilitiesReport;
       try {
-        _capabilitiesReport =
+        capabilitiesReport =
             await _capabilityInitializer?.call() ??
             StartupCapabilitiesReport.empty;
       } on Object catch (error) {
@@ -40,7 +43,7 @@ class StartupViewModel extends ChangeNotifier {
           error,
           code: 'startup_capability_initialization_failed',
         );
-        _capabilitiesReport = StartupCapabilitiesReport([
+        capabilitiesReport = StartupCapabilitiesReport([
           StartupCapabilityStatus(
             id: 'capability_initializer',
             required: false,
@@ -50,13 +53,14 @@ class StartupViewModel extends ChangeNotifier {
           ),
         ]);
       }
-      if (generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _profile = profile;
+      _capabilitiesReport = capabilitiesReport;
     } catch (error) {
-      if (generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'startup_required_failed');
     } finally {
-      if (generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration) {
         _isLoading = false;
         notifyListeners();
       }
@@ -65,15 +69,16 @@ class StartupViewModel extends ChangeNotifier {
 
   Future<void> retryCapabilities() async {
     final initializer = _capabilityInitializer;
-    if (initializer == null) return;
+    if (initializer == null || isDisposed) return;
+    late final StartupCapabilitiesReport capabilitiesReport;
     try {
-      _capabilitiesReport = await initializer();
+      capabilitiesReport = await initializer();
     } on Object catch (error) {
       final failure = AppFailure.from(
         error,
         code: 'startup_capability_initialization_failed',
       );
-      _capabilitiesReport = StartupCapabilitiesReport([
+      capabilitiesReport = StartupCapabilitiesReport([
         StartupCapabilityStatus(
           id: 'capability_initializer',
           required: false,
@@ -83,6 +88,8 @@ class StartupViewModel extends ChangeNotifier {
         ),
       ]);
     }
+    if (isDisposed) return;
+    _capabilitiesReport = capabilitiesReport;
     notifyListeners();
   }
 }

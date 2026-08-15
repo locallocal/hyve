@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-final class ChatSkillViewModel extends ChangeNotifier {
+final class ChatSkillViewModel extends DisposableChangeNotifier {
   ChatSkillViewModel({
     required this.botId,
     required SkillRepository skillRepository,
@@ -29,24 +29,30 @@ final class ChatSkillViewModel extends ChangeNotifier {
 
   List<SkillDescriptor> _availableSkills = const [];
   bool _isLoading = false;
+  int _reloadGeneration = 0;
 
   List<SkillDescriptor> get availableSkills => _availableSkills;
   bool get isLoading => _isLoading;
 
   Future<void> load() async {
+    if (isDisposed) return;
     _isLoading = true;
     notifyListeners();
     await _reload();
+    if (isDisposed) return;
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> _reload() async {
+    if (isDisposed) return;
+    final generation = ++_reloadGeneration;
     final results = await Future.wait<Object>([
       _skillRepository.getInstalled(forceRefresh: true),
       _bindingRepository.getForBot(botId),
       _bundledSkillLoader?.call() ?? Future.value(const <SkillContent>[]),
     ]);
+    if (isDisposed || generation != _reloadGeneration) return;
     final installed = results[0] as List<SkillDescriptor>;
     final bindings = results[1] as List<BotSkillBinding>;
     final bundled = results[2] as List<SkillContent>;
@@ -71,9 +77,8 @@ final class ChatSkillViewModel extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
+  void disposeResources() {
     unawaited(_skillChanges.cancel());
     unawaited(_bindingChanges.cancel());
-    super.dispose();
   }
 }

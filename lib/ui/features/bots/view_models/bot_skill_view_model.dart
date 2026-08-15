@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/domain/use_cases/test_skill_description.dart';
+import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 
-final class BotSkillViewModel extends ChangeNotifier {
+final class BotSkillViewModel extends DisposableChangeNotifier {
   static const int defaultPageSize = 5;
 
   BotSkillViewModel({
@@ -51,6 +51,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   int _availablePageIndex = 0;
   bool _isLoading = false;
   AppFailure? _error;
+  int _reloadGeneration = 0;
 
   List<SkillDescriptor> get skills =>
       _supportsAutoActivation ? _skills : const [];
@@ -103,16 +104,18 @@ final class BotSkillViewModel extends ChangeNotifier {
   BotSkillBinding? bindingFor(String skillId) => _bindings[skillId];
 
   Future<void> load() async {
+    if (isDisposed) return;
     _isLoading = true;
     _error = null;
     notifyListeners();
     await _reload();
+    if (isDisposed) return;
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> addSkill(String skillId) async {
-    if (!supportsAutoActivation) return;
+    if (isDisposed || !supportsAutoActivation) return;
     if (_bindings.containsKey(skillId)) return;
     final now = DateTime.now();
     await _saveBinding(
@@ -126,15 +129,17 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   Future<void> removeSkill(String skillId) async {
-    if (!_bindings.containsKey(skillId)) return;
+    if (isDisposed || !_bindings.containsKey(skillId)) return;
     try {
       await _bindingRepository.remove(botId, skillId);
+      if (isDisposed) return;
       _bindings = Map<String, BotSkillBinding>.unmodifiable(
         Map<String, BotSkillBinding>.of(_bindings)..remove(skillId),
       );
       _normalizePages();
       notifyListeners();
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'bot_skill_load_failed');
       notifyListeners();
       rethrow;
@@ -142,6 +147,7 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   Future<void> setEnabled(String skillId, bool enabled) async {
+    if (isDisposed) return;
     final existing = _bindings[skillId];
     if (existing == null) {
       if (enabled) await addSkill(skillId);
@@ -221,8 +227,10 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   Future<void> _saveBinding(BotSkillBinding binding) async {
+    if (isDisposed) return;
     try {
       await _bindingRepository.save(binding);
+      if (isDisposed) return;
       _bindings = Map<String, BotSkillBinding>.unmodifiable({
         ..._bindings,
         binding.skillId: binding,
@@ -230,6 +238,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _normalizePages();
       notifyListeners();
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'bot_skill_save_failed');
       notifyListeners();
       rethrow;
@@ -237,12 +246,15 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   Future<void> _reload() async {
+    if (isDisposed) return;
+    final generation = ++_reloadGeneration;
     try {
       final results = await Future.wait<Object>([
         _skillRepository.getInstalled(forceRefresh: true),
         _bindingRepository.getForBot(botId),
         _bundledSkillLoader?.call() ?? Future.value(const <SkillContent>[]),
       ]);
+      if (isDisposed || generation != _reloadGeneration) return;
       final installed = results[0] as List<SkillDescriptor>;
       final bindings = results[1] as List<BotSkillBinding>;
       final bundled = results[2] as List<SkillContent>;
@@ -261,6 +273,7 @@ final class BotSkillViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
     } catch (error) {
+      if (isDisposed || generation != _reloadGeneration) return;
       _error = AppFailure.from(error, code: 'bot_skill_test_failed');
       notifyListeners();
     }
@@ -289,10 +302,9 @@ final class BotSkillViewModel extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
+  void disposeResources() {
     unawaited(_skillChanges.cancel());
     unawaited(_bindingChanges.cancel());
-    super.dispose();
   }
 }
 

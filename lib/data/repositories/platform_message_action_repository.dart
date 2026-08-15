@@ -30,14 +30,14 @@ final class PlatformMessageActionRepository implements MessageActionRepository {
       return MediaExportResult.saved;
     }
     final fileName = source.uri.pathSegments.last;
-    final destination = await FilePicker.platform.saveFile(
+    final destination = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: fileName,
       type: FileType.image,
       allowedExtensions: const ['png', 'jpg', 'jpeg'],
+      bytes: await source.readAsBytes(),
     );
     if (destination == null) return MediaExportResult.cancelled;
-    await source.copy(destination);
     return MediaExportResult.saved;
   }
 

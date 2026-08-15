@@ -7,8 +7,14 @@ import 'package:stars/domain/models/app_failure.dart';
 import 'package:stars/domain/repositories/message_action_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+typedef ImageShare =
+    Future<void> Function({required String sourcePath, required String text});
+
 final class PlatformMessageActionRepository implements MessageActionRepository {
-  const PlatformMessageActionRepository();
+  const PlatformMessageActionRepository({ImageShare imageShare = _shareImage})
+    : _imageShare = imageShare;
+
+  final ImageShare _imageShare;
 
   @override
   Future<MediaExportResult> saveImage({
@@ -43,11 +49,20 @@ final class PlatformMessageActionRepository implements MessageActionRepository {
 
   @override
   Future<void> shareImage({required String sourcePath, required String text}) =>
-      Share.shareXFiles([XFile(sourcePath)], text: text);
+      _imageShare(sourcePath: sourcePath, text: text);
 
   @override
   Future<bool> openExternal(Uri uri) async {
     if (!await canLaunchUrl(uri)) return false;
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
+}
+
+Future<void> _shareImage({
+  required String sourcePath,
+  required String text,
+}) async {
+  await SharePlus.instance.share(
+    ShareParams(files: [XFile(sourcePath)], text: text),
+  );
 }

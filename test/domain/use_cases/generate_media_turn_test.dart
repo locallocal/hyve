@@ -7,6 +7,7 @@ import 'package:stars/domain/repositories/attachment_repository.dart';
 import 'package:stars/domain/repositories/chat_repository.dart';
 import 'package:stars/domain/repositories/message_repository.dart';
 import 'package:stars/domain/use_cases/generate_media_turn.dart';
+import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
 
 void main() {
   late _MemoryMessages messages;
@@ -25,6 +26,7 @@ void main() {
       chatRepository: chats,
       providerRepository: providers,
       attachmentRepository: assets,
+      persistConversationAssets: PersistConversationAssets(repository: assets),
     );
   });
 

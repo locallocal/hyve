@@ -96,6 +96,42 @@ void main() {
     expect(useCases, contains('enum McpServerMutationOutcome'));
   });
 
+  test('Chat workflows are assembled by the composition root', () {
+    final viewModel =
+        File(
+          'lib/ui/features/chat/view_models/chat_view_model.dart',
+        ).readAsStringSync();
+    final interactionFacade =
+        File(
+          'lib/ui/features/chat/view_models/chat_interaction_facade.dart',
+        ).readAsStringSync();
+    final workflowFacade =
+        File(
+          'lib/domain/use_cases/chat_workflow_facade.dart',
+        ).readAsStringSync();
+    final compositionRoot =
+        File(
+          'lib/ui/core/dependency_injection/app_dependencies.dart',
+        ).readAsStringSync();
+
+    expect(viewModel, contains('required ChatInteractionFacade interaction'));
+    expect(viewModel, isNot(contains('domain/repositories/')));
+    for (final constructor in const [
+      'CreateUserMessage(',
+      'GenerateMediaTurn(',
+      'PersistConversationAssets(',
+      'PrepareTextGeneration(',
+    ]) {
+      expect(viewModel, isNot(contains(constructor)), reason: constructor);
+      expect(compositionRoot, contains(constructor), reason: constructor);
+    }
+    expect(interactionFacade, contains('final class ChatInteractionFacade'));
+    expect(interactionFacade, contains('setCancellableExternalRun'));
+    expect(workflowFacade, contains('final class ChatWorkflowFacade'));
+    expect(workflowFacade, contains('required GenerateMediaTurn'));
+    expect(workflowFacade, contains('required PrepareTextGeneration'));
+  });
+
   test('async ChangeNotifiers use disposal guards', () {
     const auditedViewModels = <String>[
       'lib/ui/features/app/view_models/main_shell_view_model.dart',

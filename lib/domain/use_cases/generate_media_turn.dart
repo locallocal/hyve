@@ -72,13 +72,12 @@ final class GenerateMediaTurn {
     required ChatRepository chatRepository,
     required AiProviderRepository providerRepository,
     required AttachmentRepository attachmentRepository,
+    required PersistConversationAssets persistConversationAssets,
   }) : _messages = messageRepository,
        _chats = chatRepository,
        _providers = providerRepository,
        _attachments = attachmentRepository,
-       _persistAssets = PersistConversationAssets(
-         repository: attachmentRepository,
-       );
+       _persistAssets = persistConversationAssets;
 
   final MessageRepository _messages;
   final ChatRepository _chats;

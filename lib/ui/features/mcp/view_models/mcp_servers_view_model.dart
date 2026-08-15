@@ -3,52 +3,28 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
-
-final class McpServerDraft {
-  const McpServerDraft({
-    this.id,
-    required this.name,
-    this.transportType = McpTransportType.streamableHttp,
-    this.endpoint = '',
-    this.command = '',
-    this.arguments = '',
-    this.environment = '',
-    this.authType = McpAuthType.none,
-    this.accessToken = '',
-  });
-
-  final String? id;
-  final String name;
-  final McpTransportType transportType;
-  final String endpoint;
-  final String command;
-  final String arguments;
-  final String environment;
-  final McpAuthType authType;
-  final String accessToken;
-}
+import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
 
 final class McpServersViewModel extends ChangeNotifier {
   McpServersViewModel({
     required McpServerRepository repository,
-    required McpCredentialStore credentialStore,
     required McpCatalogController catalogService,
-    DateTime Function()? now,
+    required SaveAndConnectMcpServer saveAndConnect,
+    required DeleteMcpServer deleteServer,
   }) : _repository = repository,
-       _credentialStore = credentialStore,
        _catalogService = catalogService,
-       _now = now ?? DateTime.now {
+       _saveAndConnect = saveAndConnect,
+       _deleteServer = deleteServer {
     _repositoryChangesSubscription = _repository.changes.listen(
       _handleRepositoryChanges,
     );
   }
 
   final McpServerRepository _repository;
-  final McpCredentialStore _credentialStore;
   final McpCatalogController _catalogService;
-  final DateTime Function() _now;
+  final SaveAndConnectMcpServer _saveAndConnect;
+  final DeleteMcpServer _deleteServer;
   late final StreamSubscription<List<McpServer>> _repositoryChangesSubscription;
 
   List<McpServer> _servers = const [];
@@ -121,115 +97,19 @@ final class McpServersViewModel extends ChangeNotifier {
   Future<bool> saveAndConnect(McpServerDraft draft) async {
     _error = null;
     _warning = null;
-    final timestamp = _now();
-    McpServer? existing;
-    try {
-      existing =
-          draft.id == null ? null : await _repository.getServer(draft.id!);
-    } on Object catch (error) {
-      _error = AppFailure.from(error, code: 'mcp_server_read_failed');
-      notifyListeners();
-      return false;
-    }
-    final id =
-        existing?.id ??
-        'mcp-${timestamp.microsecondsSinceEpoch.toRadixString(36)}';
-    final McpServerTransport transport;
-    switch (draft.transportType) {
-      case McpTransportType.streamableHttp:
-        final parsedEndpoint = Uri.tryParse(draft.endpoint.trim());
-        if (parsedEndpoint == null ||
-            !parsedEndpoint.hasScheme ||
-            parsedEndpoint.host.isEmpty) {
-          _error = const AppFailure.validation('mcp_invalid_endpoint');
-          notifyListeners();
-          return false;
-        }
-        transport = McpStreamableHttpServerTransport(
-          endpoint: parsedEndpoint,
-          authType: draft.authType,
-        );
-      case McpTransportType.stdio:
-        if (draft.command.trim().isEmpty) {
-          _error = const AppFailure.validation('mcp_invalid_stdio_command');
-          notifyListeners();
-          return false;
-        }
-        transport = McpStdioServerTransport(
-          command: draft.command.trim(),
-          arguments: draft.arguments
-              .split(RegExp(r'\r?\n'))
-              .map((argument) => argument.trim())
-              .where((argument) => argument.isNotEmpty)
-              .toList(growable: false),
-        );
-    }
-    final environment = _parseEnvironment(draft.environment);
-    if (environment == null) {
-      _error = const AppFailure.validation('mcp_invalid_stdio_environment');
-      notifyListeners();
-      return false;
-    }
-
-    McpCredential? previousCredential;
-    try {
-      previousCredential = await _readCredentialForRollback(id);
-    } on Object catch (error) {
-      _error = AppFailure.from(error, code: 'mcp_credential_read_failed');
-      notifyListeners();
-      return false;
-    }
-    var credentialChanged = false;
-    try {
-      final server = McpServer(
-        id: id,
-        name: draft.name.trim(),
-        transport: transport,
-        remoteServerName: existing?.remoteServerName ?? '',
-        remoteServerVersion: existing?.remoteServerVersion ?? '',
-        capabilities: existing?.capabilities ?? const McpServerCapabilities(),
-        status: McpConnectionStatus.disconnected,
-        createdAt: existing?.createdAt ?? timestamp,
-        updatedAt: timestamp,
-      );
-      credentialChanged = true;
-      await _saveCredential(
-        id: id,
-        existing: existing,
-        draft: draft,
-        environment: environment,
-      );
-      await _repository.saveServer(server);
-      _publishSavedServer(
-        server,
-        clearTools: existing != null && existing.transport != server.transport,
-      );
-    } on Object catch (error) {
-      if (credentialChanged) {
-        try {
-          await _restoreCredential(id, previousCredential);
-        } on Object catch (rollbackError) {
-          _error = AppFailure.storage(
-            'mcp_credential_rollback_failed',
-            cause: (error, rollbackError),
-          );
-          await _reloadPreservingError();
-          return false;
-        }
-      }
-      _error = AppFailure.from(error, code: 'mcp_save_failed');
-      await _reloadPreservingError();
-      return false;
-    }
-
-    // Discovery is a follow-up operation. A remote outage must not turn a
-    // fully committed local save into a reported save failure.
-    await _runForServer(
-      id,
-      () => _catalogService.refreshServer(id),
-      failureIsWarning: true,
+    final result = await _saveAndConnect(
+      draft,
+      onCommitted: (commit) {
+        _busyServerId = commit.server.id;
+        _publishSavedServer(commit.server, clearTools: commit.clearTools);
+      },
     );
-    return true;
+    _busyServerId = null;
+    await _reloadPreservingFeedback(
+      error: result.failure,
+      warning: result.warning,
+    );
+    return result.isCommitted;
   }
 
   void _publishSavedServer(McpServer server, {required bool clearTools}) {
@@ -268,36 +148,14 @@ final class McpServersViewModel extends ChangeNotifier {
   Future<void> deleteServer(McpServer server) async {
     _error = null;
     _warning = null;
-    try {
-      final previousCredential = await _readCredentialForRollback(server.id);
-      try {
-        await _catalogService.disconnect(server);
-      } on Object catch (error) {
-        _warning = AppFailure.from(error, code: 'mcp_disconnect_failed');
-      }
-      await _credentialStore.delete(server.id);
-      try {
-        await _repository.deleteServer(server.id);
-      } on Object catch (error) {
-        try {
-          await _restoreCredential(server.id, previousCredential);
-        } on Object catch (rollbackError) {
-          throw AppFailure.storage(
-            'mcp_credential_rollback_failed',
-            cause: (error, rollbackError),
-          );
-        }
-        rethrow;
-      }
-      try {
-        await _catalogService.hydrateFromCache();
-      } on Object catch (error) {
-        _warning = AppFailure.from(error, code: 'mcp_cache_refresh_failed');
-      }
-    } on Object catch (error) {
-      _error = AppFailure.from(error, code: 'mcp_delete_failed');
-    }
-    await _reloadPreservingError();
+    _busyServerId = server.id;
+    notifyListeners();
+    final result = await _deleteServer(server);
+    _busyServerId = null;
+    await _reloadPreservingFeedback(
+      error: result.failure,
+      warning: result.warning,
+    );
   }
 
   Future<void> _runForServer(
@@ -324,61 +182,14 @@ final class McpServersViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _reloadPreservingError() async {
-    final preserved = _error;
-    await load();
-    _error = preserved;
-    notifyListeners();
-  }
-
-  Future<McpCredential?> _readCredentialForRollback(String id) async {
-    try {
-      return await _credentialStore.read(id);
-    } on Object catch (error) {
-      throw AppFailure.storage('mcp_credential_read_failed', cause: error);
-    }
-  }
-
-  Future<void> _restoreCredential(String id, McpCredential? credential) async {
-    if (credential == null) {
-      await _credentialStore.delete(id);
-    } else {
-      await _credentialStore.write(id, credential);
-    }
-  }
-
-  Future<void> _saveCredential({
-    required String id,
-    required McpServer? existing,
-    required McpServerDraft draft,
-    required Map<String, String> environment,
+  Future<void> _reloadPreservingFeedback({
+    AppFailure? error,
+    AppFailure? warning,
   }) async {
-    if (draft.transportType == McpTransportType.stdio) {
-      if (environment.isNotEmpty) {
-        await _credentialStore.write(
-          id,
-          McpCredential(environment: environment),
-        );
-      } else if (existing?.transport is! McpStdioServerTransport) {
-        await _credentialStore.delete(id);
-      }
-      return;
-    }
-
-    if (draft.authType == McpAuthType.none) {
-      await _credentialStore.delete(id);
-      return;
-    }
-    final accessToken = draft.accessToken.trim();
-    if (accessToken.isNotEmpty) {
-      await _credentialStore.write(id, McpCredential(accessToken: accessToken));
-    } else if (existing?.transport case McpStreamableHttpServerTransport(
-      authType: McpAuthType.oauthAccessToken,
-    )) {
-      return;
-    } else {
-      await _credentialStore.delete(id);
-    }
+    await load();
+    _error = error ?? _error;
+    _warning = warning;
+    notifyListeners();
   }
 
   @override
@@ -386,18 +197,4 @@ final class McpServersViewModel extends ChangeNotifier {
     unawaited(_repositoryChangesSubscription.cancel());
     super.dispose();
   }
-}
-
-Map<String, String>? _parseEnvironment(String source) {
-  final environment = <String, String>{};
-  for (final rawLine in source.split(RegExp(r'\r?\n'))) {
-    final line = rawLine.trim();
-    if (line.isEmpty) continue;
-    final separator = line.indexOf('=');
-    if (separator <= 0) return null;
-    final key = line.substring(0, separator).trim();
-    if (!RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(key)) return null;
-    environment[key] = line.substring(separator + 1);
-  }
-  return Map<String, String>.unmodifiable(environment);
 }

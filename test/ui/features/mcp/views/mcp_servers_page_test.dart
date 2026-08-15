@@ -11,6 +11,7 @@ import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
 import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
 import 'package:stars/generated/l10n.dart';
 import 'package:stars/l10n/app_localizations.dart';
 import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
@@ -29,7 +30,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
 
     final repository = _FakeMcpServerRepository();
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -90,7 +91,7 @@ void main() {
     final repository = _FakeMcpServerRepository(
       getServersError: const McpException('mcp_stdio_start_failed'),
     );
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -199,7 +200,7 @@ void main() {
         ],
       },
     );
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -650,7 +651,7 @@ void main() {
         ],
       },
     );
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -720,7 +721,7 @@ void main() {
       updatedAt: now,
     );
     final repository = _FakeMcpServerRepository(servers: [server]);
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -796,7 +797,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
 
     final repository = _FakeMcpServerRepository();
-    final viewModel = McpServersViewModel(
+    final viewModel = _createMcpServersViewModel(
       repository: repository,
       credentialStore: const _UnusedCredentialStore(),
       catalogService: McpCatalogService(
@@ -1008,7 +1009,7 @@ void main() {
 
       final repository = _SavingMcpServerRepository();
       final client = _BlockingMcpClient();
-      final viewModel = McpServersViewModel(
+      final viewModel = _createMcpServersViewModel(
         repository: repository,
         credentialStore: const _NoOpCredentialStore(),
         catalogService: McpCatalogService(
@@ -1069,6 +1070,25 @@ void main() {
     },
   );
 }
+
+McpServersViewModel _createMcpServersViewModel({
+  required McpServerRepository repository,
+  required McpCredentialStore credentialStore,
+  required McpCatalogService catalogService,
+}) => McpServersViewModel(
+  repository: repository,
+  catalogService: catalogService,
+  saveAndConnect: SaveAndConnectMcpServer(
+    repository: repository,
+    credentialStore: credentialStore,
+    catalogController: catalogService,
+  ),
+  deleteServer: DeleteMcpServer(
+    repository: repository,
+    credentialStore: credentialStore,
+    catalogController: catalogService,
+  ),
+);
 
 Widget _harness(McpServersViewModel viewModel) {
   final shadTheme = buildStarsShadTheme(

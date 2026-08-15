@@ -6,6 +6,30 @@ enum McpAuthType { none, oauthAccessToken }
 
 enum McpTransportType { streamableHttp, stdio }
 
+final class McpServerDraft {
+  const McpServerDraft({
+    this.id,
+    required this.name,
+    this.transportType = McpTransportType.streamableHttp,
+    this.endpoint = '',
+    this.command = '',
+    this.arguments = '',
+    this.environment = '',
+    this.authType = McpAuthType.none,
+    this.accessToken = '',
+  });
+
+  final String? id;
+  final String name;
+  final McpTransportType transportType;
+  final String endpoint;
+  final String command;
+  final String arguments;
+  final String environment;
+  final McpAuthType authType;
+  final String accessToken;
+}
+
 final class McpStdioProcessInfo {
   McpStdioProcessInfo({
     required this.processId,

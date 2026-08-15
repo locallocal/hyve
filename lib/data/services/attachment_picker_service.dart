@@ -53,9 +53,9 @@ Future<String?> _pickImagePath({
 }
 
 Future<String?> _pickFilePath() async {
-  final result = await FilePicker.platform.pickFiles(
+  final file = await FilePicker.pickFile(
     type: FileType.custom,
     allowedExtensions: const ['pdf', 'txt', 'doc', 'docx'],
   );
-  return result?.files.single.path;
+  return file?.path;
 }

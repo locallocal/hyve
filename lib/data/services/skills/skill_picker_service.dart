@@ -5,7 +5,7 @@ final class SkillPickerService {
   const SkillPickerService();
 
   Future<SkillImportSource?> pickDirectory() async {
-    final selectedPath = await FilePicker.platform.getDirectoryPath();
+    final selectedPath = await FilePicker.getDirectoryPath();
     if (selectedPath == null || selectedPath.isEmpty) return null;
     return SkillImportSource(
       kind: SkillImportKind.directory,
@@ -14,13 +14,11 @@ final class SkillPickerService {
   }
 
   Future<SkillImportSource?> pickZipArchive() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['zip'],
-      allowMultiple: false,
-      withData: false,
     );
-    final selectedPath = result?.files.single.path;
+    final selectedPath = file?.path;
     if (selectedPath == null || selectedPath.isEmpty) return null;
     return SkillImportSource(
       kind: SkillImportKind.zipArchive,

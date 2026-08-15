@@ -217,7 +217,10 @@ class _MessageInputState extends State<MessageInput> {
                 isDesktop
                     ? shadTheme!.colorScheme.card
                     : Theme.of(context).colorScheme.secondary,
-            borderRadius: BorderRadius.circular(isDesktop ? 12 : 16),
+            borderRadius:
+                isDesktop
+                    ? StarsDesktopThemeSpec.containerRadius
+                    : BorderRadius.circular(16),
             border: Border.all(
               color:
                   _hasFocus && isDesktop

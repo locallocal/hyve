@@ -141,7 +141,10 @@ final class ToolApprovalCard extends StatelessWidget {
             height: 34,
             decoration: BoxDecoration(
               color: riskColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(desktopMode ? 7 : 10),
+              borderRadius:
+                  desktopMode
+                      ? StarsDesktopThemeSpec.itemRadius
+                      : BorderRadius.circular(10),
             ),
             child: Icon(_riskIcon, size: 18, color: riskColor),
           ),

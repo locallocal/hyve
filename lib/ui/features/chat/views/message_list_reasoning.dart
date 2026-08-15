@@ -277,7 +277,10 @@ class _ReasoningSectionState extends State<ReasoningSection>
         ),
         codeblockDecoration: BoxDecoration(
           color: StarsDesktopTokens.of(context).controlFill,
-          borderRadius: BorderRadius.circular(widget.isDesktop ? 8 : 12),
+          borderRadius:
+              widget.isDesktop
+                  ? StarsDesktopThemeSpec.containerRadius
+                  : BorderRadius.circular(12),
           border: Border.all(color: StarsDesktopTokens.of(context).separator),
         ),
         blockSpacing: 8,

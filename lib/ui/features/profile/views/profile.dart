@@ -886,7 +886,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return InkWell(
       key: key,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(isDesktop ? 14.0 : 16.0),
+      borderRadius:
+          isDesktop
+              ? StarsDesktopThemeSpec.itemRadius
+              : BorderRadius.circular(16),
       child: Padding(
         padding: EdgeInsets.symmetric(
           vertical: isDesktop ? 12.0 : 8.0,
@@ -901,7 +904,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   isDesktop
                       ? BoxDecoration(
                         color: StarsDesktopThemeSpec.selectedFill(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: StarsDesktopThemeSpec.controlRadius,
                       )
                       : null,
               child: Icon(

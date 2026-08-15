@@ -312,7 +312,10 @@ class _MessageBubble extends StatelessWidget {
         _showImageDialog(context, imagePath, actionViewModel);
       },
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(isDesktop ? 8 : 12),
+        borderRadius:
+            isDesktop
+                ? StarsDesktopThemeSpec.containerRadius
+                : BorderRadius.circular(12),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minWidth: 96,
@@ -357,7 +360,10 @@ class _MessageBubble extends StatelessWidget {
             isCurrentUser
                 ? Colors.white.withValues(alpha: 0.28)
                 : Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(isDesktop ? 8 : 14),
+        borderRadius:
+            isDesktop
+                ? StarsDesktopThemeSpec.containerRadius
+                : BorderRadius.circular(14),
         border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       child: Column(
@@ -423,7 +429,10 @@ class _MessageBubble extends StatelessWidget {
       ),
       codeblockDecoration: BoxDecoration(
         color: StarsDesktopTokens.of(context).controlFill,
-        borderRadius: BorderRadius.circular(isDesktop ? 8 : 14),
+        borderRadius:
+            isDesktop
+                ? StarsDesktopThemeSpec.containerRadius
+                : BorderRadius.circular(14),
         border: Border.all(color: StarsDesktopTokens.of(context).separator),
       ),
       blockSpacing: 10,
@@ -582,7 +591,10 @@ class _StatusCardHeader extends StatelessWidget {
             color: Theme.of(
               context,
             ).colorScheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(isDesktop ? 6 : 10),
+            borderRadius:
+                isDesktop
+                    ? StarsDesktopThemeSpec.itemRadius
+                    : BorderRadius.circular(10),
           ),
           child: Icon(
             icon,

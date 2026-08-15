@@ -109,7 +109,8 @@ class ImageAttachments extends StatelessWidget {
                                   ? BoxDecoration(
                                     color: Theme.of(context).colorScheme.surface
                                         .withValues(alpha: 0.72),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius:
+                                        StarsDesktopThemeSpec.containerRadius,
                                     border: Border.all(
                                       color:
                                           StarsDesktopTokens.of(
@@ -119,9 +120,10 @@ class ImageAttachments extends StatelessWidget {
                                   )
                                   : null,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              desktopMode ? 6 : 8,
-                            ),
+                            borderRadius:
+                                desktopMode
+                                    ? StarsDesktopThemeSpec.itemRadius
+                                    : BorderRadius.circular(8),
                             child: Image.file(
                               images[index],
                               height: desktopMode ? 92 : 90,
@@ -188,9 +190,10 @@ class ImageAttachments extends StatelessWidget {
                                         .withValues(alpha: 0.78)
                                     : Theme.of(context).colorScheme.primary
                                         .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(
-                              desktopMode ? 8 : 8,
-                            ),
+                            borderRadius:
+                                desktopMode
+                                    ? StarsDesktopThemeSpec.containerRadius
+                                    : BorderRadius.circular(8),
                             border:
                                 desktopMode
                                     ? Border.all(

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:stars/utils/utils.dart';
 
 /// Renders playback controls for a generated local audio file.
@@ -150,20 +151,16 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           children: [
             // 播放/暂停按钮
             if (isDesktop)
-              ShadTooltip(
+              StarsDesktopIconAction(
                 focusNode: _playButtonFocusNode,
-                builder: (context) => Text(_isPlaying ? '暂停播放' : '播放音频'),
-                child: ShadIconButton.outline(
-                  focusNode: _playButtonFocusNode,
-                  width: 48,
-                  height: 48,
-                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                  foregroundColor:
-                      _isPlaying
-                          ? Theme.of(context).colorScheme.error
-                          : Theme.of(context).colorScheme.primary,
-                  onPressed: _togglePlay,
-                ),
+                label: _isPlaying ? '暂停播放' : '播放音频',
+                variant: ShadButtonVariant.outline,
+                icon: _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                foregroundColor:
+                    _isPlaying
+                        ? Theme.of(context).colorScheme.error
+                        : Theme.of(context).colorScheme.primary,
+                onPressed: _togglePlay,
               )
             else
               Container(
@@ -182,7 +179,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                   },
                 ),
               ),
-            SizedBox(width: 8.0),
+            const SizedBox(width: 8.0),
             // 显示当前播放时间
             Text(_formatDuration(_position)),
             const Text(' / '),

@@ -212,7 +212,10 @@ class _SkillDescriptionTestForm extends StatelessWidget {
                 desktopMode
                     ? StarsDesktopThemeSpec.secondarySurface(context)
                     : Theme.of(context).colorScheme.secondaryContainer,
-            borderRadius: BorderRadius.circular(desktopMode ? 7 : 10),
+            borderRadius:
+                desktopMode
+                    ? StarsDesktopThemeSpec.itemRadius
+                    : BorderRadius.circular(10),
           ),
           child: Icon(
             desktopMode ? LucideIcons.flaskConical : Icons.science_outlined,

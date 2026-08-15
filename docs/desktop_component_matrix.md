@@ -21,7 +21,8 @@
 
 桌面专用视图不得直接使用 `MenuAnchor`、`MenuItemButton`、Material Icon、产品色或
 临时圆角。`test/architecture/model_layering_test.dart` 对上述约束以及旧主题/平台别名
-执行静态扫描。
+执行静态扫描；通用响应式文件按源码中的 `isDesktop`/`desktopMode` 分支识别，不依赖
+`desktop_` 文件名。门禁 fixture 必须保留一个通用文件名的违规样例，防止扫描范围再次退化。
 
 ## 主题来源
 

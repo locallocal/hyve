@@ -1,83 +1,26 @@
 import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/conversation_history_repository.dart';
-import 'package:stars/domain/repositories/conversation_draft_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/use_cases/conversation_history_tools.dart';
-import 'package:stars/domain/use_cases/mcp_inventory_tools.dart';
-import 'package:stars/domain/use_cases/skill_inventory_tools.dart';
-import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
-import 'package:stars/domain/repositories/skill_inventory_repository.dart';
+import 'package:stars/domain/use_cases/chat_workflow_facade.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
-import 'package:stars/domain/use_cases/create_user_message.dart';
 import 'package:stars/domain/use_cases/generate_media_turn.dart';
-import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
 import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/chat_interaction_facade.dart';
 import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
 
 class ChatViewModel extends DisposableChangeNotifier {
-  ChatViewModel({
-    required this.chatId,
-    required this.bot,
-    required MessageRepository messageRepository,
-    required ChatRepository chatRepository,
-    required AiProviderRepository aiProviderRepository,
-    required AttachmentRepository attachmentRepository,
-    required ChatGenerationRegistry generationRegistry,
-    required ComposeChatTurn composeChatTurn,
-    ConversationHistoryRepository? conversationHistoryRepository,
-    McpInventoryRepository? mcpInventoryRepository,
-    SkillInventoryRepository? skillInventoryRepository,
-    ConversationDraftRepository? conversationDraftRepository,
-    MessageActionViewModel? messageActionViewModel,
-    GenerateMediaTurn? generateMediaTurn,
-  }) : _messageRepository = messageRepository,
-       _chatRepository = chatRepository,
-       _aiProviderRepository = aiProviderRepository,
-       _attachmentRepository = attachmentRepository,
-       _composeChatTurn = composeChatTurn,
-       _conversationHistoryRepository = conversationHistoryRepository,
-       _mcpInventoryRepository = mcpInventoryRepository,
-       _skillInventoryRepository = skillInventoryRepository,
-       _conversationDraftRepository = conversationDraftRepository,
-       messageActions = messageActionViewModel,
-       _persistConversationAssets = PersistConversationAssets(
-         repository: attachmentRepository,
-       ),
-       _generateMediaTurn =
-           generateMediaTurn ??
-           GenerateMediaTurn(
-             messageRepository: messageRepository,
-             chatRepository: chatRepository,
-             providerRepository: aiProviderRepository,
-             attachmentRepository: attachmentRepository,
-           ),
-       _createUserMessage = CreateUserMessage(
-         messageRepository: messageRepository,
-       ),
-       generationRegistry = generationRegistry,
-       generationViewModel = generationRegistry.viewModelFor(chatId, bot);
+  ChatViewModel({required ChatInteractionFacade interaction})
+    : _interaction = interaction,
+      chatId = interaction.chatId,
+      bot = interaction.bot;
 
   final String chatId;
   final Bot bot;
-  final MessageRepository _messageRepository;
-  final ChatRepository _chatRepository;
-  final AiProviderRepository _aiProviderRepository;
-  final AttachmentRepository _attachmentRepository;
-  final ComposeChatTurn _composeChatTurn;
-  final ConversationHistoryRepository? _conversationHistoryRepository;
-  final McpInventoryRepository? _mcpInventoryRepository;
-  final SkillInventoryRepository? _skillInventoryRepository;
-  final ConversationDraftRepository? _conversationDraftRepository;
-  final MessageActionViewModel? messageActions;
-  final PersistConversationAssets _persistConversationAssets;
-  final GenerateMediaTurn _generateMediaTurn;
-  final CreateUserMessage _createUserMessage;
-  final ChatGenerationRegistry generationRegistry;
-  final ChatGenerationViewModel generationViewModel;
+  final ChatInteractionFacade _interaction;
+
+  ChatWorkflowFacade get _workflow => _interaction.workflow;
+  MessageActionViewModel get messageActions => _interaction.messageActions;
+  ChatGenerationViewModel get generationViewModel =>
+      _interaction.generationViewModel;
 
   List<Message> _messages = const [];
   AppFailure? _historyError;
@@ -89,16 +32,10 @@ class ChatViewModel extends DisposableChangeNotifier {
 
   List<Message> get messages => _messages;
   List<Message>? get cachedMessages {
-    final repository = _messageRepository;
-    if (repository is PaginatedMessageRepository) {
-      final page = repository.peekMessagePage(chatId);
-      if (page == null) return null;
-      _applyPageState(page);
-      return page.messages;
-    }
-    return repository is CachedMessageRepository
-        ? repository.peekMessages(chatId)
-        : null;
+    final history = _workflow.peekHistory();
+    if (history == null) return null;
+    _applyHistoryState(history);
+    return history.messages;
   }
 
   AppFailure? get historyError => _historyError;
@@ -113,19 +50,10 @@ class ChatViewModel extends DisposableChangeNotifier {
     _historyError = null;
     notifyListeners();
     try {
-      final repository = _messageRepository;
-      if (repository is PaginatedMessageRepository) {
-        final page = await repository.getMessagePage(chatId);
-        if (isDisposed || generation != _historyLoadGeneration) return;
-        _messages = page.messages;
-        _applyPageState(page);
-      } else {
-        final messages = await repository.getMessages(chatId);
-        if (isDisposed || generation != _historyLoadGeneration) return;
-        _messages = messages;
-        _hasEarlierMessages = false;
-        _earlierCursor = null;
-      }
+      final history = await _workflow.loadHistory();
+      if (isDisposed || generation != _historyLoadGeneration) return;
+      _messages = history.messages;
+      _applyHistoryState(history);
     } catch (error) {
       if (isDisposed || generation != _historyLoadGeneration) return;
       _historyError = AppFailure.from(
@@ -144,25 +72,24 @@ class ChatViewModel extends DisposableChangeNotifier {
     if (isDisposed || _isLoadingEarlier || !_hasEarlierMessages) {
       return _messages;
     }
-    final repository = _messageRepository;
     final cursor = _earlierCursor;
-    if (repository is! PaginatedMessageRepository || cursor == null) {
+    if (cursor == null) {
       _hasEarlierMessages = false;
       return _messages;
     }
     _isLoadingEarlier = true;
     notifyListeners();
     try {
-      final page = await repository.getMessagePage(chatId, before: cursor);
+      final history = await _workflow.loadHistory(before: cursor);
       if (isDisposed) return _messages;
       final byId = <String, Message>{
-        for (final message in page.messages) message.messageId: message,
+        for (final message in history.messages) message.messageId: message,
         for (final message in _messages) message.messageId: message,
       };
       _messages = List<Message>.unmodifiable(
         byId.values.toList()..sort(_compareMessages),
       );
-      _applyPageState(page);
+      _applyHistoryState(history);
       return _messages;
     } catch (error) {
       if (isDisposed) return _messages;
@@ -176,12 +103,12 @@ class ChatViewModel extends DisposableChangeNotifier {
     }
   }
 
-  void _applyPageState(MessagePage page) {
-    _hasEarlierMessages = page.hasMore;
-    _earlierCursor = page.nextCursor;
+  void _applyHistoryState(ChatHistoryBatch history) {
+    _hasEarlierMessages = history.hasMore;
+    _earlierCursor = history.nextCursor;
   }
 
-  String createId(String prefix) => _messageRepository.createId(prefix);
+  String createId(String prefix) => _workflow.createId(prefix);
 
   Message createUserMessage({
     required String currentUserId,
@@ -190,10 +117,8 @@ class ChatViewModel extends DisposableChangeNotifier {
     List<String> filePaths = const [],
     String imageDetail = '',
     String fileDetail = '',
-  }) => _createUserMessage(
-    chatId: chatId,
-    botId: bot.id,
-    senderId: currentUserId,
+  }) => _workflow.createUserMessage(
+    currentUserId: currentUserId,
     content: content,
     imagePaths: imagePaths,
     filePaths: filePaths,
@@ -202,23 +127,21 @@ class ChatViewModel extends DisposableChangeNotifier {
   );
 
   Future<Message> upsertMessage(Message message) =>
-      _messageRepository.upsertMessage(message);
+      _workflow.upsertMessage(message);
 
   Future<void> updateLastMessage(String content) =>
-      _chatRepository.updateLastMessage(chatId, content);
+      _workflow.updateLastMessage(content);
 
-  Future<void> clearHistory() => _chatRepository.clearHistory(chatId);
+  Future<void> clearHistory() => _workflow.clearHistory();
 
   Future<PreparedChatTurn> prepareTextTurn({
     required List<Message> history,
     required Message userMessage,
     required String currentUserId,
-  }) => _composeChatTurn(
-    bot: bot,
+  }) => _workflow.prepareTextTurn(
     history: history,
     userMessage: userMessage,
     currentUserId: currentUserId,
-    skillToolProvider: _aiProviderRepository.create(bot),
   );
 
   Future<PreparedTextGeneration> prepareTextGeneration({
@@ -226,97 +149,50 @@ class ChatViewModel extends DisposableChangeNotifier {
     required Message userMessage,
     required String currentUserId,
   }) async {
-    final preparedTurn = await prepareTextTurn(
+    final prepared = await _workflow.prepareTextGeneration(
       history: history,
       userMessage: userMessage,
       currentUserId: currentUserId,
     );
-    final historyRepository = _conversationHistoryRepository;
-    final historyTools =
-        preparedTurn.contextAssemblyReport.historyLookupAvailable &&
-                historyRepository != null
-            ? ConversationHistoryToolSession(
-              repository: historyRepository,
-              chatId: chatId,
-              runId: userMessage.runId,
-              resultTokenBudget:
-                  preparedTurn.contextAssemblyReport.historyLookupReserveTokens,
-              initiallyAllowedReferences: preparedTurn.historySummaryReferences,
-            ).createTools()
-            : const <ExecutableTool>[];
-    final inventoryRepository = _skillInventoryRepository;
-    final inventoryTools =
-        inventoryRepository != null &&
-                preparedTurn.requestedToolNames.any(
-                  skillInventoryToolNames.contains,
-                )
-            ? SkillInventoryToolSession(
-              repository: inventoryRepository,
-              chatId: chatId,
-            ).createTools()
-            : const <ExecutableTool>[];
-    final mcpInventoryRepository = _mcpInventoryRepository;
-    final mcpInventoryTools =
-        mcpInventoryRepository != null &&
-                preparedTurn.requestedToolNames.any(
-                  mcpInventoryToolNames.contains,
-                )
-            ? McpInventoryToolSession(
-              repository: mcpInventoryRepository,
-              chatId: chatId,
-            ).createTools()
-            : const <ExecutableTool>[];
     return PreparedTextGeneration(
-      userMessage: userMessage,
-      messages: preparedTurn.messages,
-      activatedSkills: preparedTurn.activatedSkills,
-      activationAttempts: preparedTurn.activationAttempts,
-      skillToolCalls: preparedTurn.skillToolCalls,
-      preflightTokenUsage: preparedTurn.preflightTokenUsage,
-      requestedToolNames: preparedTurn.requestedToolNames,
-      approvalExemptToolNames: preparedTurn.approvalExemptToolNames,
-      runScopedTools: [
-        ...historyTools,
-        ...inventoryTools,
-        ...mcpInventoryTools,
-      ],
-      contextAssemblyReport: preparedTurn.contextAssemblyReport,
+      userMessage: prepared.userMessage,
+      messages: prepared.messages,
+      activatedSkills: prepared.activatedSkills,
+      activationAttempts: prepared.activationAttempts,
+      skillToolCalls: prepared.skillToolCalls,
+      preflightTokenUsage: prepared.preflightTokenUsage,
+      requestedToolNames: prepared.requestedToolNames,
+      approvalExemptToolNames: prepared.approvalExemptToolNames,
+      runScopedTools: prepared.runScopedTools,
+      contextAssemblyReport: prepared.contextAssemblyReport,
     );
   }
 
-  Future<String?> captureImage() => _attachmentRepository.captureImage();
+  Future<String?> captureImage() => _workflow.captureImage();
 
-  Future<String?> selectImage() => _attachmentRepository.selectImage();
+  Future<String?> selectImage() => _workflow.selectImage();
 
-  Future<String?> selectFile() => _attachmentRepository.selectFile();
+  Future<String?> selectFile() => _workflow.selectFile();
 
-  Future<List<String>> persistAssets(Iterable<String> sourcePaths) {
-    return _persistConversationAssets(chatId: chatId, sourcePaths: sourcePaths);
-  }
+  Future<List<String>> persistAssets(Iterable<String> sourcePaths) =>
+      _workflow.persistAssets(sourcePaths);
 
   Future<MediaTurnResult> generateMediaTurn(
     MediaTurnRequest request, {
     MediaUserPersisted? onUserPersisted,
   }) async {
-    generationRegistry.setCancellableExternalRun(chatId, cancelMedia);
-    try {
-      return await _generateMediaTurn(
-        request,
-        onUserPersisted: onUserPersisted,
-      );
-    } finally {
-      generationRegistry.setCancellableExternalRun(chatId, null);
-    }
+    return _interaction.generateMediaTurn(
+      request,
+      onUserPersisted: onUserPersisted,
+    );
   }
 
-  Future<ConversationDraft?> readDraft() =>
-      _conversationDraftRepository?.read(chatId) ?? Future.value();
+  Future<ConversationDraft?> readDraft() => _workflow.readDraft();
 
   Future<void> writeDraft(ConversationDraft draft) =>
-      _conversationDraftRepository?.write(chatId, draft) ?? Future.value();
+      _workflow.writeDraft(draft);
 
-  Future<void> deleteDraft() =>
-      _conversationDraftRepository?.delete(chatId) ?? Future.value();
+  Future<void> deleteDraft() => _workflow.deleteDraft();
 
   Future<List<String>> generateImage({
     required String prompt,
@@ -324,8 +200,7 @@ class ChatViewModel extends DisposableChangeNotifier {
     required String outputDirectory,
     required List<String> referenceImages,
     required String style,
-  }) => _aiProviderRepository.generateImage(
-    bot: bot,
+  }) => _workflow.generateImage(
     prompt: prompt,
     size: size,
     outputDirectory: outputDirectory,
@@ -337,8 +212,7 @@ class ChatViewModel extends DisposableChangeNotifier {
     required String prompt,
     required String voiceType,
     required String outputDirectory,
-  }) => _aiProviderRepository.generateSpeech(
-    bot: bot,
+  }) => _workflow.generateSpeech(
     prompt: prompt,
     voiceType: voiceType,
     outputDirectory: outputDirectory,
@@ -348,8 +222,7 @@ class ChatViewModel extends DisposableChangeNotifier {
     required String prompt,
     required String outputDirectory,
     required String referenceMusic,
-  }) => _aiProviderRepository.generateMusic(
-    bot: bot,
+  }) => _workflow.generateMusic(
     prompt: prompt,
     outputDirectory: outputDirectory,
     referenceMusic: referenceMusic,
@@ -360,28 +233,22 @@ class ChatViewModel extends DisposableChangeNotifier {
     required String ratio,
     required String outputDirectory,
     required List<String> referenceImages,
-  }) => _aiProviderRepository.generateVideo(
-    bot: bot,
+  }) => _workflow.generateVideo(
     prompt: prompt,
     ratio: ratio,
     outputDirectory: outputDirectory,
     referenceImages: referenceImages,
   );
 
-  Future<bool> cancelMedia() {
-    final repository = _aiProviderRepository;
-    if (repository is! CancelableMediaRepository) return Future.value(false);
-    return repository.cancelMedia(bot.id);
-  }
+  Future<bool> cancelMedia() => _workflow.cancelMedia();
 
-  bool get hasBlockingRun => generationRegistry.hasBlockingRun(chatId);
+  bool get hasBlockingRun => _interaction.hasBlockingRun;
 
-  bool get supportsRunCancellation =>
-      generationRegistry.supportsCancellationForRun(chatId);
+  bool get supportsRunCancellation => _interaction.supportsRunCancellation;
 
-  Future<bool> stopActiveRun() => generationRegistry.stopForNavigation(chatId);
+  Future<bool> stopActiveRun() => _interaction.stopActiveRun();
 
-  void notifyChatListChanged() => _chatRepository.invalidate();
+  void notifyChatListChanged() => _workflow.notifyChatListChanged();
 }
 
 int _compareMessages(Message left, Message right) {

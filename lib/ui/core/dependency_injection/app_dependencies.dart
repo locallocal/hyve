@@ -78,11 +78,17 @@ import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
+import 'package:stars/domain/use_cases/chat_workflow_facade.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:stars/domain/use_cases/create_user_message.dart';
+import 'package:stars/domain/use_cases/generate_media_turn.dart';
 import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
+import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
+import 'package:stars/domain/use_cases/prepare_text_generation.dart';
 import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:stars/ui/features/chat/view_models/chat_interaction_facade.dart';
 import 'package:stars/ui/features/app/view_models/app_view_model.dart';
 import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
@@ -131,6 +137,10 @@ class AppDependencies {
     required this.toolRegistry,
     required this.toolPolicy,
     required this.composeChatTurn,
+    required this.createUserMessage,
+    required this.persistConversationAssets,
+    required this.generateMediaTurn,
+    required this.prepareTextGeneration,
     required this.compactConversation,
     required this.systemConversationHistorySkill,
     required this.systemMcpInstallerSkill,
@@ -247,6 +257,19 @@ class AppDependencies {
     final attachmentRepository = AttachmentRepositoryImpl(
       service: AttachmentPickerService(),
     );
+    final persistConversationAssets = PersistConversationAssets(
+      repository: attachmentRepository,
+    );
+    final createUserMessage = CreateUserMessage(
+      messageRepository: messageRepository,
+    );
+    final generateMediaTurn = GenerateMediaTurn(
+      messageRepository: messageRepository,
+      chatRepository: chatRepository,
+      providerRepository: aiProviderRepository,
+      attachmentRepository: attachmentRepository,
+      persistConversationAssets: persistConversationAssets,
+    );
     const legalDocumentRepository = LegalDocumentRepositoryImpl(
       service: AssetTextService(),
     );
@@ -309,6 +332,13 @@ class AppDependencies {
       ),
       compactConversation: compactConversation,
       bundledSkillLoader: loadBundledSkills,
+    );
+    final prepareTextGeneration = PrepareTextGeneration(
+      composeChatTurn: composeChatTurn.call,
+      aiProviderRepository: aiProviderRepository,
+      conversationHistoryRepository: conversationHistoryRepository,
+      mcpInventoryRepository: mcpInventoryRepository,
+      skillInventoryRepository: skillInventoryRepository,
     );
     final toolRegistry = DynamicToolRegistry([
       ...createBuiltInTools(),
@@ -378,6 +408,10 @@ class AppDependencies {
       toolRegistry: toolRegistry,
       toolPolicy: toolPolicy,
       composeChatTurn: composeChatTurn,
+      createUserMessage: createUserMessage,
+      persistConversationAssets: persistConversationAssets,
+      generateMediaTurn: generateMediaTurn,
+      prepareTextGeneration: prepareTextGeneration,
       compactConversation: compactConversation,
       systemConversationHistorySkill: systemConversationHistorySkill,
       systemMcpInstallerSkill: systemMcpInstallerSkill,
@@ -462,6 +496,10 @@ class AppDependencies {
   final ToolRegistry toolRegistry;
   final ToolPolicy toolPolicy;
   final ComposeChatTurn composeChatTurn;
+  final CreateUserMessage createUserMessage;
+  final PersistConversationAssets persistConversationAssets;
+  final GenerateMediaTurn generateMediaTurn;
+  final PrepareTextGeneration prepareTextGeneration;
   final CompactConversation compactConversation;
   final SystemConversationHistorySkill systemConversationHistorySkill;
   final SystemMcpInstallerSkill systemMcpInstallerSkill;
@@ -671,23 +709,31 @@ class AppDependencies {
   NewChatViewModel createNewChatViewModel() =>
       NewChatViewModel(botRepository: botRepository, createChat: createChat);
 
-  ChatViewModel createChatViewModel(String chatId, Bot bot) => ChatViewModel(
-    chatId: chatId,
-    bot: bot,
-    messageRepository: messageRepository,
-    chatRepository: chatRepository,
-    aiProviderRepository: aiProviderRepository,
-    attachmentRepository: attachmentRepository,
-    generationRegistry: generationRegistry,
-    composeChatTurn: composeChatTurn,
-    conversationHistoryRepository: conversationHistoryRepository,
-    mcpInventoryRepository: mcpInventoryRepository,
-    skillInventoryRepository: skillInventoryRepository,
-    conversationDraftRepository: conversationDraftRepository,
-    messageActionViewModel: MessageActionViewModel(
-      repository: messageActionRepository,
-    ),
-  );
+  ChatViewModel createChatViewModel(String chatId, Bot bot) {
+    final workflow = ChatWorkflowFacade(
+      chatId: chatId,
+      bot: bot,
+      messageRepository: messageRepository,
+      chatRepository: chatRepository,
+      aiProviderRepository: aiProviderRepository,
+      attachmentRepository: attachmentRepository,
+      conversationDraftRepository: conversationDraftRepository,
+      createUserMessage: createUserMessage,
+      persistConversationAssets: persistConversationAssets,
+      generateMediaTurn: generateMediaTurn,
+      prepareTextGeneration: prepareTextGeneration,
+    );
+    return ChatViewModel(
+      interaction: ChatInteractionFacade(
+        workflow: workflow,
+        messageActions: MessageActionViewModel(
+          repository: messageActionRepository,
+        ),
+        generationRegistry: generationRegistry,
+        generationViewModel: generationRegistry.viewModelFor(chatId, bot),
+      ),
+    );
+  }
 
   ChatTokenUsageViewModel createChatTokenUsageViewModel(String chatId) =>
       ChatTokenUsageViewModel(

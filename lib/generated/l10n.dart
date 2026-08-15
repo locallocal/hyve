@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1155,6 +1154,26 @@ class S {
     );
   }
 
+  /// `Play audio`
+  String get playAudio {
+    return Intl.message(
+      'Play audio',
+      name: 'playAudio',
+      desc: 'Play audio button tooltip',
+      args: [],
+    );
+  }
+
+  /// `Pause audio`
+  String get pauseAudio {
+    return Intl.message(
+      'Pause audio',
+      name: 'pauseAudio',
+      desc: 'Pause audio button tooltip',
+      args: [],
+    );
+  }
+
   /// `Camera`
   String get takePhoto {
     return Intl.message(
@@ -1490,7 +1509,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }

@@ -36,7 +36,7 @@ class AttachmentBars extends StatelessWidget {
               children: [
                 Container(
                   width: 64,
-                  height: 64,
+                  height: 72,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.secondary,
                     borderRadius: BorderRadius.circular(16),
@@ -45,7 +45,16 @@ class AttachmentBars extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.photo_camera, size: 24),
+                        tooltip: S.of(context).takePhoto,
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                        ),
+                        icon: Icon(
+                          Icons.photo_camera,
+                          size: 24,
+                          semanticLabel: S.of(context).takePhoto,
+                        ),
                         onPressed: onCameraPressed,
                       ),
                       Text(
@@ -64,7 +73,7 @@ class AttachmentBars extends StatelessWidget {
               children: [
                 Container(
                   width: 64,
-                  height: 64,
+                  height: 72,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.secondary,
                     borderRadius: BorderRadius.circular(16),
@@ -73,7 +82,16 @@ class AttachmentBars extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.insert_photo, size: 24),
+                        tooltip: S.of(context).chooseFromGallery,
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                        ),
+                        icon: Icon(
+                          Icons.insert_photo,
+                          size: 24,
+                          semanticLabel: S.of(context).chooseFromGallery,
+                        ),
                         onPressed: onGalleryPressed,
                       ),
                       Text(
@@ -92,7 +110,7 @@ class AttachmentBars extends StatelessWidget {
               children: [
                 Container(
                   width: 64,
-                  height: 64,
+                  height: 72,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.secondary,
                     borderRadius: BorderRadius.circular(16),
@@ -101,7 +119,16 @@ class AttachmentBars extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.upload_file_rounded, size: 24),
+                        tooltip: S.of(context).uploadFile,
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                        ),
+                        icon: Icon(
+                          Icons.upload_file_rounded,
+                          size: 24,
+                          semanticLabel: S.of(context).uploadFile,
+                        ),
                         onPressed: onFilePressed,
                       ),
                       Text(

@@ -141,10 +141,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Системный промпт",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Управляется Stars и добавляется к каждому запросу модели. Идентификаторы текущего агента и беседы подставляются во время выполнения и недоступны для редактирования.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Управляется Stars и добавляется к каждому запросу модели. Идентификаторы текущего агента и беседы подставляются во время выполнения и недоступны для редактирования.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -687,6 +686,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Выходные токены"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Частичный ответ"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("Приостановить аудио"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Приостановить генерацию",
     ),
@@ -695,6 +695,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Закрепить выбранное для этого разговора",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("Закреплён"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("Воспроизвести аудио"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Сначала введите ключ API",
     ),

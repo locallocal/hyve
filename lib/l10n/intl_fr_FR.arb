@@ -559,6 +559,8 @@
     "outputTokens": "Jetons de sortie",
     "uploadImage": "Importer une image",
     "uploadFile": "Importer un fichier",
+    "playAudio": "Lire l’audio",
+    "pauseAudio": "Mettre l’audio en pause",
     "deepThinking": "Réflexion approfondie",
     "desktopPersonalInformation": "Informations personnelles",
     "desktopAppearanceAndLanguage": "Apparence et langue",

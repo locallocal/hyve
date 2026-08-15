@@ -559,6 +559,8 @@
     "outputTokens": "출력 토큰",
     "uploadImage": "이미지 업로드",
     "uploadFile": "파일 업로드",
+    "playAudio": "오디오 재생",
+    "pauseAudio": "오디오 일시정지",
     "deepThinking": "심층 사고",
     "desktopPersonalInformation": "개인 정보",
     "desktopAppearanceAndLanguage": "모양 및 언어",

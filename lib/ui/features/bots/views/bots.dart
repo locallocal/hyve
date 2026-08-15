@@ -208,7 +208,15 @@ class ContactsPageState extends State<ContactsPage> {
           surfaceTintColor: Colors.transparent,
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle_rounded),
+              tooltip: S.of(context).addBot,
+              style: IconButton.styleFrom(
+                minimumSize: const Size.square(48),
+                maximumSize: const Size.square(48),
+              ),
+              icon: Icon(
+                Icons.add_circle_rounded,
+                semanticLabel: S.of(context).addBot,
+              ),
               onPressed: _openAddBotPage,
             ),
           ],

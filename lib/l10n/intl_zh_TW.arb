@@ -572,6 +572,8 @@
     "outputTokens": "輸出 Token",
     "uploadImage": "上傳圖片",
     "uploadFile": "上傳檔案",
+    "playAudio": "播放音訊",
+    "pauseAudio": "暫停播放",
     "deepThinking": "深度思考",
     "desktopPersonalInformation": "個人資訊",
     "desktopAppearanceAndLanguage": "外觀與語言",

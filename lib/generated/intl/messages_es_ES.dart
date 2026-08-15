@@ -141,10 +141,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt del sistema",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Stars lo administra y lo añade a cada solicitud al modelo. Los identificadores del agente y la conversación actuales se agregan en tiempo de ejecución y no se pueden editar.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Stars lo administra y lo añade a cada solicitud al modelo. Los identificadores del agente y la conversación actuales se agregan en tiempo de ejecución y no se pueden editar.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -707,6 +706,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "partialResponse": MessageLookupByLibrary.simpleMessage(
       "Respuesta parcial",
     ),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("Pausar audio"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Pausar generación",
     ),
@@ -715,6 +715,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Fijar selección en esta conversación",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("Fijada"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("Reproducir audio"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Por favor, introduzca primero la clave API",
     ),

@@ -141,10 +141,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt di sistema",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Gestito da Stars e aggiunto a ogni richiesta al modello. Gli identificatori dell’agente e della conversazione correnti vengono aggiunti in fase di esecuzione e non sono modificabili.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Gestito da Stars e aggiunto a ogni richiesta al modello. Gli identificatori dell’agente e della conversazione correnti vengono aggiunti in fase di esecuzione e non sono modificabili.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -703,6 +702,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "partialResponse": MessageLookupByLibrary.simpleMessage(
       "Risposta parziale",
     ),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage(
+      "Metti in pausa l’audio",
+    ),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage(
       "Pausa generazione",
     ),
@@ -711,6 +713,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Fissa la selezione per questa conversazione",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("Fissata"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("Riproduci audio"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Inserisci prima la chiave API",
     ),

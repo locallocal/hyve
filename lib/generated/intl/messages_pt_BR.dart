@@ -142,10 +142,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt do sistema",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Gerenciado pelo Stars e adicionado a cada solicitação ao modelo. Os identificadores do agente e da conversa atuais são incluídos em tempo de execução e não podem ser editados.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Gerenciado pelo Stars e adicionado a cada solicitação ao modelo. Os identificadores do agente e da conversa atuais são incluídos em tempo de execução e não podem ser editados.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -700,12 +699,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("Tokens de saída"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("Resposta parcial"),
+    "pauseAudio": MessageLookupByLibrary.simpleMessage("Pausar áudio"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("Pausar geração"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("Fixar"),
     "pinSelectedSkills": MessageLookupByLibrary.simpleMessage(
       "Fixar seleção nesta conversa",
     ),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("Fixada"),
+    "playAudio": MessageLookupByLibrary.simpleMessage("Reproduzir áudio"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage(
       "Por favor, insira a chave API primeiro",
     ),

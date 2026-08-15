@@ -79,6 +79,7 @@ import 'package:stars/domain/repositories/skill_inventory_repository.dart';
 import 'package:stars/domain/repositories/skill_run_repository.dart';
 import 'package:stars/domain/use_cases/compose_chat_turn.dart';
 import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
 import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
 import 'package:stars/domain/use_cases/compact_conversation.dart';
 import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
@@ -629,8 +630,17 @@ class AppDependencies {
 
   McpServersViewModel createMcpServersViewModel() => McpServersViewModel(
     repository: mcpServerRepository,
-    credentialStore: mcpCredentialStore,
     catalogService: mcpCatalogService,
+    saveAndConnect: SaveAndConnectMcpServer(
+      repository: mcpServerRepository,
+      credentialStore: mcpCredentialStore,
+      catalogController: mcpCatalogService,
+    ),
+    deleteServer: DeleteMcpServer(
+      repository: mcpServerRepository,
+      credentialStore: mcpCredentialStore,
+      catalogController: mcpCatalogService,
+    ),
   );
 
   ChatSkillViewModel createChatSkillViewModel(String chatId, Bot bot) =>

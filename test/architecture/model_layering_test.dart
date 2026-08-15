@@ -74,6 +74,28 @@ void main() {
     }
   });
 
+  test('MCP cross-resource mutations stay in domain use cases', () {
+    final viewModel =
+        File(
+          'lib/ui/features/mcp/view_models/mcp_servers_view_model.dart',
+        ).readAsStringSync();
+    final useCases =
+        File(
+          'lib/domain/use_cases/mcp_server_mutations.dart',
+        ).readAsStringSync();
+
+    expect(
+      viewModel,
+      contains('package:stars/domain/use_cases/mcp_server_mutations.dart'),
+    );
+    expect(viewModel, isNot(contains('mcp_credential_store.dart')));
+    expect(viewModel, isNot(contains('.saveServer(')));
+    expect(viewModel, isNot(contains('.deleteServer(')));
+    expect(useCases, contains('final class SaveAndConnectMcpServer'));
+    expect(useCases, contains('final class DeleteMcpServer'));
+    expect(useCases, contains('enum McpServerMutationOutcome'));
+  });
+
   test('views do not invoke platform action plugins directly', () {
     const pluginImports = <String>[
       'package:file_picker/',

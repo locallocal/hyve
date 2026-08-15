@@ -10,6 +10,7 @@ import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 
 void main() {
@@ -46,9 +47,18 @@ void main() {
     );
     viewModel = McpServersViewModel(
       repository: repository,
-      credentialStore: credentials,
       catalogService: catalog,
-      now: () => DateTime(2026, 7, 29, 10),
+      saveAndConnect: SaveAndConnectMcpServer(
+        repository: repository,
+        credentialStore: credentials,
+        catalogController: catalog,
+        now: () => DateTime(2026, 7, 29, 10),
+      ),
+      deleteServer: DeleteMcpServer(
+        repository: repository,
+        credentialStore: credentials,
+        catalogController: catalog,
+      ),
     );
   });
 

@@ -63,6 +63,7 @@ class DatabaseService {
       onCreate: createSchema,
     );
     try {
+      await _ensureProjectSchema(database);
       await _verifyIntegrity(database);
       return database;
     } on Object {
@@ -313,6 +314,7 @@ class DatabaseService {
         FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
       )
     ''');
+    await _ensureProjectSchema(db);
 
     await db.execute('''
       CREATE TABLE messages (
@@ -368,6 +370,30 @@ class DatabaseService {
         modify_timestamp INTEGER NOT NULL
       )
     ''');
+  }
+
+  static Future<void> _ensureProjectSchema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS chat_projects (
+        chat_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS chat_project_bots (
+        chat_id TEXT NOT NULL,
+        bot_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        PRIMARY KEY (chat_id, bot_id),
+        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS chat_project_bots_bot_id_index '
+      'ON chat_project_bots(bot_id)',
+    );
   }
 
   static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {

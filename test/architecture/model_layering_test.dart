@@ -142,6 +142,7 @@ void main() {
       'lib/ui/features/chat/view_models/chat_view_model.dart',
       'lib/ui/features/chat/view_models/conversation_memory_view_model.dart',
       'lib/ui/features/chats/view_models/chat_list_view_model.dart',
+      'lib/ui/features/chats/view_models/new_project_view_model.dart',
       'lib/ui/features/feedback/view_models/feedback_view_model.dart',
       'lib/ui/features/mcp/view_models/mcp_servers_view_model.dart',
       'lib/ui/features/profile/view_models/legal_document_view_model.dart',

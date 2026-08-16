@@ -7,6 +7,7 @@ import 'package:hyve/utils/theme.dart';
 
 class ChatListItem extends StatefulWidget {
   final Bot bot;
+  final String? title;
   final String lastMessage;
   final String timestamp;
   final bool isSelected;
@@ -16,6 +17,7 @@ class ChatListItem extends StatefulWidget {
   const ChatListItem({
     super.key,
     required this.bot,
+    this.title,
     required this.lastMessage,
     required this.timestamp,
     this.isSelected = false,
@@ -98,7 +100,9 @@ class _ChatListItemState extends State<ChatListItem> {
                   children: [
                     Expanded(
                       child: Text(
-                        widget.bot.name,
+                        widget.title?.trim().isNotEmpty == true
+                            ? widget.title!.trim()
+                            : widget.bot.name,
                         textAlign: TextAlign.left,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

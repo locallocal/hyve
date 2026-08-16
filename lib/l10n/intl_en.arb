@@ -40,6 +40,22 @@
     "@newChat": {
         "description": "New chat"
     },
+    "newProject": "New Project",
+    "newProjectDescription": "Name the project and add one or more bots.",
+    "projectName": "Project name",
+    "projectNameHint": "Enter a project name",
+    "projectNameRequired": "Enter a project name.",
+    "selectProjectBots": "Add bots",
+    "selectAtLeastOneBot": "Select at least one bot.",
+    "selectedBotCount": "{count} selected",
+    "@selectedBotCount": {
+        "placeholders": {"count": {"type": "int"}}
+    },
+    "createProject": "Create Project",
+    "createProjectFailed": "Could not create the project: {error}",
+    "@createProjectFailed": {
+        "placeholders": {"error": {"type": "String"}}
+    },
     "themeSettings": "Theme Settings",
     "@themeSettings": {
         "description": "Theme settings"

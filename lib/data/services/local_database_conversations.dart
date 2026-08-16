@@ -3,17 +3,89 @@ part of 'local_database_service.dart';
 extension LocalDatabaseConversations on LocalDatabaseService {
   Future<List<Map<String, Object?>>> loadChats() async {
     final database = await _databaseProvider();
-    return database.query('chats', orderBy: 'last_message_timestamp DESC');
+    final chats = await database.query(
+      'chats',
+      orderBy: 'last_message_timestamp DESC',
+    );
+    return _attachProjectMetadata(database, chats);
   }
 
   Future<List<Map<String, Object?>>> loadChat(String id) async {
     final database = await _databaseProvider();
-    return database.query('chats', where: 'id = ?', whereArgs: [id], limit: 1);
+    final chats = await database.query(
+      'chats',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    return _attachProjectMetadata(database, chats);
   }
 
   Future<void> insertChat(Map<String, Object?> values) async {
     final database = await _databaseProvider();
     await _upsertByPrimaryKey(database, 'chats', values, 'id');
+  }
+
+  Future<void> insertChatProject({
+    required Map<String, Object?> chat,
+    required String name,
+    required Iterable<String> botIds,
+  }) async {
+    final database = await _databaseProvider();
+    final ids = <String>{chat['bot_id']?.toString() ?? '', ...botIds}
+      ..remove('');
+    await database.transaction((transaction) async {
+      await _upsertByPrimaryKey(transaction, 'chats', chat, 'id');
+      final chatId = chat['id']?.toString() ?? '';
+      await transaction.insert('chat_projects', <String, Object?>{
+        'chat_id': chatId,
+        'name': name,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await transaction.delete(
+        'chat_project_bots',
+        where: 'chat_id = ?',
+        whereArgs: [chatId],
+      );
+      var position = 0;
+      for (final botId in ids) {
+        await transaction.insert('chat_project_bots', <String, Object?>{
+          'chat_id': chatId,
+          'bot_id': botId,
+          'position': position++,
+        });
+      }
+    });
+  }
+
+  Future<List<Map<String, Object?>>> _attachProjectMetadata(
+    DatabaseExecutor database,
+    List<Map<String, Object?>> chats,
+  ) async {
+    if (chats.isEmpty) return chats;
+    final projects = await database.query('chat_projects');
+    final bindings = await database.query(
+      'chat_project_bots',
+      orderBy: 'chat_id ASC, position ASC',
+    );
+    final names = <String, String>{
+      for (final project in projects)
+        project['chat_id']?.toString() ?? '': project['name']?.toString() ?? '',
+    }..remove('');
+    final botIds = <String, List<String>>{};
+    for (final binding in bindings) {
+      final chatId = binding['chat_id']?.toString() ?? '';
+      final botId = binding['bot_id']?.toString() ?? '';
+      if (chatId.isEmpty || botId.isEmpty) continue;
+      botIds.putIfAbsent(chatId, () => <String>[]).add(botId);
+    }
+    return <Map<String, Object?>>[
+      for (final chat in chats)
+        <String, Object?>{
+          ...chat,
+          'project_name': names[chat['id']] ?? '',
+          'project_bot_ids': jsonEncode(botIds[chat['id']] ?? const <String>[]),
+        },
+    ];
   }
 
   Future<void> deleteChat(String id) async {

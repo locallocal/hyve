@@ -81,8 +81,11 @@ class ChatListViewModel extends DisposableChangeNotifier {
     _filteredChats = List<Chat>.unmodifiable(
       _chats.where(
         (chat) =>
+            chat.name.toLowerCase().contains(normalized) ||
             chat.lastMessage.toLowerCase().contains(normalized) ||
-            (botNames[chat.botId]?.contains(normalized) ?? false),
+            chat.projectBotIds.any(
+              (botId) => botNames[botId]?.contains(normalized) ?? false,
+            ),
       ),
     );
   }

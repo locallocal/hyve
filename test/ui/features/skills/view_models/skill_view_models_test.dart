@@ -5,6 +5,7 @@ import 'package:stars/domain/models/ai_models.dart';
 import 'package:stars/domain/models/models.dart';
 import 'package:stars/domain/repositories/ai_provider_repository.dart';
 import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/skill_repository.dart';
 import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
@@ -63,6 +64,33 @@ void main() {
     await viewModel.uninstall('system:conversation-history');
 
     expect(viewModel.skills.first.id, 'system:conversation-history');
+  });
+
+  test('library publishes immutable list snapshots', () async {
+    final catalog = _FakeSkillCatalogController([_catalogUpdate('one')]);
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository([_skill('one')]),
+      pickerRepository: const _FakeSkillPickerRepository(null),
+      catalogService: catalog,
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+    final skillsSnapshot = viewModel.skills;
+    final updatesSnapshot = viewModel.availableUpdates;
+
+    expect(() => viewModel.skills.clear(), throwsUnsupportedError);
+    expect(() => viewModel.filteredSkills.clear(), throwsUnsupportedError);
+    expect(() => viewModel.paginatedSkills.clear(), throwsUnsupportedError);
+    expect(() => updatesSnapshot.clear(), throwsUnsupportedError);
+
+    catalog.updates.add(_catalogUpdate('two'));
+
+    expect(skillsSnapshot, hasLength(1));
+    expect(updatesSnapshot, hasLength(1));
+    await viewModel.load();
+    expect(viewModel.availableUpdates, hasLength(2));
+    expect(updatesSnapshot, hasLength(1));
   });
 
   test('library searches Skill names and descriptions', () async {
@@ -529,6 +557,18 @@ SkillDescriptor _skill(String name, {String? description}) {
   );
 }
 
+OnlineSkillCatalogEntry _catalogUpdate(String name) => OnlineSkillCatalogEntry(
+  id: 'user:$name',
+  catalogId: 'catalog',
+  name: name,
+  description: '$name update',
+  version: '2.0.0',
+  publisherId: 'publisher',
+  archiveUri: Uri.parse('https://example.com/$name.zip'),
+  archiveDigest: 'archive-$name',
+  contentDigest: 'content-$name',
+);
+
 SkillContent _bundledSkillContent() {
   final timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   return SkillContent(
@@ -616,6 +656,31 @@ final class _FakeSkillPickerRepository implements SkillPickerRepository {
 
   @override
   Future<SkillImportSource?> pickZipArchive() async => source;
+}
+
+final class _FakeSkillCatalogController implements SkillCatalogController {
+  _FakeSkillCatalogController(this.updates);
+
+  final List<OnlineSkillCatalogEntry> updates;
+
+  @override
+  Future<List<OnlineSkillCatalogEntry>> availableUpdates() async => updates;
+
+  @override
+  Future<void> applyAutomaticUpdates() async {}
+
+  @override
+  Future<SkillDescriptor> install(OnlineSkillCatalogEntry entry) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<OnlineSkillCatalogEntry>> refresh(SkillCatalogSource catalog) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> refreshConfiguredCatalogs() async {}
 }
 
 final class _FakeBindingRepository implements BotSkillBindingRepository {

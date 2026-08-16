@@ -52,7 +52,7 @@ final class ConversationMemoryViewModel extends DisposableChangeNotifier {
       if (isDisposed || generation != _loadGeneration) return;
       _state = state;
       _summary = summary;
-      _items = items;
+      _items = List<ConversationMemoryItem>.unmodifiable(items);
     } catch (error) {
       if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'conversation_memory_load_failed');

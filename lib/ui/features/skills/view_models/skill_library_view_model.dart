@@ -220,7 +220,9 @@ final class SkillLibraryViewModel extends ChangeNotifier {
         await _skillRepository.getInstalled(forceRefresh: true),
         notify: false,
       );
-      _availableUpdates = await service.availableUpdates();
+      _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
+        await service.availableUpdates(),
+      );
       if (firstError != null) throw firstError;
     } catch (error) {
       _error = AppFailure.from(error, code: 'skill_operation_failed');
@@ -239,7 +241,9 @@ final class SkillLibraryViewModel extends ChangeNotifier {
       await _skillRepository.getInstalled(forceRefresh: true),
       notify: false,
     );
-    _availableUpdates = await service.availableUpdates();
+    _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
+      await service.availableUpdates(),
+    );
     notifyListeners();
   }
 
@@ -325,10 +329,14 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     final catalog = _catalogService;
     final ecosystem = _ecosystemRepository;
     if (ecosystem != null) {
-      _configuredCatalogs = await ecosystem.getCatalogs();
+      _configuredCatalogs = List<SkillCatalogSource>.unmodifiable(
+        await ecosystem.getCatalogs(),
+      );
     }
     if (catalog != null) {
-      _availableUpdates = await catalog.availableUpdates();
+      _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
+        await catalog.availableUpdates(),
+      );
     }
     if (notify && !_disposed) notifyListeners();
   }

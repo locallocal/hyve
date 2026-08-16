@@ -80,9 +80,10 @@ final class McpServersViewModel extends DisposableChangeNotifier {
         ),
       );
       if (isDisposed || generation != _loadGeneration) return;
-      _servers = servers;
+      _servers = List<McpServer>.unmodifiable(servers);
       _toolsByServer = Map.unmodifiable({
-        for (final (serverId, tools) in catalogs) serverId: tools,
+        for (final (serverId, tools) in catalogs)
+          serverId: List<McpToolDescriptor>.unmodifiable(tools),
       });
     } catch (error) {
       if (!isDisposed && generation == _loadGeneration) {

@@ -201,7 +201,7 @@ class _DotCurvedBottomNavState extends State<DotCurvedBottomNav>
     );
   }
 
-  _scrollListener() {
+  void _scrollListener() {
     if (_sliderController.isAnimating || widget.hideOnScroll == false) {
       return;
     }

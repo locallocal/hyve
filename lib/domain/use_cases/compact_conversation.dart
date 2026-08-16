@@ -66,7 +66,7 @@ final class CompactConversation {
     final result = completer.then(
       (_) => _compact(bot: bot, chatId: chatId, manual: manual),
     );
-    final tail = result.then<void>((_) {}, onError: (_, __) {});
+    final tail = result.then<void>((_) {}, onError: (_, _) {});
     _chatTails[chatId] = tail;
     tail.whenComplete(() {
       if (identical(_chatTails[chatId], tail)) _chatTails.remove(chatId);

@@ -30,6 +30,7 @@ void main() {
   test('repository governance and cache guidance stay present', () {
     for (final path in const [
       'LICENSE',
+      'NOTICE',
       'SECURITY.md',
       'CONTRIBUTING.md',
       'CHANGELOG.md',
@@ -43,5 +44,21 @@ void main() {
     expect(readme, contains('flutter clean'));
     expect(readme, contains('tool/check_format.dart'));
     expect(readme, contains('12 interface languages'));
+
+    final license = File('LICENSE').readAsStringSync();
+    final notice = File('NOTICE').readAsStringSync();
+    final contributing = File('CONTRIBUTING.md').readAsStringSync();
+    expect(license, startsWith('GNU AFFERO GENERAL PUBLIC LICENSE'));
+    expect(license, contains('Version 3, 19 November 2007'));
+    expect(
+      license,
+      contains(
+        '13. Remote Network Interaction; Use with the GNU General Public License.',
+      ),
+    );
+    expect(notice, contains('SPDX-License-Identifier: AGPL-3.0-only'));
+    expect(readme, contains('AGPL-3.0-only'));
+    expect(contributing, contains('AGPL-3.0-only'));
+    expect(readme, isNot(contains('[MIT License](LICENSE)')));
   });
 }

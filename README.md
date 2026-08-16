@@ -114,4 +114,9 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
 vulnerabilities privately according to [SECURITY.md](SECURITY.md). User-visible
 changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
-Stars is available under the [MIT License](LICENSE).
+## License
+
+Stars is licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
+(`AGPL-3.0-only`). See [NOTICE](NOTICE) for copyright information. If you
+modify Stars and let users interact with that version over a network, review
+the source-code offer requirements in section 13 of the license.

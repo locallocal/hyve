@@ -63,3 +63,8 @@ capability changes in `CHANGELOG.md`.
 - Never include production secrets or user data.
 
 By participating, you agree to follow `CODE_OF_CONDUCT.md`.
+
+## Licensing contributions
+
+By submitting a contribution, you agree that it may be distributed under the
+GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).

@@ -128,11 +128,55 @@ void main() {
       tester.view.resetDevicePixelRatio();
     }
   });
+
+  testWidgets('narrow mobile feedback supports pseudolocalized text at 2x', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    final viewModel = FeedbackViewModel(
+      feedbackRepository: const _FakeFeedbackRepository(),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(
+        _harness(
+          viewModel,
+          textScaler: const TextScaler.linear(2),
+          stringsDelegate: const _LongFeedbackStringsDelegate(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(_longHelpAndFeedback), findsOneWidget);
+      expect(find.text(_longFeedbackInformation), findsOneWidget);
+      expect(find.text(_longSubmitFeedback), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text(_longSubmitFeedback));
+      await tester.pumpAndSettle();
+
+      expect(find.text(_longFeedbackRequired), findsOneWidget);
+      expect(
+        tester.widget<SnackBar>(find.byType(SnackBar)).behavior,
+        SnackBarBehavior.fixed,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
 }
 
 Widget _harness(
   FeedbackViewModel viewModel, {
   Locale locale = const Locale('zh', 'CN'),
+  TextScaler textScaler = TextScaler.noScaling,
+  LocalizationsDelegate<S> stringsDelegate = S.delegate,
 }) {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -149,14 +193,18 @@ Widget _harness(
           ),
           locale: locale,
           supportedLocales: supportedLocales,
-          localizationsDelegates: const [
+          localizationsDelegates: [
             GlobalShadLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
-            S.delegate,
+            stringsDelegate,
           ],
-          builder: (context, child) => ShadAppBuilder(child: child!),
+          builder:
+              (context, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+                child: ShadAppBuilder(child: child!),
+              ),
           home: FeedbackPage(viewModel: viewModel),
         ),
   );
@@ -167,4 +215,46 @@ final class _FakeFeedbackRepository implements FeedbackRepository {
 
   @override
   Future<void> submit({required String content, String? contact}) async {}
+}
+
+const _longHelpAndFeedback = '⟦Help and feedback — expanded localization⟧';
+const _longFeedbackInformation =
+    '⟦Detailed feedback information and supporting context⟧';
+const _longSubmitFeedback = '⟦Submit this detailed feedback now⟧';
+const _longFeedbackRequired =
+    '⟦Please enter detailed feedback before submitting this form⟧';
+
+final class _LongFeedbackStrings extends S {
+  @override
+  String get helpAndFeedback => _longHelpAndFeedback;
+
+  @override
+  String get feedbackInformation => _longFeedbackInformation;
+
+  @override
+  String get feedbackDescription =>
+      '⟦Describe your thoughts, problems, and suggestions in detail⟧';
+
+  @override
+  String get contactInfoHint =>
+      '⟦Optional contact information for a follow-up response⟧';
+
+  @override
+  String get submitFeedback => _longSubmitFeedback;
+
+  @override
+  String get feedbackContentRequired => _longFeedbackRequired;
+}
+
+final class _LongFeedbackStringsDelegate extends LocalizationsDelegate<S> {
+  const _LongFeedbackStringsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<S> load(Locale locale) => SynchronousFuture(_LongFeedbackStrings());
+
+  @override
+  bool shouldReload(_LongFeedbackStringsDelegate old) => false;
 }

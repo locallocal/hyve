@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/bot_commands.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/bot_commands.dart';
 
 void main() {
   test('BuildBot creates the current capability and MCP parameter shape', () {

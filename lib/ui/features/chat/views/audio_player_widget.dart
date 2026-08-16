@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/utils.dart';
 
 /// Renders playback controls for a generated local audio file.
 class AudioPlayerWidget extends StatefulWidget {
@@ -154,7 +154,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           children: [
             // 播放/暂停按钮
             if (isDesktop)
-              StarsDesktopIconAction(
+              HyveDesktopIconAction(
                 focusNode: _playButtonFocusNode,
                 label: playPauseLabel,
                 variant: ShadButtonVariant.outline,

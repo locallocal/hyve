@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/mcp_search.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/mcp_search.dart';
+import 'package:hyve/utils/theme.dart';
 
 part 'bot_mcp_server_search_list.dart';
 part 'bot_mcp_tool_list_viewport.dart';
@@ -161,7 +161,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                 strings.botMcpToolsDescription,
                 style:
                     widget.embedded
-                        ? StarsDesktopThemeSpec.metaStyle(context)
+                        ? HyveDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -187,7 +187,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   strings.noMcpServersDescription,
                   style:
                       widget.embedded
-                          ? StarsDesktopThemeSpec.metaStyle(context)
+                          ? HyveDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -230,7 +230,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   '$enabledCount/${tools.length} ${strings.mcpTools}',
                   style:
                       widget.embedded
-                          ? StarsDesktopThemeSpec.metaStyle(context)
+                          ? HyveDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -241,7 +241,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
           const SizedBox(width: 8),
           if (!widget.readOnly)
             widget.embedded
-                ? StarsDesktopIconAction(
+                ? HyveDesktopIconAction(
                   key: ValueKey<String>('remove-bot-mcp-server-$serverId'),
                   icon: LucideIcons.trash2,
                   label: strings.removeMcpServer,
@@ -594,7 +594,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
                   overflow: TextOverflow.ellipsis,
                   style:
                       widget.embedded
-                          ? StarsDesktopThemeSpec.metaStyle(context)
+                          ? HyveDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],

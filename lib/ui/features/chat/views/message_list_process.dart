@@ -292,9 +292,9 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
       key: const ValueKey<String>('desktop-execution-status'),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      backgroundColor: StarsDesktopTokens.of(context).controlFill,
-      radius: StarsDesktopThemeSpec.statusRadius,
-      border: ShadBorder.all(color: StarsDesktopTokens.of(context).separator),
+      backgroundColor: HyveDesktopTokens.of(context).controlFill,
+      radius: HyveDesktopThemeSpec.statusRadius,
+      border: ShadBorder.all(color: HyveDesktopTokens.of(context).separator),
       child: ShadAccordion<String>(
         controller: _desktopController,
         maintainState: true,
@@ -397,7 +397,7 @@ class _ProcessHeaderMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = StarsDesktopTokens.of(context).secondaryText;
+    final color = HyveDesktopTokens.of(context).secondaryText;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -433,7 +433,7 @@ class _ProcessChip extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 14,
-                color: StarsDesktopTokens.of(context).secondaryText,
+                color: HyveDesktopTokens.of(context).secondaryText,
               ),
             ),
           ),
@@ -475,7 +475,7 @@ class _ProcessListCard<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: StarsDesktopTokens.of(context).separator),
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +485,7 @@ class _ProcessListCard<T> extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: StarsDesktopTokens.of(context).secondaryText,
+                color: HyveDesktopTokens.of(context).secondaryText,
               ),
               const SizedBox(width: 8),
               Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -518,7 +518,7 @@ class _ProcessListCard<T> extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               color:
-                                  StarsDesktopTokens.of(context).secondaryText,
+                                  HyveDesktopTokens.of(context).secondaryText,
                             ),
                           ),
                         ],

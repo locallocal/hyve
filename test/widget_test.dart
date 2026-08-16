@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/utils/theme.dart';
 
 import 'support/widget_test_support.dart';
 
@@ -23,7 +23,7 @@ void main() {
       ),
     );
 
-    final tokens = StarsDesktopTokens.of(testContext);
+    final tokens = HyveDesktopTokens.of(testContext);
     expect(tokens.windowBackground, const Color(0xFFFFFFFF));
     expect(tokens.contentBackground, const Color(0xFFFFFFFF));
     expect(tokens.sidebarOpaque, const Color(0xFFFAFAFA));
@@ -44,31 +44,31 @@ void main() {
     expect(tokens.reduceTransparency, isFalse);
 
     expect(
-      StarsDesktopThemeSpec.shellBackground(testContext),
+      HyveDesktopThemeSpec.shellBackground(testContext),
       tokens.windowBackground,
     );
-    expect(StarsDesktopThemeSpec.sidebarWidth, 300);
-    expect(StarsDesktopThemeSpec.inspectorWidth, 360);
-    expect(StarsDesktopThemeSpec.inspectorMaxWidth, 420);
-    expect(StarsDesktopThemeSpec.toolbarHeight, 50);
-    expect(StarsDesktopThemeSpec.menuBarHeight, 50);
-    expect(StarsDesktopThemeSpec.sidebarDecoration(testContext).border, isNull);
-    expect(StarsDesktopThemeSpec.formContentMaxWidth, 920);
-    expect(StarsDesktopThemeSpec.addBotFormFieldWidth, 640);
-    expect(StarsDesktopThemeSpec.botFormFieldHeight, 48);
-    expect(StarsDesktopThemeSpec.botFormSectionPadding, 20);
-    expect(StarsDesktopThemeSpec.botFormSectionBorderWidth, 1);
-    expect(StarsDesktopThemeSpec.botFormSectionTitleFontSize, 16);
+    expect(HyveDesktopThemeSpec.sidebarWidth, 300);
+    expect(HyveDesktopThemeSpec.inspectorWidth, 360);
+    expect(HyveDesktopThemeSpec.inspectorMaxWidth, 420);
+    expect(HyveDesktopThemeSpec.toolbarHeight, 50);
+    expect(HyveDesktopThemeSpec.menuBarHeight, 50);
+    expect(HyveDesktopThemeSpec.sidebarDecoration(testContext).border, isNull);
+    expect(HyveDesktopThemeSpec.formContentMaxWidth, 920);
+    expect(HyveDesktopThemeSpec.addBotFormFieldWidth, 640);
+    expect(HyveDesktopThemeSpec.botFormFieldHeight, 48);
+    expect(HyveDesktopThemeSpec.botFormSectionPadding, 20);
+    expect(HyveDesktopThemeSpec.botFormSectionBorderWidth, 1);
+    expect(HyveDesktopThemeSpec.botFormSectionTitleFontSize, 16);
     expect(
-      StarsDesktopThemeSpec.contentMaxWidth,
-      StarsDesktopThemeSpec.formContentMaxWidth,
+      HyveDesktopThemeSpec.contentMaxWidth,
+      HyveDesktopThemeSpec.formContentMaxWidth,
     );
     expect(
-      StarsDesktopThemeSpec.contentMaxWidth,
-      StarsDesktopThemeSpec.formContentMaxWidth,
+      HyveDesktopThemeSpec.contentMaxWidth,
+      HyveDesktopThemeSpec.formContentMaxWidth,
     );
     expect(
-      StarsDesktopThemeSpec.formPagePadding,
+      HyveDesktopThemeSpec.formPagePadding,
       const EdgeInsets.fromLTRB(32, 28, 32, 48),
     );
   });
@@ -90,7 +90,7 @@ void main() {
       ),
     );
 
-    final tokens = StarsDesktopTokens.of(testContext);
+    final tokens = HyveDesktopTokens.of(testContext);
     expect(tokens.windowBackground, const Color(0xFF09090B));
     expect(tokens.contentBackground, const Color(0xFF09090B));
     expect(tokens.sidebarOpaque, const Color(0xFF18181B));
@@ -125,7 +125,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final tokens = StarsDesktopTokens.of(testContext);
+    final tokens = HyveDesktopTokens.of(testContext);
     expect(tokens.contentBackground, const Color(0xFF09090B));
     expect(tokens.sidebarOpaque, const Color(0xFF18181B));
     expect(tokens.sidebarOpaque, isNot(tokens.contentBackground));
@@ -153,13 +153,13 @@ void main() {
       ),
     );
 
-    final tokens = StarsDesktopTokens.of(testContext);
+    final tokens = HyveDesktopTokens.of(testContext);
     expect(tokens.highContrast, isTrue);
     expect(tokens.reduceTransparency, isTrue);
     expect(tokens.separator, const Color(0xFFA1A1AA));
     expect(tokens.selectedFill, const Color(0xFFE4E4E7));
     expect(tokens.focusRing, const Color(0xFF09090B));
-    expect(StarsDesktopThemeSpec.panelShadow(testContext), isEmpty);
+    expect(HyveDesktopThemeSpec.panelShadow(testContext), isEmpty);
   });
 
   testWidgets('MediaQuery high contrast is honored by semantic token access', (
@@ -182,18 +182,18 @@ void main() {
       ),
     );
 
-    final tokens = StarsDesktopTokens.of(testContext);
+    final tokens = HyveDesktopTokens.of(testContext);
     expect(tokens.highContrast, isTrue);
     expect(tokens.separator, const Color(0xFF71717A));
     expect(tokens.selectedFill, const Color(0xFF3F3F46));
   });
 
   test('Shad high contrast strengthens direct component boundaries', () {
-    final regular = buildStarsShadTheme(
+    final regular = buildHyveShadTheme(
       brightness: Brightness.light,
       fontSize: 16,
     );
-    final highContrast = buildStarsShadTheme(
+    final highContrast = buildHyveShadTheme(
       brightness: Brightness.light,
       fontSize: 16,
       highContrast: true,
@@ -232,8 +232,8 @@ void main() {
       MaterialApp(
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: const Scaffold(
-          body: StarsGlassSurface(
-            role: StarsGlassRole.popover,
+          body: HyveGlassSurface(
+            role: HyveGlassRole.popover,
             child: Text('Popover content'),
           ),
         ),
@@ -252,7 +252,7 @@ void main() {
       MaterialApp(
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Scaffold(
-          body: StarsToolbarButton(
+          body: HyveToolbarButton(
             icon: const Icon(Icons.search_rounded),
             tooltip: '搜索',
             onPressed: () => presses += 1,
@@ -261,7 +261,7 @@ void main() {
       ),
     );
 
-    expect(tester.getSize(find.byType(StarsToolbarButton)), const Size(44, 44));
+    expect(tester.getSize(find.byType(HyveToolbarButton)), const Size(44, 44));
     await tester.tap(find.byIcon(Icons.search_rounded));
     expect(presses, 1);
   });
@@ -275,7 +275,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Scaffold(
           body: SizedBox(
-            width: StarsDesktopThemeSpec.sidebarWidth,
+            width: HyveDesktopThemeSpec.sidebarWidth,
             height: 700,
             child: DesktopListPanel(
               title: '聊天',
@@ -293,11 +293,11 @@ void main() {
     expect(find.text('聊天'), findsOneWidget);
     expect(find.text('最近会话'), findsOneWidget);
     expect(find.text('会话内容'), findsOneWidget);
-    expect(find.byType(StarsSearchField), findsOneWidget);
+    expect(find.byType(HyveSearchField), findsOneWidget);
     expect(find.byType(Card), findsNothing);
     expect(
-      tester.getSize(find.byType(StarsSearchField)).height,
-      StarsDesktopThemeSpec.botFormFieldHeight,
+      tester.getSize(find.byType(HyveSearchField)).height,
+      HyveDesktopThemeSpec.botFormFieldHeight,
     );
     expect(
       tester.widget<TextField>(find.byType(TextField)).textAlignVertical,
@@ -317,16 +317,16 @@ void main() {
         homeBuilder:
             (context) => Scaffold(
               body: SizedBox(
-                width: StarsDesktopThemeSpec.sidebarWidth,
+                width: HyveDesktopThemeSpec.sidebarWidth,
                 child: Column(
                   children: [
-                    StarsSearchField(
+                    HyveSearchField(
                       key: const ValueKey<String>('chat-search-field'),
                       hintText: '搜索会话',
                       onChanged: (_) {},
                     ),
                     const SizedBox(height: 12),
-                    StarsSearchField(
+                    HyveSearchField(
                       key: const ValueKey<String>('bot-search-field'),
                       hintText: '搜索智能体',
                       onChanged: (_) {},
@@ -348,7 +348,7 @@ void main() {
       final shadInput = tester.widget<ShadInput>(input);
       expect(
         tester.getSize(field).height,
-        StarsDesktopThemeSpec.botFormFieldHeight,
+        HyveDesktopThemeSpec.botFormFieldHeight,
       );
       expect(shadInput.alignment, Alignment.centerLeft);
       expect(shadInput.placeholderAlignment, Alignment.centerLeft);
@@ -384,7 +384,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Builder(
           builder: (context) {
-            workspaceColor = StarsDesktopThemeSpec.workspaceSurface(context);
+            workspaceColor = HyveDesktopThemeSpec.workspaceSurface(context);
             return Scaffold(
               body: SizedBox(
                 width: 1000,
@@ -395,8 +395,8 @@ void main() {
                   searchHintText: '搜索智能体',
                   onSearchChanged: (_) {},
                   action: const Text('添加智能体'),
-                  contentMaxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
-                  padding: StarsDesktopThemeSpec.formPagePadding,
+                  contentMaxWidth: HyveDesktopThemeSpec.formContentMaxWidth,
+                  padding: HyveDesktopThemeSpec.formPagePadding,
                   backgroundColor: workspaceColor,
                   child: const Text('智能体内容'),
                 ),
@@ -417,8 +417,8 @@ void main() {
     );
     expect(panelBackground.color, workspaceColor);
     expect(
-      tester.getSize(find.byType(StarsSearchField)).width,
-      StarsDesktopThemeSpec.formContentMaxWidth,
+      tester.getSize(find.byType(HyveSearchField)).width,
+      HyveDesktopThemeSpec.formContentMaxWidth,
     );
     expect(find.text('添加智能体'), findsOneWidget);
     expect(find.text('智能体内容'), findsOneWidget);
@@ -432,7 +432,7 @@ void main() {
         theme: buildAppTheme(brightness: Brightness.light, fontSize: 16),
         home: Scaffold(
           body: SizedBox(
-            width: StarsDesktopThemeSpec.sidebarWidth,
+            width: HyveDesktopThemeSpec.sidebarWidth,
             height: 700,
             child: DesktopListPanel(
               title: '',
@@ -449,7 +449,7 @@ void main() {
     );
 
     final panelTop = tester.getTopLeft(find.byType(DesktopListPanel)).dy;
-    final searchTop = tester.getTopLeft(find.byType(StarsSearchField)).dy;
-    expect(searchTop - panelTop, StarsDesktopThemeSpec.panelPadding.top);
+    final searchTop = tester.getTopLeft(find.byType(HyveSearchField)).dy;
+    expect(searchTop - panelTop, HyveDesktopThemeSpec.panelPadding.top);
   });
 }

@@ -3,15 +3,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/ui/features/chat/views/chat.dart';
-import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/ui/features/chats/view_models/new_chat_view_model.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 class NewChatDialog extends StatefulWidget {
   final void Function(String chatId, Bot bot)? onChatCreated;
@@ -98,7 +98,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
             _buildDesktopHeader(context),
             ShadSeparator.horizontal(
               thickness: 1,
-              color: StarsDesktopThemeSpec.divider(context),
+              color: HyveDesktopThemeSpec.divider(context),
             ),
             Flexible(child: _buildDesktopContent(context)),
           ],
@@ -121,20 +121,20 @@ class _NewChatDialogState extends State<NewChatDialog> {
                   desktopConversationText(context, S.of(context).newChat),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.toolbarTitleStyle(context),
+                  style: HyveDesktopThemeSpec.toolbarTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   S.of(context).selectBot,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          StarsDesktopIconAction(
+          HyveDesktopIconAction(
             icon: LucideIcons.x,
             label: closeLabel,
             onPressed: () => Navigator.of(context).pop(),
@@ -161,7 +161,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
 
         final bots = snapshot.data ?? const <Bot>[];
         if (bots.isEmpty) {
-          final tokens = StarsDesktopTokens.of(context);
+          final tokens = HyveDesktopTokens.of(context);
           return SizedBox(
             height: 220,
             child: Center(
@@ -365,7 +365,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
         _creationError = message;
       });
       if (!isDesktopPlatform(context)) {
-        showStarsNotice(context, message, tone: StarsNoticeTone.error);
+        showHyveNotice(context, message, tone: HyveNoticeTone.error);
       }
       return;
     }
@@ -445,7 +445,7 @@ class _DesktopBotChoice extends StatelessWidget {
                         bot.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: StarsDesktopThemeSpec.bodyStyle(
+                        style: HyveDesktopThemeSpec.bodyStyle(
                           context,
                         )?.copyWith(fontWeight: FontWeight.w600),
                       ),
@@ -455,7 +455,7 @@ class _DesktopBotChoice extends StatelessWidget {
                           metadata,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: StarsDesktopThemeSpec.metaStyle(context),
+                          style: HyveDesktopThemeSpec.metaStyle(context),
                         ),
                       ],
                     ],
@@ -473,7 +473,7 @@ class _DesktopBotChoice extends StatelessWidget {
                           S.of(context).creatingChat,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: StarsDesktopThemeSpec.metaStyle(context),
+                          style: HyveDesktopThemeSpec.metaStyle(context),
                         ),
                         const SizedBox(height: 5),
                         ShadProgress(
@@ -487,7 +487,7 @@ class _DesktopBotChoice extends StatelessWidget {
                   Icon(
                     LucideIcons.chevronRight,
                     size: 18,
-                    color: StarsDesktopThemeSpec.softText(context),
+                    color: HyveDesktopThemeSpec.softText(context),
                   ),
               ],
             ),

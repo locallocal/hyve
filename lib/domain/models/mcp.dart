@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/tool.dart';
+import 'package:hyve/domain/models/tool.dart';
 
 enum McpAuthType { none, oauthAccessToken }
 

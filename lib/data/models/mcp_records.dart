@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class McpServerRecord {
   const McpServerRecord(this.values);

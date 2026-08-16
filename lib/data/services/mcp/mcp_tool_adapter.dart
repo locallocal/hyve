@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_client.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_client.dart';
 
 final class McpToolAdapter implements ExecutableTool {
   McpToolAdapter({

@@ -8,14 +8,13 @@ extension _DesktopLayoutResizing on _DesktopLayoutState {
     required double inspectorWidth,
   }) {
     final reserved =
-        StarsDesktopThemeSpec.detailMinWidth +
+        HyveDesktopThemeSpec.detailMinWidth +
         (dockInspector ? inspectorWidth : 0) +
-        StarsDesktopThemeSpec.splitterHitWidth * (dockInspector ? 2 : 1);
+        HyveDesktopThemeSpec.splitterHitWidth * (dockInspector ? 2 : 1);
     final compactDock = availableWidth < 1200;
-    final minWidth =
-        compactDock ? 260.0 : StarsDesktopThemeSpec.sidebarMinWidth;
+    final minWidth = compactDock ? 260.0 : HyveDesktopThemeSpec.sidebarMinWidth;
     final requestedMax =
-        compactDock ? 280.0 : StarsDesktopThemeSpec.sidebarMaxWidth;
+        compactDock ? 280.0 : HyveDesktopThemeSpec.sidebarMaxWidth;
     final maxWidth = math.min(
       requestedMax,
       math.max(minWidth, availableWidth - reserved),
@@ -28,7 +27,7 @@ extension _DesktopLayoutResizing on _DesktopLayoutState {
 
   void _resetSidebarWidth(double availableWidth) {
     final defaultWidth =
-        availableWidth < 1200 ? 280.0 : StarsDesktopThemeSpec.sidebarWidth;
+        availableWidth < 1200 ? 280.0 : HyveDesktopThemeSpec.sidebarWidth;
     _updateState(() => _sidebarWidth = defaultWidth);
   }
 
@@ -38,29 +37,29 @@ extension _DesktopLayoutResizing on _DesktopLayoutState {
     required double sidebarWidth,
   }) {
     final maxWidth = math.min(
-      StarsDesktopThemeSpec.inspectorMaxWidth,
+      HyveDesktopThemeSpec.inspectorMaxWidth,
       math.max(
-        StarsDesktopThemeSpec.inspectorMinWidth,
+        HyveDesktopThemeSpec.inspectorMinWidth,
         availableWidth -
             sidebarWidth -
-            StarsDesktopThemeSpec.detailMinWidth -
-            StarsDesktopThemeSpec.splitterHitWidth * 2,
+            HyveDesktopThemeSpec.detailMinWidth -
+            HyveDesktopThemeSpec.splitterHitWidth * 2,
       ),
     );
     final effectiveWidth =
         _inspectorWidth
-            .clamp(StarsDesktopThemeSpec.inspectorMinWidth, maxWidth)
+            .clamp(HyveDesktopThemeSpec.inspectorMinWidth, maxWidth)
             .toDouble();
     _updateState(() {
       _inspectorWidth = (effectiveWidth + delta).clamp(
-        StarsDesktopThemeSpec.inspectorMinWidth,
+        HyveDesktopThemeSpec.inspectorMinWidth,
         maxWidth,
       );
     });
   }
 
   void _resetInspectorWidth() {
-    _updateState(() => _inspectorWidth = StarsDesktopThemeSpec.inspectorWidth);
+    _updateState(() => _inspectorWidth = HyveDesktopThemeSpec.inspectorWidth);
   }
 
   Future<void> _requestClearChat() async {

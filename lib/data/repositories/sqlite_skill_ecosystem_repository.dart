@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 
 final class SqliteSkillEcosystemRepository implements SkillEcosystemRepository {
   const SqliteSkillEcosystemRepository({

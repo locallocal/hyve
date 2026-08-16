@@ -1,6 +1,6 @@
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_inventory_repository.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_inventory_repository.dart';
 
 final class SqliteSkillInventoryRepository implements SkillInventoryRepository {
   const SqliteSkillInventoryRepository({

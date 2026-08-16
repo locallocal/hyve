@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as path;
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/skills/skill_package_storage_service.dart';
-import 'package:stars/data/services/skills/skill_parser.dart';
-import 'package:stars/data/services/skills/skill_signature_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/skills/skill_package_storage_service.dart';
+import 'package:hyve/data/services/skills/skill_parser.dart';
+import 'package:hyve/data/services/skills/skill_signature_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
 
 final class FileSkillRepository implements SkillRepository {
   FileSkillRepository({

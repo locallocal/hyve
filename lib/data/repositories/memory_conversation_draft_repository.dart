@@ -1,8 +1,8 @@
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:stars/domain/models/conversation_draft.dart';
-import 'package:stars/domain/repositories/conversation_draft_repository.dart';
+import 'package:hyve/domain/models/conversation_draft.dart';
+import 'package:hyve/domain/repositories/conversation_draft_repository.dart';
 
 typedef DraftPathValidator = Future<bool> Function(String path);
 

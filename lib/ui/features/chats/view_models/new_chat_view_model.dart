@@ -1,6 +1,6 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
 
 class NewChatViewModel {
   const NewChatViewModel({

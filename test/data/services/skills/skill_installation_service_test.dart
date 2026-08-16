@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
-import 'package:stars/data/services/skills/skill_installation_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:hyve/data/services/skills/skill_catalog_endpoint_policy.dart';
+import 'package:hyve/data/services/skills/skill_installation_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
 
 void main() {
   late Directory temporaryDirectory;
@@ -13,7 +13,7 @@ void main() {
 
   setUp(() async {
     temporaryDirectory = await Directory.systemTemp.createTemp(
-      'stars-skill-installation-service-',
+      'hyve-skill-installation-service-',
     );
     repository = _RecordingSkillRepository();
     fetchedUris = [];
@@ -51,7 +51,7 @@ void main() {
       final installed = await service.install(
         const SkillInstallationRequest(
           sourceType: SkillInstallSourceType.github,
-          source: 'https://github.com/acme/stars-skills',
+          source: 'https://github.com/acme/hyve-skills',
           ref: 'release/v1',
           subdirectory: 'skills/reviewer',
           archiveSha256:
@@ -62,12 +62,12 @@ void main() {
 
       expect(
         fetchedUris.single.toString(),
-        'https://codeload.github.com/acme/stars-skills/zip/release/v1',
+        'https://codeload.github.com/acme/hyve-skills/zip/release/v1',
       );
       expect(repository.source?.kind, SkillImportKind.zipArchive);
       expect(
         repository.source?.sourceUri,
-        'https://github.com/acme/stars-skills',
+        'https://github.com/acme/hyve-skills',
       );
       expect(repository.source?.subdirectory, 'skills/reviewer');
       expect(
@@ -175,7 +175,7 @@ final class _RecordingSkillRepository implements SkillRepository {
       contentDigest: List.filled(64, 'b').join(),
       trustState: SkillTrustState.userReviewed,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars',
+      compatibility: 'Hyve',
       installedAt: now,
       updatedAt: now,
     );

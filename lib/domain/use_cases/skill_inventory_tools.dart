@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_inventory_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_inventory_repository.dart';
 
 final class SkillInventoryToolSession {
   const SkillInventoryToolSession({
@@ -125,7 +125,7 @@ final class ListInstalledSkillsTool implements ExecutableTool {
     name: listInstalledSkillsToolName,
     title: 'List installed Skills',
     description:
-        'Run a read-only, parameterized SQLite query over installed Stars '
+        'Run a read-only, parameterized SQLite query over installed Hyve '
         'Skill packages. Bundled system Skills are not stored in this table.',
     inputSchema: const {
       'type': 'object',
@@ -191,7 +191,7 @@ final class ListCurrentConversationSkillsTool implements ExecutableTool {
     description:
         'Run a read-only SQLite query for Skill bindings, enabled toggles, '
         'conversation pins, and latest activation state in the current '
-        'conversation. The conversation identity is bound by Stars.',
+        'conversation. The conversation identity is bound by Hyve.',
     inputSchema: const {
       'type': 'object',
       'properties': <String, Object?>{},

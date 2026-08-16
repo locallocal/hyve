@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 enum TokenUsageGranularity { day, hour }
 

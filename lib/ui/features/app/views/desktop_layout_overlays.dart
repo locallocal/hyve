@@ -50,8 +50,8 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
             : ShadSheetSide.right;
     final targetWidth =
         overlay == _ChatOverlay.sidebar
-            ? StarsDesktopThemeSpec.sidebarWidth
-            : StarsDesktopThemeSpec.inspectorWidth;
+            ? HyveDesktopThemeSpec.sidebarWidth
+            : HyveDesktopThemeSpec.inspectorWidth;
     final closed = showChatShadSheet<void>(
       context: context,
       side: side,
@@ -77,7 +77,7 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
               overlay == _ChatOverlay.inspector
                   ? Text(S.of(sheetContext).botInformation)
                   : null,
-          closeIcon: StarsDesktopIconAction(
+          closeIcon: HyveDesktopIconAction(
             icon: LucideIcons.x,
             label: MaterialLocalizations.of(sheetContext).closeButtonTooltip,
             onPressed: () => unawaited(_dismissActiveChatOverlay()),
@@ -190,7 +190,7 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
           FlutterErrorDetails(
             exception: error,
             stack: stackTrace,
-            library: 'Stars desktop chat overlay',
+            library: 'Hyve desktop chat overlay',
           ),
         );
       },

@@ -18,8 +18,8 @@ extension _ProfileSettingsControls on _ProfilePageState {
         padding: const EdgeInsets.all(20),
         title: Text(
           title,
-          style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
-            fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+          style: HyveDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
+            fontSize: HyveDesktopThemeSpec.botFormSectionTitleFontSize,
           ),
         ),
         description: description == null ? null : Text(description),
@@ -31,7 +31,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 children[index],
                 if (index != children.length - 1)
                   const ShadSeparator.horizontal(
-                    margin: StarsDesktopThemeSpec.settingsRowSeparatorMargin,
+                    margin: HyveDesktopThemeSpec.settingsRowSeparatorMargin,
                   ),
               ],
             ],
@@ -57,7 +57,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
             image: true,
             child: CircleAvatar(
               radius: 28,
-              backgroundColor: StarsDesktopThemeSpec.secondarySurface(context),
+              backgroundColor: HyveDesktopThemeSpec.secondarySurface(context),
               backgroundImage: _buildAvatarImageProvider(),
             ),
           ),
@@ -89,62 +89,57 @@ extension _ProfileSettingsControls on _ProfilePageState {
         width: double.infinity,
         height: 0,
         expands: true,
-        padding: StarsDesktopThemeSpec.settingsRowPadding,
+        padding: HyveDesktopThemeSpec.settingsRowPadding,
         mainAxisAlignment: MainAxisAlignment.start,
         onPressed: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            minHeight: StarsDesktopThemeSpec.settingsRowMinHeight,
+            minHeight: HyveDesktopThemeSpec.settingsRowMinHeight,
           ),
           child: Row(
             children: [
               SizedBox(
                 width:
                     leading == null
-                        ? StarsDesktopThemeSpec.settingsRowIconSlotWidth
+                        ? HyveDesktopThemeSpec.settingsRowIconSlotWidth
                         : 56,
                 child:
                     leading ??
                     Icon(
                       icon,
-                      size: StarsDesktopThemeSpec.settingsRowIconSize,
-                      color: StarsDesktopThemeSpec.mutedText(context),
+                      size: HyveDesktopThemeSpec.settingsRowIconSize,
+                      color: HyveDesktopThemeSpec.mutedText(context),
                     ),
               ),
-              const SizedBox(width: StarsDesktopThemeSpec.settingsRowIconGap),
+              const SizedBox(width: HyveDesktopThemeSpec.settingsRowIconGap),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      title,
-                      style: StarsDesktopThemeSpec.bodyStyle(context),
-                    ),
+                    Text(title, style: HyveDesktopThemeSpec.bodyStyle(context)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: StarsDesktopThemeSpec.metaStyle(context),
+                        style: HyveDesktopThemeSpec.metaStyle(context),
                       ),
                     ],
                   ],
                 ),
               ),
               if (value != null) ...[
-                const SizedBox(
-                  width: StarsDesktopThemeSpec.settingsRowValueGap,
-                ),
+                const SizedBox(width: HyveDesktopThemeSpec.settingsRowValueGap),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: StarsDesktopThemeSpec.settingsRowValueMaxWidth,
+                    maxWidth: HyveDesktopThemeSpec.settingsRowValueMaxWidth,
                   ),
                   child: Text(
                     value,
                     textAlign: TextAlign.end,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: StarsDesktopThemeSpec.metaStyle(context),
+                    style: HyveDesktopThemeSpec.metaStyle(context),
                   ),
                 ),
               ],
@@ -152,7 +147,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
-                color: StarsDesktopThemeSpec.softText(context),
+                color: HyveDesktopThemeSpec.softText(context),
               ),
             ],
           ),
@@ -177,19 +172,19 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 child: Icon(
                   Icons.text_fields_outlined,
                   size: 18,
-                  color: StarsDesktopThemeSpec.mutedText(context),
+                  color: HyveDesktopThemeSpec.mutedText(context),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   S.of(context).fontSizeSettings,
-                  style: StarsDesktopThemeSpec.bodyStyle(context),
+                  style: HyveDesktopThemeSpec.bodyStyle(context),
                 ),
               ),
               Text(
                 '${_fontSize.round()} px',
-                style: StarsDesktopThemeSpec.metaStyle(
+                style: HyveDesktopThemeSpec.metaStyle(
                   context,
                 )?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -219,13 +214,13 @@ extension _ProfileSettingsControls on _ProfilePageState {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: StarsDesktopThemeSpec.statusDecoration(context),
+            decoration: HyveDesktopThemeSpec.statusDecoration(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   S.of(context).previewText,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -234,7 +229,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
                     S.of(context).appDescription,
                   ),
                   style: TextStyle(
-                    color: StarsDesktopThemeSpec.text(context),
+                    color: HyveDesktopThemeSpec.text(context),
                     fontSize: _fontSize,
                     height: 1.55,
                   ),
@@ -258,7 +253,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               child: Icon(
                 LucideIcons.activity,
                 size: 18,
-                color: StarsDesktopThemeSpec.mutedText(context),
+                color: HyveDesktopThemeSpec.mutedText(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -268,12 +263,12 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 children: [
                   Text(
                     S.of(context).chatExecutionStatus,
-                    style: StarsDesktopThemeSpec.bodyStyle(context),
+                    style: HyveDesktopThemeSpec.bodyStyle(context),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     S.of(context).showExecutionStatusDescription,
-                    style: StarsDesktopThemeSpec.metaStyle(context),
+                    style: HyveDesktopThemeSpec.metaStyle(context),
                   ),
                 ],
               ),
@@ -303,18 +298,18 @@ extension _ProfileSettingsControls on _ProfilePageState {
         Row(
           children: [
             SizedBox(
-              width: StarsDesktopThemeSpec.settingsRowIconSlotWidth,
+              width: HyveDesktopThemeSpec.settingsRowIconSlotWidth,
               child: Icon(
                 Icons.lock_outline_rounded,
-                size: StarsDesktopThemeSpec.settingsRowIconSize,
-                color: StarsDesktopThemeSpec.mutedText(context),
+                size: HyveDesktopThemeSpec.settingsRowIconSize,
+                color: HyveDesktopThemeSpec.mutedText(context),
               ),
             ),
-            const SizedBox(width: StarsDesktopThemeSpec.settingsRowIconGap),
+            const SizedBox(width: HyveDesktopThemeSpec.settingsRowIconGap),
             Expanded(
               child: Text(
                 S.of(context).applicationInjectedPrompt,
-                style: StarsDesktopThemeSpec.bodyStyle(context),
+                style: HyveDesktopThemeSpec.bodyStyle(context),
               ),
             ),
           ],
@@ -323,12 +318,12 @@ extension _ProfileSettingsControls on _ProfilePageState {
         Padding(
           padding: const EdgeInsetsDirectional.only(
             start:
-                StarsDesktopThemeSpec.settingsRowIconSlotWidth +
-                StarsDesktopThemeSpec.settingsRowIconGap,
+                HyveDesktopThemeSpec.settingsRowIconSlotWidth +
+                HyveDesktopThemeSpec.settingsRowIconGap,
           ),
           child: Text(
             S.of(context).applicationInjectedPromptDescription,
-            style: StarsDesktopThemeSpec.metaStyle(context),
+            style: HyveDesktopThemeSpec.metaStyle(context),
           ),
         ),
         const SizedBox(height: 10),
@@ -344,10 +339,10 @@ extension _ProfileSettingsControls on _ProfilePageState {
               padding: const EdgeInsets.all(14),
               decoration:
                   desktop
-                      ? StarsDesktopThemeSpec.statusDecoration(context)
+                      ? HyveDesktopThemeSpec.statusDecoration(context)
                       : BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
-                        borderRadius: StarsDesktopThemeSpec.containerRadius,
+                        borderRadius: HyveDesktopThemeSpec.containerRadius,
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outlineVariant,
                         ),
@@ -355,7 +350,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
               child: SelectableText(
                 prompt,
                 style: TextStyle(
-                  color: StarsDesktopThemeSpec.text(context),
+                  color: HyveDesktopThemeSpec.text(context),
                   fontFamily: 'monospace',
                   fontSize: 12,
                   height: 1.5,
@@ -463,7 +458,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
     if (isDesktopPlatform(context)) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: StarsDesktopThemeSpec.statusDecoration(context),
+        decoration: HyveDesktopThemeSpec.statusDecoration(context),
         child: slider,
       );
     }
@@ -508,7 +503,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
     BuildContext dialogContext, {
     required Key key,
   }) {
-    return StarsDesktopIconAction(
+    return HyveDesktopIconAction(
       key: key,
       icon: LucideIcons.x,
       iconSize: 18,

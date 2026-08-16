@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/app_failure.dart';
+import 'package:hyve/domain/models/app_failure.dart';
 
 enum CommandPhase { idle, submitting, succeeded, failed }
 

@@ -1,6 +1,6 @@
 {
     "@@locale": "zh_TW",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "應用名稱"
     },
@@ -170,7 +170,7 @@
     "@themeSetToDark": {
         "description": "已設置為深色模式"
     },
-    "aboutApp": "關於 Stars",
+    "aboutApp": "關於 Hyve",
     "@aboutApp": {
         "description": "關於應用"
     },
@@ -178,7 +178,7 @@
     "@appDescription": {
         "description": "應用描述"
     },
-    "copyright": "© {year} Stars 團隊",
+    "copyright": "© {year} Hyve 團隊",
     "@copyright": {
         "description": "版權信息",
         "placeholders": {
@@ -200,7 +200,7 @@
     "@version": {
         "description": "版本信息"
     },
-    "appTitle": "Stars - AI 聊天助手",
+    "appTitle": "Hyve - AI 聊天助手",
     "@appTitle": {
         "description": "應用標題"
     },
@@ -517,7 +517,7 @@
     },
     "desktopGeneral": "一般",
     "applicationInjectedPrompt": "系統提示詞",
-    "applicationInjectedPromptDescription": "由 Stars 管理並注入至每次模型請求。目前智慧代理與對話識別碼會在執行階段補充，無法編輯。",
+    "applicationInjectedPromptDescription": "由 Hyve 管理並注入至每次模型請求。目前智慧代理與對話識別碼會在執行階段補充，無法編輯。",
     "chatExecutionStatus": "對話執行狀態",
     "showExecutionStatusDescription": "在對話內容中顯示執行狀態。",
     "replyStoppedPartial": "已停止 · 保留部分回覆",
@@ -671,7 +671,7 @@
     "localMcpDisabledDescription": "本機程序型 MCP 伺服器仍停用，完成各平台安全審查後才會開放。",
     "mcpLocalProcessSecurityTitle": "本機程序安全",
     "mcpLocalProcessSecurityDescription": "stdio 伺服器會在本機執行命令，請只加入你信任的伺服器和環境變數。",
-    "mcpProgressiveDiscoveryDescription": "Stars 會儲存已探索的工具目錄。請在編輯智慧代理時逐一啟用工具，只有該智慧代理會將其提供給模型。",
+    "mcpProgressiveDiscoveryDescription": "Hyve 會儲存已探索的工具目錄。請在編輯智慧代理時逐一啟用工具，只有該智慧代理會將其提供給模型。",
     "mcpHttpsRequired": "遠端 MCP 端點必須使用 HTTPS。",
     "mcpPrivateEndpointBlocked": "已封鎖私有、本機及鏈路本地 MCP 端點。",
     "mcpAuthorizationRequired": "需要授權",
@@ -874,7 +874,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -923,7 +923,7 @@
     "startupFailed": "啟動失敗，請再試一次。",
     "videoPlaybackError": "影片播放錯誤：{error}",
     "videoLoadFailed": "無法載入影片",
-    "databaseDowngradeNotSupported": "資料庫由較新版本的 Stars 建立，請升級應用程式後再開啟。",
+    "databaseDowngradeNotSupported": "資料庫由較新版本的 Hyve 建立，請升級應用程式後再開啟。",
     "databaseRecoveryFailed": "資料庫完整性檢查失敗，且無法從目前版本的備份還原。",
     "durationMilliseconds": "{milliseconds} 毫秒",
     "durationSeconds": "{seconds} 秒"

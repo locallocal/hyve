@@ -3,11 +3,11 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/repositories/platform_message_action_repository.dart';
-import 'package:stars/data/services/attachment_picker_service.dart';
-import 'package:stars/data/services/skills/skill_picker_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
+import 'package:hyve/data/repositories/platform_message_action_repository.dart';
+import 'package:hyve/data/services/attachment_picker_service.dart';
+import 'package:hyve/data/services/skills/skill_picker_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -72,7 +72,7 @@ void main() {
     'Message action repository saves image bytes through FilePicker',
     () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-file-picker-',
+        'hyve-file-picker-',
       );
       addTearDown(() => directory.delete(recursive: true));
       final source = File('${directory.path}/image.png');

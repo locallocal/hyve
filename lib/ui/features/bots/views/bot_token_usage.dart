@@ -3,13 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
-import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
-import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
-import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
+import 'package:hyve/ui/core/widgets/token_usage_indicator.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
+import 'package:hyve/utils/theme.dart';
 
 const double _tokenUsagePieSize = 148;
 
@@ -156,7 +156,7 @@ class _ConversationTokenShare extends StatelessWidget {
                               ],
                               colors: colors,
                               separatorColor:
-                                  StarsDesktopThemeSpec.raisedSurface(context),
+                                  HyveDesktopThemeSpec.raisedSurface(context),
                             ),
                           ),
                         );
@@ -207,8 +207,8 @@ class _EmptyPieChart extends StatelessWidget {
           child: CustomPaint(
             key: const ValueKey<String>('bot-conversation-token-pie-empty'),
             painter: _EmptyPiePainter(
-              color: StarsDesktopThemeSpec.secondarySurface(context),
-              separatorColor: StarsDesktopThemeSpec.divider(context),
+              color: HyveDesktopThemeSpec.secondarySurface(context),
+              separatorColor: HyveDesktopThemeSpec.divider(context),
             ),
           ),
         ),
@@ -216,7 +216,7 @@ class _EmptyPieChart extends StatelessWidget {
         Expanded(
           child: Text(
             S.of(context).noTokenUsageRecorded,
-            style: StarsDesktopThemeSpec.metaStyle(context),
+            style: HyveDesktopThemeSpec.metaStyle(context),
           ),
         ),
       ],
@@ -273,13 +273,13 @@ class _ConversationTokenLegend extends StatelessWidget {
                       labels[index],
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: StarsDesktopThemeSpec.bodyStyle(context),
+                      style: HyveDesktopThemeSpec.bodyStyle(context),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     _formatPercentage(context, entries[index], total),
-                    style: StarsDesktopThemeSpec.metaStyle(context),
+                    style: HyveDesktopThemeSpec.metaStyle(context),
                   ),
                 ],
               ),

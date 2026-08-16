@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/repositories/legal_document_repository_impl.dart';
-import 'package:stars/data/services/asset_text_service.dart';
-import 'package:stars/domain/models/legal_document.dart';
+import 'package:hyve/data/repositories/legal_document_repository_impl.dart';
+import 'package:hyve/data/services/asset_text_service.dart';
+import 'package:hyve/domain/models/legal_document.dart';
 
 void main() {
   group('LegalDocumentRepositoryImpl', () {

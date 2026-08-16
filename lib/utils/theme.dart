@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Semantic desktop colors and accessibility state for Stars.
+/// Semantic desktop colors and accessibility state for Hyve.
 ///
 /// The fallback palette mirrors the shadcn Zinc scheme. Keeping these semantic
 /// names lets legacy Material-only widgets share the same desktop appearance.
@@ -10,8 +10,8 @@ part 'desktop_theme_spec.dart';
 part 'theme_components.dart';
 
 @immutable
-class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
-  const StarsDesktopTokens({
+class HyveDesktopTokens extends ThemeExtension<HyveDesktopTokens> {
+  const HyveDesktopTokens({
     required this.windowBackground,
     required this.contentBackground,
     required this.sidebarOpaque,
@@ -34,11 +34,11 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     required this.highContrast,
   });
 
-  factory StarsDesktopTokens.light({
+  factory HyveDesktopTokens.light({
     bool reduceTransparency = false,
     bool highContrast = false,
   }) {
-    return StarsDesktopTokens(
+    return HyveDesktopTokens(
       windowBackground: const Color(0xFFFFFFFF),
       contentBackground: const Color(0xFFFFFFFF),
       sidebarOpaque: const Color(0xFFFAFAFA),
@@ -65,11 +65,11 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     );
   }
 
-  factory StarsDesktopTokens.dark({
+  factory HyveDesktopTokens.dark({
     bool reduceTransparency = false,
     bool highContrast = false,
   }) {
-    return StarsDesktopTokens(
+    return HyveDesktopTokens(
       windowBackground: const Color(0xFF09090B),
       contentBackground: const Color(0xFF09090B),
       sidebarOpaque: const Color(0xFF18181B),
@@ -117,17 +117,17 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
   final bool reduceTransparency;
   final bool highContrast;
 
-  static StarsDesktopTokens of(BuildContext context) {
+  static HyveDesktopTokens of(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final extension = Theme.of(context).extension<StarsDesktopTokens>();
+    final extension = Theme.of(context).extension<HyveDesktopTokens>();
     final shadTheme = ShadTheme.maybeOf(context);
     var tokens =
         shadTheme == null
             ? extension ??
                 (brightness == Brightness.dark
-                    ? StarsDesktopTokens.dark()
-                    : StarsDesktopTokens.light())
-            : StarsDesktopTokens.fromShad(
+                    ? HyveDesktopTokens.dark()
+                    : HyveDesktopTokens.light())
+            : HyveDesktopTokens.fromShad(
               shadTheme,
               reduceTransparency: extension?.reduceTransparency ?? false,
               highContrast: extension?.highContrast ?? false,
@@ -140,7 +140,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     return tokens;
   }
 
-  StarsDesktopTokens _withHighContrast(Brightness brightness) {
+  HyveDesktopTokens _withHighContrast(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     return copyWith(
       highContrast: true,
@@ -150,14 +150,14 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     );
   }
 
-  factory StarsDesktopTokens.fromShad(
+  factory HyveDesktopTokens.fromShad(
     ShadThemeData theme, {
     bool reduceTransparency = false,
     bool highContrast = false,
   }) {
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final tokens = StarsDesktopTokens(
+    final tokens = HyveDesktopTokens(
       windowBackground: colors.background,
       contentBackground: colors.background,
       sidebarOpaque: isDark ? const Color(0xFF18181B) : const Color(0xFFFAFAFA),
@@ -183,7 +183,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
   }
 
   @override
-  StarsDesktopTokens copyWith({
+  HyveDesktopTokens copyWith({
     Color? windowBackground,
     Color? contentBackground,
     Color? sidebarOpaque,
@@ -205,7 +205,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
     bool? reduceTransparency,
     bool? highContrast,
   }) {
-    return StarsDesktopTokens(
+    return HyveDesktopTokens(
       windowBackground: windowBackground ?? this.windowBackground,
       contentBackground: contentBackground ?? this.contentBackground,
       sidebarOpaque: sidebarOpaque ?? this.sidebarOpaque,
@@ -230,11 +230,11 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
   }
 
   @override
-  StarsDesktopTokens lerp(covariant StarsDesktopTokens? other, double t) {
+  HyveDesktopTokens lerp(covariant HyveDesktopTokens? other, double t) {
     if (other == null) {
       return this;
     }
-    return StarsDesktopTokens(
+    return HyveDesktopTokens(
       windowBackground:
           Color.lerp(windowBackground, other.windowBackground, t)!,
       contentBackground:
@@ -262,7 +262,7 @@ class StarsDesktopTokens extends ThemeExtension<StarsDesktopTokens> {
   }
 }
 
-ShadThemeData buildStarsShadTheme({
+ShadThemeData buildHyveShadTheme({
   required Brightness brightness,
   required double fontSize,
   bool highContrast = false,
@@ -355,7 +355,7 @@ ThemeData buildLegacyMobileTheme({
 }) {
   final tokens =
       brightness == Brightness.dark
-          ? StarsDesktopTokens(
+          ? HyveDesktopTokens(
             windowBackground: const Color(0xFF1C1C1E),
             contentBackground: const Color(0xFF18181A),
             sidebarOpaque: const Color(0xFF242426),
@@ -383,7 +383,7 @@ ThemeData buildLegacyMobileTheme({
             reduceTransparency: reduceTransparency,
             highContrast: highContrast,
           )
-          : StarsDesktopTokens(
+          : HyveDesktopTokens(
             windowBackground: const Color(0xFFF5F5F7),
             contentBackground: const Color(0xFFFFFFFF),
             sidebarOpaque: const Color(0xFFF0F0F2),
@@ -507,10 +507,7 @@ ThemeData buildLegacyMobileTheme({
         color: tokens.raisedSurface,
         border: Border.all(color: tokens.separator, width: 0),
         borderRadius: containerRadius,
-        boxShadow: StarsDesktopThemeSpec.floatingShadowFor(
-          tokens,
-          subtle: true,
-        ),
+        boxShadow: HyveDesktopThemeSpec.floatingShadowFor(tokens, subtle: true),
       ),
       textStyle: TextStyle(color: tokens.primaryText, fontSize: 12),
       waitDuration: const Duration(milliseconds: 450),
@@ -526,11 +523,11 @@ ThemeData buildAppTheme({
 }) {
   final tokens =
       brightness == Brightness.dark
-          ? StarsDesktopTokens.dark(
+          ? HyveDesktopTokens.dark(
             highContrast: highContrast,
             reduceTransparency: reduceTransparency,
           )
-          : StarsDesktopTokens.light(
+          : HyveDesktopTokens.light(
             highContrast: highContrast,
             reduceTransparency: reduceTransparency,
           );
@@ -639,15 +636,15 @@ ThemeData buildAppTheme({
       isDense: true,
       hintStyle: TextStyle(color: tokens.tertiaryText),
       border: OutlineInputBorder(
-        borderRadius: StarsDesktopThemeSpec.controlRadius,
+        borderRadius: HyveDesktopThemeSpec.controlRadius,
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: StarsDesktopThemeSpec.controlRadius,
+        borderRadius: HyveDesktopThemeSpec.controlRadius,
         borderSide: BorderSide(color: tokens.separator),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: StarsDesktopThemeSpec.controlRadius,
+        borderRadius: HyveDesktopThemeSpec.controlRadius,
         borderSide: BorderSide(
           color: tokens.focusRing,
           width: highContrast ? 2 : 1.5,
@@ -669,7 +666,7 @@ ThemeData buildAppTheme({
         }),
         shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            borderRadius: StarsDesktopThemeSpec.controlRadius,
+            borderRadius: HyveDesktopThemeSpec.controlRadius,
           ),
         ),
       ),
@@ -678,11 +675,8 @@ ThemeData buildAppTheme({
       decoration: BoxDecoration(
         color: tokens.raisedSurface,
         border: Border.all(color: tokens.separator),
-        borderRadius: StarsDesktopThemeSpec.containerRadius,
-        boxShadow: StarsDesktopThemeSpec.floatingShadowFor(
-          tokens,
-          subtle: true,
-        ),
+        borderRadius: HyveDesktopThemeSpec.containerRadius,
+        boxShadow: HyveDesktopThemeSpec.floatingShadowFor(tokens, subtle: true),
       ),
       textStyle: TextStyle(color: tokens.primaryText, fontSize: 12),
       waitDuration: const Duration(milliseconds: 450),

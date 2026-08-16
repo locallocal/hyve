@@ -12,18 +12,18 @@ class _McpServerEditorDialog extends StatefulWidget {
 
 class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   static const double _desktopFieldWidth =
-      StarsDesktopThemeSpec.addBotFormFieldWidth;
+      HyveDesktopThemeSpec.addBotFormFieldWidth;
   static const double _desktopSectionPadding =
-      StarsDesktopThemeSpec.botFormSectionPadding;
+      HyveDesktopThemeSpec.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
-      StarsDesktopThemeSpec.botFormSectionBorderWidth;
+      HyveDesktopThemeSpec.botFormSectionBorderWidth;
   static const double _desktopTransportMenuWidth = 256;
   static const double _desktopFormWidth =
       _desktopFieldWidth +
       _desktopSectionPadding * 2 +
       _desktopSectionBorderWidth * 2;
   static const BoxConstraints _desktopInputConstraints = BoxConstraints(
-    minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+    minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
   );
 
   final _desktopFormKey = GlobalKey<ShadFormState>();
@@ -307,7 +307,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
 
   Widget _buildDesktopHeader(BuildContext context) {
     final strings = S.of(context);
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final editing = widget.server != null;
 
     return Padding(
@@ -337,20 +337,20 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
                   editing ? strings.editMcpServer : strings.addMcpServer,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
+                  style: HyveDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   strings.mcpServersDescription,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          StarsDesktopIconAction(
+          HyveDesktopIconAction(
             icon: LucideIcons.x,
             label: MaterialLocalizations.of(context).closeButtonTooltip,
             onPressed: () => Navigator.of(context).pop(),
@@ -367,7 +367,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
     List<Widget> children, {
     required Key sectionKey,
   }) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadCard(
       key: sectionKey,
       width: double.infinity,
@@ -380,9 +380,9 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
-          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
-        ),
+        style: HyveDesktopThemeSpec.sectionTitleStyle(
+          context,
+        )?.copyWith(fontSize: HyveDesktopThemeSpec.botFormSectionTitleFontSize),
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
@@ -444,7 +444,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-name'),
       id: 'name',
       controller: _nameController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).mcpServerName),
       leading: _desktopInputLeading(LucideIcons.server),
@@ -460,17 +460,17 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-transport'),
       id: 'transport',
       controller: _transportController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       readOnly: true,
       label: Text(S.of(context).mcpTransport),
       leading: _desktopInputLeading(LucideIcons.arrowLeftRight),
       constraints: _desktopInputConstraints,
-      trailing: StarsDesktopMenu<McpTransportType>(
+      trailing: HyveDesktopMenu<McpTransportType>(
         width: _desktopTransportMenuWidth,
         alignEnd: true,
         items: [
           for (final transportType in McpTransportType.values)
-            StarsDesktopMenuItem<McpTransportType>(
+            HyveDesktopMenuItem<McpTransportType>(
               value: transportType,
               label: _transportLabel(transportType),
               selected: transportType == _transportType,
@@ -478,7 +478,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
         ],
         onSelected: _setTransportType,
         triggerBuilder:
-            (context, toggle, isOpen) => StarsDesktopIconAction(
+            (context, toggle, isOpen) => HyveDesktopIconAction(
               key: const ValueKey<String>('mcp-server-transport-menu'),
               icon: LucideIcons.chevronDown,
               label: S.of(context).mcpTransport,
@@ -495,7 +495,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-endpoint'),
       id: 'endpoint',
       controller: _endpointController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       autocorrect: false,
       keyboardType: TextInputType.url,
@@ -514,7 +514,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-command'),
       id: 'command',
       controller: _commandController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       autocorrect: false,
       label: Text(S.of(context).mcpCommand),
@@ -564,10 +564,10 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
   }
 
   Widget _buildDesktopAuthInput(BuildContext context) {
-    return StarsDesktopMenu<McpAuthType>(
+    return HyveDesktopMenu<McpAuthType>(
       items: [
         for (final authType in McpAuthType.values)
-          StarsDesktopMenuItem<McpAuthType>(
+          HyveDesktopMenuItem<McpAuthType>(
             value: authType,
             label: _authLabel(authType),
             selected: authType == _authType,
@@ -579,13 +579,13 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
             key: const ValueKey<String>('mcp-server-authentication'),
             id: 'authentication',
             controller: _authController,
-            padding: StarsDesktopThemeSpec.formFieldPadding,
+            padding: HyveDesktopThemeSpec.formFieldPadding,
             readOnly: true,
             label: Text(S.of(context).mcpAuthentication),
             leading: _desktopInputLeading(LucideIcons.keyRound),
             constraints: _desktopInputConstraints,
             onPressed: toggle,
-            trailing: StarsDesktopIconAction(
+            trailing: HyveDesktopIconAction(
               key: const ValueKey<String>('mcp-server-authentication-menu'),
               onPressed: toggle,
               icon: LucideIcons.chevronDown,
@@ -602,7 +602,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       key: const ValueKey<String>('mcp-server-access-token'),
       id: 'accessToken',
       controller: _tokenController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       obscureText: true,
       enableSuggestions: false,
       autocorrect: false,

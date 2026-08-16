@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/views/chat.dart';
-import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
-import 'package:stars/ui/features/chats/views/chat_item.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/utils.dart';
-import 'package:stars/utils/time.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chats/views/chat_item.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/utils/utils.dart';
+import 'package:hyve/utils/time.dart';
+import 'package:hyve/utils/theme.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatListBuilder extends StatelessWidget {
@@ -65,11 +65,11 @@ class ChatListBuilder extends StatelessWidget {
             );
         void openChat({bool refreshAfterClose = false}) {
           if (isOrphaned) {
-            showStarsNotice(
+            showHyveNotice(
               context,
               S.of(context).botUnavailableTitle,
               description: S.of(context).orphanedChatGuidance,
-              tone: StarsNoticeTone.error,
+              tone: HyveNoticeTone.error,
             );
             return;
           }
@@ -160,7 +160,7 @@ class ChatListBuilder extends StatelessWidget {
                               child: Text(
                                 S.of(dialogContext).delete,
                                 style: TextStyle(
-                                  color: StarsDesktopThemeSpec.error(
+                                  color: HyveDesktopThemeSpec.error(
                                     dialogContext,
                                   ),
                                 ),
@@ -173,11 +173,11 @@ class ChatListBuilder extends StatelessWidget {
           if (confirm != true || !context.mounted) return;
           if (isDesktop && registry.hasBlockingRun(chat.id)) {
             if (!registry.supportsCancellationForRun(chat.id)) {
-              showStarsNotice(
+              showHyveNotice(
                 context,
                 S.of(context).activeRequestCannotStop,
                 description: S.of(context).waitForGenerationToFinish,
-                tone: StarsNoticeTone.error,
+                tone: HyveNoticeTone.error,
               );
               return;
             }
@@ -188,11 +188,11 @@ class ChatListBuilder extends StatelessWidget {
             final stopped = await registry.stopForNavigation(chat.id);
             if (!stopped || !context.mounted) {
               if (context.mounted) {
-                showStarsNotice(
+                showHyveNotice(
                   context,
                   S.of(context).activeRequestCannotStop,
                   description: S.of(context).waitForGenerationToFinish,
-                  tone: StarsNoticeTone.error,
+                  tone: HyveNoticeTone.error,
                 );
               }
               return;
@@ -203,11 +203,11 @@ class ChatListBuilder extends StatelessWidget {
             final canDelete = await registry.stopForNavigation(chat.id);
             if (!canDelete || !context.mounted) {
               if (context.mounted) {
-                showStarsNotice(
+                showHyveNotice(
                   context,
                   S.of(context).activeRequestCannotStop,
                   description: S.of(context).waitForGenerationToFinish,
-                  tone: StarsNoticeTone.error,
+                  tone: HyveNoticeTone.error,
                 );
               }
               return;
@@ -219,10 +219,10 @@ class ChatListBuilder extends StatelessWidget {
             final message = S
                 .of(context)
                 .deleteChatFailed(safeFailureMessage(context, error));
-            showStarsNotice(
+            showHyveNotice(
               context,
               message,
-              tone: StarsNoticeTone.error,
+              tone: HyveNoticeTone.error,
               actionLabel: S.of(context).retry,
               onAction: deleteChat,
             );
@@ -280,7 +280,7 @@ class ChatListBuilder extends StatelessWidget {
               child: Text(S.of(context).delete),
             ),
           ];
-          return StarsContextMenu(
+          return HyveContextMenu(
             key: ValueKey('chat-menu-${chat.id}'),
             items: contextItems,
             child: buildListItem(
@@ -420,7 +420,7 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
               ),
             ),
           ),
-      child: StarsDesktopIconAction(
+      child: HyveDesktopIconAction(
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
         focusNode: _focusNode,

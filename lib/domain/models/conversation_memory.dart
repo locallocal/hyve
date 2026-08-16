@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/message.dart';
+import 'package:hyve/domain/models/message.dart';
 
 enum ModelContextProfileSource {
   builtInCatalog,

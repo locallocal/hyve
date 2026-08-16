@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/features/bots/views/edit_bot.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../support/widget_test_support.dart';
 
@@ -49,10 +49,8 @@ void main() {
     final detailContext = tester.element(
       find.byKey(const ValueKey<String>('desktop-bot-detail-scaffold')),
     );
-    final workspaceColor = StarsDesktopThemeSpec.workspaceSurface(
-      detailContext,
-    );
-    final raisedSurface = StarsDesktopTokens.of(detailContext).raisedSurface;
+    final workspaceColor = HyveDesktopThemeSpec.workspaceSurface(detailContext);
+    final raisedSurface = HyveDesktopTokens.of(detailContext).raisedSurface;
     final detailContent = find.byKey(
       const ValueKey<String>('desktop-bot-detail-content'),
     );
@@ -68,8 +66,8 @@ void main() {
     expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
     expect(
       tester.getSize(detailContent).width,
-      StarsDesktopThemeSpec.formContentMaxWidth +
-          StarsDesktopThemeSpec.formPagePadding.horizontal,
+      HyveDesktopThemeSpec.formContentMaxWidth +
+          HyveDesktopThemeSpec.formPagePadding.horizontal,
     );
     final basicSection = find.byKey(
       const ValueKey<String>('desktop-bot-basic-section'),
@@ -93,7 +91,7 @@ void main() {
       expect(section, findsOneWidget);
       expect(
         tester.getSize(section).width,
-        StarsDesktopThemeSpec.formContentMaxWidth,
+        HyveDesktopThemeSpec.formContentMaxWidth,
       );
       expect(tester.widget<ShadCard>(section).backgroundColor, raisedSurface);
     }
@@ -108,7 +106,7 @@ void main() {
       );
       expect(
         titleText.style?.fontSize,
-        StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+        HyveDesktopThemeSpec.botFormSectionTitleFontSize,
       );
     }
     expect(
@@ -338,12 +336,12 @@ void main() {
     );
     expect(
       tester.widget<Icon>(providerIcon).size,
-      StarsDesktopThemeSpec.settingsRowIconSize,
+      HyveDesktopThemeSpec.settingsRowIconSize,
     );
     expect(
       tester.getSize(providerDetail).height,
-      StarsDesktopThemeSpec.settingsRowMinHeight +
-          StarsDesktopThemeSpec.settingsRowPadding.vertical,
+      HyveDesktopThemeSpec.settingsRowMinHeight +
+          HyveDesktopThemeSpec.settingsRowPadding.vertical,
     );
     final providerSeparators = find.descendant(
       of: providerSection,
@@ -352,7 +350,7 @@ void main() {
     expect(providerSeparators, findsNWidgets(3));
     expect(
       tester.widget<ShadSeparator>(providerSeparators.first).margin,
-      StarsDesktopThemeSpec.settingsRowSeparatorMargin,
+      HyveDesktopThemeSpec.settingsRowSeparatorMargin,
     );
 
     final systemPromptDetail = find.byKey(
@@ -368,7 +366,7 @@ void main() {
     );
     expect(
       tester.getSize(systemPromptValue).width,
-      greaterThan(StarsDesktopThemeSpec.settingsRowValueMaxWidth),
+      greaterThan(HyveDesktopThemeSpec.settingsRowValueMaxWidth),
     );
     expect(
       tester.getTopLeft(systemPromptValue).dy,
@@ -446,9 +444,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final expectedFieldWidth =
-        StarsDesktopThemeSpec.formContentMaxWidth -
-        (StarsDesktopThemeSpec.botFormSectionPadding +
-                StarsDesktopThemeSpec.botFormSectionBorderWidth) *
+        HyveDesktopThemeSpec.formContentMaxWidth -
+        (HyveDesktopThemeSpec.botFormSectionPadding +
+                HyveDesktopThemeSpec.botFormSectionBorderWidth) *
             2;
     expect(
       find.byKey(const ValueKey<String>('desktop-bot-token-usage-section')),
@@ -468,7 +466,7 @@ void main() {
       expect(tester.getSize(inputFinder).width, expectedFieldWidth);
       expect(
         tester.getSize(inputFinder).height,
-        StarsDesktopThemeSpec.botFormFieldHeight,
+        HyveDesktopThemeSpec.botFormFieldHeight,
       );
       final editableText = find.descendant(
         of: inputFinder,
@@ -485,7 +483,7 @@ void main() {
     expect(tester.getSize(nameInput).width, expectedFieldWidth);
     expect(
       tester.getSize(nameInput).height,
-      StarsDesktopThemeSpec.botFormFieldHeight,
+      HyveDesktopThemeSpec.botFormFieldHeight,
     );
     final nameEditableText = find.descendant(
       of: nameInput,
@@ -604,7 +602,6 @@ void main() {
 
     expect(createCount, 1);
     expect(searchCount, 1);
-    expect(find.text('Stars'), findsNothing);
+    expect(find.text('Hyve'), findsNothing);
   });
-
 }

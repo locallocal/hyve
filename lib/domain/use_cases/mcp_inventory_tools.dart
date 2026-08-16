@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_inventory_repository.dart';
 
 final class McpInventoryToolSession {
   const McpInventoryToolSession({
@@ -143,7 +143,7 @@ final class ListInstalledMcpServersTool implements ExecutableTool {
     name: listInstalledMcpServersToolName,
     title: 'List installed MCP servers',
     description:
-        'Run a read-only, parameterized SQLite query over installed Stars MCP '
+        'Run a read-only, parameterized SQLite query over installed Hyve MCP '
         'servers, connection state, and cached Tool counts.',
     inputSchema: const {
       'type': 'object',
@@ -202,7 +202,7 @@ final class ListCurrentConversationMcpTool implements ExecutableTool {
     description:
         'Run a read-only SQLite query for the current conversation, its '
         'associated Bot, configured MCP servers, enabled Tools, availability, '
-        'and approval settings. Stars binds the conversation identity.',
+        'and approval settings. Hyve binds the conversation identity.',
     inputSchema: const {
       'type': 'object',
       'properties': <String, Object?>{},

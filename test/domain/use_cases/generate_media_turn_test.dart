@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/use_cases/generate_media_turn.dart';
-import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/use_cases/generate_media_turn.dart';
+import 'package:hyve/domain/use_cases/persist_conversation_assets.dart';
 
 void main() {
   late _MemoryMessages messages;

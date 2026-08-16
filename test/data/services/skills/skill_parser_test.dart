@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/skills/skill_parser.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/skills/skill_parser.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   late Directory temporaryDirectory;
 
   setUp(() async {
     temporaryDirectory = await Directory.systemTemp.createTemp(
-      'stars-skill-parser-',
+      'hyve-skill-parser-',
     );
   });
 
@@ -28,7 +28,7 @@ void main() {
 name: release-notes
 description: Prepare concise release notes from a change list.
 license: Apache-2.0
-compatibility: Stars desktop
+compatibility: Hyve desktop
 metadata:
   version: "1.2.0"
 allowed-tools: read search
@@ -47,7 +47,7 @@ Summarize user-visible changes first.
     expect(parsed.description, contains('concise release notes'));
     expect(parsed.version, '1.2.0');
     expect(parsed.license, 'Apache-2.0');
-    expect(parsed.compatibility, 'Stars desktop');
+    expect(parsed.compatibility, 'Hyve desktop');
     expect(parsed.requestedToolNames, {'read', 'search'});
     expect(parsed.instructions, contains('Summarize user-visible changes'));
     expect(parsed.hasReferences, isTrue);

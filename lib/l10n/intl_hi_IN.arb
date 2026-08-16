@@ -1,6 +1,6 @@
 {
     "@@locale": "hi_IN",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "एप्लिकेशन का नाम"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "थीम डार्क मोड पर सेट की गई"
     },
-    "aboutApp": "Stars के बारे में",
+    "aboutApp": "Hyve के बारे में",
     "@aboutApp": {
         "description": "एप्लयन के बारे में"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "एप्लयन विवरण"
     },
-    "copyright": "© {year} Stars टीम",
+    "copyright": "© {year} Hyve टीम",
     "@copyright": {
         "description": "कॉपीराइट जानकारी",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "संस्करण जानकारी"
     },
-    "appTitle": "Stars - AI चैट सहायक",
+    "appTitle": "Hyve - AI चैट सहायक",
     "@appTitle": {
         "description": "एप्लयन शीर्षक"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "दिखावट और भाषा",
     "desktopGeneral": "सामान्य",
     "applicationInjectedPrompt": "सिस्टम प्रॉम्प्ट",
-    "applicationInjectedPromptDescription": "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
+    "applicationInjectedPromptDescription": "Hyve इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
     "desktopHelpAndSupport": "सहायता और समर्थन",
     "desktopAboutAndLegal": "ऐप के बारे में और कानूनी जानकारी",
     "desktopSettingsDescription": "अपनी प्रोफ़ाइल, दिखावट, भाषा और ऐप सहायता प्रबंधित करें।",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -903,7 +903,7 @@
     "startupFailed": "शुरू नहीं हो सका। फिर से कोशिश करें।",
     "videoPlaybackError": "वीडियो चलाने में त्रुटि: {error}",
     "videoLoadFailed": "वीडियो लोड नहीं हो सका",
-    "databaseDowngradeNotSupported": "यह डेटाबेस Stars के नए संस्करण से बनाया गया था। इसे खोलने से पहले ऐप अपडेट करें।",
+    "databaseDowngradeNotSupported": "यह डेटाबेस Hyve के नए संस्करण से बनाया गया था। इसे खोलने से पहले ऐप अपडेट करें।",
     "databaseRecoveryFailed": "डेटाबेस अखंडता जाँच विफल रही और इस संस्करण के बैकअप से पुनर्प्राप्ति नहीं हो सकी।",
     "durationMilliseconds": "{milliseconds} मिलीसेकंड",
     "durationSeconds": "{seconds} सेकंड"

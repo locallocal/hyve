@@ -5,8 +5,8 @@ part of 'message_input.dart';
 /// In 0.55, [ShadTextarea.minHeight] and [ShadTextarea.maxHeight] describe the
 /// editable area rather than the complete decorated control. Measuring here
 /// keeps the visible control within the desktop composer's 44–120/160 contract.
-class StarsChatTextarea extends StatefulWidget {
-  const StarsChatTextarea({
+class HyveChatTextarea extends StatefulWidget {
+  const HyveChatTextarea({
     super.key,
     required this.controller,
     required this.focusNode,
@@ -29,10 +29,10 @@ class StarsChatTextarea extends StatefulWidget {
   );
 
   @override
-  State<StarsChatTextarea> createState() => _StarsChatTextareaState();
+  State<HyveChatTextarea> createState() => _HyveChatTextareaState();
 }
 
-class _StarsChatTextareaState extends State<StarsChatTextarea> {
+class _HyveChatTextareaState extends State<HyveChatTextarea> {
   late String _text;
 
   @override
@@ -43,7 +43,7 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
   }
 
   @override
-  void didUpdateWidget(covariant StarsChatTextarea oldWidget) {
+  void didUpdateWidget(covariant HyveChatTextarea oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_handleTextChanged);
@@ -79,10 +79,10 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
     double maxWidth,
     TextStyle style,
   ) {
-    final horizontalPadding = StarsChatTextarea.contentPadding.horizontal;
-    final verticalPadding = StarsChatTextarea.contentPadding.vertical;
+    final horizontalPadding = HyveChatTextarea.contentPadding.horizontal;
+    final verticalPadding = HyveChatTextarea.contentPadding.vertical;
     final availableWidth =
-        (maxWidth - horizontalPadding - StarsChatTextarea.caretAllowance)
+        (maxWidth - horizontalPadding - HyveChatTextarea.caretAllowance)
             .clamp(1.0, double.infinity)
             .toDouble();
     final painter = TextPainter(
@@ -95,7 +95,7 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
     )..layout(maxWidth: availableWidth);
     final measured = painter.height + verticalPadding;
     return measured
-        .clamp(StarsChatTextarea.minHeight, widget.maxHeight)
+        .clamp(HyveChatTextarea.minHeight, widget.maxHeight)
         .toDouble();
   }
 
@@ -111,7 +111,7 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
                 : MediaQuery.sizeOf(context).width;
         final height = _measureHeight(context, maxWidth, style);
         final editableHeight =
-            height - StarsChatTextarea.contentPadding.vertical;
+            height - HyveChatTextarea.contentPadding.vertical;
 
         return SizedBox(
           height: height,
@@ -124,7 +124,7 @@ class _StarsChatTextareaState extends State<StarsChatTextarea> {
                 color: ShadTheme.of(context).colorScheme.mutedForeground,
               ),
               style: style,
-              padding: StarsChatTextarea.contentPadding,
+              padding: HyveChatTextarea.contentPadding,
               decoration: ShadDecoration.none,
               constraints: BoxConstraints.tightFor(height: height),
               minHeight: editableHeight,

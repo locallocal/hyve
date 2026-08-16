@@ -6,26 +6,26 @@ part of 'chat.dart';
 extension _ChatPageWorkspace on ChatPageState {
   Widget _buildDesktopWorkspace(BuildContext context, double? fontSize) {
     return Container(
-      color: StarsDesktopTokens.of(context).contentBackground,
+      color: HyveDesktopTokens.of(context).contentBackground,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: StarsDesktopTokens.of(context).contentBackground,
+          color: HyveDesktopTokens.of(context).contentBackground,
         ),
         child: Column(
           children: [
             Expanded(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  StarsDesktopThemeSpec.formPagePadding.left,
+                  HyveDesktopThemeSpec.formPagePadding.left,
                   0,
-                  StarsDesktopThemeSpec.formPagePadding.right,
+                  HyveDesktopThemeSpec.formPagePadding.right,
                   0,
                 ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
-                      maxWidth: StarsDesktopThemeSpec.contentMaxWidth,
+                      maxWidth: HyveDesktopThemeSpec.contentMaxWidth,
                     ),
                     child: SizedBox(
                       key: const ValueKey<String>('desktop-chat-content'),
@@ -52,18 +52,18 @@ extension _ChatPageWorkspace on ChatPageState {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-        StarsDesktopThemeSpec.formPagePadding.left,
+        HyveDesktopThemeSpec.formPagePadding.left,
         8,
-        StarsDesktopThemeSpec.formPagePadding.right,
+        HyveDesktopThemeSpec.formPagePadding.right,
         18,
       ),
       decoration: BoxDecoration(
-        color: StarsDesktopTokens.of(context).contentBackground,
+        color: HyveDesktopTokens.of(context).contentBackground,
       ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: StarsDesktopThemeSpec.contentMaxWidth,
+            maxWidth: HyveDesktopThemeSpec.contentMaxWidth,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

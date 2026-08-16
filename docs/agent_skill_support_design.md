@@ -1,14 +1,14 @@
-# Stars 智能体 Skill 支持整体方案
+# Hyve 智能体 Skill 支持整体方案
 
 > 状态：方案草案
 >
 > 调研日期：2026-07-26
 >
-> 适用范围：Stars 桌面端优先，兼顾移动端可复用能力
+> 适用范围：Hyve 桌面端优先，兼顾移动端可复用能力
 
 ## 1. 结论摘要
 
-Stars 应采用开放的 [Agent Skills 规范](https://agentskills.io/specification) 作为 Skill
+Hyve 应采用开放的 [Agent Skills 规范](https://agentskills.io/specification) 作为 Skill
 包格式，在应用内实现独立于模型厂商的 Skill 管理、渐进式加载和运行编排层；Tool 作为
 可执行能力单独建模，MCP 作为后续可插拔的 Tool、Resource 和 Prompt 接入协议。
 
@@ -31,11 +31,11 @@ Stars 应采用开放的 [Agent Skills 规范](https://agentskills.io/specificat
 
 ### 2.1 Skill、Tool、MCP 不是同一个概念
 
-| 概念 | 在 Stars 中的职责 | 是否可产生副作用 | 控制方 |
+| 概念 | 在 Hyve 中的职责 | 是否可产生副作用 | 控制方 |
 | --- | --- | --- | --- |
 | Skill | 可复用的任务流程、领域知识、示例和资源索引 | 指令本身不应产生副作用 | 用户选择或模型按描述激活 |
 | Tool | 具有输入/输出 Schema 的可执行能力 | 可能读取数据或修改外部状态 | 模型提出调用，应用授权并执行 |
-| MCP | Tool、Resource、Prompt 的标准化连接协议 | 取决于具体 Server 和 Tool | Stars 作为 MCP Host 管理 |
+| MCP | Tool、Resource、Prompt 的标准化连接协议 | 取决于具体 Server 和 Tool | Hyve 作为 MCP Host 管理 |
 | Provider | 将上下文和工具定义转换为厂商请求，解析模型事件 | 不直接决定本地权限 | Provider 适配器 |
 
 MCP 官方将 Prompt、Resource、Tool 分别归为用户控制、应用控制和模型控制的原语，并把
@@ -78,11 +78,11 @@ metadata:
 `description` 最长 1024 个字符，且应同时描述“做什么”和“何时使用”。可选字段包括
 `license`、`compatibility`、`metadata` 和实验性的 `allowed-tools`。
 
-规范没有顶层 `version` 字段。Stars 的展示版本从 `metadata.version` 读取，缺失时保持
+规范没有顶层 `version` 字段。Hyve 的展示版本从 `metadata.version` 读取，缺失时保持
 为空；导出时不能为了内部存储方便而写入非标准顶层字段。
 
-Stars 对 `allowed-tools` 的解释是“Skill 声明希望使用的能力”，而不是安全授权。真正的
-授权仍由 Stars 的 Tool Policy 和用户审批决定，避免安装包自行扩大权限。
+Hyve 对 `allowed-tools` 的解释是“Skill 声明希望使用的能力”，而不是安全授权。真正的
+授权仍由 Hyve 的 Tool Policy 和用户审批决定，避免安装包自行扩大权限。
 
 ## 3. 外部方案调研与选型
 
@@ -119,9 +119,9 @@ OpenAI 将 Skill 定义为包含指令、示例和代码的可复用工作流，
 开放标准，可在 ChatGPT、Codex 和 API 等表面使用。OpenAI 的托管实现会以版本化包管理
 Skill，并将包放入隔离运行环境，再让模型渐进读取和执行。
 
-这证明“标准 Skill 包 + 运行容器 + Agent Loop”是一条成熟方向，但 Stars 同时支持大量
+这证明“标准 Skill 包 + 运行容器 + Agent Loop”是一条成熟方向，但 Hyve 同时支持大量
 非 OpenAI Provider，因此不能把 OpenAI 托管能力作为核心依赖。后续可以针对支持托管
-Skill 的 Provider 做优化，默认实现仍应在 Stars 本地完成目录、权限和编排。
+Skill 的 Provider 做优化，默认实现仍应在 Hyve 本地完成目录、权限和编排。
 
 ### 3.3 MCP
 
@@ -129,10 +129,10 @@ Skill 的 Provider 做优化，默认实现仍应在 Stars 本地完成目录、
 为 Tool 定义了名称、说明、JSON Schema 输入、可选输出 Schema 和结构化结果，并要求
 客户端明确展示暴露给模型的工具、显示调用状态、允许用户拒绝调用。
 
-MCP 适合作为 Stars 的外部能力层：
+MCP 适合作为 Hyve 的外部能力层：
 
 - Skill 声明需要某类能力；
-- Stars 的 Tool Registry 从内建 Tool 或 MCP Server 查找匹配能力；
+- Hyve 的 Tool Registry 从内建 Tool 或 MCP Server 查找匹配能力；
 - Tool Policy 做授权；
 - Agent Loop 执行并把结果回传模型。
 
@@ -149,7 +149,7 @@ MCP 适合作为 Stars 的外部能力层：
 - **让每个 Provider 自行实现 Skill**：会把激活、权限和审计逻辑复制到几十个适配器。
 - **把 Skill 当作 MCP Tool**：丢失多步骤流程、示例、模板和按需参考资料。
 
-## 4. Stars 现状与差距
+## 4. Hyve 现状与差距
 
 ### 4.1 可复用的现有能力
 
@@ -180,7 +180,7 @@ MCP 适合作为 Stars 的外部能力层：
 4. **没有 Skill 安装、解析、索引和绑定模型。**
 
 5. **没有执行权限和沙箱。**
-   直接开放 `scripts/` 会让下载的 Skill 以 Stars 进程权限执行本机代码。
+   直接开放 `scripts/` 会让下载的 Skill 以 Hyve 进程权限执行本机代码。
 
 ## 5. 目标与非目标
 
@@ -244,7 +244,7 @@ Data services
   └─ sandbox helper（桌面端后期）
 ```
 
-架构继续遵循 [Stars 现有分层约束](architecture.md)：
+架构继续遵循 [Hyve 现有分层约束](architecture.md)：
 
 - View 不解析 Skill、不访问文件系统或数据库；
 - ViewModel 只暴露不可变状态和用户命令；
@@ -259,14 +259,14 @@ Data services
 建议支持以下来源，优先级从低到高：
 
 1. `bundled`：随应用发布的只读 Skill；
-2. `user`：用户导入并安装到 Stars 应用数据目录的 Skill；
-3. `project`：将来 Stars 引入工作区概念后，扫描项目 `.agents/skills/`；
+2. `user`：用户导入并安装到 Hyve 应用数据目录的 Skill；
+3. `project`：将来 Hyve 引入工作区概念后，扫描项目 `.agents/skills/`；
 4. `conversation override`：用户为当前会话明确选择的具体 Skill 版本。
 
 同名冲突采用确定性规则：`project > user > bundled`，并在管理 UI 显示被遮蔽项。Bot
 绑定引用稳定 `skillId`；一次运行记录内容摘要，防止更新后无法解释旧结果。
 
-当前 Stars 没有“项目工作区”概念，因此第一期只实现 `bundled` 和 `user`，不应递归扫描
+当前 Hyve 没有“项目工作区”概念，因此第一期只实现 `bundled` 和 `user`，不应递归扫描
 整个用户目录。桌面端若以后允许额外扫描目录，必须由用户显式添加根目录，并限制最大
 深度、目录数和扫描时间。
 
@@ -478,7 +478,7 @@ ON skill_activations(run_id);
 
 自动激活是模型驱动而不是仅靠关键词匹配。官方指南指出，大多数实现让模型依据
 `description` 判断；官方的描述优化指南也建议同时维护应触发和不应触发的近似用例，并
-多次运行统计触发率。因此 Stars 应为 Skill 作者提供描述质量提示和触发测试，而不能把
+多次运行统计触发率。因此 Hyve 应为 Skill 作者提供描述质量提示和触发测试，而不能把
 关键词命中当作最终激活结果。
 
 ### 9.3 提示词优先级
@@ -652,11 +652,11 @@ MCP 阶段的组件：
 - `ToolRegistry`：将内建与 MCP Tool 合并并处理名称冲突。
 
 MCP 官方安全指南特别指出本地 Server 可能带来任意代码执行、数据泄露和数据损坏风险。
-Stars 若支持一键添加本地 Server，必须在启动前显示完整命令和参数、明确风险并要求确认；
+Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令和参数、明确风险并要求确认；
 优先使用 stdio，远程连接需要严格的授权、重定向校验和最小作用域。
 
 当 Tool 数量较大时，不能把所有完整 Schema 塞入每轮上下文。MCP 客户端最佳实践建议
-采用 Catalog → Inspect → Execute 的渐进发现方式；Stars 可复用与 Skill 相同的目录
+采用 Catalog → Inspect → Execute 的渐进发现方式；Hyve 可复用与 Skill 相同的目录
 策略，只在选中 Tool 后加载完整 Schema。
 
 ### 11.4 `scripts/` 执行
@@ -951,7 +951,7 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
   自动生成受限字符集别名、在 Tool Call 返回时还原，保证 Skill、内部 Registry 与
   Provider 之间的名称关联；
 - 已将 MCP annotation 视为不可信提示并映射到本地风险/能力策略：网络访问、外部读写
-  和破坏性 Tool 仍由 Stars 审批，破坏性操作不提供永久允许；
+  和破坏性 Tool 仍由 Hyve 审批，破坏性操作不提供永久允许；
 - 已实现设置入口和 MCP Server 管理页，支持添加、编辑、启停、连接状态、刷新 Catalog、
   Tool 独立启停、删除及安全错误提示；英文、简体中文和繁体中文提供完整页面文案，
   其他已支持语言提供设置入口翻译并回退英文页面文案；
@@ -989,7 +989,7 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
   覆盖另一来源；脚本 stdout 受大小限制、敏感模式脱敏，结构化结果继续由 Agent Loop
   的输出 Schema 校验，stderr 不作为成功结果进入模型；
 - 已实现分离式 `SIGNATURE.json`、Ed25519 校验和可信发布者存储。签名载荷为
-  `stars-skill-v1\n<publisherId>\n<keyId>\n<contentDigest>\n<name>\n<version>`，
+  `hyve-skill-v1\n<publisherId>\n<keyId>\n<contentDigest>\n<name>\n<version>`，
   内容摘要排除签名文件；
   无效签名一律拒绝，未签名和未知发布者由组织策略决定；
 - 已实现签名 HTTPS 在线目录、禁止重定向和私网/本机/链路本地/保留地址的端点策略、
@@ -1006,7 +1006,7 @@ Stars 若支持一键添加本地 Server，必须在启动前显示完整命令�
   优化边界。当前 Provider 均保持关闭并使用本地权威路径；只有后续经过安全审计的
   Provider 显式声明能力时才能接入，不影响本地回退。
 
-Stars 扩展脚本清单示例：
+Hyve 扩展脚本清单示例：
 
 ```json
 {
@@ -1082,7 +1082,7 @@ Repository、Use Case、Tool Registry 和各 ViewModel。
 ### 已建议确定
 
 - 包格式：Agent Skills；
-- 核心运行时：Stars 本地、Provider 无关；
+- 核心运行时：Hyve 本地、Provider 无关；
 - MVP：纯指令、手动优先、脚本禁用；
 - 存储：SQLite 元数据 + 应用数据目录中的不可变版本包；
 - 权限：Skill 声明不是授权，所有副作用经过 Tool Policy；

@@ -1,7 +1,7 @@
-import 'package:stars/domain/models/legal_document.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/legal_document_repository.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/legal_document.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/legal_document_repository.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 class LegalDocumentViewModel extends DisposableChangeNotifier {
   LegalDocumentViewModel({

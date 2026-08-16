@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/theme.dart';
 
 class ImageAttachments extends StatelessWidget {
   final List<File> images;
@@ -54,7 +54,7 @@ class ImageAttachments extends StatelessWidget {
                   .itemCount((images.length + files.length).toString()),
               style: TextStyle(
                 fontSize: fontSize - 3,
-                color: StarsDesktopTokens.of(context).secondaryText,
+                color: HyveDesktopTokens.of(context).secondaryText,
               ),
             ),
             const SizedBox(width: 4),
@@ -65,7 +65,7 @@ class ImageAttachments extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             if (desktopMode)
-              StarsDesktopIconAction(
+              HyveDesktopIconAction(
                 icon: LucideIcons.x,
                 label: S.of(context).clearAttachments,
                 onPressed: onClearAll,
@@ -110,10 +110,10 @@ class ImageAttachments extends StatelessWidget {
                                     color: Theme.of(context).colorScheme.surface
                                         .withValues(alpha: 0.72),
                                     borderRadius:
-                                        StarsDesktopThemeSpec.containerRadius,
+                                        HyveDesktopThemeSpec.containerRadius,
                                     border: Border.all(
                                       color:
-                                          StarsDesktopTokens.of(
+                                          HyveDesktopTokens.of(
                                             context,
                                           ).separator,
                                     ),
@@ -122,7 +122,7 @@ class ImageAttachments extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius:
                                 desktopMode
-                                    ? StarsDesktopThemeSpec.itemRadius
+                                    ? HyveDesktopThemeSpec.itemRadius
                                     : BorderRadius.circular(8),
                             child: Image.file(
                               images[index],
@@ -137,7 +137,7 @@ class ImageAttachments extends StatelessWidget {
                           right: desktopMode ? 0 : 6,
                           child:
                               desktopMode
-                                  ? StarsDesktopIconAction(
+                                  ? HyveDesktopIconAction(
                                     icon: LucideIcons.x,
                                     label: S.of(context).removeImageAttachment,
                                     iconSize: 14,
@@ -192,13 +192,13 @@ class ImageAttachments extends StatelessWidget {
                                         .withValues(alpha: 0.2),
                             borderRadius:
                                 desktopMode
-                                    ? StarsDesktopThemeSpec.containerRadius
+                                    ? HyveDesktopThemeSpec.containerRadius
                                     : BorderRadius.circular(8),
                             border:
                                 desktopMode
                                     ? Border.all(
                                       color:
-                                          StarsDesktopTokens.of(
+                                          HyveDesktopTokens.of(
                                             context,
                                           ).separator,
                                     )
@@ -214,7 +214,7 @@ class ImageAttachments extends StatelessWidget {
                                 size: desktopMode ? 26 : 24,
                                 color:
                                     desktopMode
-                                        ? StarsDesktopTokens.of(
+                                        ? HyveDesktopTokens.of(
                                           context,
                                         ).secondaryText
                                         : null,
@@ -243,7 +243,7 @@ class ImageAttachments extends StatelessWidget {
                           right: desktopMode ? 0 : 8,
                           child:
                               desktopMode
-                                  ? StarsDesktopIconAction(
+                                  ? HyveDesktopIconAction(
                                     icon: LucideIcons.x,
                                     label: S.of(context).removeFileAttachment,
                                     iconSize: 14,

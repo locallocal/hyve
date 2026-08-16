@@ -1,18 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/ai/provider_context_summarizer.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/context_summarizer.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
+import 'package:hyve/data/services/ai/provider_context_summarizer.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/context_summarizer.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
 
 void main() {
-  test('prepends Stars context to the summarization request', () async {
+  test('prepends Hyve context to the summarization request', () async {
     final provider = _SummaryProvider();
     final summarizer = ProviderContextSummarizer(
       bot: _bot,
       providerFactory: (_) => provider,
-      starsSystemPromptProvider: _testStarsSystemPrompt,
+      hyveSystemPromptProvider: _testHyveSystemPrompt,
     );
 
     await summarizer.summarize(
@@ -37,7 +37,7 @@ void main() {
     expect(provider.messages.first.role, 'system');
     expect(
       provider.messages.first.content,
-      startsWith('<stars_application_context>'),
+      startsWith('<hyve_application_context>'),
     );
     expect(
       provider.messages.first.content,
@@ -75,7 +75,7 @@ final _bot = Bot(
   modifyTimestamp: DateTime(2026),
 );
 
-String _testStarsSystemPrompt() => buildStarsSystemPrompt(
+String _testHyveSystemPrompt() => buildHyveSystemPrompt(
   operatingSystem: 'TestOS',
   operatingSystemVersion: '1.2.3',
 );

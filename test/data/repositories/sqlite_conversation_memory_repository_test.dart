@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/repositories/sqlite_conversation_memory_repository.dart';
-import 'package:stars/data/services/conversation_summary_storage.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/conversation_memory.dart';
+import 'package:hyve/data/repositories/sqlite_conversation_memory_repository.dart';
+import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -24,7 +24,7 @@ void main() {
         onCreate: DatabaseService.createSchema,
       ),
     );
-    root = await Directory.systemTemp.createTemp('stars_memory_repository_');
+    root = await Directory.systemTemp.createTemp('hyve_memory_repository_');
     repository = SqliteConversationMemoryRepository(
       localDatabase: LocalDatabaseService(
         databaseProvider: () async => database,

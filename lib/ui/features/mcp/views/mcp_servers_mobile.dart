@@ -77,7 +77,7 @@ class _ServerCardState extends State<_ServerCard> {
         title: Text(
           server.name,
           key: ValueKey<String>('mobile-mcp-server-title-${server.id}'),
-          style: StarsDesktopThemeSpec.pageTitleStyle(context),
+          style: HyveDesktopThemeSpec.pageTitleStyle(context),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _ServerCardState extends State<_ServerCard> {
           else ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: StarsSearchField(
+              child: HyveSearchField(
                 key: ValueKey<String>('mobile-mcp-tool-search-${server.id}'),
                 hintText: S.of(context).searchMcpTools,
                 semanticLabel: S.of(context).searchMcpTools,
@@ -159,7 +159,7 @@ class _ServerCardState extends State<_ServerCard> {
               ),
             ),
             if (filteredTools.isEmpty)
-              StarsSearchEmptyState(
+              HyveSearchEmptyState(
                 key: ValueKey<String>(
                   'mobile-mcp-tool-search-empty-${server.id}',
                 ),

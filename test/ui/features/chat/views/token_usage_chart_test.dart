@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
-import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   testWidgets('selecting a day drills into hours and back restores days', (
@@ -108,7 +108,7 @@ void main() {
     expect(sectionDividerFinder, findsOneWidget);
     expect(
       tokenUsageTitle.style,
-      StarsDesktopThemeSpec.sectionTitleStyle(
+      HyveDesktopThemeSpec.sectionTitleStyle(
         tester.element(tokenUsageTitleFinder),
       ),
     );
@@ -126,7 +126,7 @@ void main() {
     );
     expect(
       drilldownHint.style,
-      StarsDesktopThemeSpec.metaStyle(tester.element(drilldownHintFinder)),
+      HyveDesktopThemeSpec.metaStyle(tester.element(drilldownHintFinder)),
     );
     expect(
       tester.getTopLeft(drilldownHintFinder).dx,

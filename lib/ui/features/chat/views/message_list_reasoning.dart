@@ -85,9 +85,9 @@ class _ReasoningSectionState extends State<ReasoningSection>
       return ShadCard(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        backgroundColor: StarsDesktopTokens.of(context).controlFill,
-        radius: StarsDesktopThemeSpec.statusRadius,
-        border: ShadBorder.all(color: StarsDesktopTokens.of(context).separator),
+        backgroundColor: HyveDesktopTokens.of(context).controlFill,
+        radius: HyveDesktopThemeSpec.statusRadius,
+        border: ShadBorder.all(color: HyveDesktopTokens.of(context).separator),
         child: ShadAccordion<String>(
           controller: _desktopController,
           maintainState: true,
@@ -123,7 +123,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                                   LucideIcons.loaderCircle,
                                   size: 16,
                                   color:
-                                      StarsDesktopTokens.of(
+                                      HyveDesktopTokens.of(
                                         context,
                                       ).secondaryText,
                                 ),
@@ -132,9 +132,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                                 LucideIcons.brain,
                                 size: 16,
                                 color:
-                                    StarsDesktopTokens.of(
-                                      context,
-                                    ).secondaryText,
+                                    HyveDesktopTokens.of(context).secondaryText,
                               ),
                     ),
                     const SizedBox(width: 8),
@@ -162,9 +160,9 @@ class _ReasoningSectionState extends State<ReasoningSection>
 
     return Container(
       decoration: BoxDecoration(
-        color: StarsDesktopTokens.of(context).controlFill,
+        color: HyveDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: StarsDesktopTokens.of(context).separator),
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +211,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                           strings.deepThinking,
                           style: TextStyle(
                             fontSize: fontSize - 3,
-                            color: StarsDesktopTokens.of(context).secondaryText,
+                            color: HyveDesktopTokens.of(context).secondaryText,
                           ),
                         ),
                       ],
@@ -224,7 +222,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
                     turns: _mobileExpanded ? 0 : 0.5,
                     child: Icon(
                       Icons.keyboard_arrow_up_rounded,
-                      color: StarsDesktopTokens.of(context).secondaryText,
+                      color: HyveDesktopTokens.of(context).secondaryText,
                     ),
                   ),
                 ],
@@ -261,13 +259,13 @@ class _ReasoningSectionState extends State<ReasoningSection>
           ),
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
-          color: StarsDesktopTokens.of(context).secondaryText,
+          color: HyveDesktopTokens.of(context).secondaryText,
           fontSize: fontSize - 1,
           height: 1.5,
         ),
         code: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
-          backgroundColor: StarsDesktopTokens.of(context).controlFill,
+          backgroundColor: HyveDesktopTokens.of(context).controlFill,
           fontSize: fontSize - 2,
         ),
         a: TextStyle(
@@ -276,12 +274,12 @@ class _ReasoningSectionState extends State<ReasoningSection>
           decorationColor: Theme.of(context).colorScheme.primary,
         ),
         codeblockDecoration: BoxDecoration(
-          color: StarsDesktopTokens.of(context).controlFill,
+          color: HyveDesktopTokens.of(context).controlFill,
           borderRadius:
               widget.isDesktop
-                  ? StarsDesktopThemeSpec.containerRadius
+                  ? HyveDesktopThemeSpec.containerRadius
                   : BorderRadius.circular(12),
-          border: Border.all(color: StarsDesktopTokens.of(context).separator),
+          border: Border.all(color: HyveDesktopTokens.of(context).separator),
         ),
         blockSpacing: 8,
       ),
@@ -299,10 +297,10 @@ Future<void> _openMarkdownLink(
   if (await actions?.openExternal(normalized) == true) return;
   if (!context.mounted) return;
 
-  showStarsNotice(
+  showHyveNotice(
     context,
     S.of(context).linkOpenFailed,
-    tone: StarsNoticeTone.error,
+    tone: HyveNoticeTone.error,
     actionLabel: MaterialLocalizations.of(context).copyButtonLabel,
     onAction: () {
       Clipboard.setData(ClipboardData(text: normalized));

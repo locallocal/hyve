@@ -1,9 +1,9 @@
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -223,7 +223,7 @@ class _MessageInputState extends State<MessageInput> {
                     : Theme.of(context).colorScheme.secondary,
             borderRadius:
                 isDesktop
-                    ? StarsDesktopThemeSpec.containerRadius
+                    ? HyveDesktopThemeSpec.containerRadius
                     : BorderRadius.circular(16),
             border: Border.all(
               color:
@@ -243,7 +243,7 @@ class _MessageInputState extends State<MessageInput> {
                 onKeyEvent: isDesktop ? _handleComposerKeyEvent : null,
                 child:
                     isDesktop
-                        ? StarsChatTextarea(
+                        ? HyveChatTextarea(
                           controller: widget.controller,
                           focusNode: _focusNode,
                           placeholder: Text(S.of(context).messageHint),
@@ -272,8 +272,7 @@ class _MessageInputState extends State<MessageInput> {
                             hintText: S.of(context).messageHint,
                             hintStyle: TextStyle(
                               fontSize: fontSize,
-                              color:
-                                  StarsDesktopTokens.of(context).tertiaryText,
+                              color: HyveDesktopTokens.of(context).tertiaryText,
                             ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(

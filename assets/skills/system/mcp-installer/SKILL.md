@@ -1,6 +1,6 @@
 ---
 name: mcp-installer
-description: Install Stars MCP servers and query installed servers or the current conversation Bot's enabled MCP servers and Tools from SQLite. Use when the user asks to add, configure, register, or install an MCP server, list installed MCP servers, or inspect which MCP servers and Tools are enabled for the current conversation.
+description: Install Hyve MCP servers and query installed servers or the current conversation Bot's enabled MCP servers and Tools from SQLite. Use when the user asks to add, configure, register, or install an MCP server, list installed MCP servers, or inspect which MCP servers and Tools are enabled for the current conversation.
 allowed-tools: add_mcp_server list_installed_mcp_servers list_current_conversation_mcp
 metadata:
   scope: system
@@ -16,7 +16,7 @@ Choose the Tool that matches the request:
   optional `query` text and `limit`.
 - Use `list_current_conversation_mcp` to query the current conversation's Bot,
   selected MCP servers, enabled Tools, availability, and approval settings.
-  Pass no conversation or Bot identifier; Stars binds the query to the active
+  Pass no conversation or Bot identifier; Hyve binds the query to the active
   conversation through the SQLite `chats` and `bots` records.
 - Use `add_mcp_server` only when the user asks to install a server and provides
   or confirms its connection details.
@@ -57,7 +57,7 @@ Always pass:
 
 - `name`: the user-facing server name.
 - `transport_type`: `streamable_http` or `stdio`.
-- `connect`: whether Stars should connect and discover Tools immediately;
+- `connect`: whether Hyve should connect and discover Tools immediately;
   default to `true` unless the user asks to save the configuration only.
 
 For `streamable_http`, pass:

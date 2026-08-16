@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/mcp/mcp_endpoint_policy.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   test(

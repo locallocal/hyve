@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
+import 'package:hyve/generated/l10n.dart';
 
 /// Keeps the typing status visible while the assistant is still working but
 /// has not started returning user-visible text or reasoning content.

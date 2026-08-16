@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/use_cases/compact_conversation.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/use_cases/compact_conversation.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 final class ConversationMemoryViewModel extends DisposableChangeNotifier {
   ConversationMemoryViewModel({

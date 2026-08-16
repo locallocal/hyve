@@ -3,19 +3,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/models/provider_catalog.dart';
-import 'package:stars/domain/use_cases/bot_commands.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/bots/view_models/bot_form_view_model.dart';
-import 'package:stars/ui/features/bots/views/add_bot_skills.dart';
-import 'package:stars/ui/features/bots/views/bot_mcp_tool_picker.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/models/provider_catalog.dart';
+import 'package:hyve/domain/use_cases/bot_commands.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_form_view_model.dart';
+import 'package:hyve/ui/features/bots/views/add_bot_skills.dart';
+import 'package:hyve/ui/features/bots/views/bot_mcp_tool_picker.dart';
+import 'package:hyve/utils/theme.dart';
 
 part 'add_bot_desktop_form.dart';
 part 'add_bot_mobile_form.dart';
@@ -103,19 +103,19 @@ class AddBotPage extends StatefulWidget {
 
 class _AddBotPageState extends State<AddBotPage> {
   static const double _desktopFieldWidth =
-      StarsDesktopThemeSpec.addBotFormFieldWidth;
+      HyveDesktopThemeSpec.addBotFormFieldWidth;
   static const double _desktopProviderMenuWidth = 256;
   static const double _desktopModelMenuWidth = 320;
   static const double _desktopSectionPadding =
-      StarsDesktopThemeSpec.botFormSectionPadding;
+      HyveDesktopThemeSpec.botFormSectionPadding;
   static const double _desktopSectionBorderWidth =
-      StarsDesktopThemeSpec.botFormSectionBorderWidth;
+      HyveDesktopThemeSpec.botFormSectionBorderWidth;
   static const double _desktopFormWidth =
       _desktopFieldWidth +
       _desktopSectionPadding * 2 +
       _desktopSectionBorderWidth * 2;
   static const BoxConstraints _desktopInputConstraints = BoxConstraints(
-    minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+    minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
   );
 
   final _desktopFormKey = GlobalKey<ShadFormState>();
@@ -569,7 +569,7 @@ class _AddBotPageState extends State<AddBotPage> {
           if (_errorMessage case final error?)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: StarsInlineErrorAlert(
+              child: HyveInlineErrorAlert(
                 error: error,
                 isDesktop: false,
                 onDismiss: _dismissError,

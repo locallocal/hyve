@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/repositories/sqlite_mcp_server_repository.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
-import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/mcp_client.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
-import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:hyve/data/repositories/sqlite_mcp_server_repository.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/mcp/mcp_catalog_service.dart';
+import 'package:hyve/data/services/tools/add_mcp_server_tool.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/mcp_client.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/use_cases/mcp_server_mutations.dart';
+import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 
 void main() {
   sqfliteFfiInit();

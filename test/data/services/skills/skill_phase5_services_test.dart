@@ -3,23 +3,23 @@ import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/skills/linux_bubblewrap_skill_sandbox.dart';
-import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
-import 'package:stars/data/services/skills/skill_catalog_service.dart';
-import 'package:stars/data/services/skills/skill_organization_policy_bundle_service.dart';
-import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
-import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
-import 'package:stars/data/services/skills/skill_signature_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/domain/repositories/skill_script_sandbox.dart';
+import 'package:hyve/data/services/skills/linux_bubblewrap_skill_sandbox.dart';
+import 'package:hyve/data/services/skills/skill_catalog_endpoint_policy.dart';
+import 'package:hyve/data/services/skills/skill_catalog_service.dart';
+import 'package:hyve/data/services/skills/skill_organization_policy_bundle_service.dart';
+import 'package:hyve/data/services/skills/skill_script_catalog_service.dart';
+import 'package:hyve/data/services/skills/skill_script_manifest_parser.dart';
+import 'package:hyve/data/services/skills/skill_signature_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/repositories/skill_script_sandbox.dart';
 
 void main() {
   group('SkillSignatureService', () {
     test('verifies the detached Ed25519 content signature', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-signature-test-',
+        'hyve-signature-test-',
       );
       addTearDown(() => directory.delete(recursive: true));
       final keyPair = await Ed25519().newKeyPair();
@@ -73,7 +73,7 @@ void main() {
 
     test('rejects a signature when the content digest changes', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-signature-test-',
+        'hyve-signature-test-',
       );
       addTearDown(() => directory.delete(recursive: true));
       final keyPair = await Ed25519().newKeyPair();
@@ -125,7 +125,7 @@ void main() {
   group('SkillScriptManifestParser', () {
     test('parses only controlled scripts entries and capabilities', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-manifest-test-',
+        'hyve-manifest-test-',
       );
       addTearDown(() => directory.delete(recursive: true));
       await Directory('${directory.path}/scripts').create();
@@ -163,7 +163,7 @@ void main() {
 
     test('rejects script traversal and network capability', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-manifest-test-',
+        'hyve-manifest-test-',
       );
       addTearDown(() => directory.delete(recursive: true));
       await Directory('${directory.path}/scripts').create();
@@ -291,7 +291,7 @@ void main() {
     'explicit digest grant registers and executes a sandboxed script tool',
     () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars-script-catalog-test-',
+        'hyve-script-catalog-test-',
       );
       addTearDown(() => directory.delete(recursive: true));
       await Directory('${directory.path}/scripts').create();

@@ -160,7 +160,7 @@ extension _ProfileDialogs on _ProfilePageState {
       showShadDialog<void>(
         context: context,
         builder: (dialogContext) {
-          final tokens = StarsDesktopTokens.of(dialogContext);
+          final tokens = HyveDesktopTokens.of(dialogContext);
           return ShadDialog(
             key: const ValueKey<String>('profile-theme-dialog'),
             closeIcon: _buildDesktopDialogClose(
@@ -182,7 +182,7 @@ extension _ProfileDialogs on _ProfilePageState {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: tokens.raisedSurface,
-                    borderRadius: StarsDesktopThemeSpec.containerRadius,
+                    borderRadius: HyveDesktopThemeSpec.containerRadius,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

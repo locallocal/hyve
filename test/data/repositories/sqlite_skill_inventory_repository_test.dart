@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/repositories/sqlite_skill_inventory_repository.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/repositories/sqlite_skill_inventory_repository.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -189,7 +189,7 @@ SkillDescriptor _skill({
     contentDigest: 'digest-$name',
     trustState: SkillTrustState.userReviewed,
     validationStatus: SkillValidationStatus.valid,
-    compatibility: 'Stars',
+    compatibility: 'Hyve',
     installedAt: now,
     updatedAt: now,
   );

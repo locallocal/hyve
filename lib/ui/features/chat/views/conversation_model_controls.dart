@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 
 const double _modelControlWidth = 44;
 
@@ -83,7 +83,7 @@ final class _ModelControlRow extends StatelessWidget {
       onChanged: onChanged,
     );
     return MergeSemantics(
-      child: StarsInspectorInfoRow(
+      child: HyveInspectorInfoRow(
         icon: icon,
         label: label,
         padding: const EdgeInsets.symmetric(vertical: 5),

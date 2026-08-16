@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
-import 'package:stars/domain/use_cases/compose_chat_turn.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
+import 'package:hyve/domain/use_cases/compose_chat_turn.dart';
 
 void main() {
   test('offers every enabled Skill for automatic model activation', () async {
@@ -43,7 +43,7 @@ void main() {
     final compose = ComposeChatTurn(
       skillRepository: skillRepository,
       bindingRepository: bindingRepository,
-      starsSystemPromptProvider: _testStarsSystemPrompt,
+      hyveSystemPromptProvider: _testHyveSystemPrompt,
     );
 
     final result = await compose(
@@ -65,19 +65,19 @@ void main() {
       'user',
     ]);
     final systemPrompt = result.messages.first.content;
-    expect(systemPrompt, startsWith('<stars_application_context>'));
+    expect(systemPrompt, startsWith('<hyve_application_context>'));
     expect(systemPrompt, contains('Operating system type: TestOS'));
     expect(systemPrompt, contains('Operating system version: 1.2.3'));
-    expect(systemPrompt, contains('<stars_conversation_context>'));
+    expect(systemPrompt, contains('<hyve_conversation_context>'));
     expect(systemPrompt, contains('Agent ID: bot-1'));
     expect(systemPrompt, contains('Agent name: Assistant'));
     expect(systemPrompt, contains('Current conversation ID: chat-1'));
     expect(
-      '<stars_conversation_context>'.allMatches(systemPrompt),
+      '<hyve_conversation_context>'.allMatches(systemPrompt),
       hasLength(1),
     );
     expect(
-      systemPrompt.indexOf('</stars_conversation_context>'),
+      systemPrompt.indexOf('</hyve_conversation_context>'),
       lessThan(systemPrompt.indexOf('You are a helpful assistant.')),
     );
     expect(systemPrompt, contains('You are a helpful assistant.'));
@@ -94,7 +94,7 @@ void main() {
     ]);
     expect(
       provider.session.request?.messages.first.content,
-      startsWith('<stars_application_context>'),
+      startsWith('<hyve_application_context>'),
     );
     expect(
       provider.session.request?.messages.first.content,
@@ -222,7 +222,7 @@ void main() {
     expect(result.messages.map((message) => message.role), ['system', 'user']);
     expect(
       result.messages.first.content,
-      startsWith('<stars_application_context>'),
+      startsWith('<hyve_application_context>'),
     );
     expect(result.messages.last.content, 'Use auto');
   });
@@ -284,7 +284,7 @@ void main() {
       ]);
       expect(
         result.messages.first.content,
-        startsWith('<stars_application_context>'),
+        startsWith('<hyve_application_context>'),
       );
     }
   });
@@ -458,7 +458,7 @@ void main() {
     expect(result.messages.map((message) => message.role), ['system', 'user']);
     expect(
       result.messages.first.content,
-      startsWith('<stars_application_context>'),
+      startsWith('<hyve_application_context>'),
     );
     expect(result.messages.last.content, 'Question');
   });
@@ -741,7 +741,7 @@ SkillContent _systemShellSkill() {
       contentDigest: shellCommandSkillContentDigest,
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars desktop',
+      compatibility: 'Hyve desktop',
       requestedToolNames: shellCommandToolNames,
       installedAt: timestamp,
       updatedAt: timestamp,
@@ -758,7 +758,7 @@ SkillContent _systemSkillInstallerSkill() {
     descriptor: SkillDescriptor(
       id: skillInstallerSkillId,
       name: 'skill-installer',
-      description: 'Install a validated Stars Skill package.',
+      description: 'Install a validated Hyve Skill package.',
       version: '2',
       scope: SkillScope.bundled,
       sourceUri: 'asset:///skill-installer/SKILL.md',
@@ -766,7 +766,7 @@ SkillContent _systemSkillInstallerSkill() {
       contentDigest: skillInstallerSkillContentDigest,
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars desktop',
+      compatibility: 'Hyve desktop',
       requestedToolNames: skillInstallerToolNames,
       installedAt: timestamp,
       updatedAt: timestamp,
@@ -783,7 +783,7 @@ SkillContent _systemMcpInstallerSkill() {
     descriptor: SkillDescriptor(
       id: mcpInstallerSkillId,
       name: 'mcp-installer',
-      description: 'Install a configured Stars MCP server.',
+      description: 'Install a configured Hyve MCP server.',
       version: '1',
       scope: SkillScope.bundled,
       sourceUri: 'asset:///mcp-installer/SKILL.md',
@@ -791,7 +791,7 @@ SkillContent _systemMcpInstallerSkill() {
       contentDigest: mcpInstallerSkillContentDigest,
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars desktop',
+      compatibility: 'Hyve desktop',
       requestedToolNames: mcpInstallerToolNames,
       installedAt: timestamp,
       updatedAt: timestamp,
@@ -1040,7 +1040,7 @@ final class _FakeBindingRepository implements BotSkillBindingRepository {
   Future<void> save(BotSkillBinding binding) => throw UnimplementedError();
 }
 
-String _testStarsSystemPrompt() => buildStarsSystemPrompt(
+String _testHyveSystemPrompt() => buildHyveSystemPrompt(
   operatingSystem: 'TestOS',
   operatingSystemVersion: '1.2.3',
 );

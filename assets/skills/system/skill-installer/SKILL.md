@@ -1,6 +1,6 @@
 ---
 name: skill-installer
-description: Install Stars Skills and inspect installed or current-conversation Skill state from SQLite.
+description: Install Hyve Skills and inspect installed or current-conversation Skill state from SQLite.
 allowed-tools: install_skill list_installed_skills list_current_conversation_skills
 metadata:
   scope: system
@@ -14,7 +14,7 @@ Choose the tool that matches the request:
   bundled system Skills because they are application assets, not installed
   SQLite records.
 - Use `list_current_conversation_skills` to query the current conversation's
-  Skill configuration. Pass no conversation or bot identifier; Stars binds the
+  Skill configuration. Pass no conversation or bot identifier; Hyve binds the
   query to the active conversation. Read `configured_enabled` as the persisted
   bot toggle, `pinned_to_conversation` as the conversation pin, and
   `last_activation_status` as runtime history. Do not describe a configured
@@ -34,7 +34,7 @@ For `install_skill`, pass these fields:
   nested below the package root.
 - `archive_sha256`: optional lowercase SHA-256 for a remote or local ZIP.
 
-Install one Skill per call. Stars stages the package, rejects links and unsafe
+Install one Skill per call. Hyve stages the package, rejects links and unsafe
 paths, enforces file and size limits, parses `SKILL.md`, verifies any supplied
 digest and signature, applies organization policy, and commits an immutable
 content-addressed bundle. Report the returned identity, version, trust state,

@@ -12,12 +12,12 @@ extension _MessageInputToolbar on _MessageInputState {
             : null;
     final backgroundColor =
         widget.requestInProgress
-            ? StarsDesktopThemeSpec.primaryActionColor(
+            ? HyveDesktopThemeSpec.primaryActionColor(
               context,
             ).withValues(alpha: 0.92)
             : enabled
-            ? StarsDesktopThemeSpec.primaryActionColor(context)
-            : StarsDesktopThemeSpec.primaryActionColor(
+            ? HyveDesktopThemeSpec.primaryActionColor(context)
+            : HyveDesktopThemeSpec.primaryActionColor(
               context,
             ).withValues(alpha: 0.18);
     final foregroundColor =
@@ -85,9 +85,7 @@ extension _MessageInputToolbar on _MessageInputState {
               size: ShadButtonSize.sm,
               width: 0,
               height: 36,
-              backgroundColor: StarsDesktopThemeSpec.primaryActionColor(
-                context,
-              ),
+              backgroundColor: HyveDesktopThemeSpec.primaryActionColor(context),
               enabled: enabled,
               onPressed: onPressed,
               leading: icon,
@@ -134,7 +132,7 @@ extension _MessageInputToolbar on _MessageInputState {
                   ? Theme.of(
                     context,
                   ).colorScheme.primary.withValues(alpha: 0.12)
-                  : StarsDesktopTokens.of(context).controlFill,
+                  : HyveDesktopTokens.of(context).controlFill,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color:
@@ -142,7 +140,7 @@ extension _MessageInputToolbar on _MessageInputState {
                     ? Theme.of(
                       context,
                     ).colorScheme.primary.withValues(alpha: 0.22)
-                    : StarsDesktopTokens.of(context).separator,
+                    : HyveDesktopTokens.of(context).separator,
           ),
         ),
         child: Row(
@@ -154,7 +152,7 @@ extension _MessageInputToolbar on _MessageInputState {
               color:
                   active
                       ? Theme.of(context).colorScheme.primary
-                      : StarsDesktopTokens.of(context).secondaryText,
+                      : HyveDesktopTokens.of(context).secondaryText,
             ),
             const SizedBox(width: 6),
             Text(
@@ -184,7 +182,7 @@ extension _MessageInputToolbar on _MessageInputState {
   }) {
     if (_isDesktop || isDesktopPlatform(context)) {
       final effectiveFocusNode = focusNode ?? _attachmentButtonFocusNode;
-      return StarsDesktopIconAction(
+      return HyveDesktopIconAction(
         icon: icon,
         label: tooltip,
         focusNode: effectiveFocusNode,
@@ -196,7 +194,7 @@ extension _MessageInputToolbar on _MessageInputState {
     final foregroundColor =
         active
             ? Theme.of(context).colorScheme.primary
-            : StarsDesktopTokens.of(context).secondaryText;
+            : HyveDesktopTokens.of(context).secondaryText;
     return IconButton(
       tooltip: tooltip,
       onPressed: onPressed,
@@ -212,7 +210,7 @@ extension _MessageInputToolbar on _MessageInputState {
                   ? Theme.of(
                     context,
                   ).colorScheme.primary.withValues(alpha: 0.10)
-                  : StarsDesktopTokens.of(context).controlFill,
+                  : HyveDesktopTokens.of(context).controlFill,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color:
@@ -220,7 +218,7 @@ extension _MessageInputToolbar on _MessageInputState {
                     ? Theme.of(
                       context,
                     ).colorScheme.primary.withValues(alpha: 0.2)
-                    : StarsDesktopTokens.of(context).separator,
+                    : HyveDesktopTokens.of(context).separator,
           ),
         ),
         child: SizedBox.square(

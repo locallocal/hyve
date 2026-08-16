@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/generated/l10n.dart';
+import 'package:hyve/generated/l10n.dart';
 
 void main() {
   final expected = <Locale, ({String details, String edit, String delete})>{

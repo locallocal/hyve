@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
 
 final class SqliteBotSkillBindingRepository
     implements BotScopedSkillBindingMetricsRepository {

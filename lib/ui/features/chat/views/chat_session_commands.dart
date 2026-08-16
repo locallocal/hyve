@@ -60,7 +60,7 @@ extension ChatPageSessionCommands on ChatPageState {
     final cancelled = await _chatViewModel.stopActiveRun();
     if (!mounted) return;
     if (cancelled) {
-      showStarsNotice(context, S.of(context).replyCancelled);
+      showHyveNotice(context, S.of(context).replyCancelled);
     }
   }
 

@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stars/data/models/mcp_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/data/models/mcp_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 
 final class SqliteMcpServerRepository implements McpServerRepository {
   SqliteMcpServerRepository({required LocalDatabaseService localDatabase})

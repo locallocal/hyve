@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
 
 void main() {
   testWidgets('loads the bundled Moonshot provider logo', (tester) async {

@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:hyve/data/services/skills/skill_catalog_endpoint_policy.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
 
 typedef SkillCatalogHttpClientFactory = HttpClient Function();
 typedef SkillCatalogFetcher = Future<List<int>> Function(Uri uri, int maxBytes);
@@ -146,7 +146,7 @@ final class SkillCatalogService implements SkillCatalogController {
       throw const SkillInstallException('Skill 下载包摘要不匹配。');
     }
     final temporary = await Directory.systemTemp.createTemp(
-      'stars-skill-download-',
+      'hyve-skill-download-',
     );
     final archive = File('${temporary.path}/skill.zip');
     try {

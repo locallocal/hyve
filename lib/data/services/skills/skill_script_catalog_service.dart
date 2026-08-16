@@ -1,10 +1,10 @@
-import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
-import 'package:stars/data/services/skills/skill_script_tool.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/domain/repositories/skill_script_sandbox.dart';
+import 'package:hyve/data/services/skills/skill_script_manifest_parser.dart';
+import 'package:hyve/data/services/skills/skill_script_tool.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/repositories/skill_script_sandbox.dart';
 
 final class SkillScriptCatalogService implements SkillScriptCatalogController {
   const SkillScriptCatalogService({

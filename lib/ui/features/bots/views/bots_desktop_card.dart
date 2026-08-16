@@ -125,7 +125,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
               ),
             ),
           ),
-      child: StarsDesktopIconAction(
+      child: HyveDesktopIconAction(
         key: ValueKey<String>('desktop-bot-menu-button-${widget.bot.id}'),
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
@@ -151,7 +151,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
-        child: StarsContextMenu(
+        child: HyveContextMenu(
           items: [
             ShadContextMenuItem(
               leading: const Icon(desktopStartConversationIcon, size: 16),
@@ -243,8 +243,8 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                       vertical: 9,
                     ),
                     decoration: BoxDecoration(
-                      color: StarsDesktopThemeSpec.controlFill(context),
-                      borderRadius: StarsDesktopThemeSpec.controlRadius,
+                      color: HyveDesktopThemeSpec.controlFill(context),
+                      borderRadius: HyveDesktopThemeSpec.controlRadius,
                     ),
                     child: Column(
                       children: [
@@ -292,7 +292,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                           ),
                           width: double.infinity,
                           height: 1,
-                          color: StarsDesktopThemeSpec.divider(context),
+                          color: HyveDesktopThemeSpec.divider(context),
                         ),
                         const SizedBox(height: 8),
                         Row(

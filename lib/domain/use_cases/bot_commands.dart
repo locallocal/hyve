@@ -1,6 +1,6 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
 
 final class BotDraft {
   const BotDraft({

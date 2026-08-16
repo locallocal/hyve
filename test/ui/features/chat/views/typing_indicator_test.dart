@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/chat/views/message_list.dart';
-import 'package:stars/ui/features/chat/views/typing_indicator.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/chat/views/message_list.dart';
+import 'package:hyve/ui/features/chat/views/typing_indicator.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   testWidgets('desktop typing icon rotates while the bot is responding', (
@@ -56,7 +56,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           body: const AssistantTypingIndicator(
-            botName: 'Stars',
+            botName: 'Hyve',
             isResponding: true,
             streamingResponse: '',
             reasoningResponse: '',
@@ -68,12 +68,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(TypingIndicator), findsOneWidget);
-      expect(find.text('Stars正在输入...'), findsOneWidget);
+      expect(find.text('Hyve正在输入...'), findsOneWidget);
 
       await tester.pumpWidget(
         _harness(
           body: const AssistantTypingIndicator(
-            botName: 'Stars',
+            botName: 'Hyve',
             isResponding: true,
             streamingResponse: 'answer',
             reasoningResponse: '',
@@ -89,7 +89,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           body: const AssistantTypingIndicator(
-            botName: 'Stars',
+            botName: 'Hyve',
             isResponding: true,
             streamingResponse: '',
             reasoningResponse: 'thinking',
@@ -150,7 +150,7 @@ void main() {
                 isDesktop: true,
               ),
               const AssistantTypingIndicator(
-                botName: 'Stars',
+                botName: 'Hyve',
                 isResponding: true,
                 streamingResponse: '',
                 reasoningResponse: '',
@@ -168,14 +168,14 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(TypingIndicator), findsOneWidget);
-      expect(find.text('Stars正在输入...'), findsOneWidget);
+      expect(find.text('Hyve正在输入...'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
 }
 
 Widget _harness({bool disableAnimations = false, Widget? body}) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );
@@ -206,8 +206,7 @@ Widget _harness({bool disableAnimations = false, Widget? body}) {
               ),
           home: Scaffold(
             body:
-                body ??
-                const TypingIndicator(botName: 'Stars', isDesktop: true),
+                body ?? const TypingIndicator(botName: 'Hyve', isDesktop: true),
           ),
         ),
   );

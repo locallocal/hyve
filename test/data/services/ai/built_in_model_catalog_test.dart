@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/ai/built_in_model_catalog.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/built_in_model_catalog.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   group('BuiltInModelCatalog', () {

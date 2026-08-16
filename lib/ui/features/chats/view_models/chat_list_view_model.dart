@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 class ChatListViewModel extends DisposableChangeNotifier {
   ChatListViewModel({

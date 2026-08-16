@@ -70,7 +70,7 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
             textAlign: TextAlign.center,
             style:
                 widget.embedded
-                    ? StarsDesktopThemeSpec.metaStyle(context)
+                    ? HyveDesktopThemeSpec.metaStyle(context)
                     : Theme.of(context).textTheme.bodySmall,
           ),
         ),
@@ -87,7 +87,7 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              StarsSearchField(
+              HyveSearchField(
                 key: ValueKey<String>('bot-mcp-tool-search-${widget.serverId}'),
                 hintText: strings.searchMcpTools,
                 semanticLabel: strings.searchMcpTools,
@@ -98,7 +98,7 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
                 suffixIcon:
                     _query.isEmpty
                         ? null
-                        : StarsDesktopIconAction(
+                        : HyveDesktopIconAction(
                           key: ValueKey<String>(
                             'clear-bot-mcp-tool-search-${widget.serverId}',
                           ),
@@ -110,7 +110,7 @@ class _BotMcpToolListViewportState extends State<_BotMcpToolListViewport> {
               ),
               const SizedBox(height: 12),
               if (filteredTools.isEmpty)
-                StarsSearchEmptyState(
+                HyveSearchEmptyState(
                   key: ValueKey<String>(
                     'bot-mcp-tool-search-empty-${widget.serverId}',
                   ),

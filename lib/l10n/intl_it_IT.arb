@@ -1,6 +1,6 @@
 {
     "@@locale": "it_IT",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "Nome dell'applicazione"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "Tema impostato su scuro"
     },
-    "aboutApp": "Informazioni su Stars",
+    "aboutApp": "Informazioni su Hyve",
     "@aboutApp": {
         "description": "Informazioni sull'app"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "Descrizione app"
     },
-    "copyright": "© {year} Team Stars",
+    "copyright": "© {year} Team Hyve",
     "@copyright": {
         "description": "Informazioni copyright",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "Informazioni versione"
     },
-    "appTitle": "Stars - Assistente chat AI",
+    "appTitle": "Hyve - Assistente chat AI",
     "@appTitle": {
         "description": "Titolo app"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "Aspetto e lingua",
     "desktopGeneral": "Generali",
     "applicationInjectedPrompt": "Prompt di sistema",
-    "applicationInjectedPromptDescription": "Gestito da Stars e aggiunto a ogni richiesta al modello. Gli identificatori dell’agente e della conversazione correnti vengono aggiunti in fase di esecuzione e non sono modificabili.",
+    "applicationInjectedPromptDescription": "Gestito da Hyve e aggiunto a ogni richiesta al modello. Gli identificatori dell’agente e della conversazione correnti vengono aggiunti in fase di esecuzione e non sono modificabili.",
     "desktopHelpAndSupport": "Aiuto e supporto",
     "desktopAboutAndLegal": "Informazioni e note legali",
     "desktopSettingsDescription": "Gestisci il profilo, l’aspetto, la lingua e il supporto dell’app.",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -903,7 +903,7 @@
     "startupFailed": "Avvio non riuscito. Riprova.",
     "videoPlaybackError": "Errore di riproduzione video: {error}",
     "videoLoadFailed": "Impossibile caricare il video",
-    "databaseDowngradeNotSupported": "Questo database è stato creato da una versione più recente di Stars. Aggiorna l’app prima di aprirlo.",
+    "databaseDowngradeNotSupported": "Questo database è stato creato da una versione più recente di Hyve. Aggiorna l’app prima di aprirlo.",
     "databaseRecoveryFailed": "Il controllo di integrità del database non è riuscito e non è stato possibile ripristinarlo dal backup di questa versione.",
     "durationMilliseconds": "{milliseconds} ms",
     "durationSeconds": "{seconds} s"

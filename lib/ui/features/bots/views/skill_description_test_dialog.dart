@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/utils/theme.dart';
 
 Future<SkillDescriptionTestCase?> showSkillDescriptionTestDialog({
   required BuildContext context,
@@ -210,11 +210,11 @@ class _SkillDescriptionTestForm extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 desktopMode
-                    ? StarsDesktopThemeSpec.secondarySurface(context)
+                    ? HyveDesktopThemeSpec.secondarySurface(context)
                     : Theme.of(context).colorScheme.secondaryContainer,
             borderRadius:
                 desktopMode
-                    ? StarsDesktopThemeSpec.itemRadius
+                    ? HyveDesktopThemeSpec.itemRadius
                     : BorderRadius.circular(10),
           ),
           child: Icon(
@@ -231,7 +231,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
                 skill.name,
                 style:
                     desktopMode
-                        ? StarsDesktopThemeSpec.toolbarTitleStyle(context)
+                        ? HyveDesktopThemeSpec.toolbarTitleStyle(context)
                         : Theme.of(context).textTheme.titleSmall,
               ),
               if (skill.description.trim().isNotEmpty) ...[
@@ -242,7 +242,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style:
                       desktopMode
-                          ? StarsDesktopThemeSpec.metaStyle(context)
+                          ? HyveDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -258,17 +258,17 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             desktopMode
-                ? StarsDesktopThemeSpec.raisedSurface(context)
+                ? HyveDesktopThemeSpec.raisedSurface(context)
                 : Theme.of(context).colorScheme.surfaceContainerLow,
         border: Border.all(
           color:
               desktopMode
-                  ? StarsDesktopThemeSpec.outline(context)
+                  ? HyveDesktopThemeSpec.outline(context)
                   : Theme.of(context).colorScheme.outlineVariant,
         ),
         borderRadius:
             desktopMode
-                ? StarsDesktopThemeSpec.controlRadius
+                ? HyveDesktopThemeSpec.controlRadius
                 : BorderRadius.circular(10),
       ),
       child: content,
@@ -280,7 +280,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       strings.skillDescriptionShouldActivate,
       style:
           desktopMode
-              ? StarsDesktopThemeSpec.bodyStyle(context)
+              ? HyveDesktopThemeSpec.bodyStyle(context)
               : Theme.of(context).textTheme.bodyMedium,
     );
     return Container(
@@ -289,19 +289,19 @@ class _SkillDescriptionTestForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             desktopMode
-                ? StarsDesktopThemeSpec.secondarySurface(context)
+                ? HyveDesktopThemeSpec.secondarySurface(context)
                 : Theme.of(
                   context,
                 ).colorScheme.secondaryContainer.withValues(alpha: 0.45),
         border: Border.all(
           color:
               desktopMode
-                  ? StarsDesktopThemeSpec.outline(context)
+                  ? HyveDesktopThemeSpec.outline(context)
                   : Theme.of(context).colorScheme.outlineVariant,
         ),
         borderRadius:
             desktopMode
-                ? StarsDesktopThemeSpec.controlRadius
+                ? HyveDesktopThemeSpec.controlRadius
                 : BorderRadius.circular(10),
       ),
       child: Row(
@@ -311,7 +311,7 @@ class _SkillDescriptionTestForm extends StatelessWidget {
             size: 17,
             color:
                 desktopMode
-                    ? StarsDesktopThemeSpec.mutedText(context)
+                    ? HyveDesktopThemeSpec.mutedText(context)
                     : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 9),

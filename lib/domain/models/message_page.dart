@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/message.dart';
+import 'package:hyve/domain/models/message.dart';
 
 final class MessageCursor {
   const MessageCursor({required this.timestamp, required this.messageId});

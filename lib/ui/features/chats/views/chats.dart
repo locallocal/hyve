@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
-import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
-import 'package:stars/ui/features/chats/views/new_chat_dialog.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
+import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
+import 'package:hyve/ui/features/chats/views/new_chat_dialog.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 class ChatListPage extends StatefulWidget {
   final String? selectedChatId;
@@ -145,7 +145,7 @@ class ChatListPageState extends State<ChatListPage> {
                 : ShadButton(
                   size: ShadButtonSize.sm,
                   onPressed: _openNewChatDialog,
-                  height: StarsDesktopThemeSpec.botFormFieldHeight,
+                  height: HyveDesktopThemeSpec.botFormFieldHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   leading: const Icon(desktopStartConversationIcon, size: 16),
                   child: Text(
@@ -273,7 +273,7 @@ class ChatListPageState extends State<ChatListPage> {
                 : ShadButton(
                   size: ShadButtonSize.sm,
                   onPressed: _clearSearch,
-                  height: StarsDesktopThemeSpec.controlHeight,
+                  height: HyveDesktopThemeSpec.controlHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   leading: const Icon(LucideIcons.x, size: 16),
                   child: Text(S.of(context).clearSearch),

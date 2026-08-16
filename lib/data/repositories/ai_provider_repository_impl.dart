@@ -1,52 +1,52 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:stars/data/services/ai/ai_hub_mix.dart';
-import 'package:stars/data/services/ai/ai_mass.dart';
-import 'package:stars/data/services/ai/alibaba_cloud.dart';
-import 'package:stars/data/services/ai/anthropic.dart';
-import 'package:stars/data/services/ai/bai_chuan.dart';
-import 'package:stars/data/services/ai/baidu.dart';
-import 'package:stars/data/services/ai/cerebras.dart';
-import 'package:stars/data/services/ai/cohere.dart';
-import 'package:stars/data/services/ai/deep_infra.dart';
-import 'package:stars/data/services/ai/deepseek.dart';
-import 'package:stars/data/services/ai/fireworks.dart';
-import 'package:stars/data/services/ai/flux.dart';
-import 'package:stars/data/services/ai/gemini.dart';
-import 'package:stars/data/services/ai/grok.dart';
-import 'package:stars/data/services/ai/hugging_face.dart';
-import 'package:stars/data/services/ai/infini_gence.dart';
-import 'package:stars/data/services/ai/intern_lm.dart';
-import 'package:stars/data/services/ai/jina.dart';
-import 'package:stars/data/services/ai/kluster.dart';
-import 'package:stars/data/services/ai/lambda.dart';
-import 'package:stars/data/services/ai/mini_max.dart';
-import 'package:stars/data/services/ai/mistral.dart';
-import 'package:stars/data/services/ai/model_scope.dart';
-import 'package:stars/data/services/ai/monica.dart';
-import 'package:stars/data/services/ai/moonshot.dart';
-import 'package:stars/data/services/ai/nebius.dart';
-import 'package:stars/data/services/ai/novita.dart';
-import 'package:stars/data/services/ai/ollama.dart';
-import 'package:stars/data/services/ai/open_router.dart';
-import 'package:stars/data/services/ai/openai.dart';
-import 'package:stars/data/services/ai/perplexity.dart';
-import 'package:stars/data/services/ai/ppio.dart';
-import 'package:stars/data/services/ai/samba_nova.dart';
-import 'package:stars/data/services/ai/search1_api.dart';
-import 'package:stars/data/services/ai/sense_nova.dart';
-import 'package:stars/data/services/ai/spark.dart';
-import 'package:stars/data/services/ai/stability.dart';
-import 'package:stars/data/services/ai/step_fun.dart';
-import 'package:stars/data/services/ai/tencent.dart';
-import 'package:stars/data/services/ai/together_ai.dart';
-import 'package:stars/data/services/ai/volcano_engine.dart';
-import 'package:stars/data/services/ai/xing_he.dart';
-import 'package:stars/data/services/ai/zero_one_ai.dart';
-import 'package:stars/data/services/ai/zhipu.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/data/services/ai/ai_hub_mix.dart';
+import 'package:hyve/data/services/ai/ai_mass.dart';
+import 'package:hyve/data/services/ai/alibaba_cloud.dart';
+import 'package:hyve/data/services/ai/anthropic.dart';
+import 'package:hyve/data/services/ai/bai_chuan.dart';
+import 'package:hyve/data/services/ai/baidu.dart';
+import 'package:hyve/data/services/ai/cerebras.dart';
+import 'package:hyve/data/services/ai/cohere.dart';
+import 'package:hyve/data/services/ai/deep_infra.dart';
+import 'package:hyve/data/services/ai/deepseek.dart';
+import 'package:hyve/data/services/ai/fireworks.dart';
+import 'package:hyve/data/services/ai/flux.dart';
+import 'package:hyve/data/services/ai/gemini.dart';
+import 'package:hyve/data/services/ai/grok.dart';
+import 'package:hyve/data/services/ai/hugging_face.dart';
+import 'package:hyve/data/services/ai/infini_gence.dart';
+import 'package:hyve/data/services/ai/intern_lm.dart';
+import 'package:hyve/data/services/ai/jina.dart';
+import 'package:hyve/data/services/ai/kluster.dart';
+import 'package:hyve/data/services/ai/lambda.dart';
+import 'package:hyve/data/services/ai/mini_max.dart';
+import 'package:hyve/data/services/ai/mistral.dart';
+import 'package:hyve/data/services/ai/model_scope.dart';
+import 'package:hyve/data/services/ai/monica.dart';
+import 'package:hyve/data/services/ai/moonshot.dart';
+import 'package:hyve/data/services/ai/nebius.dart';
+import 'package:hyve/data/services/ai/novita.dart';
+import 'package:hyve/data/services/ai/ollama.dart';
+import 'package:hyve/data/services/ai/open_router.dart';
+import 'package:hyve/data/services/ai/openai.dart';
+import 'package:hyve/data/services/ai/perplexity.dart';
+import 'package:hyve/data/services/ai/ppio.dart';
+import 'package:hyve/data/services/ai/samba_nova.dart';
+import 'package:hyve/data/services/ai/search1_api.dart';
+import 'package:hyve/data/services/ai/sense_nova.dart';
+import 'package:hyve/data/services/ai/spark.dart';
+import 'package:hyve/data/services/ai/stability.dart';
+import 'package:hyve/data/services/ai/step_fun.dart';
+import 'package:hyve/data/services/ai/tencent.dart';
+import 'package:hyve/data/services/ai/together_ai.dart';
+import 'package:hyve/data/services/ai/volcano_engine.dart';
+import 'package:hyve/data/services/ai/xing_he.dart';
+import 'package:hyve/data/services/ai/zero_one_ai.dart';
+import 'package:hyve/data/services/ai/zhipu.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 
 typedef AiMediaProviderFactory = AiProvider Function(Bot bot);
 
@@ -267,7 +267,7 @@ class AiProviderRepositoryImpl implements CancelableMediaRepository {
       isolate = await Isolate.spawn<(SendPort, _MediaRequest)>(
         _runMediaWorker,
         (responsePort.sendPort, request),
-        debugName: 'stars-media-${bot.id}',
+        debugName: 'hyve-media-${bot.id}',
       );
       if (cancellation.isCompleted) {
         isolate.kill(priority: Isolate.immediate);

@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/repositories/file_skill_repository.dart';
-import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/skills/skill_package_storage_service.dart';
-import 'package:stars/data/services/skills/skill_parser.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/repositories/file_skill_repository.dart';
+import 'package:hyve/data/repositories/sqlite_bot_skill_binding_repository.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/skills/skill_package_storage_service.dart';
+import 'package:hyve/data/services/skills/skill_parser.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -21,7 +21,7 @@ void main() {
 
   setUp(() async {
     temporaryDirectory = await Directory.systemTemp.createTemp(
-      'stars-skill-repository-',
+      'hyve-skill-repository-',
     );
     database = await databaseFactoryFfi.openDatabase(
       inMemoryDatabasePath,

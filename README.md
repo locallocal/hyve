@@ -1,8 +1,8 @@
-# Stars
+# Hyve
 
 [English](README.md) | [简体中文](docs/README_zh-CN.md)
 
-Stars is a cross-platform AI chat client built with Flutter. It provides a
+Hyve is a cross-platform AI chat client built with Flutter. It provides a
 responsive experience for desktop and mobile devices, connects to a broad range
 of AI providers, and keeps bots, conversations, messages, and preferences in a
 local SQLite database.
@@ -47,13 +47,13 @@ The complete provider registry is available in
 ### Run the application
 
 ```bash
-git clone https://github.com/locallocal/stars.git
-cd stars
+git clone https://github.com/locallocal/hyve.git
+cd hyve
 flutter pub get
 flutter run
 ```
 
-After launching Stars, add a bot and enter its provider, model, endpoint, API
+After launching Hyve, add a bot and enter its provider, model, endpoint, API
 key, and system prompt. Provider credentials are stored locally with the bot
 configuration, so protect access to your device and application data.
 
@@ -94,7 +94,7 @@ restore it with `flutter pub get --enforce-lockfile`.
 
 ## Architecture
 
-Stars follows a layered Flutter architecture:
+Hyve follows a layered Flutter architecture:
 
 ```text
 lib/
@@ -116,7 +116,7 @@ changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-Stars is licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
+Hyve is licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
 (`AGPL-3.0-only`). See [NOTICE](NOTICE) for copyright information. If you
-modify Stars and let users interact with that version over a network, review
+modify Hyve and let users interact with that version over a network, review
 the source-code offer requirements in section 13 of the license.

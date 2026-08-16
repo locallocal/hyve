@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.locallocal.stars"
+    namespace = "io.github.locallocal.hyve"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.locallocal.stars"
+        applicationId = "io.github.locallocal.hyve"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23

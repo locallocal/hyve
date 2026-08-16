@@ -1,42 +1,41 @@
 part of 'theme.dart';
 
-enum StarsGlassRole { toolbar, sidebar, composer, popover, overlayInspector }
+enum HyveGlassRole { toolbar, sidebar, composer, popover, overlayInspector }
 
 /// Solid semantic fallback for glass-role surfaces.
 ///
 /// This widget intentionally never constructs a BackdropFilter. Native/window
 /// material integration can be added behind this API when it is reliable.
-class StarsGlassSurface extends StatelessWidget {
-  const StarsGlassSurface({super.key, required this.role, required this.child});
+class HyveGlassSurface extends StatelessWidget {
+  const HyveGlassSurface({super.key, required this.role, required this.child});
 
-  final StarsGlassRole role;
+  final HyveGlassRole role;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final transient =
-        role == StarsGlassRole.popover ||
-        role == StarsGlassRole.overlayInspector;
-    final composer = role == StarsGlassRole.composer;
+        role == HyveGlassRole.popover || role == HyveGlassRole.overlayInspector;
+    final composer = role == HyveGlassRole.composer;
     final borderRadius =
         transient
-            ? StarsDesktopThemeSpec.containerRadius
+            ? HyveDesktopThemeSpec.containerRadius
             : composer
-            ? StarsDesktopThemeSpec.inputRadius
+            ? HyveDesktopThemeSpec.inputRadius
             : BorderRadius.zero;
     final color = switch (role) {
-      StarsGlassRole.sidebar => tokens.sidebarOpaque,
-      StarsGlassRole.toolbar => tokens.raisedSurface,
-      StarsGlassRole.composer => tokens.raisedSurface,
-      StarsGlassRole.popover => tokens.raisedSurface,
-      StarsGlassRole.overlayInspector => tokens.raisedSurface,
+      HyveGlassRole.sidebar => tokens.sidebarOpaque,
+      HyveGlassRole.toolbar => tokens.raisedSurface,
+      HyveGlassRole.composer => tokens.raisedSurface,
+      HyveGlassRole.popover => tokens.raisedSurface,
+      HyveGlassRole.overlayInspector => tokens.raisedSurface,
     };
     final border = switch (role) {
-      StarsGlassRole.toolbar => Border(
+      HyveGlassRole.toolbar => Border(
         bottom: BorderSide(color: tokens.separator, width: 0),
       ),
-      StarsGlassRole.sidebar => Border(
+      HyveGlassRole.sidebar => Border(
         right: BorderSide(color: tokens.separator, width: 0),
       ),
       _ => Border.all(color: tokens.separator, width: 0),
@@ -49,10 +48,7 @@ class StarsGlassSurface extends StatelessWidget {
         borderRadius: borderRadius,
         boxShadow:
             transient || composer
-                ? StarsDesktopThemeSpec.floatingShadow(
-                  context,
-                  subtle: composer,
-                )
+                ? HyveDesktopThemeSpec.floatingShadow(context, subtle: composer)
                 : null,
       ),
       clipBehavior:
@@ -62,8 +58,8 @@ class StarsGlassSurface extends StatelessWidget {
   }
 }
 
-class StarsToolbarButton extends StatelessWidget {
-  const StarsToolbarButton({
+class HyveToolbarButton extends StatelessWidget {
+  const HyveToolbarButton({
     super.key,
     required this.icon,
     required this.tooltip,
@@ -80,7 +76,7 @@ class StarsToolbarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final shadTheme = ShadTheme.maybeOf(context);
     if (shadTheme != null) {
       final button = ShadIconButton.ghost(
@@ -153,7 +149,7 @@ class StarsToolbarButton extends StatelessWidget {
       }),
       shape: const WidgetStatePropertyAll(
         RoundedRectangleBorder(
-          borderRadius: StarsDesktopThemeSpec.controlRadius,
+          borderRadius: HyveDesktopThemeSpec.controlRadius,
         ),
       ),
     );
@@ -178,8 +174,8 @@ class StarsToolbarButton extends StatelessWidget {
   }
 }
 
-class StarsSearchField extends StatelessWidget {
-  const StarsSearchField({
+class HyveSearchField extends StatelessWidget {
+  const HyveSearchField({
     super.key,
     required this.hintText,
     this.controller,
@@ -223,7 +219,7 @@ class StarsSearchField extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         style: Theme.of(context).textTheme.bodyMedium,
-        decoration: StarsDesktopThemeSpec.searchDecoration(
+        decoration: HyveDesktopThemeSpec.searchDecoration(
           context,
           hintText: hintText,
           suffixIcon: suffixIcon,
@@ -233,7 +229,7 @@ class StarsSearchField extends StatelessWidget {
       field = ShadInput(
         controller: controller,
         focusNode: focusNode,
-        padding: StarsDesktopThemeSpec.formFieldPadding,
+        padding: HyveDesktopThemeSpec.formFieldPadding,
         enabled: enabled,
         autofocus: autofocus,
         decoration:
@@ -267,11 +263,11 @@ class StarsSearchField extends StatelessWidget {
         alignment: Alignment.centerLeft,
         placeholderAlignment: Alignment.centerLeft,
         constraints: const BoxConstraints(
-          minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+          minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
         ),
       );
       if (insetFocusRing) {
-        field = _StarsInsetFocusRing(
+        field = _HyveInsetFocusRing(
           focusNode: focusNode!,
           color: shadTheme.colorScheme.ring,
           borderRadius: shadTheme.radius,
@@ -287,7 +283,7 @@ class StarsSearchField extends StatelessWidget {
       label: semanticLabel ?? hintText,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+          minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
         ),
         child: field,
       ),
@@ -295,8 +291,8 @@ class StarsSearchField extends StatelessWidget {
   }
 }
 
-class _StarsInsetFocusRing extends StatelessWidget {
-  const _StarsInsetFocusRing({
+class _HyveInsetFocusRing extends StatelessWidget {
+  const _HyveInsetFocusRing({
     required this.focusNode,
     required this.color,
     required this.borderRadius,
@@ -322,9 +318,7 @@ class _StarsInsetFocusRing extends StatelessWidget {
               Positioned.fill(
                 child: IgnorePointer(
                   child: DecoratedBox(
-                    key: const ValueKey<String>(
-                      'stars-search-inset-focus-ring',
-                    ),
+                    key: const ValueKey<String>('hyve-search-inset-focus-ring'),
                     decoration: BoxDecoration(
                       border: Border.all(color: color, width: 2),
                       borderRadius: borderRadius,
@@ -339,8 +333,8 @@ class _StarsInsetFocusRing extends StatelessWidget {
   }
 }
 
-class StarsSearchEmptyState extends StatelessWidget {
-  const StarsSearchEmptyState({
+class HyveSearchEmptyState extends StatelessWidget {
+  const HyveSearchEmptyState({
     super.key,
     required this.message,
     required this.clearLabel,
@@ -360,13 +354,13 @@ class StarsSearchEmptyState extends StatelessWidget {
           Icon(
             LucideIcons.search,
             size: 28,
-            color: StarsDesktopThemeSpec.mutedText(context),
+            color: HyveDesktopThemeSpec.mutedText(context),
           ),
           const SizedBox(height: 8),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: StarsDesktopThemeSpec.bodyStyle(context),
+            style: HyveDesktopThemeSpec.bodyStyle(context),
           ),
           const SizedBox(height: 8),
           TextButton.icon(
@@ -405,7 +399,7 @@ class DesktopEmptyStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final shadTheme = ShadTheme.maybeOf(context);
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
       color: tokens.primaryText,
@@ -484,7 +478,7 @@ class _EmptyStateIcon extends StatelessWidget {
   const _EmptyStateIcon({required this.icon, required this.tokens});
 
   final IconData icon;
-  final StarsDesktopTokens tokens;
+  final HyveDesktopTokens tokens;
 
   @override
   Widget build(BuildContext context) {
@@ -494,7 +488,7 @@ class _EmptyStateIcon extends StatelessWidget {
         height: 40,
         decoration: BoxDecoration(
           color: tokens.selectedFill,
-          borderRadius: StarsDesktopThemeSpec.containerRadius,
+          borderRadius: HyveDesktopThemeSpec.containerRadius,
         ),
         child: Icon(icon, size: 18, color: tokens.accent),
       ),
@@ -529,14 +523,14 @@ class DesktopListPanel extends StatelessWidget {
     this.searchController,
     this.searchSuffix,
     this.contentMaxWidth,
-    this.padding = StarsDesktopThemeSpec.panelPadding,
+    this.padding = HyveDesktopThemeSpec.panelPadding,
     this.backgroundColor,
     this.showHeader = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final content = Column(
       children: [
         if (showHeader) ...[
@@ -552,7 +546,7 @@ class DesktopListPanel extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+                        style: HyveDesktopThemeSpec.sectionTitleStyle(context),
                       ),
                     if (description.isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -560,7 +554,7 @@ class DesktopListPanel extends StatelessWidget {
                         description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: StarsDesktopThemeSpec.metaStyle(context),
+                        style: HyveDesktopThemeSpec.metaStyle(context),
                       ),
                     ],
                   ],
@@ -572,7 +566,7 @@ class DesktopListPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        StarsSearchField(
+        HyveSearchField(
           hintText: searchHintText,
           controller: searchController,
           focusNode: searchFocusNode,
@@ -617,7 +611,7 @@ class DesktopInteractiveListItem extends StatefulWidget {
     required this.onTap,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    this.minHeight = StarsDesktopThemeSpec.listItemMinHeight,
+    this.minHeight = HyveDesktopThemeSpec.listItemMinHeight,
   });
 
   @override
@@ -656,7 +650,7 @@ class _DesktopInteractiveListItemState
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (ShadTheme.maybeOf(context) != null) {
       final selectedBackground =
-          StarsDesktopThemeSpec.inactivePrimaryActionColor(context);
+          HyveDesktopThemeSpec.inactivePrimaryActionColor(context);
       return Semantics(
         button: true,
         selected: widget.selected,
@@ -667,7 +661,7 @@ class _DesktopInteractiveListItemState
                   : const Duration(milliseconds: 100),
           curve: Curves.easeOutCubic,
           constraints: BoxConstraints(minHeight: widget.minHeight),
-          decoration: StarsDesktopThemeSpec.listItemDecoration(
+          decoration: HyveDesktopThemeSpec.listItemDecoration(
             context,
             selected: false,
             hovered: false,
@@ -725,7 +719,7 @@ class _DesktopInteractiveListItemState
                 : const Duration(milliseconds: 100),
         curve: Curves.easeOutCubic,
         constraints: BoxConstraints(minHeight: widget.minHeight),
-        decoration: StarsDesktopThemeSpec.listItemDecoration(
+        decoration: HyveDesktopThemeSpec.listItemDecoration(
           context,
           selected: widget.selected,
           hovered: _hovered && !widget.suppressHoverBackground,
@@ -766,7 +760,7 @@ class _DesktopInteractiveListItemState
                 }
               },
               overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-              borderRadius: StarsDesktopThemeSpec.itemRadius,
+              borderRadius: HyveDesktopThemeSpec.itemRadius,
               child: Padding(padding: widget.padding, child: widget.child),
             ),
           ),

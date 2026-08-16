@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:stars/data/services/ai/provider_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/provider_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 class Xinghe extends Provider {
   static const String defaultApiChatUrl =

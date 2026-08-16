@@ -2,18 +2,18 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/utils/utils.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/feedback/views/feedback_page.dart';
-import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
-import 'package:stars/ui/features/profile/views/privacy_policy.dart';
-import 'package:stars/ui/features/profile/views/user_agreement.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/feedback/views/feedback_page.dart';
+import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
+import 'package:hyve/ui/features/profile/views/privacy_policy.dart';
+import 'package:hyve/ui/features/profile/views/user_agreement.dart';
+import 'package:hyve/utils/theme.dart';
 
 part 'profile_settings_controls.dart';
 part 'profile_dialogs.dart';
@@ -96,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
   double get _fontSize => _profile?.fontSize ?? 16.0;
   bool get _showExecutionStatus => _profile?.showExecutionStatus ?? true;
   String get _applicationInjectedPrompt =>
-      (widget.applicationPromptProvider?.call() ?? currentStarsSystemPrompt())
+      (widget.applicationPromptProvider?.call() ?? currentHyveSystemPrompt())
           .trim();
 
   @override
@@ -392,27 +392,27 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildDesktopBody(BuildContext context) {
     return ColoredBox(
-      color: StarsDesktopThemeSpec.workspaceSurface(context),
+      color: HyveDesktopThemeSpec.workspaceSurface(context),
       child: SingleChildScrollView(
-        padding: StarsDesktopThemeSpec.formPagePadding,
+        padding: HyveDesktopThemeSpec.formPagePadding,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
+              maxWidth: HyveDesktopThemeSpec.formContentMaxWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   S.of(context).profile,
-                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
+                  style: HyveDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   S.of(context).desktopSettingsDescription,
-                  style: StarsDesktopThemeSpec.bodyStyle(
+                  style: HyveDesktopThemeSpec.bodyStyle(
                     context,
-                  )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context)),
+                  )?.copyWith(color: HyveDesktopThemeSpec.mutedText(context)),
                 ),
                 const SizedBox(height: 32),
                 _buildDesktopSettingsSection(

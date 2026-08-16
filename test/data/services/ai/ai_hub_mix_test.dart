@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:stars/data/services/ai/ai_hub_mix.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/ai_hub_mix.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   test('AiHubMix ignores a trailing usage event with empty choices', () async {

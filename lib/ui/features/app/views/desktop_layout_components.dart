@@ -81,7 +81,7 @@ class _DesktopResizeHandleState extends State<_DesktopResizeHandle> {
             onHorizontalDragStart: (_) => _focusNode.requestFocus(),
             onHorizontalDragUpdate: (details) => _moveHandle(details.delta.dx),
             child: SizedBox(
-              width: StarsDesktopThemeSpec.splitterHitWidth,
+              width: HyveDesktopThemeSpec.splitterHitWidth,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -132,7 +132,7 @@ class _SidebarDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedBackground = StarsDesktopThemeSpec.inactivePrimaryActionColor(
+    final selectedBackground = HyveDesktopThemeSpec.inactivePrimaryActionColor(
       context,
     );
     return Semantics(
@@ -145,7 +145,7 @@ class _SidebarDestination extends StatelessWidget {
           variant:
               selected ? ShadButtonVariant.primary : ShadButtonVariant.ghost,
           size: ShadButtonSize.sm,
-          height: StarsDesktopThemeSpec.botFormFieldHeight,
+          height: HyveDesktopThemeSpec.botFormFieldHeight,
           backgroundColor: selected ? selectedBackground : null,
           hoverBackgroundColor: selected ? selectedBackground : null,
           pressedBackgroundColor: selected ? selectedBackground : null,
@@ -215,7 +215,7 @@ class _AccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DesktopInteractiveListItem(
       selected: selected,
-      minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+      minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       child: Row(
@@ -253,5 +253,5 @@ class _InspectorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      StarsInspectorInfoRow(icon: icon, label: label, value: value);
+      HyveInspectorInfoRow(icon: icon, label: label, value: value);
 }

@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 /// Provider metadata that is not consistently returned by `/models` APIs.
 ///

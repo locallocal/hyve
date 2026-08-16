@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef ImageShare =
@@ -26,10 +26,7 @@ final class PlatformMessageActionRepository implements MessageActionRepository {
       throw const AppFailure.storage('message_image_missing');
     }
     if (Platform.isAndroid || Platform.isIOS) {
-      final saved = await GallerySaver.saveImage(
-        sourcePath,
-        albumName: 'Stars',
-      );
+      final saved = await GallerySaver.saveImage(sourcePath, albumName: 'Hyve');
       if (saved != true) {
         throw const AppFailure.storage('message_image_export_failed');
       }

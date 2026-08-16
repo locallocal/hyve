@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/mcp/secure_mcp_credential_store.dart';
+import 'package:hyve/domain/models/models.dart';
 
 import '../../../helpers/memory_secure_storage.dart';
 
@@ -58,7 +58,7 @@ void main() {
     'rejects malformed credential records instead of accepting old shapes',
     () async {
       FlutterSecureStorage.setMockInitialValues({
-        'stars.mcp.credential.server-1': '{"accessToken":"old-shape"}',
+        'hyve.mcp.credential.server-1': '{"accessToken":"old-shape"}',
       });
       final store = SecureMcpCredentialStore();
 
@@ -80,16 +80,16 @@ void main() {
     ).read('server-1');
 
     expect(restored?.accessToken, 'legacy-access-token');
-    expect(currentStorage.values, contains('stars.mcp.credential.server-1'));
+    expect(currentStorage.values, contains('hyve.mcp.credential.server-1'));
     expect(
       legacyStorage.values,
-      isNot(contains('stars.mcp.credential.server-1')),
+      isNot(contains('hyve.mcp.credential.server-1')),
     );
   });
 
   test('does not migrate a malformed legacy Apple credential', () async {
     final legacyStorage = MemorySecureStorage({
-      'stars.mcp.credential.server-1': '{"accessToken":"old-shape"}',
+      'hyve.mcp.credential.server-1': '{"accessToken":"old-shape"}',
     });
     final currentStorage = MemorySecureStorage();
     final store = SecureMcpCredentialStore(
@@ -100,6 +100,6 @@ void main() {
     await expectLater(store.read('server-1'), throwsFormatException);
 
     expect(currentStorage.values, isEmpty);
-    expect(legacyStorage.values, contains('stars.mcp.credential.server-1'));
+    expect(legacyStorage.values, contains('hyve.mcp.credential.server-1'));
   });
 }

@@ -4,22 +4,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/app/views/desktop_layout.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/bots/views/add_bot.dart';
-import 'package:stars/ui/features/chats/views/new_chat_dialog.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/app/views/desktop_layout.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/ui/features/bots/views/add_bot.dart';
+import 'package:hyve/ui/features/chats/views/new_chat_dialog.dart';
+import 'package:hyve/utils/theme.dart';
 
 Future<void> withDesktopPlatform(Future<void> Function() body) async {
   debugDefaultTargetPlatformOverride = TargetPlatform.linux;
@@ -116,7 +116,7 @@ Widget shadHarness({
   required Brightness brightness,
   required WidgetBuilder homeBuilder,
 }) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: brightness,
     fontSize: 16,
   ).copyWith(

@@ -7,17 +7,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/data/services/skills/skill_script_catalog_service.dart';
-import 'package:stars/data/services/skills/skill_script_manifest_parser.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/domain/repositories/skill_script_sandbox.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
-import 'package:stars/ui/features/skills/views/skill_library.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/data/services/skills/skill_script_catalog_service.dart';
+import 'package:hyve/data/services/skills/skill_script_manifest_parser.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/repositories/skill_script_sandbox.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
+import 'package:hyve/ui/features/skills/views/skill_library.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -323,7 +323,7 @@ void main() {
       expect(tester.getSize(compactCard), tester.getSize(detailedCard));
       expect(
         tester.getSize(compactCard).height,
-        StarsDesktopThemeSpec.managementCardHeight,
+        HyveDesktopThemeSpec.managementCardHeight,
       );
       expect(tester.takeException(), isNull);
     } finally {
@@ -553,7 +553,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
 
       final directory = Directory.systemTemp.createTempSync(
-        'stars-skill-card-test-',
+        'hyve-skill-card-test-',
       );
       addTearDown(() => directory.deleteSync(recursive: true));
       File('${directory.path}/scripts/helper.sh').createSync(recursive: true);
@@ -720,7 +720,7 @@ void main() {
 }
 
 Widget _harness(SkillLibraryViewModel viewModel) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );
@@ -796,7 +796,7 @@ SkillContent _bundledSkillContent() {
       contentDigest: 'system-digest',
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars',
+      compatibility: 'Hyve',
       installedAt: timestamp,
       updatedAt: timestamp,
     ),

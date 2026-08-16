@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/modalities.dart';
+import 'package:hyve/domain/models/modalities.dart';
 
 enum AiModelTaskType {
   chat('chat'),
@@ -106,7 +106,7 @@ final class AiModelInfo {
   /// Whether the model can run client-provided MCP tools in an Agent Loop.
   final bool? supportsMcp;
 
-  /// Whether Stars can apply prompt-based Skills to this model.
+  /// Whether Hyve can apply prompt-based Skills to this model.
   final bool? supportsSkills;
 
   /// Whether the model can select Skills through structured tool calls.

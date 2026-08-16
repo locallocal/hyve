@@ -1,15 +1,14 @@
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
 
 final class TestSkillDescription {
   const TestSkillDescription({
-    StarsSystemPromptProvider starsSystemPromptProvider =
-        currentStarsSystemPrompt,
-  }) : _starsSystemPromptProvider = starsSystemPromptProvider;
+    HyveSystemPromptProvider hyveSystemPromptProvider = currentHyveSystemPrompt,
+  }) : _hyveSystemPromptProvider = hyveSystemPromptProvider;
 
-  final StarsSystemPromptProvider _starsSystemPromptProvider;
+  final HyveSystemPromptProvider _hyveSystemPromptProvider;
 
   Future<SkillDescriptionTestReport> call({
     required AiProvider provider,
@@ -49,9 +48,9 @@ final class TestSkillDescription {
             messages: [
               ChatMessage(
                 role: 'system',
-                content: prependStarsSystemPrompt(
+                content: prependHyveSystemPrompt(
                   'Use activate_skill only when the available Skill is relevant.',
-                  starsSystemPromptProvider: _starsSystemPromptProvider,
+                  hyveSystemPromptProvider: _hyveSystemPromptProvider,
                 ),
               ),
               ChatMessage(role: 'user', content: testCase.input),

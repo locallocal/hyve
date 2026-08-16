@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/conversation_draft.dart';
+import 'package:hyve/domain/models/conversation_draft.dart';
 
 /// A bounded, conversation-scoped draft store.
 abstract interface class ConversationDraftRepository {

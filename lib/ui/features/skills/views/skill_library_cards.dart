@@ -161,7 +161,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
               ),
             ),
           ),
-      child: StarsDesktopIconAction(
+      child: HyveDesktopIconAction(
         key: ValueKey<String>('desktop-skill-menu-button-${widget.skill.id}'),
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
@@ -207,7 +207,7 @@ class _DesktopSkillCardState extends State<_DesktopSkillCard> {
                         'desktop-skill-card-title-${widget.skill.id}',
                       ),
                       style: const TextStyle(
-                        fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+                        fontSize: HyveDesktopThemeSpec.pageTitleFontSize,
                       ),
                     ),
                   ),

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/profile_repository.dart';
-import 'package:stars/ui/features/app/view_models/app_view_model.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/profile_repository.dart';
+import 'package:hyve/ui/features/app/view_models/app_view_model.dart';
 
 void main() {
   test('profile changes update execution status visibility', () async {

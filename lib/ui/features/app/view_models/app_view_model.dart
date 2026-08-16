@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/profile_repository.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/profile_repository.dart';
+import 'package:hyve/utils/utils.dart';
 
 class AppViewModel extends ChangeNotifier {
   AppViewModel({

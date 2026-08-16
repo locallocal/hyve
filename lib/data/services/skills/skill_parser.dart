@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 import 'package:yaml/yaml.dart';
 
 final class ParsedSkillPackage {

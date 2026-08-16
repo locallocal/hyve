@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
-import 'package:stars/data/services/ai/provider_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/provider_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 class MiniMax extends Provider {
   static const String defaultApiChatUrl =

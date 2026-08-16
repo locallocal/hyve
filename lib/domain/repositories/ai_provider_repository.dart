@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 abstract class AiProvider {
   AiProvider(this.bot);

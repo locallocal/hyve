@@ -3,23 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/app/views/desktop_layout.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
-import 'package:stars/ui/features/bots/views/add_bot.dart';
-import 'package:stars/ui/features/bots/views/bots.dart';
-import 'package:stars/ui/features/chat/views/message_list.dart';
-import 'package:stars/ui/features/chats/views/chat_item.dart';
-import 'package:stars/ui/features/profile/views/profile.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/app/views/desktop_layout.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/ui/features/bots/views/add_bot.dart';
+import 'package:hyve/ui/features/bots/views/bots.dart';
+import 'package:hyve/ui/features/chat/views/message_list.dart';
+import 'package:hyve/ui/features/chats/views/chat_item.dart';
+import 'package:hyve/ui/features/profile/views/profile.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -108,7 +108,7 @@ class _VisualHarness extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadTheme = buildStarsShadTheme(
+    final shadTheme = buildHyveShadTheme(
       brightness: appearance.brightness,
       fontSize: 16,
       highContrast: appearance.highContrast,
@@ -201,7 +201,7 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
     return RepaintBoundary(
       key: const ValueKey<String>('desktop-visual-matrix'),
       child: ColoredBox(
-        color: StarsDesktopTokens.of(context).windowBackground,
+        color: HyveDesktopTokens.of(context).windowBackground,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -254,7 +254,7 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
       description: _isChinese ? '最近的对话' : 'Recent conversations',
       searchHintText: _isChinese ? '搜索会话' : 'Search conversations',
       onSearchChanged: (_) {},
-      action: StarsDesktopIconAction(
+      action: HyveDesktopIconAction(
         icon: LucideIcons.plus,
         label: _isChinese ? '新建会话' : 'New conversation',
         onPressed: () {},
@@ -364,7 +364,7 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
   Widget _buildProfile() {
     return ProfilePage(
       initialProfile: Profile(
-        name: _isChinese ? '星辰用户' : 'Stars User',
+        name: _isChinese ? '星辰用户' : 'Hyve User',
         avatar: '',
         fontSize: 16,
         themeMode: 0,
@@ -393,14 +393,14 @@ class _SceneFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: tokens.contentBackground,
           border: Border.all(color: tokens.separator),
-          borderRadius: StarsDesktopThemeSpec.containerRadius,
+          borderRadius: HyveDesktopThemeSpec.containerRadius,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -409,7 +409,7 @@ class _SceneFrame extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Text(
                 '$title · ${logicalWidth.toInt()}px',
-                style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+                style: HyveDesktopThemeSpec.sectionTitleStyle(context),
               ),
             ),
             const ShadSeparator.horizontal(),

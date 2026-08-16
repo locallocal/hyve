@@ -3,25 +3,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/models/provider_catalog.dart';
-import 'package:stars/domain/use_cases/bot_commands.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/ui/core/widgets/model_modalities.dart';
-import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
-import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/bots/view_models/bot_form_view_model.dart';
-import 'package:stars/ui/features/bots/views/bot_mcp_tool_picker.dart';
-import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
-import 'package:stars/ui/features/bots/views/skill_description_test_dialog.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/models/provider_catalog.dart';
+import 'package:hyve/domain/use_cases/bot_commands.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/core/widgets/model_modalities.dart';
+import 'package:hyve/ui/core/widgets/token_usage_indicator.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_form_view_model.dart';
+import 'package:hyve/ui/features/bots/views/bot_mcp_tool_picker.dart';
+import 'package:hyve/ui/features/bots/views/bot_token_usage.dart';
+import 'package:hyve/ui/features/bots/views/skill_description_test_dialog.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 part 'edit_bot_skills.dart';
 part 'edit_bot_commands.dart';
@@ -282,7 +282,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
               : null,
       backgroundColor:
           widget.embedded
-              ? StarsDesktopThemeSpec.workspaceSurface(context)
+              ? HyveDesktopThemeSpec.workspaceSurface(context)
               : null,
       appBar:
           widget.embedded
@@ -313,20 +313,20 @@ class _EditAIBotPageState extends State<EditBotPage> {
           constraints: BoxConstraints(
             maxWidth:
                 widget.embedded
-                    ? StarsDesktopThemeSpec.formContentMaxWidth +
-                        StarsDesktopThemeSpec.formPagePadding.horizontal
+                    ? HyveDesktopThemeSpec.formContentMaxWidth +
+                        HyveDesktopThemeSpec.formPagePadding.horizontal
                     : 800,
           ),
           child: SingleChildScrollView(
             padding:
                 widget.embedded
-                    ? StarsDesktopThemeSpec.formPagePadding
+                    ? HyveDesktopThemeSpec.formPagePadding
                     : const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_commandFailure case final failure?) ...[
-                  StarsInlineErrorAlert(
+                  HyveInlineErrorAlert(
                     error: safeFailureMessage(context, failure),
                     isDesktop: widget.embedded,
                     onDismiss: () => setState(() => _commandFailure = null),
@@ -390,7 +390,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                           children: [
                             Text(
                               widget.bot.name,
-                              style: StarsDesktopThemeSpec.pageTitleStyle(
+                              style: HyveDesktopThemeSpec.pageTitleStyle(
                                 context,
                               ),
                             ),
@@ -399,7 +399,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                               '${widget.bot.provider} · ${widget.bot.model}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: StarsDesktopThemeSpec.metaStyle(context),
+                              style: HyveDesktopThemeSpec.metaStyle(context),
                             ),
                           ],
                         ),
@@ -584,7 +584,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     key: const ValueKey<String>(
                       'desktop-bot-save-bar-background',
                     ),
-                    color: StarsDesktopThemeSpec.workspaceSurface(context),
+                    color: HyveDesktopThemeSpec.workspaceSurface(context),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
                       child: Row(

@@ -1,4 +1,4 @@
-# Stars 桌面端界面规范
+# Hyve 桌面端界面规范
 
 ## 1. 状态与范围
 
@@ -17,7 +17,7 @@
 
 ## 2. 产品方向
 
-Stars 桌面端采用紧凑、连续的工作台布局：结构面板之间以分隔线和语义表面区分，外壳
+Hyve 桌面端采用紧凑、连续的工作台布局：结构面板之间以分隔线和语义表面区分，外壳
 不增加卡片式留白。目标是提高长会话、Bot 配置和工具执行信息的可读性，并保持鼠标、
 键盘和辅助技术的一致操作体验。
 
@@ -27,7 +27,7 @@ Stars 桌面端采用紧凑、连续的工作台布局：结构面板之间以�
 - workspace 与 sidebar 为连续直角结构；
 - 一级容器圆角 `8px`，列表项/输入/小控件圆角 `6px`；
 - 结构面板无阴影，只有 overlay、popover、toast 等浮层使用弱阴影；
-- 色彩来自 `StarsDesktopTokens`，尺寸和形状来自 `StarsDesktopThemeSpec`。
+- 色彩来自 `HyveDesktopTokens`，尺寸和形状来自 `HyveDesktopThemeSpec`。
 
 ## 3. 信息架构
 
@@ -56,7 +56,7 @@ Stars 桌面端采用紧凑、连续的工作台布局：结构面板之间以�
 
 Sidebar 顶部展示品牌、新建会话和 Bot 入口，中部始终保留会话列表，底部提供账户与
 设置入口。列表选择、hover、pressed、focus 状态统一调用
-`StarsDesktopThemeSpec.listItemDecoration`；不使用第三方 sidebar 组件。
+`HyveDesktopThemeSpec.listItemDecoration`；不使用第三方 sidebar 组件。
 
 ### 3.3 Workspace
 
@@ -87,7 +87,7 @@ route/overlay，避免不可见焦点和重复导航栈。
 
 ### 5.1 语义 token
 
-业务视图不得声明产品颜色。下列语义全部从 `StarsDesktopTokens` 派生：窗口、内容、
+业务视图不得声明产品颜色。下列语义全部从 `HyveDesktopTokens` 派生：窗口、内容、
 sidebar、raised surface、控件、hover、pressed、selected、separator、三级文字、focus、
 success、warning、danger 与 scrim。
 
@@ -105,18 +105,18 @@ light、dark、high contrast 都必须有确定值；系统 high-contrast 状态
 | 工作区 padding | 24px |
 | 表单页 padding | 32/28/32/48px |
 
-圆角、padding、宽度和高度优先增加到 `StarsDesktopThemeSpec`，不得散落同语义魔法值。
+圆角、padding、宽度和高度优先增加到 `HyveDesktopThemeSpec`，不得散落同语义魔法值。
 
 ### 5.3 交互组件
 
 组件必须遵守 `docs/desktop_component_matrix.md`：
 
 - 文本按钮使用对应 variant 的 `ShadButton`；
-- icon action 使用 44×44 命中区的 `StarsDesktopIconAction`；
-- 菜单使用 `StarsDesktopMenu` 或 `StarsContextMenu`；
+- icon action 使用 44×44 命中区的 `HyveDesktopIconAction`；
+- 菜单使用 `HyveDesktopMenu` 或 `HyveContextMenu`；
 - 图标使用 Lucide；
-- 临时通知只经 `showStarsNotice`；
-- 可恢复错误优先使用 `StarsInlineErrorAlert`；
+- 临时通知只经 `showHyveNotice`；
+- 可恢复错误优先使用 `HyveInlineErrorAlert`；
 - overlay/dialog/sheet 维持同一 Shad theme stack。
 
 ## 6. 会话体验

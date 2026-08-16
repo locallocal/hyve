@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
-import 'package:stars/domain/use_cases/compact_conversation.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
+import 'package:hyve/domain/use_cases/compact_conversation.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
+import 'package:hyve/utils/theme.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 part 'conversation_memory_summary.dart';
@@ -86,7 +86,7 @@ final class _ConversationMemoryPanelState
           Text(
             S.of(context).contextAndMemory,
             key: const ValueKey<String>('conversation-memory-section-title'),
-            style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+            style: HyveDesktopThemeSpec.sectionTitleStyle(context),
           ),
           const SizedBox(height: 12),
           if (report != null) ...[
@@ -149,9 +149,9 @@ final class _ConversationMemoryPanelState
             const SizedBox(height: 10),
             Text(
               safeFailureMessage(context, viewModel.error!),
-              style: (StarsDesktopThemeSpec.metaStyle(context) ??
+              style: (HyveDesktopThemeSpec.metaStyle(context) ??
                       const TextStyle())
-                  .copyWith(color: StarsDesktopThemeSpec.error(context)),
+                  .copyWith(color: HyveDesktopThemeSpec.error(context)),
             ),
           ],
           _ConversationSystemPromptBlock(
@@ -209,7 +209,7 @@ final class _ConversationMemoryPanelState
               key: const ValueKey<String>('conversation-summary-dialog'),
               title: Text(
                 S.of(dialogContext).conversationSummary,
-                style: StarsDesktopThemeSpec.pageTitleStyle(dialogContext),
+                style: HyveDesktopThemeSpec.pageTitleStyle(dialogContext),
               ),
               description: Text(S.of(dialogContext).automaticSummaryWarning),
               constraints: const BoxConstraints(maxWidth: 720),
@@ -239,10 +239,10 @@ final class _ConversationMemoryPanelState
     String message, {
     bool destructive = false,
   }) {
-    showStarsNotice(
+    showHyveNotice(
       context,
       message,
-      tone: destructive ? StarsNoticeTone.error : StarsNoticeTone.info,
+      tone: destructive ? HyveNoticeTone.error : HyveNoticeTone.info,
     );
   }
 

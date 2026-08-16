@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/legal_document.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/legal_document.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 /// Displays the localized user agreement bundled with the application.
 class UserAgreementPage extends StatefulWidget {
@@ -125,7 +125,7 @@ class _UserAgreementPageState extends State<UserAgreementPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    StarsDesktopIconAction(
+                    HyveDesktopIconAction(
                       icon: LucideIcons.arrowLeft,
                       label: backTooltip,
                       iconSize: 18,
@@ -163,7 +163,7 @@ class _UserAgreementPageState extends State<UserAgreementPage> {
   }
 
   MarkdownStyleSheet _markdownStyle(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return MarkdownStyleSheet(
       h1: TextStyle(
         fontSize: 24,
@@ -182,7 +182,7 @@ class _UserAgreementPageState extends State<UserAgreementPage> {
       ),
       blockquoteDecoration: BoxDecoration(
         color: tokens.controlFill,
-        borderRadius: StarsDesktopThemeSpec.containerRadius,
+        borderRadius: HyveDesktopThemeSpec.containerRadius,
         border: Border(left: BorderSide(color: tokens.separator, width: 3)),
       ),
       horizontalRuleDecoration: BoxDecoration(

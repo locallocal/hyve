@@ -162,7 +162,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
               ),
             ),
           ),
-      child: StarsDesktopIconAction(
+      child: HyveDesktopIconAction(
         key: ValueKey<String>('desktop-mcp-server-actions-${widget.server.id}'),
         icon: LucideIcons.ellipsis,
         label: MaterialLocalizations.of(context).showMenuTooltip,
@@ -177,7 +177,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
   Widget build(BuildContext context) {
     final strings = S.of(context);
     final theme = ShadTheme.of(context);
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final statusColor = _statusColor(tokens, widget.server.status);
 
     return Semantics(
@@ -222,7 +222,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: StarsDesktopThemeSpec.pageTitleStyle(context),
+                      style: HyveDesktopThemeSpec.pageTitleStyle(context),
                     ),
                   ),
                 ],
@@ -282,7 +282,7 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
     );
   }
 
-  Color _statusColor(StarsDesktopTokens tokens, McpConnectionStatus status) =>
+  Color _statusColor(HyveDesktopTokens tokens, McpConnectionStatus status) =>
       switch (status) {
         McpConnectionStatus.connected => tokens.success,
         McpConnectionStatus.connecting => tokens.warning,
@@ -342,7 +342,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     final strings = S.of(context);
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final server = widget.server;
     final tools = widget.tools;
     final filteredTools = filterMcpTools(tools, _query);
@@ -359,7 +359,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
       title: Text(
         server.name,
         key: ValueKey<String>('mcp-server-details-title-${server.id}'),
-        style: StarsDesktopThemeSpec.pageTitleStyle(context),
+        style: HyveDesktopThemeSpec.pageTitleStyle(context),
       ),
       description: Text(
         mcpConnectionSummary(server),
@@ -411,13 +411,13 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
               Text(
                 strings.mcpTools,
                 key: ValueKey<String>('mcp-tools-title-${server.id}'),
-                style: StarsDesktopThemeSpec.pageTitleStyle(
+                style: HyveDesktopThemeSpec.pageTitleStyle(
                   context,
                 )?.copyWith(color: tokens.secondaryText),
               ),
               const SizedBox(height: 10),
               if (tools.isNotEmpty) ...[
-                StarsSearchField(
+                HyveSearchField(
                   key: ValueKey<String>('desktop-mcp-tool-search-${server.id}'),
                   hintText: strings.searchMcpTools,
                   semanticLabel: strings.searchMcpTools,
@@ -428,7 +428,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
                   suffixIcon:
                       _query.isEmpty
                           ? null
-                          : StarsDesktopIconAction(
+                          : HyveDesktopIconAction(
                             key: ValueKey<String>(
                               'clear-desktop-mcp-tool-search-${server.id}',
                             ),
@@ -443,10 +443,10 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
               if (tools.isEmpty)
                 Text(
                   strings.noMcpToolsDiscovered,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 )
               else if (filteredTools.isEmpty)
-                StarsSearchEmptyState(
+                HyveSearchEmptyState(
                   key: ValueKey<String>(
                     'desktop-mcp-tool-search-empty-${server.id}',
                   ),
@@ -496,9 +496,9 @@ class _McpStdioRuntimeDetails extends StatelessWidget {
         Text(
           strings.mcpStdioProcessAndChannel,
           key: ValueKey<String>('mcp-stdio-runtime-title-$serverId'),
-          style: StarsDesktopThemeSpec.pageTitleStyle(
+          style: HyveDesktopThemeSpec.pageTitleStyle(
             context,
-          )?.copyWith(color: StarsDesktopTokens.of(context).secondaryText),
+          )?.copyWith(color: HyveDesktopTokens.of(context).secondaryText),
         ),
         const SizedBox(height: 12),
         _McpServerDetailRow(
@@ -597,7 +597,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final supported = tool.isSupportedByClient;
     final title = tool.title.isEmpty ? tool.remoteName : tool.title;
 
@@ -642,7 +642,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
                   tool.canonicalName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
                 if (tool.description.isNotEmpty || !supported) ...[
                   const SizedBox(height: 4),
@@ -652,7 +652,7 @@ class _DesktopMcpToolCard extends StatelessWidget {
                         : S.of(context).mcpToolSchemaUnsupported,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: StarsDesktopThemeSpec.metaStyle(context)?.copyWith(
+                    style: HyveDesktopThemeSpec.metaStyle(context)?.copyWith(
                       color: supported ? tokens.secondaryText : tokens.danger,
                     ),
                   ),

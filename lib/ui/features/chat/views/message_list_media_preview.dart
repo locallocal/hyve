@@ -33,7 +33,7 @@ void _showImageDialog(
       });
     } catch (error) {
       if (dialogContext.mounted) {
-        showStarsNotice(
+        showHyveNotice(
           dialogContext,
           strings.saveImageFailed(safeFailureMessage(dialogContext, error)),
         );
@@ -45,11 +45,11 @@ void _showImageDialog(
     try {
       await actions?.shareImage(
         sourcePath: imagePath,
-        text: S.of(dialogContext).sharedImageFromStars,
+        text: S.of(dialogContext).sharedImageFromHyve,
       );
     } catch (error) {
       if (dialogContext.mounted) {
-        showStarsNotice(
+        showHyveNotice(
           dialogContext,
           S
               .of(dialogContext)
@@ -75,7 +75,7 @@ void _showImageDialog(
       );
     }
 
-    return StarsDesktopIconAction(
+    return HyveDesktopIconAction(
       icon: icon,
       label: tooltip,
       variant: ShadButtonVariant.secondary,

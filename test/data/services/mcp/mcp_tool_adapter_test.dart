@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/mcp/mcp_tool_adapter.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_client.dart';
+import 'package:hyve/data/services/mcp/mcp_tool_adapter.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_client.dart';
 
 void main() {
   test('maps untrusted MCP annotations to local risk and capabilities', () {

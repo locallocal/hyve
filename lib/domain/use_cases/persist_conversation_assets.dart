@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
 
 final class PersistConversationAssets {
   const PersistConversationAssets({required AttachmentRepository repository})

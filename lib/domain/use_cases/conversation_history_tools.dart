@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:stars/domain/models/conversation_history.dart';
-import 'package:stars/domain/models/tool.dart';
-import 'package:stars/domain/repositories/conversation_history_repository.dart';
+import 'package:hyve/domain/models/conversation_history.dart';
+import 'package:hyve/domain/models/tool.dart';
+import 'package:hyve/domain/repositories/conversation_history_repository.dart';
 
 final class ConversationHistoryToolSession {
   ConversationHistoryToolSession({

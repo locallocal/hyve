@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:stars/data/services/skills/skill_catalog_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/data/services/skills/skill_catalog_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 
 final class SkillOrganizationPolicyBundleService {
   const SkillOrganizationPolicyBundleService({

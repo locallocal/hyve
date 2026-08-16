@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/domain/use_cases/test_skill_description.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/use_cases/test_skill_description.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 final class BotSkillViewModel extends DisposableChangeNotifier {
   static const int defaultPageSize = 5;

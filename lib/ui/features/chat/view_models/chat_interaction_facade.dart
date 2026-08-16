@@ -1,8 +1,8 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/chat_workflow_facade.dart';
-import 'package:stars/domain/use_cases/generate_media_turn.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/chat_workflow_facade.dart';
+import 'package:hyve/domain/use_cases/generate_media_turn.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/message_action_view_model.dart';
 
 /// Joins conversation commands with the long-running generation lifecycle.
 final class ChatInteractionFacade {

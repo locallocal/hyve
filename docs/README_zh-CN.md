@@ -1,8 +1,8 @@
-# Stars
+# Hyve
 
 [English](../README.md) | 简体中文
 
-Stars 是一款使用 Flutter 构建的跨平台 AI 聊天客户端。它为桌面端和移动端提供响应式体验，
+Hyve 是一款使用 Flutter 构建的跨平台 AI 聊天客户端。它为桌面端和移动端提供响应式体验，
 支持连接多种 AI 服务，并使用本地 SQLite 数据库存储助手、会话、消息和偏好设置。
 
 ## 功能特性
@@ -37,13 +37,13 @@ Stars 是一款使用 Flutter 构建的跨平台 AI 聊天客户端。它为桌�
 ### 运行应用
 
 ```bash
-git clone https://github.com/locallocal/stars.git
-cd stars
+git clone https://github.com/locallocal/hyve.git
+cd hyve
 flutter pub get
 flutter run
 ```
 
-启动 Stars 后，添加一个助手并填写服务商、模型、接口地址、API 密钥和系统提示词。
+启动 Hyve 后，添加一个助手并填写服务商、模型、接口地址、API 密钥和系统提示词。
 服务商凭据会随助手配置保存在本地，请妥善保护设备和应用数据。
 
 ## 开发
@@ -65,7 +65,7 @@ dart format .
 
 ## 项目架构
 
-Stars 采用分层 Flutter 架构：
+Hyve 采用分层 Flutter 架构：
 
 ```text
 lib/

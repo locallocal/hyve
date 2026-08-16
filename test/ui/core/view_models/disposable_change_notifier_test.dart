@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/legal_document.dart';
-import 'package:stars/domain/repositories/feedback_repository.dart';
-import 'package:stars/domain/repositories/legal_document_repository.dart';
-import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
-import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
+import 'package:hyve/domain/models/legal_document.dart';
+import 'package:hyve/domain/repositories/feedback_repository.dart';
+import 'package:hyve/domain/repositories/legal_document_repository.dart';
+import 'package:hyve/ui/features/feedback/view_models/feedback_view_model.dart';
+import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.dart';
 
 void main() {
   group('async ChangeNotifier disposal guard', () {

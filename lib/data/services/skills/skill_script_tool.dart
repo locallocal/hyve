@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_script_sandbox.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_script_sandbox.dart';
 
 final class SkillScriptTool implements ExecutableTool {
   SkillScriptTool({

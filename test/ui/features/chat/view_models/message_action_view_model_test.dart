@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
-import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
+import 'package:hyve/ui/features/chat/view_models/message_action_view_model.dart';
 
 void main() {
   test(

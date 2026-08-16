@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/feedback/view_models/feedback_view_model.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key, this.viewModel});
@@ -58,10 +58,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
       return;
     }
     if (feedbackController.text.trim().isEmpty) {
-      showStarsNotice(
+      showHyveNotice(
         context,
         S.of(context).feedbackContentRequired,
-        tone: StarsNoticeTone.warning,
+        tone: HyveNoticeTone.warning,
       );
       return;
     }
@@ -99,7 +99,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 child: Row(
                   children: [
                     if (Navigator.of(context).canPop()) ...[
-                      StarsDesktopIconAction(
+                      HyveDesktopIconAction(
                         icon: LucideIcons.arrowLeft,
                         label: backTooltip,
                         iconSize: 18,
@@ -158,7 +158,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               ),
                               constraints: const BoxConstraints(
                                 minHeight:
-                                    StarsDesktopThemeSpec.botFormFieldHeight,
+                                    HyveDesktopThemeSpec.botFormFieldHeight,
                               ),
                               alignment: AlignmentDirectional.centerStart,
                               placeholderAlignment:

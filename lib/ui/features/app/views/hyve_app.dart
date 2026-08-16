@@ -2,41 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/utils/utils.dart';
-import 'package:stars/utils/dot_curved_bottom_nav.dart';
-import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/features/app/view_models/app_view_model.dart';
-import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
-import 'package:stars/ui/features/app/view_models/startup_view_model.dart';
-import 'package:stars/ui/features/app/views/desktop_layout.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
-import 'package:stars/ui/features/bots/views/bots.dart';
-import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
-import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
-import 'package:stars/ui/features/chats/views/chats.dart';
-import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
-import 'package:stars/ui/features/mcp/views/mcp_servers_page.dart';
-import 'package:stars/ui/features/profile/view_models/profile_view_model.dart';
-import 'package:stars/ui/features/profile/views/profile.dart';
-import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
-import 'package:stars/ui/features/skills/views/skill_library.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/utils/utils.dart';
+import 'package:hyve/utils/dot_curved_bottom_nav.dart';
+import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/features/app/view_models/app_view_model.dart';
+import 'package:hyve/ui/features/app/view_models/main_shell_view_model.dart';
+import 'package:hyve/ui/features/app/view_models/startup_view_model.dart';
+import 'package:hyve/ui/features/app/views/desktop_layout.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/ui/features/bots/views/bots.dart';
+import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
+import 'package:hyve/ui/features/chats/views/chats.dart';
+import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:hyve/ui/features/mcp/views/mcp_servers_page.dart';
+import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
+import 'package:hyve/ui/features/profile/views/profile.dart';
+import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
+import 'package:hyve/ui/features/skills/views/skill_library.dart';
+import 'package:hyve/utils/theme.dart';
 
-class StarsBootstrapApp extends StatefulWidget {
-  const StarsBootstrapApp({super.key, this.dependencies});
+class HyveBootstrapApp extends StatefulWidget {
+  const HyveBootstrapApp({super.key, this.dependencies});
 
   final AppDependencies? dependencies;
 
   @override
-  State<StarsBootstrapApp> createState() => _StarsBootstrapAppState();
+  State<HyveBootstrapApp> createState() => _HyveBootstrapAppState();
 }
 
-class _StarsBootstrapAppState extends State<StarsBootstrapApp> {
+class _HyveBootstrapAppState extends State<HyveBootstrapApp> {
   late final AppDependencies _dependencies;
   late final StartupViewModel _viewModel;
 
@@ -119,7 +119,7 @@ class StartupShell extends StatelessWidget {
     }
 
     return ShadApp.custom(
-      theme: buildStarsShadTheme(brightness: Brightness.light, fontSize: 16),
+      theme: buildHyveShadTheme(brightness: Brightness.light, fontSize: 16),
       appBuilder: (context) {
         final theme = buildShadMaterialBridgeTheme(
           context: context,
@@ -145,7 +145,7 @@ class StartupShell extends StatelessWidget {
           supportedLocales: supportedLocales,
           localeResolutionCallback: _resolvePlatformLocale,
           builder: (context, child) {
-            final shadTheme = buildStarsShadTheme(
+            final shadTheme = buildHyveShadTheme(
               brightness: Theme.of(context).brightness,
               fontSize: 16,
               highContrast: MediaQuery.highContrastOf(context),
@@ -332,7 +332,7 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildMobileApp() {
     return MaterialApp(
-      title: 'Stars',
+      title: 'Hyve',
       theme: buildLegacyMobileTheme(
         brightness: Brightness.light,
         fontSize: _viewModel.fontSize,
@@ -381,11 +381,11 @@ class _MyAppState extends State<MyApp> {
   Widget _buildDesktopApp() {
     return ShadApp.custom(
       themeMode: _viewModel.themeMode,
-      theme: buildStarsShadTheme(
+      theme: buildHyveShadTheme(
         brightness: Brightness.light,
         fontSize: _viewModel.fontSize,
       ),
-      darkTheme: buildStarsShadTheme(
+      darkTheme: buildHyveShadTheme(
         brightness: Brightness.dark,
         fontSize: _viewModel.fontSize,
       ),
@@ -401,7 +401,7 @@ class _MyAppState extends State<MyApp> {
           reduceTransparency: true,
         );
         return MaterialApp(
-          title: 'Stars',
+          title: 'Hyve',
           theme: theme,
           highContrastTheme: highContrastTheme,
           themeMode: ThemeMode.light,
@@ -423,7 +423,7 @@ class _MyAppState extends State<MyApp> {
             return supportedLocales.first;
           },
           builder: (context, child) {
-            final shadTheme = buildStarsShadTheme(
+            final shadTheme = buildHyveShadTheme(
               brightness: Theme.of(context).brightness,
               fontSize: _viewModel.fontSize,
               highContrast: MediaQuery.highContrastOf(context),
@@ -678,11 +678,11 @@ class _MainPageState extends State<MainPage> {
 
     if (!registry.supportsCancellationForRun(_viewModel.selectedChatId)) {
       if (mounted) {
-        showStarsNotice(
+        showHyveNotice(
           context,
           S.of(context).activeRequestCannotStop,
           description: S.of(context).waitForGenerationBeforeLeaving,
-          tone: StarsNoticeTone.error,
+          tone: HyveNoticeTone.error,
         );
       }
       return false;
@@ -695,11 +695,11 @@ class _MainPageState extends State<MainPage> {
       _viewModel.selectedChatId,
     );
     if (!canContinue && mounted) {
-      showStarsNotice(
+      showHyveNotice(
         context,
         S.of(context).activeRequestCannotStop,
         description: S.of(context).waitForGenerationBeforeLeaving,
-        tone: StarsNoticeTone.error,
+        tone: HyveNoticeTone.error,
       );
     }
     return canContinue;

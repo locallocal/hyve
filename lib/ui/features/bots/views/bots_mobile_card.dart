@@ -30,12 +30,12 @@ class _BotListItemState extends State<_BotListItem> {
       locale: Localizations.localeOf(context).toString(),
     );
     final selectedTextColor = widget.isSelected ? Colors.white : null;
-    final titleStyle = StarsDesktopThemeSpec.bodyStyle(context)?.copyWith(
+    final titleStyle = HyveDesktopThemeSpec.bodyStyle(context)?.copyWith(
       fontWeight: FontWeight.w700,
       fontSize: widget.fontSize,
       color: selectedTextColor,
     );
-    final metaStyle = StarsDesktopThemeSpec.metaStyle(
+    final metaStyle = HyveDesktopThemeSpec.metaStyle(
       context,
     )?.copyWith(fontSize: widget.fontSize - 2, color: selectedTextColor);
     final contextWindow =
@@ -95,7 +95,7 @@ class _BotListItemState extends State<_BotListItem> {
                     color:
                         widget.isSelected
                             ? Colors.white
-                            : StarsDesktopThemeSpec.mutedText(context),
+                            : HyveDesktopThemeSpec.mutedText(context),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -214,7 +214,7 @@ class _BotCardMetric extends StatelessWidget {
             child: Icon(
               icon,
               size: 14,
-              color: StarsDesktopThemeSpec.mutedText(context),
+              color: HyveDesktopThemeSpec.mutedText(context),
             ),
           ),
           if (separatorKey == null)
@@ -225,11 +225,11 @@ class _BotCardMetric extends StatelessWidget {
               key: separatorKey,
               width: 1,
               height: 14,
-              color: StarsDesktopThemeSpec.divider(context),
+              color: HyveDesktopThemeSpec.divider(context),
             ),
             const SizedBox(width: 6),
           ],
-          Text(value, style: StarsDesktopThemeSpec.metaStyle(context)),
+          Text(value, style: HyveDesktopThemeSpec.metaStyle(context)),
         ],
       ),
     );

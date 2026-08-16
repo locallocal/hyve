@@ -4,15 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/views/chat.dart';
-import 'package:stars/ui/features/chat/views/message_input.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/ui/features/chat/views/message_input.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   testWidgets('generation error alert is compact and centers its message', (
@@ -39,7 +39,7 @@ void main() {
       const ValueKey<String>('chat-generation-error-message'),
     );
     expect(alert, findsOneWidget);
-    expect(find.byType(StarsInlineErrorAlert), findsOneWidget);
+    expect(find.byType(HyveInlineErrorAlert), findsOneWidget);
     expect(tester.getSize(alert).height, lessThanOrEqualTo(58));
     expect(
       tester.getCenter(message).dy,
@@ -83,10 +83,10 @@ void main() {
       final sendButtonContext = tester.element(sendButton);
       expect(
         button.backgroundColor,
-        StarsDesktopThemeSpec.primaryActionColor(sendButtonContext),
+        HyveDesktopThemeSpec.primaryActionColor(sendButtonContext),
       );
       expect(
-        StarsDesktopThemeSpec.inactivePrimaryActionColor(sendButtonContext),
+        HyveDesktopThemeSpec.inactivePrimaryActionColor(sendButtonContext),
         button.backgroundColor?.withValues(alpha: 0.5),
       );
       expect(
@@ -398,7 +398,7 @@ void main() {
 }
 
 Widget _harness(Widget child) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );
@@ -444,7 +444,7 @@ Future<void> _pumpMessageInput(
   TextScaler textScaler = TextScaler.noScaling,
   LocalizationsDelegate<S> stringsDelegate = S.delegate,
 }) async {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   ).copyWith(

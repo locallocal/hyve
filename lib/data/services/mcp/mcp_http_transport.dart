@@ -5,9 +5,9 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
-import 'package:stars/data/services/mcp/mcp_transport.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/mcp/mcp_endpoint_policy.dart';
+import 'package:hyve/data/services/mcp/mcp_transport.dart';
+import 'package:hyve/domain/models/models.dart';
 
 typedef McpHttpClientFactory = http.Client Function();
 

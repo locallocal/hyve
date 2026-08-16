@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/repositories/memory_conversation_draft_repository.dart';
-import 'package:stars/domain/models/conversation_draft.dart';
+import 'package:hyve/data/repositories/memory_conversation_draft_repository.dart';
+import 'package:hyve/domain/models/conversation_draft.dart';
 
 void main() {
   test('evicts the least recently used conversation at capacity', () async {

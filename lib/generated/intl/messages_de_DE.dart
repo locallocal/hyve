@@ -50,7 +50,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m11(name) =>
       "${name} deinstallieren? Die Bot-Zuordnungen werden ebenfalls entfernt.";
 
-  static String m12(year) => "© ${year} Stars-Team";
+  static String m12(year) => "© ${year} Hyve-Team";
 
   static String m13(error) => "Could not create the chat: ${error}";
 
@@ -110,7 +110,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("Bots"),
     "about": MessageLookupByLibrary.simpleMessage("Über"),
-    "aboutApp": MessageLookupByLibrary.simpleMessage("Über Stars"),
+    "aboutApp": MessageLookupByLibrary.simpleMessage("Über Hyve"),
     "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
       "The active request cannot be cancelled. Wait for it to finish.",
     ),
@@ -141,17 +141,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDescription": MessageLookupByLibrary.simpleMessage(
       "Eine einfache, aber leistungsstarke KI-Chat-Anwendung, mit der Sie jederzeit und überall mit KI chatten können.",
     ),
-    "appName": MessageLookupByLibrary.simpleMessage("Stars"),
+    "appName": MessageLookupByLibrary.simpleMessage("Hyve"),
     "appTitle": MessageLookupByLibrary.simpleMessage(
-      "Stars - KI-Chat-Assistent",
+      "Hyve - KI-Chat-Assistent",
     ),
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "System-Prompt",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Wird von Stars verwaltet und jeder Modellanfrage hinzugefügt. Die Kennungen des aktuellen Agenten und der Unterhaltung werden zur Laufzeit ergänzt und können nicht bearbeitet werden.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Wird von Hyve verwaltet und jeder Modellanfrage hinzugefügt. Die Kennungen des aktuellen Agenten und der Unterhaltung werden zur Laufzeit ergänzt und können nicht bearbeitet werden.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -283,7 +282,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("Dunkles Design"),
     "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
-      "Diese Datenbank wurde mit einer neueren Version von Stars erstellt. Aktualisieren Sie die App, bevor Sie sie öffnen.",
+      "Diese Datenbank wurde mit einer neueren Version von Hyve erstellt. Aktualisieren Sie die App, bevor Sie sie öffnen.",
     ),
     "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
       "Die Integritätsprüfung der Datenbank ist fehlgeschlagen, und die Wiederherstellung aus der Sicherung dieser Version war nicht möglich.",
@@ -556,7 +555,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
     "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+      "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
@@ -834,8 +833,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings": MessageLookupByLibrary.simpleMessage("Einstellungen"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
     "shareImageFailed": m35,
-    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
-      "Image from Stars",
+    "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage(
+      "Image from Hyve",
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
@@ -951,7 +950,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Start fehlgeschlagen. Bitte erneut versuchen.",
     ),
     "startupStarting": MessageLookupByLibrary.simpleMessage(
-      "Stars wird gestartet…",
+      "Hyve wird gestartet…",
     ),
     "statusActivated": MessageLookupByLibrary.simpleMessage("Aktiviert"),
     "statusAttached": MessageLookupByLibrary.simpleMessage("Angehängt"),

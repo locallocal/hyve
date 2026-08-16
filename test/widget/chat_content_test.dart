@@ -1,19 +1,18 @@
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/app/view_models/main_shell_view_model.dart';
-import 'package:stars/ui/features/app/views/desktop_layout.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/views/message_list.dart';
-import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
-import 'package:stars/ui/features/chats/views/chats.dart';
-import 'package:stars/ui/features/chats/views/chat_item.dart';
-import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/app/view_models/main_shell_view_model.dart';
+import 'package:hyve/ui/features/app/views/desktop_layout.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/views/message_list.dart';
+import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
+import 'package:hyve/ui/features/chats/views/chats.dart';
+import 'package:hyve/ui/features/chats/views/chat_item.dart';
+import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../support/widget_test_support.dart';
 
@@ -765,8 +764,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final menuAction = tester.widget<StarsDesktopIconAction>(
-        find.byType(StarsDesktopIconAction),
+      final menuAction = tester.widget<HyveDesktopIconAction>(
+        find.byType(HyveDesktopIconAction),
       );
       await tester.tap(
         find.byIcon(LucideIcons.ellipsis),
@@ -798,7 +797,7 @@ void main() {
       expect(rowButton.variant, ShadButtonVariant.primary);
       expect(
         rowButton.backgroundColor,
-        StarsDesktopThemeSpec.inactivePrimaryActionColor(rowContext),
+        HyveDesktopThemeSpec.inactivePrimaryActionColor(rowContext),
       );
       expect(rowButton.hoverBackgroundColor, rowButton.backgroundColor);
       expect(rowButton.pressedBackgroundColor, rowButton.backgroundColor);
@@ -1089,5 +1088,4 @@ void main() {
 
     expect(rowButton().hoverBackgroundColor, isNull);
   });
-
 }

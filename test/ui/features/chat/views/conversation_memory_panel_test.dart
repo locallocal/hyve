@@ -5,16 +5,16 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/context_summarizer.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
-import 'package:stars/domain/use_cases/compact_conversation.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
-import 'package:stars/ui/features/chat/views/conversation_memory_panel.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/context_summarizer.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
+import 'package:hyve/domain/use_cases/compact_conversation.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
+import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   test('publishes immutable memory item snapshots', () async {
@@ -277,10 +277,10 @@ void main() {
       of: memorySearchField,
       matching: find.byType(ShadInput),
     );
-    expect(tester.widget(memorySearchField), isA<StarsSearchField>());
+    expect(tester.widget(memorySearchField), isA<HyveSearchField>());
     expect(
       tester.getSize(memorySearchField).height,
-      StarsDesktopThemeSpec.botFormFieldHeight,
+      HyveDesktopThemeSpec.botFormFieldHeight,
     );
     expect(
       tester.widget<ShadInput>(memorySearchInput).alignment,
@@ -381,7 +381,7 @@ void main() {
       await tester.pumpWidget(_harness(viewModel));
       await tester.pumpAndSettle();
 
-      final prompt = buildStarsConversationContext(
+      final prompt = buildHyveConversationContext(
         agentId: bot.id,
         agentName: bot.name,
         conversationId: viewModel.chatId,
@@ -471,7 +471,7 @@ void main() {
 }
 
 Widget _harness(ConversationMemoryViewModel viewModel) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

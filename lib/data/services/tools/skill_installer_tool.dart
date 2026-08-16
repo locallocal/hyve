@@ -1,5 +1,5 @@
-import 'package:stars/data/services/skills/skill_installation_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/skills/skill_installation_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SkillInstallerTool implements ExecutableTool {
   SkillInstallerTool({required SkillInstallationGateway installation})
@@ -12,7 +12,7 @@ final class SkillInstallerTool implements ExecutableTool {
     name: installSkillToolName,
     title: 'Install Skill',
     description:
-        'Install one Stars Skill from GitHub, an HTTPS ZIP URL, a local ZIP, '
+        'Install one Hyve Skill from GitHub, an HTTPS ZIP URL, a local ZIP, '
         'or a local directory through the validated Skill installation pipeline.',
     inputSchema: const {
       'type': 'object',

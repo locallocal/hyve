@@ -1,14 +1,14 @@
-# Stars Privacy Policy
+# Hyve Privacy Policy
 
 **Last updated: August 10, 2026**
 
 **Effective date: August 10, 2026**
 
-Stars is a local-first AI assistant client. This Policy is provided by the Stars developer or operator identified on the page from which the application is distributed ("we," "us," or "our"). It explains how Stars handles information relating to you and how you can control that information.
+Hyve is a local-first AI assistant client. This Policy is provided by the Hyve developer or operator identified on the page from which the application is distributed ("we," "us," or "our"). It explains how Hyve handles information relating to you and how you can control that information.
 
 ## Key points
 
-- **No Stars account is required:** The current version does not require you to register or sign in, and it does not collect an account password.
+- **No Hyve account is required:** The current version does not require you to register or sign in, and it does not collect an account password.
 - **Local storage by default:** Your profile, agent configuration, conversations, and most feature data are stored on your device by default.
 - **You choose where requests go:** When you use cloud AI, remote MCP, a custom endpoint, or another network feature, necessary data is sent directly from your device to the third party you selected.
 - **No advertising profiles:** The current version does not include advertising, behavioral analytics, or crash-reporting services, and we do not sell your personal information.
@@ -18,15 +18,15 @@ Please read this Policy in full. We provide additional notices for sensitive per
 
 ## 1. Scope and processing roles
 
-This Policy applies to the Stars application itself. Third-party AI providers, MCP servers, Skill sources, custom endpoints, external links, and operating-system sharing or file-selection services may process information as independent controllers or businesses under their own privacy policies.
+This Policy applies to the Hyve application itself. Third-party AI providers, MCP servers, Skill sources, custom endpoints, external links, and operating-system sharing or file-selection services may process information as independent controllers or businesses under their own privacy policies.
 
-Stars generally acts as a local client that processes data according to your instructions. You decide which service to connect, what content to submit, and whether to approve a tool call. Do not send a service information that it should not receive.
+Hyve generally acts as a local client that processes data according to your instructions. You decide which service to connect, what content to submit, and whether to approve a tool call. Do not send a service information that it should not receive.
 
-## 2. Information Stars processes
+## 2. Information Hyve processes
 
 ### 2.1 Information stored on your device
 
-To provide its features, Stars may process and store the following on your device:
+To provide its features, Hyve may process and store the following on your device:
 
 - **Profile and preferences:** The display name, avatar, language, theme, font size, and interface preferences you set;
 - **Agent and service configuration:** Agent names and avatars, model provider, model, endpoint, system prompt, parameters, MCP server configuration, and Skill settings;
@@ -35,7 +35,7 @@ To provide its features, Stars may process and store the following on your devic
 - **Execution and usage records:** Tool calls, command executions, file edits, Skill activation states, error states, durations, and token usage; and
 - **Security and configuration records:** Local records relating to Skill installation, signatures, permissions, policies, and audits.
 
-The current version does not collect a phone number, email address, or password to create a Stars account. We do not request your legal identity unless you voluntarily include it in a prompt, file, configuration, or feedback message.
+The current version does not collect a phone number, email address, or password to create a Hyve account. We do not request your legal identity unless you voluntarily include it in a prompt, file, configuration, or feedback message.
 
 ### 2.2 Information sent to services you select
 
@@ -85,11 +85,11 @@ Depending on applicable law, the legal basis may be performance of a contract wi
 
 1. The local database, conversation attachments, generated files, Skills, and summary files are generally stored in the application's data directory until you delete the relevant content, clear app data, or uninstall the application.
 
-2. AI API keys are encrypted before being written to the local database. Encryption keys and MCP credentials are stored using secure storage provided by the operating system. Conversation text and ordinary attachments are generally not separately encrypted by Stars and instead rely on device, operating-system, and file-system protections.
+2. AI API keys are encrypted before being written to the local database. Encryption keys and MCP credentials are stored using secure storage provided by the operating system. Conversation text and ordinary attachments are generally not separately encrypted by Hyve and instead rely on device, operating-system, and file-system protections.
 
-3. Content you export, share, save to a system gallery, or copy elsewhere is no longer controlled by deletion inside Stars. Copies may also remain in operating-system or user-enabled device backups.
+3. Content you export, share, save to a system gallery, or copy elsewhere is no longer controlled by deletion inside Hyve. Copies may also remain in operating-system or user-enabled device backups.
 
-4. A third party retains information under its own policy. Deleting a local Stars record does not automatically delete data already received by a third party. Use that party's deletion controls or contact it directly.
+4. A third party retains information under its own policy. Deleting a local Hyve record does not automatically delete data already received by a third party. Use that party's deletion controls or contact it directly.
 
 ## 6. Your rights and controls
 
@@ -99,7 +99,7 @@ Depending on applicable law, you may have rights to know about, access, copy, co
 - clear or delete conversations and delete agents, MCP servers, or installed Skills;
 - remove API keys, access tokens, custom endpoints, or other connection settings;
 - withdraw camera, photo, media, or file permissions in system settings;
-- clear application data or uninstall Stars to delete on-device app data; and
+- clear application data or uninstall Hyve to delete on-device app data; and
 - submit a privacy request using the developer contact details on the application's distribution page.
 
 To protect data, we may need to verify the requester's relationship to the relevant device or data. Exercise rights relating to information held by a third party directly with that party.
@@ -112,7 +112,7 @@ Protect your device with an access code and current security updates, do not sha
 
 ## 8. Children's information
 
-Stars is not directed to children below the minimum age for independent consent in their jurisdiction. A minor should use Stars only with guidance from a parent or guardian. A parent or guardian should carefully decide whether a feature is appropriate and avoid sending a child's information to third-party models or tools.
+Hyve is not directed to children below the minimum age for independent consent in their jurisdiction. A minor should use Hyve only with guidance from a parent or guardian. A parent or guardian should carefully decide whether a feature is appropriate and avoid sending a child's information to third-party models or tools.
 
 If you believe a child's information has been handled inappropriately, contact us using the method below. We will assist with data within our control as required by law.
 
@@ -122,4 +122,4 @@ We may update this Policy as features, third-party services, data practices, or 
 
 ## 10. Contact us
 
-For questions, comments, or requests about this Policy or personal-information processing, use the developer contact details shown on the application's distribution page. You may also use a feedback channel if your distribution of Stars expressly provides an active one.
+For questions, comments, or requests about this Policy or personal-information processing, use the developer contact details shown on the application's distribution page. You may also use a feedback channel if your distribution of Hyve expressly provides an active one.

@@ -44,7 +44,7 @@ Future<void> main(List<String> arguments) async {
               'type': 'text',
               'text':
                   '${toolArguments['message']}|'
-                  '${Platform.environment['STARS_MCP_TEST_VALUE']}|'
+                  '${Platform.environment['HYVE_MCP_TEST_VALUE']}|'
                   '${arguments.join(',')}',
             },
           ],

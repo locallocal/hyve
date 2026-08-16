@@ -1,7 +1,7 @@
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_run_repository.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_run_repository.dart';
 
 final class SqliteSkillRunRepository implements SkillRunRepository {
   const SqliteSkillRunRepository({required LocalDatabaseService localDatabase})

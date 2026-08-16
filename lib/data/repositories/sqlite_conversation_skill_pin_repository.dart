@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/conversation_skill_pin_repository.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/conversation_skill_pin_repository.dart';
 
 final class SqliteConversationSkillPinRepository
     implements ConversationSkillPinRepository {

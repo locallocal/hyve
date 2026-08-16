@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/data/models/local_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/profile_repository.dart';
+import 'package:hyve/data/models/local_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/profile_repository.dart';
 
 class SqliteProfileRepository implements ProfileRepository {
   SqliteProfileRepository({required LocalDatabaseService localDatabase})

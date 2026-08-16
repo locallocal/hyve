@@ -4,8 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_script_sandbox.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_script_sandbox.dart';
 
 typedef SkillInstallationVerifier =
     Future<void> Function(String rootPath, String contentDigest);
@@ -42,7 +42,7 @@ final class LinuxBubblewrapSkillSandbox implements SkillScriptSandbox {
     Directory? probeDirectory;
     try {
       probeDirectory = await Directory.systemTemp.createTemp(
-        'stars-sandbox-probe-',
+        'hyve-sandbox-probe-',
       );
       final process = await Process.start(
         bubblewrapPath,

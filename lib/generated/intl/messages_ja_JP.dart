@@ -49,7 +49,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(name) => "${name} をアンインストールしますか？ボットとの関連付けも削除されます。";
 
-  static String m12(year) => "© ${year} Starsチーム";
+  static String m12(year) => "© ${year} Hyveチーム";
 
   static String m13(error) => "Could not create the chat: ${error}";
 
@@ -108,7 +108,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("ボット"),
     "about": MessageLookupByLibrary.simpleMessage("アプリについて"),
-    "aboutApp": MessageLookupByLibrary.simpleMessage("Starsについて"),
+    "aboutApp": MessageLookupByLibrary.simpleMessage("Hyveについて"),
     "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
       "The active request cannot be cancelled. Wait for it to finish.",
     ),
@@ -137,14 +137,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDescription": MessageLookupByLibrary.simpleMessage(
       "いつでもどこでもAIとチャットできるシンプルで強力なAIチャットアプリケーション。",
     ),
-    "appName": MessageLookupByLibrary.simpleMessage("Stars"),
-    "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AIチャットアシスタント"),
+    "appName": MessageLookupByLibrary.simpleMessage("Hyve"),
+    "appTitle": MessageLookupByLibrary.simpleMessage("Hyve - AIチャットアシスタント"),
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "システムプロンプト",
     ),
     "applicationInjectedPromptDescription":
         MessageLookupByLibrary.simpleMessage(
-          "Stars が管理し、すべてのモデルリクエストに注入します。現在のエージェントと会話の識別子は実行時に追加され、編集できません。",
+          "Hyve が管理し、すべてのモデルリクエストに注入します。現在のエージェントと会話の識別子は実行時に追加され、編集できません。",
         ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
@@ -251,7 +251,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("ダークモード"),
     "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
-      "このデータベースは新しいバージョンの Stars で作成されています。アプリを更新してから開いてください。",
+      "このデータベースは新しいバージョンの Hyve で作成されています。アプリを更新してから開いてください。",
     ),
     "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
       "データベースの整合性チェックに失敗し、このバージョンのバックアップからも復元できませんでした。",
@@ -472,7 +472,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
     "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+      "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
@@ -710,8 +710,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
     "shareImageFailed": m35,
-    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
-      "Image from Stars",
+    "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage(
+      "Image from Hyve",
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(

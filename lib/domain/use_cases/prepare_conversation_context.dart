@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/services/token_estimator.dart';
-import 'package:stars/domain/use_cases/context_budgeter.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/services/token_estimator.dart';
+import 'package:hyve/domain/use_cases/context_budgeter.dart';
 
 final class PreparedConversationContext {
   PreparedConversationContext({

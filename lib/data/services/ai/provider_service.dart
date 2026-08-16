@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:stars/data/services/ai/built_in_model_catalog.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/data/services/ai/built_in_model_catalog.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 
-export 'package:stars/domain/models/ai_models.dart';
-export 'package:stars/domain/models/ai_model_info.dart';
+export 'package:hyve/domain/models/ai_models.dart';
+export 'package:hyve/domain/models/ai_model_info.dart';
 
 extension ChatMessageJson on ChatMessage {
   Map<String, Object> toJson() => {'role': role, 'content': content};

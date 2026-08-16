@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/chat_skill_view_model.dart';
-import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_skill_view_model.dart';
+import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
 
 void main() {
   test(
@@ -583,7 +583,7 @@ SkillContent _bundledSkillContent() {
       contentDigest: 'system-digest',
       trustState: SkillTrustState.bundledTrusted,
       validationStatus: SkillValidationStatus.valid,
-      compatibility: 'Stars',
+      compatibility: 'Hyve',
       installedAt: timestamp,
       updatedAt: timestamp,
       requestedToolNames: conversationHistoryToolNames,

@@ -26,12 +26,12 @@ void main() {
       );
       expect(
         source,
-        isNot(contains('package:stars/data/')),
+        isNot(contains('package:hyve/data/')),
         reason: '${file.path} imports the data layer',
       );
       expect(
         source,
-        isNot(contains('package:stars/ui/')),
+        isNot(contains('package:hyve/ui/')),
         reason: '${file.path} imports the UI layer',
       );
     }
@@ -51,7 +51,7 @@ void main() {
       }
       expect(
         file.readAsStringSync(),
-        isNot(contains('package:stars/data/')),
+        isNot(contains('package:hyve/data/')),
         reason: '${file.path} bypasses a domain contract',
       );
     }
@@ -67,7 +67,7 @@ void main() {
       for (final file in files) {
         expect(
           file.readAsStringSync(),
-          isNot(contains('package:stars/ui/')),
+          isNot(contains('package:hyve/ui/')),
           reason: '${file.path} imports the UI layer',
         );
       }
@@ -86,7 +86,7 @@ void main() {
 
     expect(
       viewModel,
-      contains('package:stars/domain/use_cases/mcp_server_mutations.dart'),
+      contains('package:hyve/domain/use_cases/mcp_server_mutations.dart'),
     );
     expect(viewModel, isNot(contains('mcp_credential_store.dart')));
     expect(viewModel, isNot(contains('.saveServer(')));
@@ -275,7 +275,7 @@ void main() {
       expect(
         source,
         isNot(contains('MenuAnchor(')),
-        reason: '${file.path} bypasses StarsDesktopMenu/StarsContextMenu',
+        reason: '${file.path} bypasses HyveDesktopMenu/HyveContextMenu',
       );
       expect(
         source,
@@ -355,14 +355,14 @@ void main() {
         expect(
           source,
           isNot(contains('ShadIconButton.')),
-          reason: '${file.path} bypasses the 44px StarsDesktopIconAction',
+          reason: '${file.path} bypasses the 44px HyveDesktopIconAction',
         );
       }
       if (!file.path.endsWith('lib/ui/core/widgets/common.dart')) {
         expect(
           source,
           isNot(anyOf(contains('ShadSonner.'), contains('ScaffoldMessenger.'))),
-          reason: '${file.path} bypasses showStarsNotice',
+          reason: '${file.path} bypasses showHyveNotice',
         );
       }
     }
@@ -371,7 +371,7 @@ void main() {
         File(
           'lib/ui/features/chat/views/audio_player_widget.dart',
         ).readAsStringSync();
-    expect(audioPlayer, contains('StarsDesktopIconAction('));
+    expect(audioPlayer, contains('HyveDesktopIconAction('));
     expect(audioPlayer, contains('LucideIcons.pause'));
     expect(audioPlayer, contains('LucideIcons.play'));
     expect(audioPlayer, isNot(contains('width: 48')));
@@ -387,7 +387,7 @@ void main() {
     for (final file in production) {
       final source = file.readAsStringSync();
       expect(source, isNot(contains('DesktopThemeTokens')));
-      expect(source, isNot(contains('StarsDesktopTheme.')));
+      expect(source, isNot(contains('HyveDesktopTheme.')));
       expect(source, isNot(contains('isDesktopOrTabletPlatform')));
     }
   });

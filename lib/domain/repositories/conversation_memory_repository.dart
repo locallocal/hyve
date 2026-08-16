@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
 
 abstract interface class ConversationMemoryRepository {
   Stream<String> get changes;

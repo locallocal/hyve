@@ -1,10 +1,10 @@
 part of 'profile.dart';
 
 // 自定义Logo组件
-class StarsLogo extends StatelessWidget {
+class HyveLogo extends StatelessWidget {
   final double size;
 
-  const StarsLogo({super.key, required this.size});
+  const HyveLogo({super.key, required this.size});
 
   @override
   Widget build(BuildContext context) {

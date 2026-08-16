@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:stars/data/services/ai/openai.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/openai.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   group('OpenAI documented model catalog', () {
@@ -271,7 +271,7 @@ void main() {
   );
 
   test('GPT Image generation persists base64 output', () async {
-    final output = await Directory.systemTemp.createTemp('stars-openai-image-');
+    final output = await Directory.systemTemp.createTemp('hyve-openai-image-');
     addTearDown(() => output.delete(recursive: true));
     Map<String, dynamic>? requestBody;
     final client = MockClient((request) async {
@@ -305,7 +305,7 @@ void main() {
   });
 
   test('GPT Image edits send reference images as multipart data', () async {
-    final output = await Directory.systemTemp.createTemp('stars-openai-edit-');
+    final output = await Directory.systemTemp.createTemp('hyve-openai-edit-');
     addTearDown(() => output.delete(recursive: true));
     final reference = File('${output.path}/reference.png');
     await reference.writeAsBytes([0x89, 0x50, 0x4e, 0x47]);
@@ -345,7 +345,7 @@ void main() {
   test(
     'Speech generation sends the selected voice and writes MP3 bytes',
     () async {
-      final output = await Directory.systemTemp.createTemp('stars-openai-tts-');
+      final output = await Directory.systemTemp.createTemp('hyve-openai-tts-');
       addTearDown(() => output.delete(recursive: true));
       Map<String, dynamic>? requestBody;
       final client = MockClient((request) async {
@@ -384,7 +384,7 @@ void main() {
       }
       return http.Response('not found', 404);
     });
-    final output = await Directory.systemTemp.createTemp('stars-openai-video-');
+    final output = await Directory.systemTemp.createTemp('hyve-openai-video-');
     addTearDown(() => output.delete(recursive: true));
     final provider = OpenAI(_bot(model: 'sora-2-pro'), skillToolClient: client);
 

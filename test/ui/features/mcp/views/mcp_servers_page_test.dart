@@ -54,7 +54,10 @@ void main() {
       expect(find.text('MCP 服务器'), findsOneWidget);
       expect(find.text('添加 MCP 服务器'), findsNWidgets(2));
       expect(
-        find.descendant(of: content, matching: find.byIcon(Icons.hub_outlined)),
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('mcp-servers-desktop-page')),
+          matching: find.byIcon(Icons.hub_outlined),
+        ),
         findsOneWidget,
       );
       expect(
@@ -607,6 +610,86 @@ void main() {
       await tester.pump();
       expect(githubCard, findsOneWidget);
       expect(filesystemCard, findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
+  });
+
+  testWidgets('desktop MCP list uses one lazy sliver viewport', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    tester.view.physicalSize = const Size(1400, 600);
+    tester.view.devicePixelRatio = 1;
+
+    final now = DateTime.utc(2026, 8, 16);
+    final servers = List<McpServer>.generate(
+      60,
+      (index) => McpServer(
+        id: 'server-$index',
+        name: 'Server ${index.toString().padLeft(2, '0')}',
+        transport: McpStreamableHttpServerTransport(
+          endpoint: Uri.parse('https://example.com/server-$index/mcp'),
+        ),
+        status: McpConnectionStatus.connected,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final repository = _FakeMcpServerRepository(servers: servers);
+    final viewModel = _createMcpServersViewModel(
+      repository: repository,
+      credentialStore: const _UnusedCredentialStore(),
+      catalogService: McpCatalogService(
+        repository: repository,
+        client: const _UnusedMcpClient(),
+        toolRegistry: DynamicToolRegistry(const []),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    try {
+      await tester.pumpWidget(_harness(viewModel));
+      await tester.pumpAndSettle();
+
+      final page = find.byKey(
+        const ValueKey<String>('mcp-servers-desktop-page'),
+      );
+      final builtCards = find.byWidgetPredicate((widget) {
+        final key = widget.key;
+        return key is ValueKey<String> &&
+            key.value.startsWith('desktop-mcp-server-server-');
+      });
+
+      expect(page, findsOneWidget);
+      expect(tester.widget<CustomScrollView>(page), isA<CustomScrollView>());
+      expect(
+        find.descendant(of: page, matching: find.byType(GridView)),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: page, matching: find.byType(SliverGrid)),
+        findsOneWidget,
+      );
+      expect(builtCards, findsWidgets);
+      expect(builtCards.evaluate().length, lessThan(servers.length));
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-server-59')),
+        findsNothing,
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-server-59')),
+        500,
+        scrollable:
+            find.descendant(of: page, matching: find.byType(Scrollable)).first,
+      );
+
+      expect(
+        find.byKey(const ValueKey<String>('desktop-mcp-server-server-59')),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;

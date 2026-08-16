@@ -90,139 +90,184 @@ class _McpServersPageState extends State<McpServersPage> {
   Widget _buildDesktop(BuildContext context) {
     final strings = S.of(context);
     final filteredServers = _filteredServers;
+    const contentMaxWidth = StarsDesktopThemeSpec.formContentMaxWidth;
+    const pagePadding = StarsDesktopThemeSpec.formPagePadding;
     return ColoredBox(
       color: StarsDesktopThemeSpec.workspaceSurface(context),
       child: RefreshIndicator(
         onRefresh: _viewModel.load,
-        child: SingleChildScrollView(
-          key: const ValueKey<String>('mcp-servers-desktop-page'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: StarsDesktopThemeSpec.formPagePadding,
-          child: Center(
-            child: ConstrainedBox(
-              key: const ValueKey<String>('mcp-servers-desktop-content'),
-              constraints: const BoxConstraints(
-                maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final centeredInset = (constraints.maxWidth - contentMaxWidth) / 2;
+            final horizontalInset =
+                centeredInset > pagePadding.left
+                    ? centeredInset
+                    : pagePadding.left;
+            return CustomScrollView(
+              key: const ValueKey<String>('mcp-servers-desktop-page'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalInset,
+                    pagePadding.top,
+                    horizontalInset,
+                    pagePadding.bottom,
+                  ),
+                  sliver: SliverMainAxisGroup(
+                    slivers: [
+                      SliverToBoxAdapter(
                         child: Column(
+                          key: const ValueKey<String>(
+                            'mcp-servers-desktop-content',
+                          ),
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              strings.mcpServers,
-                              key: const ValueKey<String>('mcp-servers-title'),
-                              style: StarsDesktopThemeSpec.pageTitleStyle(
-                                context,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        strings.mcpServers,
+                                        key: const ValueKey<String>(
+                                          'mcp-servers-title',
+                                        ),
+                                        style:
+                                            StarsDesktopThemeSpec.pageTitleStyle(
+                                              context,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        strings.mcpServersDescription,
+                                        style: StarsDesktopThemeSpec.bodyStyle(
+                                          context,
+                                        )?.copyWith(
+                                          color:
+                                              StarsDesktopThemeSpec.mutedText(
+                                                context,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                ShadButton(
+                                  key: const ValueKey<String>(
+                                    'add-mcp-server-desktop',
+                                  ),
+                                  onPressed: () => _showEditor(),
+                                  leading: const Icon(
+                                    LucideIcons.plus,
+                                    size: 16,
+                                  ),
+                                  child: Text(strings.addMcpServer),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            ShadAlert(
+                              icon: const Icon(LucideIcons.shieldCheck),
+                              title: Text(strings.mcpLocalProcessSecurityTitle),
+                              description: Text(
+                                strings.mcpLocalProcessSecurityDescription,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 16),
+                            _buildDesktopSearchField(context),
+                            const SizedBox(height: 16),
                             Text(
-                              strings.mcpServersDescription,
+                              strings.mcpProgressiveDiscoveryDescription,
                               style: StarsDesktopThemeSpec.bodyStyle(
                                 context,
                               )?.copyWith(
                                 color: StarsDesktopThemeSpec.mutedText(context),
                               ),
                             ),
+                            if (_viewModel.error != null) ...[
+                              const SizedBox(height: 16),
+                              ShadAlert.destructive(
+                                key: const ValueKey<String>('mcp-error-alert'),
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                icon: const Icon(LucideIcons.circleAlert),
+                                title: Text(_errorMessage(_viewModel.error!)),
+                                trailing: StarsDesktopIconAction(
+                                  key: const ValueKey<String>(
+                                    'close-mcp-error',
+                                  ),
+                                  icon: LucideIcons.x,
+                                  label:
+                                      MaterialLocalizations.of(
+                                        context,
+                                      ).closeButtonTooltip,
+                                  onPressed: _viewModel.clearError,
+                                  iconSize: 16,
+                                ),
+                              ),
+                            ],
+                            if (_viewModel.warning != null) ...[
+                              const SizedBox(height: 16),
+                              ShadAlert(
+                                key: const ValueKey<String>(
+                                  'mcp-warning-alert',
+                                ),
+                                icon: const Icon(LucideIcons.triangleAlert),
+                                title: Text(_errorMessage(_viewModel.warning!)),
+                                trailing: StarsDesktopIconAction(
+                                  onPressed: _viewModel.clearWarning,
+                                  icon: LucideIcons.x,
+                                  label:
+                                      MaterialLocalizations.of(
+                                        context,
+                                      ).closeButtonTooltip,
+                                  iconSize: 16,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      ShadButton(
-                        key: const ValueKey<String>('add-mcp-server-desktop'),
-                        onPressed: () => _showEditor(),
-                        leading: const Icon(LucideIcons.plus, size: 16),
-                        child: Text(strings.addMcpServer),
-                      ),
+                      if (_viewModel.isLoading)
+                        const SliverToBoxAdapter(
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40),
+                              child: ShadProgress(),
+                            ),
+                          ),
+                        )
+                      else if (_viewModel.servers.isEmpty)
+                        SliverToBoxAdapter(
+                          child: DesktopEmptyStateCard(
+                            icon: Icons.hub_outlined,
+                            title: strings.noMcpServers,
+                            description: strings.noMcpServersDescription,
+                            action: ShadButton(
+                              size: ShadButtonSize.sm,
+                              onPressed: () => _showEditor(),
+                              leading: const Icon(LucideIcons.plus, size: 16),
+                              child: Text(strings.addMcpServer),
+                            ),
+                          ),
+                        )
+                      else if (filteredServers.isEmpty)
+                        SliverToBoxAdapter(
+                          child: _buildDesktopSearchEmpty(context),
+                        )
+                      else
+                        _buildDesktopServers(filteredServers),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  ShadAlert(
-                    icon: const Icon(LucideIcons.shieldCheck),
-                    title: Text(strings.mcpLocalProcessSecurityTitle),
-                    description: Text(
-                      strings.mcpLocalProcessSecurityDescription,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDesktopSearchField(context),
-                  const SizedBox(height: 16),
-                  Text(
-                    strings.mcpProgressiveDiscoveryDescription,
-                    style: StarsDesktopThemeSpec.bodyStyle(context)?.copyWith(
-                      color: StarsDesktopThemeSpec.mutedText(context),
-                    ),
-                  ),
-                  if (_viewModel.error != null) ...[
-                    const SizedBox(height: 16),
-                    ShadAlert.destructive(
-                      key: const ValueKey<String>('mcp-error-alert'),
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      icon: const Icon(LucideIcons.circleAlert),
-                      title: Text(_errorMessage(_viewModel.error!)),
-                      trailing: StarsDesktopIconAction(
-                        key: const ValueKey<String>('close-mcp-error'),
-                        icon: LucideIcons.x,
-                        label:
-                            MaterialLocalizations.of(
-                              context,
-                            ).closeButtonTooltip,
-                        onPressed: _viewModel.clearError,
-                        iconSize: 16,
-                      ),
-                    ),
-                  ],
-                  if (_viewModel.warning != null) ...[
-                    const SizedBox(height: 16),
-                    ShadAlert(
-                      key: const ValueKey<String>('mcp-warning-alert'),
-                      icon: const Icon(LucideIcons.triangleAlert),
-                      title: Text(_errorMessage(_viewModel.warning!)),
-                      trailing: StarsDesktopIconAction(
-                        onPressed: _viewModel.clearWarning,
-                        icon: LucideIcons.x,
-                        label:
-                            MaterialLocalizations.of(
-                              context,
-                            ).closeButtonTooltip,
-                        iconSize: 16,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  if (_viewModel.isLoading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(40),
-                        child: ShadProgress(),
-                      ),
-                    )
-                  else if (_viewModel.servers.isEmpty)
-                    DesktopEmptyStateCard(
-                      icon: Icons.hub_outlined,
-                      title: strings.noMcpServers,
-                      description: strings.noMcpServersDescription,
-                      action: ShadButton(
-                        size: ShadButtonSize.sm,
-                        onPressed: () => _showEditor(),
-                        leading: const Icon(LucideIcons.plus, size: 16),
-                        child: Text(strings.addMcpServer),
-                      ),
-                    )
-                  else if (filteredServers.isEmpty)
-                    _buildDesktopSearchEmpty(context)
-                  else
-                    _buildDesktopServers(filteredServers),
-                ],
-              ),
-            ),
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -266,21 +311,18 @@ class _McpServersPageState extends State<McpServersPage> {
   }
 
   Widget _buildDesktopServers(List<McpServer> servers) {
-    return LayoutBuilder(
+    return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 800 ? 2 : 1;
+        final columns = constraints.crossAxisExtent >= 800 ? 2 : 1;
         const gap = 14.0;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        return SliverGrid(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: gap,
             mainAxisSpacing: gap,
             mainAxisExtent: StarsDesktopThemeSpec.managementCardHeight,
           ),
-          itemCount: servers.length,
-          itemBuilder: (context, index) {
+          delegate: SliverChildBuilderDelegate((context, index) {
             final server = servers[index];
             return _DesktopServerCard(
               key: ValueKey<String>('desktop-mcp-server-${server.id}'),
@@ -292,7 +334,7 @@ class _McpServersPageState extends State<McpServersPage> {
               onRefresh: () => _viewModel.refresh(server.id),
               onDelete: () => _confirmDelete(server),
             );
-          },
+          }, childCount: servers.length),
         );
       },
     );

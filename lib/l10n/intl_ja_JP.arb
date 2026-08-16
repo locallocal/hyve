@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "起動しています…",
+    "startupFailed": "起動に失敗しました。もう一度お試しください。",
+    "videoPlaybackError": "動画の再生エラー: {error}",
+    "videoLoadFailed": "動画を読み込めません",
+    "databaseDowngradeNotSupported": "このデータベースは新しいバージョンの Stars で作成されています。アプリを更新してから開いてください。",
+    "databaseRecoveryFailed": "データベースの整合性チェックに失敗し、このバージョンのバックアップからも復元できませんでした。",
+    "durationMilliseconds": "{milliseconds} ミリ秒",
+    "durationSeconds": "{seconds} 秒"
 }

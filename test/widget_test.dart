@@ -1583,7 +1583,7 @@ void main() {
     final fileResult = find.text('文件结果');
     final terminalStatus = find.text('生成失败 · 保留部分回复');
     final executionStatus = find.text('执行状态');
-    final duration = find.text('耗时 1.2s');
+    final duration = find.text('耗时 1.2 秒');
     final inputTokens = find.text('输入 Token 120');
     final outputTokens = find.text('输出 Token 30');
     expect(content, findsOneWidget);
@@ -1694,7 +1694,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('执行状态'), findsOneWidget);
-    expect(find.text('耗时 800ms'), findsOneWidget);
+    expect(find.text('耗时 800 毫秒'), findsOneWidget);
     expect(find.text('包含耗时'), findsNothing);
     expect(find.textContaining('输入 Token'), findsNothing);
     expect(find.textContaining('输出 Token'), findsNothing);
@@ -1734,7 +1734,7 @@ void main() {
     expect(find.text('命令执行').hitTestable(), findsOneWidget);
     expect(find.text(command).hitTestable(), findsOneWidget);
     expect(find.text('已完成').hitTestable(), findsOneWidget);
-    expect(find.text('耗时 240ms').hitTestable(), findsOneWidget);
+    expect(find.text('耗时 240 毫秒').hitTestable(), findsOneWidget);
   });
 
   testWidgets(

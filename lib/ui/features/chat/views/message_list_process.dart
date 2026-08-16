@@ -100,7 +100,7 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
         _ProcessHeaderMetric(
           icon: LucideIcons.clock3,
           label: strings.processDuration(
-            _formatDuration(widget.processInfo.durationMs!),
+            _formatDuration(strings, widget.processInfo.durationMs!),
           ),
         ),
       );
@@ -216,7 +216,7 @@ class _ProcessInfoSectionState extends State<ProcessInfoSection> {
                             _processDetailLabel(strings, item.detail),
                           if (item.durationMs != null)
                             strings.processDuration(
-                              _formatDuration(item.durationMs!),
+                              _formatDuration(strings, item.durationMs!),
                             ),
                         ]),
                     statusBuilder: (item) => item.status,
@@ -666,7 +666,7 @@ String _toolCallSubtitle(S strings, MessageToolCall item) => _joinMeta([
   if (item.approvalStatus.isNotEmpty)
     _toolApprovalLabel(strings, item.approvalStatus),
   if (item.durationMs != null)
-    strings.processDuration(_formatDuration(item.durationMs!)),
+    strings.processDuration(_formatDuration(strings, item.durationMs!)),
 ]);
 
 String _toolSourceLabel(S strings, String source) {
@@ -806,10 +806,18 @@ String _processDetailLabel(S strings, String detail) {
   return looksLikeInternalCode ? strings.statusFailed : detail;
 }
 
-String _formatDuration(int durationMs) {
+String _formatDuration(S strings, int durationMs) {
+  final locale = intl.Intl.getCurrentLocale();
   if (durationMs < 1000) {
-    return '${durationMs}ms';
+    final milliseconds = intl.NumberFormat.decimalPattern(
+      locale,
+    ).format(durationMs);
+    return strings.durationMilliseconds(milliseconds);
   }
   final seconds = durationMs / 1000;
-  return '${seconds.toStringAsFixed(seconds >= 10 ? 0 : 1)}s';
+  final formatted = intl.NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: seconds >= 10 ? 0 : 1,
+  ).format(seconds);
+  return strings.durationSeconds(formatted);
 }

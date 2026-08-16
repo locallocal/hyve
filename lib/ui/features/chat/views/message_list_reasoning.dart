@@ -79,7 +79,7 @@ class _ReasoningSectionState extends State<ReasoningSection>
               : widget.durationMs == null
               ? strings.thinkingCompleted
               : strings.thinkingCompletedWithDuration(
-                _formatDuration(widget.durationMs!),
+                _formatDuration(strings, widget.durationMs!),
               );
 
       return ShadCard(

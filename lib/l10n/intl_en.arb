@@ -1064,5 +1064,46 @@
     "memoryTask": "Task",
     "memoryQuestion": "Open question",
     "memoryArtifact": "Artifact",
-    "memoryCorrection": "Correction"
+    "memoryCorrection": "Correction",
+    "startupStarting": "Starting…",
+    "@startupStarting": {
+        "description": "Status shown while Stars loads the profile before the main application starts"
+    },
+    "startupFailed": "Startup failed. Please try again.",
+    "@startupFailed": {
+        "description": "Status shown when Stars cannot finish loading the application"
+    },
+    "videoPlaybackError": "Video playback error: {error}",
+    "@videoPlaybackError": {
+        "description": "Error shown by the embedded video controls",
+        "placeholders": {
+            "error": {"type": "String"}
+        }
+    },
+    "videoLoadFailed": "Unable to load video",
+    "@videoLoadFailed": {
+        "description": "Error shown when a local generated video cannot be initialized"
+    },
+    "databaseDowngradeNotSupported": "This database was created by a newer version of Stars. Update the app before opening it.",
+    "@databaseDowngradeNotSupported": {
+        "description": "Safe error shown when the local database is newer than the application"
+    },
+    "databaseRecoveryFailed": "The database integrity check failed, and recovery from this version's backup was unsuccessful.",
+    "@databaseRecoveryFailed": {
+        "description": "Safe error shown when database validation and backup recovery both fail"
+    },
+    "durationMilliseconds": "{milliseconds} ms",
+    "@durationMilliseconds": {
+        "description": "Localized duration shorter than one second",
+        "placeholders": {
+            "milliseconds": {"type": "String"}
+        }
+    },
+    "durationSeconds": "{seconds} s",
+    "@durationSeconds": {
+        "description": "Localized duration measured in seconds",
+        "placeholders": {
+            "seconds": {"type": "String"}
+        }
+    }
 }

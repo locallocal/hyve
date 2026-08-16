@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "시작하는 중…",
+    "startupFailed": "시작하지 못했습니다. 다시 시도해 주세요.",
+    "videoPlaybackError": "동영상 재생 오류: {error}",
+    "videoLoadFailed": "동영상을 불러올 수 없습니다",
+    "databaseDowngradeNotSupported": "이 데이터베이스는 더 최신 버전의 Stars에서 생성되었습니다. 앱을 업데이트한 후 열어 주세요.",
+    "databaseRecoveryFailed": "데이터베이스 무결성 검사에 실패했으며 현재 버전의 백업에서도 복구하지 못했습니다.",
+    "durationMilliseconds": "{milliseconds}밀리초",
+    "durationSeconds": "{seconds}초"
 }

@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "Avvio…",
+    "startupFailed": "Avvio non riuscito. Riprova.",
+    "videoPlaybackError": "Errore di riproduzione video: {error}",
+    "videoLoadFailed": "Impossibile caricare il video",
+    "databaseDowngradeNotSupported": "Questo database è stato creato da una versione più recente di Stars. Aggiorna l’app prima di aprirlo.",
+    "databaseRecoveryFailed": "Il controllo di integrità del database non è riuscito e non è stato possibile ripristinarlo dal backup di questa versione.",
+    "durationMilliseconds": "{milliseconds} ms",
+    "durationSeconds": "{seconds} s"
 }

@@ -1059,5 +1059,13 @@
     "memoryTask": "待办",
     "memoryQuestion": "未决问题",
     "memoryArtifact": "重要引用",
-    "memoryCorrection": "纠正"
+    "memoryCorrection": "纠正",
+    "startupStarting": "正在启动…",
+    "startupFailed": "启动失败，请重试。",
+    "videoPlaybackError": "视频播放错误：{error}",
+    "videoLoadFailed": "无法加载视频",
+    "databaseDowngradeNotSupported": "数据库由更高版本的 Stars 创建，请升级应用后再打开。",
+    "databaseRecoveryFailed": "数据库完整性检查失败，且无法从当前版本备份恢复。",
+    "durationMilliseconds": "{milliseconds} 毫秒",
+    "durationSeconds": "{seconds} 秒"
 }

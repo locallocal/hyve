@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/legal_document.dart';
+import 'package:hyve/domain/models/legal_document.dart';
 
 abstract interface class LegalDocumentRepository {
   Future<String> getDocument({

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
-import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
-import 'package:stars/ui/features/bots/views/bot_token_usage.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/ui/features/bots/views/bot_token_usage.dart';
 
 void main() {
   testWidgets('desktop panel shows summary and conversation pie side by side', (

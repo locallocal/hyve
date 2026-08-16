@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:stars/domain/models/conversation_history.dart';
-import 'package:stars/domain/models/message.dart';
-import 'package:stars/domain/repositories/conversation_history_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/models/conversation_history.dart';
+import 'package:hyve/domain/models/message.dart';
+import 'package:hyve/domain/repositories/conversation_history_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
 
 /// Current-chat history reader. It only projects user-visible message fields.
 final class SqliteConversationHistoryRepository

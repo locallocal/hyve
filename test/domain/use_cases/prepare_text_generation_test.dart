@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/mcp_inventory_repository.dart';
-import 'package:stars/domain/repositories/skill_inventory_repository.dart';
-import 'package:stars/domain/use_cases/compose_chat_turn.dart';
-import 'package:stars/domain/use_cases/prepare_text_generation.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/mcp_inventory_repository.dart';
+import 'package:hyve/domain/repositories/skill_inventory_repository.dart';
+import 'package:hyve/domain/use_cases/compose_chat_turn.dart';
+import 'package:hyve/domain/use_cases/prepare_text_generation.dart';
 
 void main() {
   test(

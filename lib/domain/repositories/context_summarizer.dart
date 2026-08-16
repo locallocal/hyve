@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/conversation_memory.dart';
-import 'package:stars/domain/models/message.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/models/message.dart';
 
 final class ContextSummaryRequest {
   ContextSummaryRequest({

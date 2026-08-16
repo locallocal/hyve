@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SystemSkillInstallerSkill {
   static const assetRoot = 'assets/skills/system/skill-installer';
@@ -43,7 +43,7 @@ final class SystemSkillInstallerSkill {
         id: skillInstallerSkillId,
         name: 'skill-installer',
         description:
-            'Install Stars Skills and inspect installed or current-conversation '
+            'Install Hyve Skills and inspect installed or current-conversation '
             'Skill state from SQLite.',
         version: '$skillInstallerSkillPromptVersion',
         scope: SkillScope.bundled,
@@ -52,10 +52,10 @@ final class SystemSkillInstallerSkill {
         contentDigest: skillInstallerSkillContentDigest,
         trustState: SkillTrustState.bundledTrusted,
         validationStatus: SkillValidationStatus.valid,
-        compatibility: 'Stars desktop',
+        compatibility: 'Hyve desktop',
         requestedToolNames: skillInstallerToolNames,
-        publisherId: 'stars',
-        publisherName: 'Stars',
+        publisherId: 'hyve',
+        publisherName: 'Hyve',
         installedAt: timestamp,
         updatedAt: timestamp,
       ),

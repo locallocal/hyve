@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/repositories/sqlite_conversation_history_repository.dart';
-import 'package:stars/data/repositories/sqlite_message_repository.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/use_cases/conversation_history_tools.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/repositories/sqlite_conversation_history_repository.dart';
+import 'package:hyve/data/repositories/sqlite_message_repository.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/use_cases/conversation_history_tools.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   sqfliteFfiInit();

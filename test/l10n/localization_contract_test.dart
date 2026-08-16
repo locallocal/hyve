@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
 
 void main() {
   final catalogs = <Locale, File>{
@@ -69,7 +69,7 @@ void main() {
         find.byKey(const ValueKey<String>('localized-app-name')),
         findsOneWidget,
       );
-      expect(find.text('Stars'), findsOneWidget);
+      expect(find.text('Hyve'), findsOneWidget);
     });
   }
 }

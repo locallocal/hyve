@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 /// SQLite representation of a [Bot].
 final class BotRecord {

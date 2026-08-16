@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/tools/system_conversation_history_skill.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/tools/system_conversation_history_skill.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

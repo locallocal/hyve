@@ -1,6 +1,6 @@
 {
     "@@locale": "zh_CN",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "应用名称"
     },
@@ -170,7 +170,7 @@
     "@themeSetToDark": {
         "description": "已设置为深色模式"
     },
-    "aboutApp": "关于 Stars",
+    "aboutApp": "关于 Hyve",
     "@aboutApp": {
         "description": "关于应用"
     },
@@ -178,7 +178,7 @@
     "@appDescription": {
         "description": "应用描述"
     },
-    "copyright": "© {year} Stars 团队",
+    "copyright": "© {year} Hyve 团队",
     "@copyright": {
         "description": "版权信息",
         "placeholders": {
@@ -200,7 +200,7 @@
     "@version": {
         "description": "版本信息"
     },
-    "appTitle": "Stars - AI 聊天助手",
+    "appTitle": "Hyve - AI 聊天助手",
     "@appTitle": {
         "description": "应用标题"
     },
@@ -601,7 +601,7 @@
     "desktopAppearanceAndLanguage": "外观与语言",
     "desktopGeneral": "通用",
     "applicationInjectedPrompt": "系统提示词",
-    "applicationInjectedPromptDescription": "由 Stars 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
+    "applicationInjectedPromptDescription": "由 Hyve 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
     "desktopHelpAndSupport": "帮助与支持",
     "desktopAboutAndLegal": "关于与法律信息",
     "desktopSettingsDescription": "管理个人信息、外观、语言与应用支持。",
@@ -717,7 +717,7 @@
             "error": {"type": "String"}
         }
     },
-    "sharedImageFromStars": "来自 Stars 的图片",
+    "sharedImageFromHyve": "来自 Hyve 的图片",
     "processDuration": "耗时 {duration}",
     "@processDuration": {
         "placeholders": {
@@ -934,7 +934,7 @@
     "localMcpDisabledDescription": "基于本地进程的 MCP 服务器仍处于禁用状态，待完成各平台安全评审后再开放。",
     "mcpLocalProcessSecurityTitle": "本地进程安全",
     "mcpLocalProcessSecurityDescription": "stdio 服务器会在本机运行命令，请仅添加你信任的服务器和环境变量。",
-    "mcpProgressiveDiscoveryDescription": "Stars 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
+    "mcpProgressiveDiscoveryDescription": "Hyve 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
     "mcpHttpsRequired": "远程 MCP 端点必须使用 HTTPS。",
     "mcpPrivateEndpointBlocked": "已阻止私网、本机和链路本地 MCP 端点。",
     "mcpAuthorizationRequired": "需要授权",
@@ -1064,7 +1064,7 @@
     "startupFailed": "启动失败，请重试。",
     "videoPlaybackError": "视频播放错误：{error}",
     "videoLoadFailed": "无法加载视频",
-    "databaseDowngradeNotSupported": "数据库由更高版本的 Stars 创建，请升级应用后再打开。",
+    "databaseDowngradeNotSupported": "数据库由更高版本的 Hyve 创建，请升级应用后再打开。",
     "databaseRecoveryFailed": "数据库完整性检查失败，且无法从当前版本备份恢复。",
     "durationMilliseconds": "{milliseconds} 毫秒",
     "durationSeconds": "{seconds} 秒"

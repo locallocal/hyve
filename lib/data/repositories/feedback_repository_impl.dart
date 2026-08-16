@@ -1,5 +1,5 @@
-import 'package:stars/data/services/feedback_service.dart';
-import 'package:stars/domain/repositories/feedback_repository.dart';
+import 'package:hyve/data/services/feedback_service.dart';
+import 'package:hyve/domain/repositories/feedback_repository.dart';
 
 class FeedbackRepositoryImpl implements FeedbackRepository {
   const FeedbackRepositoryImpl({required FeedbackService service})

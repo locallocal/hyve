@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:intl/intl.dart' as intl;
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/views/audio_player_widget.dart';
-import 'package:stars/ui/features/chat/views/video_player_widget.dart';
-import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/views/audio_player_widget.dart';
+import 'package:hyve/ui/features/chat/views/video_player_widget.dart';
+import 'package:hyve/ui/features/chat/view_models/message_action_view_model.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -255,7 +255,7 @@ class _MessageListState extends State<MessageList> {
     bool isCurrentUser = false,
   }) {
     final viewportMaxWidth =
-        isDesktop ? StarsDesktopThemeSpec.contentMaxWidth : double.infinity;
+        isDesktop ? HyveDesktopThemeSpec.contentMaxWidth : double.infinity;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: isDesktop ? 10 : 4),
@@ -274,8 +274,8 @@ class _MessageListState extends State<MessageList> {
                 maxWidth:
                     isDesktop
                         ? (isCurrentUser
-                            ? StarsDesktopThemeSpec.messageBubbleMaxWidth
-                            : StarsDesktopThemeSpec.contentMaxWidth)
+                            ? HyveDesktopThemeSpec.messageBubbleMaxWidth
+                            : HyveDesktopThemeSpec.contentMaxWidth)
                         : MediaQuery.of(context).size.width * 0.8,
               ),
               child: bubble,

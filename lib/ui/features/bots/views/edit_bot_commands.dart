@@ -106,26 +106,26 @@ extension _EditBotCommands on _EditAIBotPageState {
     final displayValue = value.trim().isEmpty ? '—' : value;
     final labelStyle =
         widget.embedded
-            ? StarsDesktopThemeSpec.bodyStyle(context)
+            ? HyveDesktopThemeSpec.bodyStyle(context)
             : materialTheme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w500,
             );
     final valueStyle =
         widget.embedded
-            ? StarsDesktopThemeSpec.metaStyle(context)
+            ? HyveDesktopThemeSpec.metaStyle(context)
             : materialTheme.textTheme.bodySmall?.copyWith(
               color: materialTheme.colorScheme.onSurfaceVariant,
             );
     final iconColor =
         widget.embedded
-            ? StarsDesktopThemeSpec.mutedText(context)
+            ? HyveDesktopThemeSpec.mutedText(context)
             : materialTheme.colorScheme.primary;
 
     final leading = SizedBox(
-      width: StarsDesktopThemeSpec.settingsRowIconSlotWidth,
+      width: HyveDesktopThemeSpec.settingsRowIconSlotWidth,
       child: Icon(
         icon,
-        size: widget.embedded ? StarsDesktopThemeSpec.settingsRowIconSize : 20,
+        size: widget.embedded ? HyveDesktopThemeSpec.settingsRowIconSize : 20,
         color: iconColor,
       ),
     );
@@ -139,7 +139,7 @@ extension _EditBotCommands on _EditAIBotPageState {
             return Padding(
               padding:
                   useSettingsRowLayout
-                      ? StarsDesktopThemeSpec.settingsRowPadding
+                      ? HyveDesktopThemeSpec.settingsRowPadding
                       : EdgeInsets.symmetric(
                         horizontal: widget.embedded ? 8 : 0,
                         vertical: 8,
@@ -148,7 +148,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                 constraints: BoxConstraints(
                   minHeight:
                       useSettingsRowLayout
-                          ? StarsDesktopThemeSpec.settingsRowMinHeight
+                          ? HyveDesktopThemeSpec.settingsRowMinHeight
                           : 0,
                 ),
                 child: Row(
@@ -158,7 +158,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                     SizedBox(
                       width:
                           widget.embedded
-                              ? StarsDesktopThemeSpec.settingsRowIconGap
+                              ? HyveDesktopThemeSpec.settingsRowIconGap
                               : 16,
                     ),
                     Expanded(
@@ -195,25 +195,24 @@ extension _EditBotCommands on _EditAIBotPageState {
           }
           if (useSettingsRowLayout) {
             return Padding(
-              padding: StarsDesktopThemeSpec.settingsRowPadding,
+              padding: HyveDesktopThemeSpec.settingsRowPadding,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
-                  minHeight: StarsDesktopThemeSpec.settingsRowMinHeight,
+                  minHeight: HyveDesktopThemeSpec.settingsRowMinHeight,
                 ),
                 child: Row(
                   children: [
                     leading,
                     const SizedBox(
-                      width: StarsDesktopThemeSpec.settingsRowIconGap,
+                      width: HyveDesktopThemeSpec.settingsRowIconGap,
                     ),
                     Expanded(child: Text(label, style: labelStyle)),
                     const SizedBox(
-                      width: StarsDesktopThemeSpec.settingsRowValueGap,
+                      width: HyveDesktopThemeSpec.settingsRowValueGap,
                     ),
                     ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth:
-                            StarsDesktopThemeSpec.settingsRowValueMaxWidth,
+                        maxWidth: HyveDesktopThemeSpec.settingsRowValueMaxWidth,
                       ),
                       child:
                           valueWidget ??
@@ -244,7 +243,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                 SizedBox(
                   width:
                       widget.embedded
-                          ? StarsDesktopThemeSpec.settingsRowIconGap
+                          ? HyveDesktopThemeSpec.settingsRowIconGap
                           : 16,
                 ),
                 Expanded(
@@ -335,7 +334,7 @@ extension _EditBotCommands on _EditAIBotPageState {
     required VoidCallback onPressed,
   }) {
     if (widget.embedded) {
-      return StarsDesktopIconAction(
+      return HyveDesktopIconAction(
         key: key,
         icon: icon,
         label: tooltip,
@@ -373,7 +372,7 @@ extension _EditBotCommands on _EditAIBotPageState {
           child: ShadInput(
             key: key,
             controller: controller,
-            padding: StarsDesktopThemeSpec.formFieldPadding,
+            padding: HyveDesktopThemeSpec.formFieldPadding,
             placeholder: placeholder == null ? null : Text(placeholder),
             leading: SizedBox(
               width: 17,
@@ -387,7 +386,7 @@ extension _EditBotCommands on _EditAIBotPageState {
             placeholderAlignment: Alignment.centerLeft,
             crossAxisAlignment: CrossAxisAlignment.center,
             constraints: const BoxConstraints(
-              minHeight: StarsDesktopThemeSpec.botFormFieldHeight,
+              minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
             ),
             textInputAction: TextInputAction.next,
             onChanged: onChanged,
@@ -432,7 +431,7 @@ extension _EditBotCommands on _EditAIBotPageState {
     required IconData icon,
     required VoidCallback? onPressed,
   }) {
-    return StarsDesktopIconAction(
+    return HyveDesktopIconAction(
       icon: icon,
       label: tooltip,
       enabled: onPressed != null,
@@ -564,7 +563,7 @@ extension _EditBotCommands on _EditAIBotPageState {
     }
 
     if (widget.embedded) {
-      return StarsDesktopIconAction(
+      return HyveDesktopIconAction(
         icon: LucideIcons.trash2,
         label: S.of(context).deleteBot,
         variant: ShadButtonVariant.destructive,

@@ -9,7 +9,7 @@ metadata:
 
 # Retrieve conversation history
 
-Retrieve exact, persisted messages from Stars' SQLite database through the two
+Retrieve exact, persisted messages from Hyve' SQLite database through the two
 read-only history tools. The tools own the connection to
 `<ApplicationDocumentsDirectory>/app.db` and run parameterized SQL against the
 `messages` table. The runtime binds every query to the current `chat_id` and

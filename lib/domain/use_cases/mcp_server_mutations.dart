@@ -1,7 +1,7 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 
 enum McpServerMutationOutcome { committed, warning, failure }
 

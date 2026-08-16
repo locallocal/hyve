@@ -40,11 +40,11 @@ final class SecureBotApiKeyCipher implements BotApiKeyCipher {
                : null),
        _cipher = cipher ?? AesGcm.with256bits();
 
-  static const envelopePrefix = 'stars:bot-api-key:v1:';
+  static const envelopePrefix = 'hyve:bot-api-key:v1:';
   static const secureStorageAccountName =
-      'io.github.locallocal.stars.bot.api-key';
-  static const legacyStorageAccountName = 'com.example.stars.bot.api-key';
-  static const _keyStorageKey = 'stars.bot.api-key.master.v1';
+      'io.github.locallocal.hyve.bot.api-key';
+  static const legacyStorageAccountName = 'com.example.hyve.bot.api-key';
+  static const _keyStorageKey = 'hyve.bot.api-key.master.v1';
   static const _secretKeyLength = 32;
 
   final FlutterSecureStorage _storage;
@@ -140,7 +140,7 @@ final class SecureBotApiKeyCipher implements BotApiKeyCipher {
   }
 
   List<int> _associatedData(String botId) =>
-      utf8.encode('stars.bot.api-key:$botId');
+      utf8.encode('hyve.bot.api-key:$botId');
 
   void _validateBotId(String botId) {
     if (botId.trim().isEmpty) {

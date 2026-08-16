@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/domain/models/app_failure.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/domain/models/app_failure.dart';
 
 void main() {
   setUpAll(() {
@@ -97,7 +97,7 @@ void main() {
   group('database version reset policy', () {
     test('reopens a database that already uses the current schema', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars_current_database_',
+        'hyve_current_database_',
       );
       addTearDown(() => directory.delete(recursive: true));
       final databasePath = path.join(directory.path, 'app.db');
@@ -136,7 +136,7 @@ void main() {
       'deletes any non-current database before creating the current schema',
       () async {
         final directory = await Directory.systemTemp.createTemp(
-          'stars_obsolete_database_',
+          'hyve_obsolete_database_',
         );
         addTearDown(() => directory.delete(recursive: true));
         final databasePath = path.join(directory.path, 'app.db');
@@ -196,7 +196,7 @@ void main() {
 
     test('rejects a database created by a newer application version', () async {
       final directory = await Directory.systemTemp.createTemp(
-        'stars_newer_database_',
+        'hyve_newer_database_',
       );
       addTearDown(() => directory.delete(recursive: true));
       final databasePath = path.join(directory.path, 'app.db');
@@ -233,7 +233,7 @@ void main() {
       'restores current database and chat assets from a valid backup',
       () async {
         final directory = await Directory.systemTemp.createTemp(
-          'stars_database_recovery_',
+          'hyve_database_recovery_',
         );
         addTearDown(() => directory.delete(recursive: true));
         final databasePath = path.join(directory.path, 'app.db');
@@ -287,7 +287,7 @@ void main() {
       'does not silently replace corrupt current data without a backup',
       () async {
         final directory = await Directory.systemTemp.createTemp(
-          'stars_unrecoverable_database_',
+          'hyve_unrecoverable_database_',
         );
         addTearDown(() => directory.delete(recursive: true));
         final databasePath = path.join(directory.path, 'app.db');

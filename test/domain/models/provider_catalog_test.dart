@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/models/provider_catalog.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/models/provider_catalog.dart';
 
 void main() {
   test(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/token_usage_indicator.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/token_usage_indicator.dart';
 
 void main() {
   testWidgets('compact token usage renders an icon, total, and semantics', (

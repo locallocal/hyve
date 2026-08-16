@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/use_cases/context_budgeter.dart';
-import 'package:stars/domain/use_cases/prepare_conversation_context.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/use_cases/context_budgeter.dart';
+import 'package:hyve/domain/use_cases/prepare_conversation_context.dart';
 
 void main() {
   test(

@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
+import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
 
 class AppScope extends InheritedWidget {
   const AppScope({super.key, required this.dependencies, required super.child});

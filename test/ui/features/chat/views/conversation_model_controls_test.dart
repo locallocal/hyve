@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/views/conversation_model_controls.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/views/conversation_model_controls.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   testWidgets('shows inspector-aligned switches and toggles provider options', (
@@ -36,7 +36,7 @@ void main() {
     );
     expect(webRow, findsOneWidget);
     expect(thinkingRow, findsOneWidget);
-    expect(find.byType(StarsInspectorInfoRow), findsNWidgets(2));
+    expect(find.byType(HyveInspectorInfoRow), findsNWidgets(2));
     expect(find.byType(ShadSwitch), findsNWidgets(2));
     expect(find.byType(ShadButton), findsNothing);
     expect(find.text('联网搜索'), findsOneWidget);
@@ -75,7 +75,7 @@ void main() {
 }
 
 Widget _harness(AiProvider provider) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

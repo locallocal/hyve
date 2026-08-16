@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SystemConversationHistorySkill {
   static const assetRoot = 'assets/skills/system/conversation-history';
@@ -52,10 +52,10 @@ final class SystemConversationHistorySkill {
         contentDigest: conversationHistorySkillContentDigest,
         trustState: SkillTrustState.bundledTrusted,
         validationStatus: SkillValidationStatus.valid,
-        compatibility: 'Stars',
+        compatibility: 'Hyve',
         requestedToolNames: conversationHistoryToolNames,
-        publisherId: 'stars',
-        publisherName: 'Stars',
+        publisherId: 'hyve',
+        publisherName: 'Hyve',
         installedAt: timestamp,
         updatedAt: timestamp,
       ),

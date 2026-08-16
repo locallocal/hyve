@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/use_cases/mcp_server_mutations.dart';
 
 void main() {
   late _MemoryMcpServerRepository repository;

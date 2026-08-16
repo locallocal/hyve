@@ -1,6 +1,6 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/profile_repository.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/profile_repository.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 class StartupViewModel extends DisposableChangeNotifier {
   StartupViewModel({

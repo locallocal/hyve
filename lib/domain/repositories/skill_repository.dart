@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 typedef BundledSkillLoader = Future<List<SkillContent>> Function();
 

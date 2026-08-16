@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 
 void main() {
   test('loads and sorts per-conversation usage with chat previews', () async {

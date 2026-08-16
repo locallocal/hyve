@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SystemShellSkill {
   static const assetRoot = 'assets/skills/system/shell-command';
@@ -51,10 +51,10 @@ final class SystemShellSkill {
         contentDigest: shellCommandSkillContentDigest,
         trustState: SkillTrustState.bundledTrusted,
         validationStatus: SkillValidationStatus.valid,
-        compatibility: 'Stars desktop',
+        compatibility: 'Hyve desktop',
         requestedToolNames: shellCommandToolNames,
-        publisherId: 'stars',
-        publisherName: 'Stars',
+        publisherId: 'hyve',
+        publisherName: 'Hyve',
         installedAt: timestamp,
         updatedAt: timestamp,
       ),

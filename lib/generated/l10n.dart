@@ -29,9 +29,10 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -55,10 +56,10 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
-  /// `Stars`
+  /// `Hyve`
   String get appName {
     return Intl.message(
-      'Stars',
+      'Hyve',
       name: 'appName',
       desc: 'Application name',
       args: [],
@@ -420,10 +421,10 @@ class S {
     );
   }
 
-  /// `About Stars`
+  /// `About Hyve`
   String get aboutApp {
     return Intl.message(
-      'About Stars',
+      'About Hyve',
       name: 'aboutApp',
       desc: 'About the app',
       args: [],
@@ -440,10 +441,10 @@ class S {
     );
   }
 
-  /// `© {year} Stars Team`
+  /// `© {year} Hyve Team`
   String copyright(int year) {
     return Intl.message(
-      '© $year Stars Team',
+      '© $year Hyve Team',
       name: 'copyright',
       desc: 'Copyright information',
       args: [year],
@@ -480,10 +481,10 @@ class S {
     );
   }
 
-  /// `Stars - AI Chat Assistant`
+  /// `Hyve - AI Chat Assistant`
   String get appTitle {
     return Intl.message(
-      'Stars - AI Chat Assistant',
+      'Hyve - AI Chat Assistant',
       name: 'appTitle',
       desc: 'App title',
       args: [],
@@ -1330,10 +1331,10 @@ class S {
     );
   }
 
-  /// `Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.`
+  /// `Managed by Hyve and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.`
   String get applicationInjectedPromptDescription {
     return Intl.message(
-      'Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.',
+      'Managed by Hyve and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.',
       name: 'applicationInjectedPromptDescription',
       desc: '',
       args: [],
@@ -1510,7 +1511,8 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
+      desc:
+          'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -2131,11 +2133,11 @@ class S {
     );
   }
 
-  /// `Image from Stars`
-  String get sharedImageFromStars {
+  /// `Image from Hyve`
+  String get sharedImageFromHyve {
     return Intl.message(
-      'Image from Stars',
-      name: 'sharedImageFromStars',
+      'Image from Hyve',
+      name: 'sharedImageFromHyve',
       desc: '',
       args: [],
     );
@@ -3486,10 +3488,10 @@ class S {
     );
   }
 
-  /// `Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.`
+  /// `Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.`
   String get mcpProgressiveDiscoveryDescription {
     return Intl.message(
-      'Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.',
+      'Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.',
       name: 'mcpProgressiveDiscoveryDescription',
       desc: '',
       args: [],
@@ -4512,7 +4514,7 @@ class S {
       'Starting…',
       name: 'startupStarting',
       desc:
-          'Status shown while Stars loads the profile before the main application starts',
+          'Status shown while Hyve loads the profile before the main application starts',
       args: [],
     );
   }
@@ -4522,7 +4524,7 @@ class S {
     return Intl.message(
       'Startup failed. Please try again.',
       name: 'startupFailed',
-      desc: 'Status shown when Stars cannot finish loading the application',
+      desc: 'Status shown when Hyve cannot finish loading the application',
       args: [],
     );
   }
@@ -4547,10 +4549,10 @@ class S {
     );
   }
 
-  /// `This database was created by a newer version of Stars. Update the app before opening it.`
+  /// `This database was created by a newer version of Hyve. Update the app before opening it.`
   String get databaseDowngradeNotSupported {
     return Intl.message(
-      'This database was created by a newer version of Stars. Update the app before opening it.',
+      'This database was created by a newer version of Hyve. Update the app before opening it.',
       name: 'databaseDowngradeNotSupported',
       desc:
           'Safe error shown when the local database is newer than the application',

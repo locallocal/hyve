@@ -82,7 +82,7 @@ class _StatusCardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = isDesktop ? StarsDesktopThemeSpec.statusRadiusValue : 14.0;
+    final radius = isDesktop ? HyveDesktopThemeSpec.statusRadiusValue : 14.0;
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,9 +101,9 @@ class _StatusCardSection extends StatelessWidget {
       return ShadCard(
         width: double.infinity,
         padding: const EdgeInsets.all(14),
-        backgroundColor: StarsDesktopTokens.of(context).controlFill,
+        backgroundColor: HyveDesktopTokens.of(context).controlFill,
         radius: BorderRadius.circular(radius),
-        border: ShadBorder.all(color: StarsDesktopTokens.of(context).separator),
+        border: ShadBorder.all(color: HyveDesktopTokens.of(context).separator),
         child: content,
       );
     }
@@ -112,9 +112,9 @@ class _StatusCardSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: StarsDesktopTokens.of(context).controlFill,
+        color: HyveDesktopTokens.of(context).controlFill,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: StarsDesktopTokens.of(context).separator),
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
       ),
       child: content,
     );
@@ -149,7 +149,7 @@ class _StatusCardHeader extends StatelessWidget {
             ).colorScheme.primary.withValues(alpha: 0.12),
             borderRadius:
                 isDesktop
-                    ? StarsDesktopThemeSpec.itemRadius
+                    ? HyveDesktopThemeSpec.itemRadius
                     : BorderRadius.circular(10),
           ),
           child: Icon(
@@ -177,7 +177,7 @@ class _StatusCardHeader extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: StarsDesktopTokens.of(context).secondaryText,
+                      color: HyveDesktopTokens.of(context).secondaryText,
                       fontSize:
                           (Theme.of(context).textTheme.bodyMedium?.fontSize ??
                               12) -

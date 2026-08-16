@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:stars/generated/l10n.dart';
+import 'package:hyve/generated/l10n.dart';
 import 'package:video_player/video_player.dart';
 
 /// Renders a local generated video with platform playback controls.

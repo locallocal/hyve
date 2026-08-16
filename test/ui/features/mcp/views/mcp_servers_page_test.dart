@@ -6,18 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_client.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
-import 'package:stars/ui/features/mcp/views/mcp_servers_page.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/data/services/mcp/mcp_catalog_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_client.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/use_cases/mcp_server_mutations.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:hyve/ui/features/mcp/views/mcp_servers_page.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -250,7 +250,7 @@ void main() {
       expect(githubRect.width, 453);
       expect(filesystemRect.width, 453);
       expect(githubRect.height, filesystemRect.height);
-      expect(githubRect.height, StarsDesktopThemeSpec.managementCardHeight);
+      expect(githubRect.height, HyveDesktopThemeSpec.managementCardHeight);
       expect(githubRect.top, filesystemRect.top);
       expect(filesystemRect.left - githubRect.right, 14);
 
@@ -377,7 +377,7 @@ void main() {
         find.descendant(
           of: searchField,
           matching: find.byKey(
-            const ValueKey<String>('stars-search-inset-focus-ring'),
+            const ValueKey<String>('hyve-search-inset-focus-ring'),
           ),
         ),
         findsOneWidget,
@@ -565,7 +565,7 @@ void main() {
         find.byKey(const ValueKey<String>('mcp-tools-title-filesystem')),
       );
       final secondaryText =
-          StarsDesktopTokens.of(
+          HyveDesktopTokens.of(
             tester.element(
               find.byKey(
                 const ValueKey<String>('mcp-stdio-runtime-title-filesystem'),
@@ -904,7 +904,7 @@ void main() {
       expect(find.byType(ShadForm), findsOneWidget);
       expect(find.byType(ShadCard), findsNWidgets(2));
       expect(
-        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        find.byWidgetPredicate((widget) => widget is HyveDesktopMenu<Object?>),
         findsNWidgets(2),
       );
       expect(find.byIcon(LucideIcons.x), findsOneWidget);
@@ -947,10 +947,10 @@ void main() {
         inputSize('mcp-server-authentication'),
       ];
       expect(inputSizes.map((size) => size.width).toSet(), {
-        StarsDesktopThemeSpec.addBotFormFieldWidth,
+        HyveDesktopThemeSpec.addBotFormFieldWidth,
       });
       expect(inputSizes.map((size) => size.height).toSet(), {
-        StarsDesktopThemeSpec.botFormFieldHeight,
+        HyveDesktopThemeSpec.botFormFieldHeight,
       });
 
       final authenticationMenu = find.byKey(
@@ -993,8 +993,8 @@ void main() {
       expect(
         inputSize('mcp-server-access-token'),
         const Size(
-          StarsDesktopThemeSpec.addBotFormFieldWidth,
-          StarsDesktopThemeSpec.botFormFieldHeight,
+          HyveDesktopThemeSpec.addBotFormFieldWidth,
+          HyveDesktopThemeSpec.botFormFieldHeight,
         ),
       );
 
@@ -1071,8 +1071,8 @@ void main() {
       expect(
         inputSize('mcp-server-command'),
         const Size(
-          StarsDesktopThemeSpec.addBotFormFieldWidth,
-          StarsDesktopThemeSpec.botFormFieldHeight,
+          HyveDesktopThemeSpec.addBotFormFieldWidth,
+          HyveDesktopThemeSpec.botFormFieldHeight,
         ),
       );
       expect(tester.takeException(), isNull);
@@ -1174,7 +1174,7 @@ McpServersViewModel _createMcpServersViewModel({
 );
 
 Widget _harness(McpServersViewModel viewModel) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

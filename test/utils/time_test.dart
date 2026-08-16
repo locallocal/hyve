@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/utils/time.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/utils/time.dart';
 
 void main() {
   group('formatTimestamp', () {

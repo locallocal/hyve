@@ -26,6 +26,6 @@ ask for a private reporting channel without sending vulnerability details.
 
 ## Credential handling
 
-Stars stores provider and MCP credentials locally. Never commit real
+Hyve stores provider and MCP credentials locally. Never commit real
 credentials, paste them into issues or CI logs, or add them to test fixtures.
 Revoke any credential that may have been exposed before sharing diagnostics.

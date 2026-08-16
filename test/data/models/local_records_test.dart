@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/models/local_records.dart';
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/models/local_records.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   test('Skill activations survive process info serialization', () {
@@ -235,7 +235,7 @@ void main() {
         contentDigest: 'digest',
         trustState: SkillTrustState.userReviewed,
         validationStatus: SkillValidationStatus.valid,
-        compatibility: 'Stars',
+        compatibility: 'Hyve',
         installedAt: timestamp,
         updatedAt: timestamp,
       ),

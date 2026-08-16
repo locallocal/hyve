@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/theme.dart';
 
 enum ModelModalitiesDensity { compact, regular }
 
@@ -74,7 +74,7 @@ class ModelModalitiesView extends StatelessWidget {
     return Column(
       key: ValueKey<String>(keyPrefix),
       children: [
-        StarsInspectorInfoRow(
+        HyveInspectorInfoRow(
           key: ValueKey<String>('$keyPrefix-input'),
           icon: Icons.input_rounded,
           label: S.of(context).modelInputModalities,
@@ -85,7 +85,7 @@ class ModelModalitiesView extends StatelessWidget {
             modalities: orderedInputModalities,
           ),
         ),
-        StarsInspectorInfoRow(
+        HyveInspectorInfoRow(
           key: ValueKey<String>('$keyPrefix-output'),
           icon: Icons.output_rounded,
           label: S.of(context).modelOutputModalities,
@@ -134,7 +134,7 @@ class _CompactModalityGroup extends StatelessWidget {
             child: Icon(
               icon,
               size: 14,
-              color: StarsDesktopThemeSpec.mutedText(context),
+              color: HyveDesktopThemeSpec.mutedText(context),
             ),
           ),
           const SizedBox(width: 6),
@@ -142,7 +142,7 @@ class _CompactModalityGroup extends StatelessWidget {
             key: ValueKey<String>('$keyPrefix-separator'),
             width: 1,
             height: 14,
-            color: StarsDesktopThemeSpec.divider(context),
+            color: HyveDesktopThemeSpec.divider(context),
           ),
           const SizedBox(width: 6),
           Flexible(child: valueIcons),
@@ -263,7 +263,7 @@ class _ModalityIcons extends StatelessWidget {
               child: Icon(
                 item.icon,
                 size: iconSize,
-                color: StarsDesktopThemeSpec.mutedText(context),
+                color: HyveDesktopThemeSpec.mutedText(context),
               ),
             ),
           ),

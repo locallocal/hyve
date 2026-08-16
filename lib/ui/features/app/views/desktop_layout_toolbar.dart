@@ -51,14 +51,14 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
 
     return Container(
       key: const ValueKey<String>('desktop-unified-toolbar'),
-      height: StarsDesktopThemeSpec.toolbarHeight,
+      height: HyveDesktopThemeSpec.toolbarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: StarsDesktopThemeSpec.toolbarSurface(context),
+        color: HyveDesktopThemeSpec.toolbarSurface(context),
         border: Border(
           bottom: BorderSide(
             width: 0,
-            color: StarsDesktopThemeSpec.divider(context),
+            color: HyveDesktopThemeSpec.divider(context),
           ),
         ),
       ),
@@ -70,7 +70,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
             child:
                 !sidebarVisible
                     ? isChat
-                        ? StarsDesktopIconAction(
+                        ? HyveDesktopIconAction(
                           key: const ValueKey<String>(
                             'desktop-toolbar-sidebar',
                           ),
@@ -110,7 +110,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: StarsDesktopThemeSpec.toolbarTitleStyle(context),
+                    style: HyveDesktopThemeSpec.toolbarTitleStyle(context),
                   ),
                 ),
                 if (summary != null && summary.isNotEmpty) ...[
@@ -120,7 +120,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                       summary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: StarsDesktopThemeSpec.metaStyle(context),
+                      style: HyveDesktopThemeSpec.metaStyle(context),
                     ),
                   ),
                 ],
@@ -135,7 +135,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (compact && onCreateChat != null)
-                          StarsDesktopIconAction(
+                          HyveDesktopIconAction(
                             key: const ValueKey<String>(
                               'desktop-toolbar-new-chat',
                             ),
@@ -147,7 +147,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             icon: desktopStartConversationIcon,
                           ),
                         if (onClearChat != null)
-                          StarsDesktopIconAction(
+                          HyveDesktopIconAction(
                             key: const ValueKey<String>(
                               'desktop-toolbar-clear-chat',
                             ),
@@ -159,7 +159,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             icon: LucideIcons.eraser,
                           ),
                         if (inspectorAvailable)
-                          StarsDesktopIconAction(
+                          HyveDesktopIconAction(
                             key: const ValueKey<String>(
                               'desktop-toolbar-inspector',
                             ),
@@ -182,8 +182,8 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                     )
                     : DecoratedBox(
                       decoration: BoxDecoration(
-                        color: StarsDesktopThemeSpec.controlFill(context),
-                        borderRadius: StarsDesktopThemeSpec.controlRadius,
+                        color: HyveDesktopThemeSpec.controlFill(context),
+                        borderRadius: HyveDesktopThemeSpec.controlRadius,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

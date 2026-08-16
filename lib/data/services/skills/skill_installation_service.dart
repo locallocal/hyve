@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:stars/data/services/skills/skill_catalog_endpoint_policy.dart';
-import 'package:stars/data/services/skills/skill_package_storage_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:hyve/data/services/skills/skill_catalog_endpoint_policy.dart';
+import 'package:hyve/data/services/skills/skill_package_storage_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
 
 enum SkillInstallSourceType { github, zipUrl, localZip, localDirectory }
 
@@ -54,7 +54,7 @@ final class SkillInstallationService implements SkillInstallationGateway {
        _fetcher = fetcher,
        _temporaryDirectoryProvider =
            temporaryDirectoryProvider ??
-           (() => Directory.systemTemp.createTemp('stars-skill-install-'));
+           (() => Directory.systemTemp.createTemp('hyve-skill-install-'));
 
   static const int maxRedirects = 3;
 

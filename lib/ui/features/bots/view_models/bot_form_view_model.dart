@@ -1,6 +1,6 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 
 typedef BotFormMcpCatalog =
     ({

@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 /// Builds a bounded, deterministic Skill catalog for model disclosure.
 ///

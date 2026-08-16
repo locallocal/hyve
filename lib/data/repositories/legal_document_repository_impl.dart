@@ -1,6 +1,6 @@
-import 'package:stars/data/services/asset_text_service.dart';
-import 'package:stars/domain/models/legal_document.dart';
-import 'package:stars/domain/repositories/legal_document_repository.dart';
+import 'package:hyve/data/services/asset_text_service.dart';
+import 'package:hyve/domain/models/legal_document.dart';
+import 'package:hyve/domain/repositories/legal_document_repository.dart';
 
 class LegalDocumentRepositoryImpl implements LegalDocumentRepository {
   const LegalDocumentRepositoryImpl({required AssetTextService service})

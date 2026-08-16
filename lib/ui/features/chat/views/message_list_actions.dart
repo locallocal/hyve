@@ -43,7 +43,7 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
     if (!_canCopy) return;
     await Clipboard.setData(ClipboardData(text: widget.content));
     if (!mounted) return;
-    showStarsNotice(context, S.of(context).messageCopied);
+    showHyveNotice(context, S.of(context).messageCopied);
   }
 
   @override
@@ -57,7 +57,7 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
       ),
     ];
 
-    return StarsContextMenu(
+    return HyveContextMenu(
       focusNode: _focusNode,
       enabled: _canCopy,
       items: actions,
@@ -85,7 +85,7 @@ class _DesktopMessageActionsState extends State<_DesktopMessageActions> {
                     excluding: !_showActions,
                     child: IgnorePointer(
                       ignoring: !_showActions,
-                      child: StarsDesktopIconAction(
+                      child: HyveDesktopIconAction(
                         key: const ValueKey<String>(
                           'desktop-message-copy-action',
                         ),
@@ -157,7 +157,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
     if (widget.source.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: widget.source));
     if (!mounted) return;
-    showStarsNotice(context, S.of(context).messageCopied);
+    showHyveNotice(context, S.of(context).messageCopied);
   }
 
   @override
@@ -191,7 +191,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: StarsDesktopTokens.of(context).secondaryText,
+                        color: HyveDesktopTokens.of(context).secondaryText,
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -199,7 +199,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
                 else
                   const Spacer(),
                 if (widget.isDesktop)
-                  StarsDesktopIconAction(
+                  HyveDesktopIconAction(
                     key: const ValueKey<String>('message-code-copy-button'),
                     icon: LucideIcons.copy,
                     label: copyLabel,
@@ -207,7 +207,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
                     enabled: widget.source.isNotEmpty,
                     iconSize: 16,
                     foregroundColor:
-                        StarsDesktopTokens.of(context).secondaryText,
+                        HyveDesktopTokens.of(context).secondaryText,
                   )
                 else
                   IconButton(
@@ -223,7 +223,7 @@ class _CopyableCodeBlockState extends State<_CopyableCodeBlock> {
         Divider(
           height: 1,
           thickness: 1,
-          color: StarsDesktopTokens.of(context).separator,
+          color: HyveDesktopTokens.of(context).separator,
         ),
         Scrollbar(
           controller: _scrollController,

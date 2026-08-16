@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/utils/theme.dart';
 
 final class ToolApprovalCard extends StatelessWidget {
   const ToolApprovalCard({
@@ -78,8 +78,8 @@ final class ToolApprovalCard extends StatelessWidget {
                   key: const ValueKey<String>('tool-approval-card'),
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  backgroundColor: StarsDesktopTokens.of(context).controlFill,
-                  radius: StarsDesktopThemeSpec.statusRadius,
+                  backgroundColor: HyveDesktopTokens.of(context).controlFill,
+                  radius: HyveDesktopThemeSpec.statusRadius,
                   border: ShadBorder.all(
                     color: riskColor.withValues(alpha: 0.32),
                   ),
@@ -114,7 +114,7 @@ final class ToolApprovalCard extends StatelessWidget {
             request.definition.description.trim(),
             style:
                 desktopMode
-                    ? StarsDesktopThemeSpec.bodyStyle(context)
+                    ? HyveDesktopThemeSpec.bodyStyle(context)
                     : Theme.of(context).textTheme.bodyMedium,
           ),
         ],
@@ -143,7 +143,7 @@ final class ToolApprovalCard extends StatelessWidget {
               color: riskColor.withValues(alpha: 0.12),
               borderRadius:
                   desktopMode
-                      ? StarsDesktopThemeSpec.itemRadius
+                      ? HyveDesktopThemeSpec.itemRadius
                       : BorderRadius.circular(10),
             ),
             child: Icon(_riskIcon, size: 18, color: riskColor),
@@ -158,7 +158,7 @@ final class ToolApprovalCard extends StatelessWidget {
                 strings.toolCalls,
                 style:
                     desktopMode
-                        ? StarsDesktopThemeSpec.metaStyle(context)
+                        ? HyveDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -170,7 +170,7 @@ final class ToolApprovalCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style:
                     desktopMode
-                        ? StarsDesktopThemeSpec.toolbarTitleStyle(context)
+                        ? HyveDesktopThemeSpec.toolbarTitleStyle(context)
                         : Theme.of(context).textTheme.titleSmall,
               ),
             ],
@@ -222,7 +222,7 @@ final class ToolApprovalCard extends StatelessWidget {
         .join('\n');
     final foreground =
         desktopMode
-            ? StarsDesktopThemeSpec.text(context)
+            ? HyveDesktopThemeSpec.text(context)
             : Theme.of(context).colorScheme.onSurface;
     final panel = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -234,7 +234,7 @@ final class ToolApprovalCard extends StatelessWidget {
               size: 16,
               color:
                   desktopMode
-                      ? StarsDesktopThemeSpec.mutedText(context)
+                      ? HyveDesktopThemeSpec.mutedText(context)
                       : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 7),
@@ -242,7 +242,7 @@ final class ToolApprovalCard extends StatelessWidget {
               strings.details,
               style:
                   desktopMode
-                      ? StarsDesktopThemeSpec.sectionTitleStyle(context)
+                      ? HyveDesktopThemeSpec.sectionTitleStyle(context)
                       : Theme.of(context).textTheme.labelMedium,
             ),
           ],
@@ -265,9 +265,9 @@ final class ToolApprovalCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: StarsDesktopThemeSpec.raisedSurface(context),
-          border: Border.all(color: StarsDesktopThemeSpec.outline(context)),
-          borderRadius: StarsDesktopThemeSpec.controlRadius,
+          color: HyveDesktopThemeSpec.raisedSurface(context),
+          border: Border.all(color: HyveDesktopThemeSpec.outline(context)),
+          borderRadius: HyveDesktopThemeSpec.controlRadius,
         ),
         child: panel,
       );
@@ -359,8 +359,8 @@ final class ToolApprovalCard extends StatelessWidget {
       .definition
       .riskLevel) {
     ToolRiskLevel.readOnly => Theme.of(context).colorScheme.primary,
-    ToolRiskLevel.write => StarsDesktopThemeSpec.warning(context),
-    ToolRiskLevel.destructive => StarsDesktopThemeSpec.error(context),
+    ToolRiskLevel.write => HyveDesktopThemeSpec.warning(context),
+    ToolRiskLevel.destructive => HyveDesktopThemeSpec.error(context),
   };
 
   IconData get _riskIcon => switch (request.definition.riskLevel) {

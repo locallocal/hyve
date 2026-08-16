@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
-import 'package:stars/ui/features/bots/views/bots.dart';
-import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
-import 'package:stars/ui/features/chats/view_models/chat_list_view_model.dart';
-import 'package:stars/ui/features/chats/views/chats.dart';
-import 'package:stars/ui/features/chats/views/chat_item.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/ui/features/bots/views/bots.dart';
+import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
+import 'package:hyve/ui/features/chats/views/chats.dart';
+import 'package:hyve/ui/features/chats/views/chat_item.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../support/widget_test_support.dart';
 
@@ -230,14 +230,14 @@ void main() {
       await tester.pumpAndSettle();
 
       final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
-      expect(sheet.constraints?.minWidth, StarsDesktopThemeSpec.inspectorWidth);
-      expect(sheet.constraints?.maxWidth, StarsDesktopThemeSpec.inspectorWidth);
+      expect(sheet.constraints?.minWidth, HyveDesktopThemeSpec.inspectorWidth);
+      expect(sheet.constraints?.maxWidth, HyveDesktopThemeSpec.inspectorWidth);
       final inspector = find.byKey(
         const PageStorageKey<String>('desktop-context-inspector'),
       );
       final inspectorList = tester.widget<ListView>(inspector);
       expect(inspectorList.padding, const EdgeInsets.only(top: 12, right: 16));
-      final infoRows = find.byType(StarsInspectorInfoRow);
+      final infoRows = find.byType(HyveInspectorInfoRow);
       expect(infoRows, findsNWidgets(5));
       final labelLefts = <double>[];
       for (var index = 0; index < 3; index += 1) {
@@ -416,7 +416,7 @@ void main() {
       expect(selectedButton.variant, ShadButtonVariant.primary);
       expect(
         selectedButton.backgroundColor,
-        StarsDesktopThemeSpec.inactivePrimaryActionColor(selectedButtonContext),
+        HyveDesktopThemeSpec.inactivePrimaryActionColor(selectedButtonContext),
       );
       expect(
         selectedButton.hoverBackgroundColor,
@@ -439,7 +439,7 @@ void main() {
       expect(inheritedTextStyle.merge(text.style).color, selectedForeground);
       expect(
         tester.getSize(selectedButtonFinder).height,
-        StarsDesktopThemeSpec.botFormFieldHeight,
+        HyveDesktopThemeSpec.botFormFieldHeight,
       );
       expect(selectedButton.mainAxisAlignment, MainAxisAlignment.start);
 
@@ -471,7 +471,7 @@ void main() {
 
         expect(
           tester.getSize(newChatButtonFinder).height,
-          StarsDesktopThemeSpec.botFormFieldHeight,
+          HyveDesktopThemeSpec.botFormFieldHeight,
         );
         expect(selectedButton.size, newChatButton.size);
         expect(selectedButton.expands, newChatButton.expands);
@@ -633,17 +633,17 @@ void main() {
     expect(find.text('编辑'), findsNothing);
     expect(find.text('视图'), findsNothing);
     expect(find.text('帮助'), findsNothing);
-    expect(find.text('Stars'), findsNothing);
+    expect(find.text('Hyve'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('desktop-toolbar-sidebar')),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Stars'), findsOneWidget);
+    expect(find.text('Hyve'), findsOneWidget);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
-    expect(find.text('Stars'), findsNothing);
+    expect(find.text('Hyve'), findsNothing);
   });
 
   testWidgets('desktop chat and bot list share toolbar geometry and divider', (
@@ -672,12 +672,11 @@ void main() {
     final botBorder = botDecoration.border! as Border;
     final botSize = tester.getSize(botToolbarFinder);
 
-    expect(chatSize.height, StarsDesktopThemeSpec.toolbarHeight);
+    expect(chatSize.height, HyveDesktopThemeSpec.toolbarHeight);
     expect(chatSize, botSize);
     expect(chatDecoration.color, botDecoration.color);
     expect(chatBorder.bottom, botBorder.bottom);
     expect(chatBorder.bottom.width, 0);
     expect(chatBorder.bottom.style, BorderStyle.solid);
   });
-
 }

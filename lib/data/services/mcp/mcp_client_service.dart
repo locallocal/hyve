@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:stars/data/services/mcp/mcp_transport.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_client.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/data/services/mcp/mcp_transport.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_client.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
 
 final class McpClientService implements McpClient, McpStdioProcessInfoSource {
   McpClientService({
@@ -188,8 +188,8 @@ final class McpClientService implements McpClient, McpStdioProcessInfoSource {
       'protocolVersion': protocolVersion,
       'capabilities': <String, Object?>{},
       'clientInfo': {
-        'name': 'Stars',
-        'title': 'Stars MCP Host',
+        'name': 'Hyve',
+        'title': 'Hyve MCP Host',
         'version': '1.0.0',
       },
     });

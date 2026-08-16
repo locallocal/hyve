@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/skill_catalog.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/skill_catalog.dart';
 
 void main() {
   test('recalls relevant entries from a large catalog within bounds', () {

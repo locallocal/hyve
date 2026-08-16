@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SystemMcpInstallerSkill {
   static const assetRoot = 'assets/skills/system/mcp-installer';
@@ -43,7 +43,7 @@ final class SystemMcpInstallerSkill {
         id: mcpInstallerSkillId,
         name: 'mcp-installer',
         description:
-            'Install Stars MCP servers and inspect installed or '
+            'Install Hyve MCP servers and inspect installed or '
             'current-conversation MCP configuration from SQLite.',
         version: '$mcpInstallerSkillPromptVersion',
         scope: SkillScope.bundled,
@@ -52,10 +52,10 @@ final class SystemMcpInstallerSkill {
         contentDigest: mcpInstallerSkillContentDigest,
         trustState: SkillTrustState.bundledTrusted,
         validationStatus: SkillValidationStatus.valid,
-        compatibility: 'Stars desktop',
+        compatibility: 'Hyve desktop',
         requestedToolNames: mcpInstallerToolNames,
-        publisherId: 'stars',
-        publisherName: 'Stars',
+        publisherId: 'hyve',
+        publisherName: 'Hyve',
         installedAt: timestamp,
         updatedAt: timestamp,
       ),

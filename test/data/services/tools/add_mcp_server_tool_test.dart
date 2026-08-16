@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/data/services/tools/add_mcp_server_tool.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 
 void main() {
   late _MemoryMcpServerRepository repository;

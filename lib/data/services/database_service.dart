@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:stars/domain/models/app_failure.dart';
+import 'package:hyve/domain/models/app_failure.dart';
 
 typedef ApplicationDocumentsDirectoryProvider = Future<Directory> Function();
 
@@ -24,8 +24,8 @@ class DatabaseService {
   // deleted before the database is opened.
   static const int databaseVersion = 17;
   static const String _databaseFileName = 'app.db';
-  static const String _currentBackupName = '.stars_backup_current';
-  static const String _previousBackupName = '.stars_backup_previous';
+  static const String _currentBackupName = '.hyve_backup_current';
+  static const String _previousBackupName = '.hyve_backup_previous';
   static const String _backupManifestName = 'manifest.json';
 
   // 获取数据库实例
@@ -177,7 +177,7 @@ class DatabaseService {
     }
     await for (final entity in root.list(followLinks: false)) {
       if (entity is Directory &&
-          basename(entity.path).startsWith('.stars_backup_staging_')) {
+          basename(entity.path).startsWith('.hyve_backup_staging_')) {
         await entity.delete(recursive: true);
       }
     }
@@ -190,7 +190,7 @@ class DatabaseService {
     final staging = Directory(
       join(
         root.path,
-        '.stars_backup_staging_${DateTime.now().microsecondsSinceEpoch}',
+        '.hyve_backup_staging_${DateTime.now().microsecondsSinceEpoch}',
       ),
     );
     final current = Directory(join(root.path, _currentBackupName));

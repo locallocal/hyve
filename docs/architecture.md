@@ -1,6 +1,6 @@
-# Stars 架构
+# Hyve 架构
 
-Stars 采用分层架构与 MVVM。依赖方向固定为：
+Hyve 采用分层架构与 MVVM。依赖方向固定为：
 
 ```text
 View -> ViewModel -> Use Case（按需） -> Repository contract

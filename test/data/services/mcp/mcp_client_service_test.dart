@@ -4,12 +4,12 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:stars/data/services/mcp/mcp_client_service.dart';
-import 'package:stars/data/services/mcp/mcp_endpoint_policy.dart';
-import 'package:stars/data/services/mcp/mcp_http_transport.dart';
-import 'package:stars/data/services/mcp/mcp_stdio_transport.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/data/services/mcp/mcp_client_service.dart';
+import 'package:hyve/data/services/mcp/mcp_endpoint_policy.dart';
+import 'package:hyve/data/services/mcp/mcp_http_transport.dart';
+import 'package:hyve/data/services/mcp/mcp_stdio_transport.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
 
 void main() {
   test(
@@ -351,7 +351,7 @@ void main() {
       final credentials =
           _MemoryCredentialStore()
             ..value = McpCredential(
-              environment: {'STARS_MCP_TEST_VALUE': 'secure-environment'},
+              environment: {'HYVE_MCP_TEST_VALUE': 'secure-environment'},
             );
       final processStartedAt = DateTime.utc(2026, 7, 30, 9, 45);
       final stdioTransport = McpStdioTransport(

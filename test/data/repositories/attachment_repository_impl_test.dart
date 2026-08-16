@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
-import 'package:stars/data/repositories/attachment_repository_impl.dart';
-import 'package:stars/data/services/attachment_picker_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/repositories/attachment_repository_impl.dart';
+import 'package:hyve/data/services/attachment_picker_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   late Directory root;
   late AttachmentRepositoryImpl repository;
 
   setUp(() async {
-    root = await Directory.systemTemp.createTemp('stars-assets-');
+    root = await Directory.systemTemp.createTemp('hyve-assets-');
     repository = AttachmentRepositoryImpl(
       service: AttachmentPickerService(),
       documentsDirectoryProvider: () async => root,

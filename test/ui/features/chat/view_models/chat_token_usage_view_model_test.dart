@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 
 void main() {
   test('groups usage by consecutive days and drills into 24 hours', () async {

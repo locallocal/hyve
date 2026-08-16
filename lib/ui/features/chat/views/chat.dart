@@ -2,24 +2,24 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/use_cases/generate_media_turn.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
-import 'package:stars/ui/features/chat/views/attachments.dart';
-import 'package:stars/ui/features/chat/views/clear_chat_dialog.dart';
-import 'package:stars/ui/features/chat/views/message_input.dart';
-import 'package:stars/ui/features/chat/views/message_list.dart';
-import 'package:stars/ui/features/chat/views/typing_indicator.dart';
-import 'package:stars/ui/features/chat/views/tool_approval_card.dart';
-import 'package:stars/ui/features/chat/views/welcome_view.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/use_cases/generate_media_turn.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:hyve/ui/features/chat/views/attachments.dart';
+import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chat/views/message_input.dart';
+import 'package:hyve/ui/features/chat/views/message_list.dart';
+import 'package:hyve/ui/features/chat/views/typing_indicator.dart';
+import 'package:hyve/ui/features/chat/views/tool_approval_card.dart';
+import 'package:hyve/ui/features/chat/views/welcome_view.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 // 聊天页面
 part 'chat_workspace.dart';
@@ -599,7 +599,7 @@ class ChatGenerationErrorAlert extends StatelessWidget {
   final VoidCallback onDismiss;
 
   @override
-  Widget build(BuildContext context) => StarsInlineErrorAlert(
+  Widget build(BuildContext context) => HyveInlineErrorAlert(
     error: error,
     isDesktop: isDesktop,
     onDismiss: onDismiss,

@@ -4,20 +4,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:stars/data/models/local_records.dart';
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/repositories/sqlite_bot_repository.dart';
-import 'package:stars/data/repositories/sqlite_bot_skill_binding_repository.dart';
-import 'package:stars/data/repositories/sqlite_chat_repository.dart';
-import 'package:stars/data/repositories/sqlite_conversation_skill_pin_repository.dart';
-import 'package:stars/data/repositories/sqlite_profile_repository.dart';
-import 'package:stars/data/repositories/sqlite_message_repository.dart';
-import 'package:stars/data/repositories/sqlite_skill_run_repository.dart';
-import 'package:stars/data/services/bot_api_key_cipher.dart';
-import 'package:stars/data/services/conversation_summary_storage.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/database_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/models/local_records.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/repositories/sqlite_bot_repository.dart';
+import 'package:hyve/data/repositories/sqlite_bot_skill_binding_repository.dart';
+import 'package:hyve/data/repositories/sqlite_chat_repository.dart';
+import 'package:hyve/data/repositories/sqlite_conversation_skill_pin_repository.dart';
+import 'package:hyve/data/repositories/sqlite_profile_repository.dart';
+import 'package:hyve/data/repositories/sqlite_message_repository.dart';
+import 'package:hyve/data/repositories/sqlite_skill_run_repository.dart';
+import 'package:hyve/data/services/bot_api_key_cipher.dart';
+import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/database_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -569,9 +569,7 @@ void main() {
         timestamp: timestamp,
       ),
     );
-    final documents = await Directory.systemTemp.createTemp(
-      'stars-bot-delete-',
-    );
+    final documents = await Directory.systemTemp.createTemp('hyve-bot-delete-');
     addTearDown(() async {
       if (await documents.exists()) await documents.delete(recursive: true);
     });
@@ -702,7 +700,7 @@ SkillDescriptor _skill(String id) => SkillDescriptor(
   contentDigest: 'digest-$id',
   trustState: SkillTrustState.userReviewed,
   validationStatus: SkillValidationStatus.valid,
-  compatibility: 'Stars',
+  compatibility: 'Hyve',
   installedAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );

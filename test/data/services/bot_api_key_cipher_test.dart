@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/bot_api_key_cipher.dart';
+import 'package:hyve/data/services/bot_api_key_cipher.dart';
 
 import '../../helpers/memory_secure_storage.dart';
 
@@ -83,11 +83,8 @@ void main() {
     ).decrypt(botId: 'bot-1', encrypted: encrypted);
 
     expect(decrypted, 'sk-legacy-value');
-    expect(currentStorage.values, contains('stars.bot.api-key.master.v1'));
-    expect(
-      legacyStorage.values,
-      isNot(contains('stars.bot.api-key.master.v1')),
-    );
+    expect(currentStorage.values, contains('hyve.bot.api-key.master.v1'));
+    expect(legacyStorage.values, isNot(contains('hyve.bot.api-key.master.v1')));
   });
 
   test('does not migrate an invalid legacy Apple master key', () async {
@@ -95,7 +92,7 @@ void main() {
       storage: MemorySecureStorage(),
     ).encrypt(botId: 'bot-1', apiKey: 'sk-value');
     final legacyStorage = MemorySecureStorage({
-      'stars.bot.api-key.master.v1': base64UrlEncode([1, 2, 3]),
+      'hyve.bot.api-key.master.v1': base64UrlEncode([1, 2, 3]),
     });
     final currentStorage = MemorySecureStorage();
 
@@ -108,6 +105,6 @@ void main() {
     );
 
     expect(currentStorage.values, isEmpty);
-    expect(legacyStorage.values, contains('stars.bot.api-key.master.v1'));
+    expect(legacyStorage.values, contains('hyve.bot.api-key.master.v1'));
   });
 }

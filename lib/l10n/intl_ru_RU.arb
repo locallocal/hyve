@@ -1,6 +1,6 @@
 {
     "@@locale": "ru_RU",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "Название приложения"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "Установлена тёмная тема"
     },
-    "aboutApp": "О приложении Stars",
+    "aboutApp": "О приложении Hyve",
     "@aboutApp": {
         "description": "О приложении"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "Описание приложения"
     },
-    "copyright": "© {year} Команда Stars",
+    "copyright": "© {year} Команда Hyve",
     "@copyright": {
         "description": "Информация об авторских правах",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "Информация о версии"
     },
-    "appTitle": "Stars - ИИ чат-ассистент",
+    "appTitle": "Hyve - ИИ чат-ассистент",
     "@appTitle": {
         "description": "Заголовок приложения"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "Внешний вид и язык",
     "desktopGeneral": "Общие",
     "applicationInjectedPrompt": "Системный промпт",
-    "applicationInjectedPromptDescription": "Управляется Stars и добавляется к каждому запросу модели. Идентификаторы текущего агента и беседы подставляются во время выполнения и недоступны для редактирования.",
+    "applicationInjectedPromptDescription": "Управляется Hyve и добавляется к каждому запросу модели. Идентификаторы текущего агента и беседы подставляются во время выполнения и недоступны для редактирования.",
     "desktopHelpAndSupport": "Помощь и поддержка",
     "desktopAboutAndLegal": "О приложении и правовая информация",
     "desktopSettingsDescription": "Управляйте профилем, внешним видом, языком и поддержкой приложения.",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -903,7 +903,7 @@
     "startupFailed": "Не удалось запустить приложение. Повторите попытку.",
     "videoPlaybackError": "Ошибка воспроизведения видео: {error}",
     "videoLoadFailed": "Не удалось загрузить видео",
-    "databaseDowngradeNotSupported": "Эта база данных создана более новой версией Stars. Обновите приложение, прежде чем открывать её.",
+    "databaseDowngradeNotSupported": "Эта база данных создана более новой версией Hyve. Обновите приложение, прежде чем открывать её.",
     "databaseRecoveryFailed": "Проверка целостности базы данных завершилась ошибкой, восстановить её из резервной копии этой версии не удалось.",
     "durationMilliseconds": "{milliseconds} мс",
     "durationSeconds": "{seconds} с"

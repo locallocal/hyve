@@ -39,12 +39,12 @@ final class _MemoryManagerDialogState extends State<_MemoryManagerDialog> {
               item.memoryKey.toLowerCase().contains(normalized),
         )
         .toList(growable: false);
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadDialog(
       key: const ValueKey<String>('conversation-memory-manager-dialog'),
       title: Text(
         S.of(context).manageMemory,
-        style: StarsDesktopThemeSpec.pageTitleStyle(context),
+        style: HyveDesktopThemeSpec.pageTitleStyle(context),
       ),
       description: Text(S.of(context).automaticSummaryWarning),
       constraints: const BoxConstraints(maxWidth: 760),
@@ -83,7 +83,7 @@ final class _MemoryManagerDialogState extends State<_MemoryManagerDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              StarsSearchField(
+              HyveSearchField(
                 key: const ValueKey<String>('memory-search-input'),
                 hintText: S.of(context).searchMemory,
                 onChanged: (value) => setState(() => _query = value),
@@ -122,7 +122,7 @@ final class _SummaryMemoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadCard(
       key: const ValueKey<String>('memory-summary-card'),
       width: double.infinity,
@@ -147,7 +147,7 @@ final class _SummaryMemoryCard extends StatelessWidget {
               children: [
                 Text(
                   S.of(context).conversationSummary,
-                  style: StarsDesktopThemeSpec.bodyStyle(
+                  style: HyveDesktopThemeSpec.bodyStyle(
                     context,
                   )?.copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -156,7 +156,7 @@ final class _SummaryMemoryCard extends StatelessWidget {
                   summary.markdown,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -175,7 +175,7 @@ final class _MemoryItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     final locale = Localizations.localeOf(context).toString();
     final updatedAt = DateFormat.yMd(
       locale,
@@ -185,7 +185,7 @@ final class _MemoryItemTile extends StatelessWidget {
       children: [
         SelectableText(
           item.content,
-          style: StarsDesktopThemeSpec.bodyStyle(
+          style: HyveDesktopThemeSpec.bodyStyle(
             context,
           )?.copyWith(fontWeight: FontWeight.w500),
         ),
@@ -199,7 +199,7 @@ final class _MemoryItemTile extends StatelessWidget {
             ShadBadge.outline(
               child: Text('${(item.confidence * 100).round()}%'),
             ),
-            Text(updatedAt, style: StarsDesktopThemeSpec.metaStyle(context)),
+            Text(updatedAt, style: HyveDesktopThemeSpec.metaStyle(context)),
           ],
         ),
       ],
@@ -298,7 +298,7 @@ final class _MemoryItemTile extends StatelessWidget {
           (dialogContext) => ShadDialog(
             title: Text(
               S.of(dialogContext).editMemory,
-              style: StarsDesktopThemeSpec.pageTitleStyle(dialogContext),
+              style: HyveDesktopThemeSpec.pageTitleStyle(dialogContext),
             ),
             constraints: const BoxConstraints(maxWidth: 560),
             actions: [
@@ -346,7 +346,7 @@ final class _MemoryIconAction extends StatelessWidget {
   final Color? foregroundColor;
 
   @override
-  Widget build(BuildContext context) => StarsDesktopIconAction(
+  Widget build(BuildContext context) => HyveDesktopIconAction(
     icon: icon,
     label: label,
     iconSize: 16,

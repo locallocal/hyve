@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/repositories/feedback_repository.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/feedback/view_models/feedback_view_model.dart';
-import 'package:stars/ui/features/feedback/views/feedback_page.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/repositories/feedback_repository.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/feedback/view_models/feedback_view_model.dart';
+import 'package:hyve/ui/features/feedback/views/feedback_page.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +34,7 @@ void main() {
         expect(input, findsOneWidget);
         expect(
           tester.getSize(input).height,
-          StarsDesktopThemeSpec.botFormFieldHeight,
+          HyveDesktopThemeSpec.botFormFieldHeight,
         );
 
         final editableText = find.descendant(
@@ -178,7 +178,7 @@ Widget _harness(
   TextScaler textScaler = TextScaler.noScaling,
   LocalizationsDelegate<S> stringsDelegate = S.delegate,
 }) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

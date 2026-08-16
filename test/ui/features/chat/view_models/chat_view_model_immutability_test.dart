@@ -1,22 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/conversation_draft_repository.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/use_cases/chat_workflow_facade.dart';
-import 'package:stars/domain/use_cases/compose_chat_turn.dart';
-import 'package:stars/domain/use_cases/create_user_message.dart';
-import 'package:stars/domain/use_cases/generate_media_turn.dart';
-import 'package:stars/domain/use_cases/persist_conversation_assets.dart';
-import 'package:stars/domain/use_cases/prepare_text_generation.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/chat_interaction_facade.dart';
-import 'package:stars/ui/features/chat/view_models/chat_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/message_action_view_model.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/conversation_draft_repository.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/use_cases/chat_workflow_facade.dart';
+import 'package:hyve/domain/use_cases/compose_chat_turn.dart';
+import 'package:hyve/domain/use_cases/create_user_message.dart';
+import 'package:hyve/domain/use_cases/generate_media_turn.dart';
+import 'package:hyve/domain/use_cases/persist_conversation_assets.dart';
+import 'package:hyve/domain/use_cases/prepare_text_generation.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_interaction_facade.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/message_action_view_model.dart';
 
 void main() {
   test('publishes immutable cached and loaded message snapshots', () async {

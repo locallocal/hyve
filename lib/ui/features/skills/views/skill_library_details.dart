@@ -33,7 +33,7 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
         skill.name,
         key: ValueKey<String>('skill-details-title-${skill.id}'),
         style: const TextStyle(
-          fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+          fontSize: HyveDesktopThemeSpec.pageTitleFontSize,
         ),
       ),
       description: Text(skill.description),
@@ -110,10 +110,10 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
                               }
                             } catch (error) {
                               if (mounted) {
-                                showStarsNotice(
+                                showHyveNotice(
                                   this.context,
                                   safeFailureMessage(this.context, error),
-                                  tone: StarsNoticeTone.error,
+                                  tone: HyveNoticeTone.error,
                                 );
                               }
                             }
@@ -235,7 +235,7 @@ class _SkillStorageLocationDetail extends StatelessWidget {
               children: [
                 Expanded(child: SelectableText(location)),
                 const SizedBox(width: 6),
-                StarsDesktopIconAction(
+                HyveDesktopIconAction(
                   key: const ValueKey<String>('copy-skill-storage-location'),
                   icon: LucideIcons.copy,
                   label: S.of(context).copySkillStorageLocation,

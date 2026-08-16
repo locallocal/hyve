@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/models/legal_document.dart';
-import 'package:stars/domain/repositories/legal_document_repository.dart';
-import 'package:stars/ui/features/profile/view_models/legal_document_view_model.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/models/legal_document.dart';
+import 'package:hyve/domain/repositories/legal_document_repository.dart';
+import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.dart';
 
 void main() {
   group('LegalDocumentViewModel', () {

@@ -1,6 +1,6 @@
 {
     "@@locale": "en",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "Application name"
     },
@@ -170,7 +170,7 @@
     "@themeSetToDark": {
         "description": "Theme set to dark mode"
     },
-    "aboutApp": "About Stars",
+    "aboutApp": "About Hyve",
     "@aboutApp": {
         "description": "About the app"
     },
@@ -178,7 +178,7 @@
     "@appDescription": {
         "description": "App description"
     },
-    "copyright": "© {year} Stars Team",
+    "copyright": "© {year} Hyve Team",
     "@copyright": {
         "description": "Copyright information",
         "placeholders": {
@@ -200,7 +200,7 @@
     "@version": {
         "description": "Version information"
     },
-    "appTitle": "Stars - AI Chat Assistant",
+    "appTitle": "Hyve - AI Chat Assistant",
     "@appTitle": {
         "description": "App title"
     },
@@ -601,7 +601,7 @@
     "desktopAppearanceAndLanguage": "Appearance & Language",
     "desktopGeneral": "General",
     "applicationInjectedPrompt": "System prompt",
-    "applicationInjectedPromptDescription": "Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.",
+    "applicationInjectedPromptDescription": "Managed by Hyve and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.",
     "desktopHelpAndSupport": "Help & Support",
     "desktopAboutAndLegal": "About & Legal",
     "desktopSettingsDescription": "Manage your profile, appearance, language, and app support.",
@@ -717,7 +717,7 @@
             "error": {"type": "String"}
         }
     },
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "processDuration": "Duration {duration}",
     "@processDuration": {
         "placeholders": {
@@ -934,7 +934,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -1067,11 +1067,11 @@
     "memoryCorrection": "Correction",
     "startupStarting": "Starting…",
     "@startupStarting": {
-        "description": "Status shown while Stars loads the profile before the main application starts"
+        "description": "Status shown while Hyve loads the profile before the main application starts"
     },
     "startupFailed": "Startup failed. Please try again.",
     "@startupFailed": {
-        "description": "Status shown when Stars cannot finish loading the application"
+        "description": "Status shown when Hyve cannot finish loading the application"
     },
     "videoPlaybackError": "Video playback error: {error}",
     "@videoPlaybackError": {
@@ -1084,7 +1084,7 @@
     "@videoLoadFailed": {
         "description": "Error shown when a local generated video cannot be initialized"
     },
-    "databaseDowngradeNotSupported": "This database was created by a newer version of Stars. Update the app before opening it.",
+    "databaseDowngradeNotSupported": "This database was created by a newer version of Hyve. Update the app before opening it.",
     "@databaseDowngradeNotSupported": {
         "description": "Safe error shown when the local database is newer than the application"
     },

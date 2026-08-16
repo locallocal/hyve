@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/ui/features/bots/views/skill_description_test_dialog.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/ui/features/bots/views/skill_description_test_dialog.dart';
+import 'package:hyve/utils/theme.dart';
 
 /// Desktop Skill editor for a Bot that has not been persisted yet.
 ///
@@ -54,9 +54,9 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     if (viewModel.skills.isEmpty) {
       return Text(
         strings.noSkillsInstalledDescription,
-        style: StarsDesktopThemeSpec.bodyStyle(
+        style: HyveDesktopThemeSpec.bodyStyle(
           context,
-        )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context)),
+        )?.copyWith(color: HyveDesktopThemeSpec.mutedText(context)),
       );
     }
 
@@ -78,7 +78,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
             Expanded(
               child: Text(
                 strings.botSkillsDescription,
-                style: StarsDesktopThemeSpec.metaStyle(context),
+                style: HyveDesktopThemeSpec.metaStyle(context),
               ),
             ),
             const SizedBox(width: 12),
@@ -102,7 +102,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 const SizedBox(height: 4),
                 Text(
                   strings.noBotSkillsAddedDescription,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
@@ -160,7 +160,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                       skill.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: StarsDesktopThemeSpec.metaStyle(context),
+                      style: HyveDesktopThemeSpec.metaStyle(context),
                     ),
                   ],
                 ),
@@ -189,7 +189,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                 ),
               ),
               const SizedBox(width: 8),
-              StarsDesktopIconAction(
+              HyveDesktopIconAction(
                 key: ValueKey<String>('remove-add-bot-skill-${skill.id}'),
                 icon: LucideIcons.trash2,
                 label: strings.removeSkill,
@@ -217,13 +217,13 @@ class _AddBotSkillsState extends State<AddBotSkills> {
       );
       if (!mounted) return;
       final result = report.results.single;
-      showStarsNotice(
+      showHyveNotice(
         context,
         '${S.of(context).skillDescriptionTestResult}: '
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -240,7 +240,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        StarsDesktopIconAction(
+        HyveDesktopIconAction(
           key: ValueKey<String>('$keyPrefix-previous-page'),
           icon: LucideIcons.chevronLeft,
           label: localizations.previousPageTooltip,
@@ -255,7 +255,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
           key: ValueKey<String>('$keyPrefix-page-indicator'),
         ),
         const SizedBox(width: 12),
-        StarsDesktopIconAction(
+        HyveDesktopIconAction(
           key: ValueKey<String>('$keyPrefix-next-page'),
           icon: LucideIcons.chevronRight,
           label: localizations.nextPageTooltip,
@@ -313,7 +313,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          StarsSearchField(
+          HyveSearchField(
             key: const ValueKey<String>('add-bot-skill-search-field'),
             hintText: strings.searchSkills,
             semanticLabel: strings.searchSkills,
@@ -326,7 +326,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
             suffixIcon:
                 viewModel.availableQuery.isEmpty
                     ? null
-                    : StarsDesktopIconAction(
+                    : HyveDesktopIconAction(
                       key: const ValueKey<String>('clear-add-bot-skill-search'),
                       icon: LucideIcons.x,
                       label: strings.clearSearch,
@@ -345,7 +345,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
               child: Text(
                 strings.noMatchingSkills,
                 textAlign: TextAlign.center,
-                style: StarsDesktopThemeSpec.metaStyle(context),
+                style: HyveDesktopThemeSpec.metaStyle(context),
               ),
             ),
           for (var index = 0; index < skills.length; index++) ...[
@@ -369,7 +369,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
                           skills[index].description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: StarsDesktopThemeSpec.metaStyle(context),
+                          style: HyveDesktopThemeSpec.metaStyle(context),
                         ),
                       ],
                     ),
@@ -418,7 +418,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
       await viewModel.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -426,7 +426,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -434,7 +434,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
     try {
       await viewModel.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 }

@@ -1,6 +1,6 @@
 # 桌面组件矩阵
 
-本文档定义 Stars 桌面端唯一允许的交互与视觉组件入口。平台能力由
+本文档定义 Hyve 桌面端唯一允许的交互与视觉组件入口。平台能力由
 `isDesktopPlatform` 判断，窗口尺寸与布局断点由 `LayoutBuilder`、`MediaQuery`
 或 Shad breakpoint 单独决定。
 
@@ -9,13 +9,13 @@
 | 语义 | 桌面唯一实现 | 约束 |
 | --- | --- | --- |
 | Primary / Secondary / Destructive button | `ShadButton` 对应 variant | 文本动作直接使用 Shad variant，不在业务页重写产品色 |
-| Icon action | `StarsDesktopIconAction` | 44×44 命中区，16–18px Lucide 图标，统一 Tooltip、Focus、Semantics |
-| Click / select menu | `StarsDesktopMenu<T>` | 基于 `ShadPopover`，选中态统一使用 Lucide check |
-| Secondary-click context menu | `StarsContextMenu` + `ShadContextMenuItem` | 仅用于上下文操作；普通点击菜单不得模拟右键菜单 |
+| Icon action | `HyveDesktopIconAction` | 44×44 命中区，16–18px Lucide 图标，统一 Tooltip、Focus、Semantics |
+| Click / select menu | `HyveDesktopMenu<T>` | 基于 `ShadPopover`，选中态统一使用 Lucide check |
+| Secondary-click context menu | `HyveContextMenu` + `ShadContextMenuItem` | 仅用于上下文操作；普通点击菜单不得模拟右键菜单 |
 | Dialog / alert / sheet | `ShadDialog`、`showChatShadDialog`、`showChatShadSheet` | 保持同一 Shad overlay stack 与局部主题 |
-| Form field | `ShadInput(FormField)`、`ShadTextarea(FormField)` | 单行桌面输入使用 `StarsDesktopThemeSpec.formFieldPadding` 和 48px 外框 |
-| Inline error | `StarsInlineErrorAlert` | 可恢复的表单/会话内错误就地显示 |
-| Transient notice | `showStarsNotice` | 桌面统一 Sonner；移动端统一 SnackBar，业务页不直接访问二者 |
+| Form field | `ShadInput(FormField)`、`ShadTextarea(FormField)` | 单行桌面输入使用 `HyveDesktopThemeSpec.formFieldPadding` 和 48px 外框 |
+| Inline error | `HyveInlineErrorAlert` | 可恢复的表单/会话内错误就地显示 |
+| Transient notice | `showHyveNotice` | 桌面统一 Sonner；移动端统一 SnackBar，业务页不直接访问二者 |
 | Empty / loading state | `DesktopEmptyStateCard`、`ShadProgress` | 不额外创建卡片层级或自定义进度动画 |
 | Icons | `LucideIcons` | Material `Icons` 仅保留在明确的移动端分支 |
 
@@ -26,10 +26,10 @@
 
 ## 主题来源
 
-- `StarsDesktopTokens` 是颜色、对比度和透明度状态的唯一语义来源。
-- `StarsDesktopThemeSpec` 只承载稳定尺寸、间距、形状以及从语义 token 派生的样式。
+- `HyveDesktopTokens` 是颜色、对比度和透明度状态的唯一语义来源。
+- `HyveDesktopThemeSpec` 只承载稳定尺寸、间距、形状以及从语义 token 派生的样式。
 - 业务视图不定义产品颜色和圆角；`Colors.transparent` 是允许的结构性例外。
-- 已删除 `DesktopThemeTokens`、`StarsDesktopTheme` compatibility facade，禁止恢复双入口。
+- 已删除 `DesktopThemeTokens`、`HyveDesktopTheme` compatibility facade，禁止恢复双入口。
 
 ## 视觉回归矩阵
 

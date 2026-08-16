@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/skills/view_models/skill_library_view_model.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 part 'skill_library_cards.dart';
 part 'skill_library_details.dart';
@@ -70,14 +70,14 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   Widget _buildDesktop(BuildContext context) {
     final strings = S.of(context);
     return ColoredBox(
-      color: StarsDesktopThemeSpec.workspaceSurface(context),
+      color: HyveDesktopThemeSpec.workspaceSurface(context),
       child: SingleChildScrollView(
         key: ValueKey<String>('skill-library-page-${viewModel.currentPage}'),
-        padding: StarsDesktopThemeSpec.formPagePadding,
+        padding: HyveDesktopThemeSpec.formPagePadding,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
+              maxWidth: HyveDesktopThemeSpec.formContentMaxWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,17 +92,15 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                           Text(
                             strings.skillLibrary,
                             key: const ValueKey<String>('skill-library-title'),
-                            style: StarsDesktopThemeSpec.pageTitleStyle(
-                              context,
-                            ),
+                            style: HyveDesktopThemeSpec.pageTitleStyle(context),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             strings.skillLibraryDescription,
-                            style: StarsDesktopThemeSpec.bodyStyle(
+                            style: HyveDesktopThemeSpec.bodyStyle(
                               context,
                             )?.copyWith(
-                              color: StarsDesktopThemeSpec.mutedText(context),
+                              color: HyveDesktopThemeSpec.mutedText(context),
                             ),
                           ),
                         ],
@@ -203,7 +201,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                         safeFailureMessage(context, viewModel.error!),
                       ),
                     ),
-                    trailing: StarsDesktopIconAction(
+                    trailing: HyveDesktopIconAction(
                       key: const ValueKey<String>('close-skill-error'),
                       icon: LucideIcons.x,
                       label:
@@ -276,7 +274,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                 crossAxisCount: columns,
                 crossAxisSpacing: gap,
                 mainAxisSpacing: gap,
-                mainAxisExtent: StarsDesktopThemeSpec.managementCardHeight,
+                mainAxisExtent: HyveDesktopThemeSpec.managementCardHeight,
               ),
               itemCount: viewModel.paginatedSkills.length,
               itemBuilder: (context, index) {
@@ -376,7 +374,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
           strings.skillLibrary,
           key: const ValueKey<String>('skill-library-title'),
           style: const TextStyle(
-            fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+            fontSize: HyveDesktopThemeSpec.pageTitleFontSize,
           ),
         ),
         actions: [
@@ -478,7 +476,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                   title: Text(
                     skill.name,
                     style: const TextStyle(
-                      fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+                      fontSize: HyveDesktopThemeSpec.pageTitleFontSize,
                     ),
                   ),
                   subtitle: Text(
@@ -512,7 +510,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   Widget _buildSearchField(BuildContext context) {
     final strings = S.of(context);
     final hasQuery = viewModel.query.isNotEmpty;
-    return StarsSearchField(
+    return HyveSearchField(
       key: const ValueKey<String>('skill-search-field'),
       hintText: strings.searchSkills,
       semanticLabel: strings.searchSkills,
@@ -521,7 +519,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
       onChanged: viewModel.search,
       suffixIcon:
           hasQuery
-              ? StarsDesktopIconAction(
+              ? HyveDesktopIconAction(
                 key: const ValueKey<String>('clear-skill-search'),
                 icon: LucideIcons.x,
                 label: strings.clearSearch,
@@ -663,7 +661,7 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
                   skill.name,
                   key: ValueKey<String>('skill-details-title-${skill.id}'),
                   style: const TextStyle(
-                    fontSize: StarsDesktopThemeSpec.pageTitleFontSize,
+                    fontSize: HyveDesktopThemeSpec.pageTitleFontSize,
                   ),
                 ),
                 content: SizedBox(
@@ -774,6 +772,6 @@ class _SkillLibraryPageState extends State<SkillLibraryPage> {
   }
 
   void _showMessage(BuildContext context, String message) {
-    showStarsNotice(context, message, tone: StarsNoticeTone.error);
+    showHyveNotice(context, message, tone: HyveNoticeTone.error);
   }
 }

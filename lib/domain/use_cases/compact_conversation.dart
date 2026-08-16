@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/models/conversation_memory.dart';
-import 'package:stars/domain/models/message.dart';
-import 'package:stars/domain/models/bot.dart';
-import 'package:stars/domain/repositories/context_summarizer.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/services/token_estimator.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/models/message.dart';
+import 'package:hyve/domain/models/bot.dart';
+import 'package:hyve/domain/repositories/context_summarizer.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/services/token_estimator.dart';
 
 typedef ContextSummarizerFactory = ContextSummarizer Function(Bot bot);
 typedef CompactionClock = DateTime Function();

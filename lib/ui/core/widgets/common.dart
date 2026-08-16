@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/utils/utils.dart';
 
 /// Maps arbitrary failures to localized, product-safe copy. Raw exception
 /// strings remain available only through [AppFailure.debugCause].
@@ -24,18 +24,18 @@ String safeFailureMessage(BuildContext context, Object error) {
   };
 }
 
-enum StarsNoticeTone { info, success, warning, error }
+enum HyveNoticeTone { info, success, warning, error }
 
 /// The single transient-feedback entry point for every feature.
 ///
 /// Desktop uses Shad Sonner. Mobile keeps a Material SnackBar because the
 /// mobile shell is Material-only. Feature code must not select a feedback
 /// implementation itself.
-void showStarsNotice(
+void showHyveNotice(
   BuildContext context,
   String message, {
   String? description,
-  StarsNoticeTone tone = StarsNoticeTone.info,
+  HyveNoticeTone tone = HyveNoticeTone.info,
   String? actionLabel,
   VoidCallback? onAction,
 }) {
@@ -52,7 +52,7 @@ void showStarsNotice(
                 child: Text(actionLabel),
               );
       sonner.show(
-        tone == StarsNoticeTone.error
+        tone == HyveNoticeTone.error
             ? ShadToast.destructive(
               title: Text(message),
               description: description == null ? null : Text(description),
@@ -72,11 +72,11 @@ void showStarsNotice(
   if (messenger == null) return;
   final colorScheme = Theme.of(context).colorScheme;
   final foreground = switch (tone) {
-    StarsNoticeTone.warning || StarsNoticeTone.error => colorScheme.onError,
+    HyveNoticeTone.warning || HyveNoticeTone.error => colorScheme.onError,
     _ => colorScheme.onInverseSurface,
   };
   final background = switch (tone) {
-    StarsNoticeTone.warning || StarsNoticeTone.error => colorScheme.error,
+    HyveNoticeTone.warning || HyveNoticeTone.error => colorScheme.error,
     _ => colorScheme.inverseSurface,
   };
   final mediaSize = MediaQuery.sizeOf(context);

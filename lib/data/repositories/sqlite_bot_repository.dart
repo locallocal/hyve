@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/data/models/local_records.dart';
-import 'package:stars/data/models/skill_records.dart';
-import 'package:stars/data/services/bot_api_key_cipher.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:hyve/data/models/local_records.dart';
+import 'package:hyve/data/models/skill_records.dart';
+import 'package:hyve/data/services/bot_api_key_cipher.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
 
 class SqliteBotRepository implements BotAggregateRepository {
   SqliteBotRepository({

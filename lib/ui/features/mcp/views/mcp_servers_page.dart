@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
-import 'package:stars/utils/mcp_search.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
+import 'package:hyve/utils/mcp_search.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 part 'mcp_servers_desktop.dart';
 part 'mcp_servers_mobile.dart';
@@ -68,7 +68,7 @@ class _McpServersPageState extends State<McpServersPage> {
         title: Text(
           S.of(context).mcpServers,
           key: const ValueKey<String>('mcp-servers-title'),
-          style: StarsDesktopThemeSpec.pageTitleStyle(context),
+          style: HyveDesktopThemeSpec.pageTitleStyle(context),
         ),
         actions: [
           IconButton(
@@ -90,10 +90,10 @@ class _McpServersPageState extends State<McpServersPage> {
   Widget _buildDesktop(BuildContext context) {
     final strings = S.of(context);
     final filteredServers = _filteredServers;
-    const contentMaxWidth = StarsDesktopThemeSpec.formContentMaxWidth;
-    const pagePadding = StarsDesktopThemeSpec.formPagePadding;
+    const contentMaxWidth = HyveDesktopThemeSpec.formContentMaxWidth;
+    const pagePadding = HyveDesktopThemeSpec.formPagePadding;
     return ColoredBox(
-      color: StarsDesktopThemeSpec.workspaceSurface(context),
+      color: HyveDesktopThemeSpec.workspaceSurface(context),
       child: RefreshIndicator(
         onRefresh: _viewModel.load,
         child: LayoutBuilder(
@@ -137,20 +137,19 @@ class _McpServersPageState extends State<McpServersPage> {
                                           'mcp-servers-title',
                                         ),
                                         style:
-                                            StarsDesktopThemeSpec.pageTitleStyle(
+                                            HyveDesktopThemeSpec.pageTitleStyle(
                                               context,
                                             ),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         strings.mcpServersDescription,
-                                        style: StarsDesktopThemeSpec.bodyStyle(
+                                        style: HyveDesktopThemeSpec.bodyStyle(
                                           context,
                                         )?.copyWith(
-                                          color:
-                                              StarsDesktopThemeSpec.mutedText(
-                                                context,
-                                              ),
+                                          color: HyveDesktopThemeSpec.mutedText(
+                                            context,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -183,10 +182,10 @@ class _McpServersPageState extends State<McpServersPage> {
                             const SizedBox(height: 16),
                             Text(
                               strings.mcpProgressiveDiscoveryDescription,
-                              style: StarsDesktopThemeSpec.bodyStyle(
+                              style: HyveDesktopThemeSpec.bodyStyle(
                                 context,
                               )?.copyWith(
-                                color: StarsDesktopThemeSpec.mutedText(context),
+                                color: HyveDesktopThemeSpec.mutedText(context),
                               ),
                             ),
                             if (_viewModel.error != null) ...[
@@ -196,7 +195,7 @@ class _McpServersPageState extends State<McpServersPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 icon: const Icon(LucideIcons.circleAlert),
                                 title: Text(_errorMessage(_viewModel.error!)),
-                                trailing: StarsDesktopIconAction(
+                                trailing: HyveDesktopIconAction(
                                   key: const ValueKey<String>(
                                     'close-mcp-error',
                                   ),
@@ -218,7 +217,7 @@ class _McpServersPageState extends State<McpServersPage> {
                                 ),
                                 icon: const Icon(LucideIcons.triangleAlert),
                                 title: Text(_errorMessage(_viewModel.warning!)),
-                                trailing: StarsDesktopIconAction(
+                                trailing: HyveDesktopIconAction(
                                   onPressed: _viewModel.clearWarning,
                                   icon: LucideIcons.x,
                                   label:
@@ -275,7 +274,7 @@ class _McpServersPageState extends State<McpServersPage> {
 
   Widget _buildDesktopSearchField(BuildContext context) {
     final strings = S.of(context);
-    return StarsSearchField(
+    return HyveSearchField(
       key: const ValueKey<String>('mcp-search-field'),
       hintText: strings.searchMcpServers,
       semanticLabel: strings.searchMcpServers,
@@ -284,7 +283,7 @@ class _McpServersPageState extends State<McpServersPage> {
       onChanged: _search,
       suffixIcon:
           _query.isNotEmpty
-              ? StarsDesktopIconAction(
+              ? HyveDesktopIconAction(
                 key: const ValueKey<String>('clear-mcp-search'),
                 icon: LucideIcons.x,
                 label: strings.clearSearch,
@@ -320,7 +319,7 @@ class _McpServersPageState extends State<McpServersPage> {
             crossAxisCount: columns,
             crossAxisSpacing: gap,
             mainAxisSpacing: gap,
-            mainAxisExtent: StarsDesktopThemeSpec.managementCardHeight,
+            mainAxisExtent: HyveDesktopThemeSpec.managementCardHeight,
           ),
           delegate: SliverChildBuilderDelegate((context, index) {
             final server = servers[index];
@@ -543,7 +542,7 @@ class _McpServersPageState extends State<McpServersPage> {
                         child: Text(
                           S.of(dialogContext).delete,
                           style: TextStyle(
-                            color: StarsDesktopThemeSpec.error(dialogContext),
+                            color: HyveDesktopThemeSpec.error(dialogContext),
                           ),
                         ),
                       ),

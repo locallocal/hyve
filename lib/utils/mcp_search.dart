@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 String mcpConnectionSummary(McpServer server) {
   return switch (server.transport) {

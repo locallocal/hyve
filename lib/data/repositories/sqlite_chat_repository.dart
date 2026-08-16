@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/data/models/local_records.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/data/services/conversation_summary_storage.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
-import 'package:stars/domain/repositories/conversation_draft_repository.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/data/models/local_records.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/domain/repositories/conversation_draft_repository.dart';
+import 'package:hyve/utils/utils.dart';
 
 class SqliteChatRepository
     implements ChatRepository, BotChatDeletionParticipant {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/repositories/ai_provider_repository_impl.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/repositories/ai_provider_repository_impl.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   group('AiProviderRepositoryImpl', () {

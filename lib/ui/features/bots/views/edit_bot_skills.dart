@@ -49,9 +49,9 @@ extension _EditBotSkills on _EditAIBotPageState {
         strings.noSkillsInstalledDescription,
         style:
             widget.embedded
-                ? StarsDesktopThemeSpec.bodyStyle(
+                ? HyveDesktopThemeSpec.bodyStyle(
                   context,
-                )?.copyWith(color: StarsDesktopThemeSpec.mutedText(context))
+                )?.copyWith(color: HyveDesktopThemeSpec.mutedText(context))
                 : Theme.of(context).textTheme.bodyMedium,
       );
     }
@@ -87,7 +87,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 strings.botSkillsDescription,
                 style:
                     widget.embedded
-                        ? StarsDesktopThemeSpec.metaStyle(context)
+                        ? HyveDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -119,7 +119,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                   strings.noBotSkillsAddedDescription,
                   style:
                       widget.embedded
-                          ? StarsDesktopThemeSpec.metaStyle(context)
+                          ? HyveDesktopThemeSpec.metaStyle(context)
                           : Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -186,7 +186,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     );
     final removeButton =
         widget.embedded
-            ? StarsDesktopIconAction(
+            ? HyveDesktopIconAction(
               key: ValueKey<String>('remove-bot-skill-${skill.id}'),
               icon: LucideIcons.trash2,
               label: strings.removeSkill,
@@ -229,7 +229,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                       overflow: TextOverflow.ellipsis,
                       style:
                           widget.embedded
-                              ? StarsDesktopThemeSpec.metaStyle(context)
+                              ? HyveDesktopThemeSpec.metaStyle(context)
                               : Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -296,7 +296,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        StarsDesktopIconAction(
+        HyveDesktopIconAction(
           key: ValueKey<String>('$keyPrefix-previous-page'),
           icon: LucideIcons.chevronLeft,
           label: localizations.previousPageTooltip,
@@ -308,7 +308,7 @@ extension _EditBotSkills on _EditAIBotPageState {
         const SizedBox(width: 12),
         indicator,
         const SizedBox(width: 12),
-        StarsDesktopIconAction(
+        HyveDesktopIconAction(
           key: ValueKey<String>('$keyPrefix-next-page'),
           icon: LucideIcons.chevronRight,
           label: localizations.nextPageTooltip,
@@ -405,7 +405,7 @@ extension _EditBotSkills on _EditAIBotPageState {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (embedded) ...[
-            StarsSearchField(
+            HyveSearchField(
               key: const ValueKey<String>('bot-skill-search-field'),
               hintText: strings.searchSkills,
               semanticLabel: strings.searchSkills,
@@ -418,7 +418,7 @@ extension _EditBotSkills on _EditAIBotPageState {
               suffixIcon:
                   viewModel.availableQuery.isEmpty
                       ? null
-                      : StarsDesktopIconAction(
+                      : HyveDesktopIconAction(
                         key: const ValueKey<String>('clear-bot-skill-search'),
                         icon: LucideIcons.x,
                         label: strings.clearSearch,
@@ -440,7 +440,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 textAlign: TextAlign.center,
                 style:
                     embedded
-                        ? StarsDesktopThemeSpec.metaStyle(context)
+                        ? HyveDesktopThemeSpec.metaStyle(context)
                         : Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -468,7 +468,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                           overflow: TextOverflow.ellipsis,
                           style:
                               embedded
-                                  ? StarsDesktopThemeSpec.metaStyle(context)
+                                  ? HyveDesktopThemeSpec.metaStyle(context)
                                   : Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -541,7 +541,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     try {
       await _skillViewModel?.setEnabled(skillId, enabled);
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -554,7 +554,7 @@ extension _EditBotSkills on _EditAIBotPageState {
       await _skillViewModel?.addSkill(skillId);
       if (dialogContext.mounted) Navigator.of(dialogContext).pop();
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -563,7 +563,7 @@ extension _EditBotSkills on _EditAIBotPageState {
     try {
       await _skillViewModel?.removeSkill(skillId);
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -581,13 +581,13 @@ extension _EditBotSkills on _EditAIBotPageState {
       );
       if (!mounted) return;
       final result = report.results.single;
-      showStarsNotice(
+      showHyveNotice(
         context,
         '${S.of(context).skillDescriptionTestResult}: '
         '${result.activations}/${result.runs}',
       );
     } catch (error) {
-      if (mounted) showStarsNotice(context, safeFailureMessage(context, error));
+      if (mounted) showHyveNotice(context, safeFailureMessage(context, error));
     }
   }
 
@@ -611,24 +611,22 @@ extension _EditBotSkills on _EditAIBotPageState {
             : children,
       );
     }
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadCard(
       key: sectionKey,
       width: double.infinity,
-      padding: const EdgeInsets.all(
-        StarsDesktopThemeSpec.botFormSectionPadding,
-      ),
+      padding: const EdgeInsets.all(HyveDesktopThemeSpec.botFormSectionPadding),
       backgroundColor: tokens.raisedSurface,
       border: ShadBorder.all(
         color: tokens.separator,
-        width: StarsDesktopThemeSpec.botFormSectionBorderWidth,
+        width: HyveDesktopThemeSpec.botFormSectionBorderWidth,
       ),
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
-          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
-        ),
+        style: HyveDesktopThemeSpec.sectionTitleStyle(
+          context,
+        )?.copyWith(fontSize: HyveDesktopThemeSpec.botFormSectionTitleFontSize),
       ),
       child: Padding(
         padding: EdgeInsets.only(top: widget.readOnly ? 12 : 16),
@@ -641,7 +639,7 @@ extension _EditBotSkills on _EditAIBotPageState {
                 if (widget.readOnly) ...[
                   const SizedBox(height: 8),
                   const ShadSeparator.horizontal(
-                    margin: StarsDesktopThemeSpec.settingsRowSeparatorMargin,
+                    margin: HyveDesktopThemeSpec.settingsRowSeparatorMargin,
                   ),
                   const SizedBox(height: 8),
                 ] else

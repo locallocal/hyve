@@ -1,11 +1,11 @@
-# Contributing to Stars
+# Contributing to Hyve
 
 Thank you for contributing. Keep each change focused, explain the user-visible
 impact, and add regression coverage for behavior changes.
 
 ## Development setup
 
-Stars pins Flutter in `.fvmrc`. Install that version, then run:
+Hyve pins Flutter in `.fvmrc`. Install that version, then run:
 
 ```bash
 flutter pub get --enforce-lockfile

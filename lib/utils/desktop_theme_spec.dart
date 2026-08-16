@@ -1,10 +1,10 @@
 part of 'theme.dart';
 
-class StarsDesktopThemeSpec {
+class HyveDesktopThemeSpec {
   /// Stable layout and shape metrics for the desktop component system.
   ///
   /// Colors and accessibility state intentionally live only in
-  /// [StarsDesktopTokens], the app's desktop [ThemeExtension].
+  /// [HyveDesktopTokens], the app's desktop [ThemeExtension].
   static const double sidebarWidth = 300;
   static const double sidebarMinWidth = 240;
   static const double sidebarMaxWidth = 360;
@@ -75,8 +75,8 @@ class StarsDesktopThemeSpec {
   );
   static const BorderRadius inspectorRadius = containerRadius;
 
-  static StarsDesktopTokens tokens(BuildContext context) =>
-      StarsDesktopTokens.of(context);
+  static HyveDesktopTokens tokens(BuildContext context) =>
+      HyveDesktopTokens.of(context);
 
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -184,7 +184,7 @@ class StarsDesktopThemeSpec {
   }) => floatingShadowFor(tokens(context), subtle: subtle);
 
   static List<BoxShadow> floatingShadowFor(
-    StarsDesktopTokens tokens, {
+    HyveDesktopTokens tokens, {
     bool subtle = false,
   }) {
     if (tokens.highContrast) {
@@ -223,7 +223,7 @@ class StarsDesktopThemeSpec {
       BoxDecoration(color: workspaceSurface(context));
 
   /// The compatibility inspector decoration is the docked, structural form.
-  /// Overlay inspectors should use [StarsGlassSurface].
+  /// Overlay inspectors should use [HyveGlassSurface].
   static BoxDecoration inspectorDecoration(BuildContext context) =>
       BoxDecoration(
         color: panelSurface(context),

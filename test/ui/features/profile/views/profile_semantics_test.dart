@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/features/profile/views/profile.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/features/profile/views/profile.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -166,7 +166,7 @@ void main() {
         final titleText = tester.widget<Text>(find.text(title));
         expect(
           titleText.style?.fontSize,
-          StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+          HyveDesktopThemeSpec.botFormSectionTitleFontSize,
         );
       }
     } finally {
@@ -206,7 +206,7 @@ void main() {
       );
       expect(brandCard, findsOneWidget);
       expect(
-        find.descendant(of: brandCard, matching: find.byType(StarsLogo)),
+        find.descendant(of: brandCard, matching: find.byType(HyveLogo)),
         findsOneWidget,
       );
       expect(
@@ -221,7 +221,7 @@ void main() {
         find.byKey(const ValueKey<String>('profile-about-privacy-policy')),
         findsOneWidget,
       );
-      expect(find.text('© ${DateTime.now().year} Stars 团队'), findsOneWidget);
+      expect(find.text('© ${DateTime.now().year} Hyve 团队'), findsOneWidget);
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
@@ -269,9 +269,9 @@ void main() {
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-    const prompt = '''<stars_application_context>
-Application: Stars
-</stars_application_context>''';
+    const prompt = '''<hyve_application_context>
+Application: Hyve
+</hyve_application_context>''';
     final semantics = tester.ensureSemantics();
     try {
       await tester.pumpWidget(
@@ -455,7 +455,7 @@ Application: Stars
         find.byKey(const ValueKey<String>('profile-about-description')),
         findsOneWidget,
       );
-      expect(find.text('© ${DateTime.now().year} Stars 团队'), findsOneWidget);
+      expect(find.text('© ${DateTime.now().year} Hyve 团队'), findsOneWidget);
       expect(tester.takeException(), isNull);
     } finally {
       debugDefaultTargetPlatformOverride = null;
@@ -678,7 +678,7 @@ Widget _profileHarness({
   VoidCallback? onOpenMcpServers,
   String Function()? applicationPromptProvider,
 }) {
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

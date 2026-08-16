@@ -1,6 +1,6 @@
 {
     "@@locale": "ja_JP",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "アプリケーション名"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "テーマがダークモードに設定されました"
     },
-    "aboutApp": "Starsについて",
+    "aboutApp": "Hyveについて",
     "@aboutApp": {
         "description": "アプリについて"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "アプリの説明"
     },
-    "copyright": "© {year} Starsチーム",
+    "copyright": "© {year} Hyveチーム",
     "@copyright": {
         "description": "著作権情報",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "バージョン情報"
     },
-    "appTitle": "Stars - AIチャットアシスタント",
+    "appTitle": "Hyve - AIチャットアシスタント",
     "@appTitle": {
         "description": "アプリのタイトル"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "外観と言語",
     "desktopGeneral": "一般",
     "applicationInjectedPrompt": "システムプロンプト",
-    "applicationInjectedPromptDescription": "Stars が管理し、すべてのモデルリクエストに注入します。現在のエージェントと会話の識別子は実行時に追加され、編集できません。",
+    "applicationInjectedPromptDescription": "Hyve が管理し、すべてのモデルリクエストに注入します。現在のエージェントと会話の識別子は実行時に追加され、編集できません。",
     "desktopHelpAndSupport": "ヘルプとサポート",
     "desktopAboutAndLegal": "このアプリについて・法的情報",
     "desktopSettingsDescription": "プロフィール、外観、言語、アプリのサポートを管理します。",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -903,7 +903,7 @@
     "startupFailed": "起動に失敗しました。もう一度お試しください。",
     "videoPlaybackError": "動画の再生エラー: {error}",
     "videoLoadFailed": "動画を読み込めません",
-    "databaseDowngradeNotSupported": "このデータベースは新しいバージョンの Stars で作成されています。アプリを更新してから開いてください。",
+    "databaseDowngradeNotSupported": "このデータベースは新しいバージョンの Hyve で作成されています。アプリを更新してから開いてください。",
     "databaseRecoveryFailed": "データベースの整合性チェックに失敗し、このバージョンのバックアップからも復元できませんでした。",
     "durationMilliseconds": "{milliseconds} ミリ秒",
     "durationSeconds": "{seconds} 秒"

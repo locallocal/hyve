@@ -50,7 +50,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m11(name) =>
       "Uninstall ${name}? Bot bindings will also be removed.";
 
-  static String m12(year) => "© ${year} Stars Team";
+  static String m12(year) => "© ${year} Hyve Team";
 
   static String m13(error) => "Could not create the chat: ${error}";
 
@@ -109,7 +109,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("Bots"),
     "about": MessageLookupByLibrary.simpleMessage("About"),
-    "aboutApp": MessageLookupByLibrary.simpleMessage("About Stars"),
+    "aboutApp": MessageLookupByLibrary.simpleMessage("About Hyve"),
     "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
       "The active request cannot be cancelled. Wait for it to finish.",
     ),
@@ -138,17 +138,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDescription": MessageLookupByLibrary.simpleMessage(
       "A simple yet powerful AI chat application that lets you chat with AI anytime, anywhere.",
     ),
-    "appName": MessageLookupByLibrary.simpleMessage("Stars"),
+    "appName": MessageLookupByLibrary.simpleMessage("Hyve"),
     "appTitle": MessageLookupByLibrary.simpleMessage(
-      "Stars - AI Chat Assistant",
+      "Hyve - AI Chat Assistant",
     ),
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "System prompt",
     ),
-    "applicationInjectedPromptDescription":
-        MessageLookupByLibrary.simpleMessage(
-          "Managed by Stars and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.",
-        ),
+    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
+      "Managed by Hyve and added to every model-facing system prompt. Current agent and conversation identifiers are added at runtime and cannot be edited.",
+    ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -278,7 +277,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("Dark Mode"),
     "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
-      "This database was created by a newer version of Stars. Update the app before opening it.",
+      "This database was created by a newer version of Hyve. Update the app before opening it.",
     ),
     "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
       "The database integrity check failed, and recovery from this version\'s backup was unsuccessful.",
@@ -535,7 +534,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("Started at"),
     "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("Process status"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+      "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage(
       "The MCP request timed out.",
@@ -793,8 +792,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
     "shareImageFailed": m35,
-    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
-      "Image from Stars",
+    "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage(
+      "Image from Hyve",
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(

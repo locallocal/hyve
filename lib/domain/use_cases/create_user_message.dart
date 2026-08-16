@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
 
 final class CreateUserMessage {
   const CreateUserMessage({required MessageRepository messageRepository})

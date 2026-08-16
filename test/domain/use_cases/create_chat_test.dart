@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
 
 void main() {
   test('CreateChat builds unique immutable chats and persists them', () async {

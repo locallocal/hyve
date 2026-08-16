@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:stars/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
 
 final class ContextBudgetException implements Exception {
   const ContextBudgetException(this.message);

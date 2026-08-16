@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "locallocal" "\0"
-            VALUE "FileDescription", "Stars" "\0"
+            VALUE "FileDescription", "Hyve" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "stars" "\0"
+            VALUE "InternalName", "hyve" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025-2026 locallocal. All rights reserved." "\0"
-            VALUE "OriginalFilename", "stars.exe" "\0"
-            VALUE "ProductName", "Stars" "\0"
+            VALUE "OriginalFilename", "hyve.exe" "\0"
+            VALUE "ProductName", "Hyve" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,22 +1,22 @@
 import 'dart:convert';
 
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/context_summarizer.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/context_summarizer.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
 
 /// Uses an isolated, tool-free provider instance for rolling summaries.
 final class ProviderContextSummarizer implements ContextSummarizer {
   const ProviderContextSummarizer({
     required this.bot,
     required this.providerFactory,
-    this.starsSystemPromptProvider = currentStarsSystemPrompt,
+    this.hyveSystemPromptProvider = currentHyveSystemPrompt,
   });
 
   final Bot bot;
   final AiProvider Function(Bot bot) providerFactory;
-  final StarsSystemPromptProvider starsSystemPromptProvider;
+  final HyveSystemPromptProvider hyveSystemPromptProvider;
 
   @override
   Future<ContextSummaryResult> summarize(ContextSummaryRequest request) async {
@@ -36,9 +36,9 @@ final class ProviderContextSummarizer implements ContextSummarizer {
     await provider.generateText([
       ChatMessage(
         role: 'system',
-        content: prependStarsSystemPrompt(
+        content: prependHyveSystemPrompt(
           _summarizerSystemPrompt,
-          starsSystemPromptProvider: starsSystemPromptProvider,
+          hyveSystemPromptProvider: hyveSystemPromptProvider,
         ),
       ),
       ChatMessage(role: 'user', content: sourceEnvelope),

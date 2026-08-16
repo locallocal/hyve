@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/skills/skill_installation_service.dart';
-import 'package:stars/data/services/tools/skill_installer_tool.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/skills/skill_installation_service.dart';
+import 'package:hyve/data/services/tools/skill_installer_tool.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   test('is approval-gated and exposes explicit installation fields', () {
@@ -133,7 +133,7 @@ final class _FakeInstallationGateway implements SkillInstallationGateway {
       contentDigest: List.filled(64, 'c').join(),
       trustState: SkillTrustState.userReviewed,
       validationStatus: SkillValidationStatus.validWithWarnings,
-      compatibility: 'Stars',
+      compatibility: 'Hyve',
       installedAt: now,
       updatedAt: now,
     );

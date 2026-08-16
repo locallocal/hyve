@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
-import 'package:stars/domain/repositories/skill_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/repositories/skill_repository.dart';
 
 final class SkillLibraryViewModel extends ChangeNotifier {
   static const int defaultPageSize = 10;

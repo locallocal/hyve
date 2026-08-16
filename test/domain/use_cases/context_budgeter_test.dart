@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/context_budgeter.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/context_budgeter.dart';
 
 void main() {
   const profile = ModelContextProfile(

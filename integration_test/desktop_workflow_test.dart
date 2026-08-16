@@ -6,21 +6,21 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/bots/views/add_bot.dart';
-import 'package:stars/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:stars/ui/features/chat/views/message_input.dart';
-import 'package:stars/ui/features/chats/view_models/new_chat_view_model.dart';
-import 'package:stars/ui/features/chats/views/chat_list_builder.dart';
-import 'package:stars/ui/features/chats/views/new_chat_dialog.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/bots/views/add_bot.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/views/message_input.dart';
+import 'package:hyve/ui/features/chats/view_models/new_chat_view_model.dart';
+import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
+import 'package:hyve/ui/features/chats/views/new_chat_dialog.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -124,7 +124,7 @@ class _DesktopWorkflowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadTheme = buildStarsShadTheme(
+    final shadTheme = buildHyveShadTheme(
       brightness: Brightness.light,
       fontSize: 16,
     ).copyWith(

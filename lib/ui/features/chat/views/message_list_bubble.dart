@@ -43,8 +43,8 @@ class _MessageBubble extends StatelessWidget {
     final useBubbleShell = !isDesktop || isCurrentUser;
     final backgroundColor =
         isCurrentUser
-            ? StarsDesktopTokens.of(context).selectedFill
-            : StarsDesktopTokens.of(context).contentBackground;
+            ? HyveDesktopTokens.of(context).selectedFill
+            : HyveDesktopTokens.of(context).contentBackground;
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,9 +256,9 @@ class _MessageBubble extends StatelessWidget {
         child: ShadCard(
           padding: const EdgeInsets.all(16),
           backgroundColor: backgroundColor,
-          radius: StarsDesktopThemeSpec.bubbleRadius,
+          radius: HyveDesktopThemeSpec.bubbleRadius,
           border: ShadBorder.all(
-            color: StarsDesktopTokens.of(context).separator,
+            color: HyveDesktopTokens.of(context).separator,
           ),
           child: body,
         ),
@@ -314,7 +314,7 @@ class _MessageBubble extends StatelessWidget {
       child: ClipRRect(
         borderRadius:
             isDesktop
-                ? StarsDesktopThemeSpec.containerRadius
+                ? HyveDesktopThemeSpec.containerRadius
                 : BorderRadius.circular(12),
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -330,11 +330,11 @@ class _MessageBubble extends StatelessWidget {
               return Container(
                 width: 96,
                 height: 96,
-                color: StarsDesktopTokens.of(context).controlFill,
+                color: HyveDesktopTokens.of(context).controlFill,
                 child: Center(
                   child: Icon(
                     isDesktop ? LucideIcons.imageOff : Icons.broken_image,
-                    color: StarsDesktopTokens.of(context).secondaryText,
+                    color: HyveDesktopTokens.of(context).secondaryText,
                   ),
                 ),
               );
@@ -362,9 +362,9 @@ class _MessageBubble extends StatelessWidget {
                 : Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
         borderRadius:
             isDesktop
-                ? StarsDesktopThemeSpec.containerRadius
+                ? HyveDesktopThemeSpec.containerRadius
                 : BorderRadius.circular(14),
-        border: Border.all(color: StarsDesktopTokens.of(context).separator),
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -372,7 +372,7 @@ class _MessageBubble extends StatelessWidget {
           Icon(
             isDesktop ? LucideIcons.file : Icons.insert_drive_file_rounded,
             size: 24,
-            color: StarsDesktopTokens.of(context).secondaryText,
+            color: HyveDesktopTokens.of(context).secondaryText,
           ),
           const SizedBox(height: 8),
           Text(
@@ -399,7 +399,7 @@ class _MessageBubble extends StatelessWidget {
       ),
       code: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
-        backgroundColor: StarsDesktopTokens.of(context).controlFill,
+        backgroundColor: HyveDesktopTokens.of(context).controlFill,
         fontFamily: 'monospace',
         fontSize: fontSize - 1,
       ),
@@ -428,16 +428,16 @@ class _MessageBubble extends StatelessWidget {
         fontStyle: FontStyle.italic,
       ),
       codeblockDecoration: BoxDecoration(
-        color: StarsDesktopTokens.of(context).controlFill,
+        color: HyveDesktopTokens.of(context).controlFill,
         borderRadius:
             isDesktop
-                ? StarsDesktopThemeSpec.containerRadius
+                ? HyveDesktopThemeSpec.containerRadius
                 : BorderRadius.circular(14),
-        border: Border.all(color: StarsDesktopTokens.of(context).separator),
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
       ),
       blockSpacing: 10,
       listBullet: TextStyle(
-        color: StarsDesktopTokens.of(context).secondaryText,
+        color: HyveDesktopTokens.of(context).secondaryText,
         fontSize: fontSize,
       ),
     );

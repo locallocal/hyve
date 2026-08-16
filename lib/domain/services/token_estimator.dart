@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
 
 abstract interface class TokenEstimator {
   Future<int> estimateMessages(

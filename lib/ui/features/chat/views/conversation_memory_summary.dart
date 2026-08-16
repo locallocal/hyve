@@ -13,7 +13,7 @@ final class _ConversationSystemPromptBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = S.of(context).applicationInjectedPrompt;
     final prompt =
-        buildStarsConversationContext(
+        buildHyveConversationContext(
           agentId: bot.id,
           agentName: bot.name,
           conversationId: conversationId,
@@ -26,7 +26,7 @@ final class _ConversationSystemPromptBlock extends StatelessWidget {
         Text(
           label,
           key: const ValueKey<String>('conversation-system-prompt-title'),
-          style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+          style: HyveDesktopThemeSpec.sectionTitleStyle(context),
         ),
         const SizedBox(height: 12),
         Semantics(
@@ -39,11 +39,11 @@ final class _ConversationSystemPromptBlock extends StatelessWidget {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
-              decoration: StarsDesktopThemeSpec.statusDecoration(context),
+              decoration: HyveDesktopThemeSpec.statusDecoration(context),
               child: SelectableText(
                 prompt,
                 style: TextStyle(
-                  color: StarsDesktopThemeSpec.text(context),
+                  color: HyveDesktopThemeSpec.text(context),
                   fontFamily: 'monospace',
                   fontSize: 12,
                   height: 1.5,
@@ -64,13 +64,13 @@ final class _ConversationSummaryDocument extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadCard(
       key: const ValueKey<String>('conversation-summary-surface'),
       width: double.infinity,
       padding: EdgeInsets.zero,
       backgroundColor: tokens.raisedSurface,
-      radius: StarsDesktopThemeSpec.containerRadius,
+      radius: HyveDesktopThemeSpec.containerRadius,
       border: ShadBorder.all(color: tokens.separator, width: 1),
       child: Markdown(
         key: const ValueKey<String>('conversation-summary-markdown'),
@@ -84,17 +84,16 @@ final class _ConversationSummaryDocument extends StatelessWidget {
 }
 
 MarkdownStyleSheet _summaryMarkdownStyle(BuildContext context) {
-  final tokens = StarsDesktopTokens.of(context);
-  final body = (StarsDesktopThemeSpec.bodyStyle(context) ??
+  final tokens = HyveDesktopTokens.of(context);
+  final body = (HyveDesktopThemeSpec.bodyStyle(context) ??
           const TextStyle(fontSize: 14))
       .copyWith(color: tokens.primaryText, height: 1.6);
-  final pageTitle = (StarsDesktopThemeSpec.pageTitleStyle(context) ?? body)
+  final pageTitle = (HyveDesktopThemeSpec.pageTitleStyle(context) ?? body)
       .copyWith(color: tokens.primaryText);
-  final sectionTitle = (StarsDesktopThemeSpec.toolbarTitleStyle(context) ??
-          body)
+  final sectionTitle = (HyveDesktopThemeSpec.toolbarTitleStyle(context) ?? body)
       .copyWith(color: tokens.primaryText);
   final subsectionTitle = body.copyWith(fontWeight: FontWeight.w600);
-  final meta = (StarsDesktopThemeSpec.metaStyle(context) ??
+  final meta = (HyveDesktopThemeSpec.metaStyle(context) ??
           const TextStyle(fontSize: 12))
       .copyWith(color: tokens.secondaryText, height: 1.5);
 
@@ -129,13 +128,13 @@ MarkdownStyleSheet _summaryMarkdownStyle(BuildContext context) {
     blockquotePadding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
     blockquoteDecoration: BoxDecoration(
       color: tokens.controlFill,
-      borderRadius: StarsDesktopThemeSpec.itemRadius,
+      borderRadius: HyveDesktopThemeSpec.itemRadius,
       border: Border(left: BorderSide(color: tokens.separator, width: 3)),
     ),
     codeblockPadding: const EdgeInsets.all(12),
     codeblockDecoration: BoxDecoration(
       color: tokens.controlFill,
-      borderRadius: StarsDesktopThemeSpec.itemRadius,
+      borderRadius: HyveDesktopThemeSpec.itemRadius,
       border: Border.all(color: tokens.separator),
     ),
     horizontalRuleDecoration: BoxDecoration(
@@ -183,7 +182,7 @@ final class _MemoryMetric extends StatelessWidget {
   final TextAlign valueTextAlign;
 
   @override
-  Widget build(BuildContext context) => StarsInspectorInfoRow(
+  Widget build(BuildContext context) => HyveInspectorInfoRow(
     icon: icon,
     label: label,
     value: value,
@@ -205,7 +204,7 @@ final class _AutomaticMemoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MergeSemantics(
-    child: StarsInspectorInfoRow(
+    child: HyveInspectorInfoRow(
       key: const ValueKey<String>('automatic-memory-row'),
       icon: LucideIcons.brain,
       label: S.of(context).automaticMemory,
@@ -258,7 +257,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: starsInspectorIconLabelGap,
+        gap: hyveInspectorIconLabelGap,
         onPressed: onViewSummary,
         leading: Icon(LucideIcons.fileText, size: iconSize),
         child: label(S.of(context).viewSummary),
@@ -268,7 +267,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: starsInspectorIconLabelGap,
+        gap: hyveInspectorIconLabelGap,
         onPressed: onManage,
         leading: Icon(LucideIcons.brain, size: iconSize),
         child: label(S.of(context).manageMemory),
@@ -278,7 +277,7 @@ final class _MemoryActions extends StatelessWidget {
         size: ShadButtonSize.sm,
         width: buttonWidth,
         padding: padding,
-        gap: starsInspectorIconLabelGap,
+        gap: hyveInspectorIconLabelGap,
         onPressed: compacting ? null : onCompact,
         leading:
             compacting

@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/app_failure.dart';
-import 'package:stars/domain/repositories/message_action_repository.dart';
+import 'package:hyve/domain/models/app_failure.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
 
 final class MessageActionViewModel {
   const MessageActionViewModel({required MessageActionRepository repository})

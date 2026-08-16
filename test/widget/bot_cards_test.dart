@@ -1,17 +1,16 @@
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
-import 'package:stars/ui/features/bots/views/bots.dart';
-import 'package:stars/ui/features/bots/views/edit_bot.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/ui/features/bots/views/bots.dart';
+import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 
 import '../support/widget_test_support.dart';
 
@@ -181,10 +180,10 @@ void main() {
       expect(
         tester.widget<Container>(informationPanel).decoration,
         BoxDecoration(
-          color: StarsDesktopThemeSpec.controlFill(
+          color: HyveDesktopThemeSpec.controlFill(
             tester.element(informationPanel),
           ),
-          borderRadius: StarsDesktopThemeSpec.controlRadius,
+          borderRadius: HyveDesktopThemeSpec.controlRadius,
         ),
       );
       final inputModalities = find.byKey(
@@ -858,5 +857,4 @@ void main() {
       semantics.dispose();
     }
   });
-
 }

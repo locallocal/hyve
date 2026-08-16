@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:hyve/data/services/ai/provider_service.dart';
 
 class OpenRouter extends Provider {
   static const String defaultApiModelsUrl =

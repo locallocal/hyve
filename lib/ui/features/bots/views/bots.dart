@@ -1,21 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/common.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/ui/core/widgets/model_modalities.dart';
-import 'package:stars/ui/features/bots/views/add_bot.dart';
-import 'package:stars/ui/features/bots/views/edit_bot.dart';
-import 'package:stars/ui/features/chat/views/chat.dart';
-import 'package:stars/utils/time.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/core/widgets/model_modalities.dart';
+import 'package:hyve/ui/features/bots/views/add_bot.dart';
+import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/utils/time.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
-import 'package:stars/utils/utils.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/utils/utils.dart';
+import 'package:hyve/utils/theme.dart';
 
 part 'bots_desktop_card.dart';
 part 'bots_mobile_card.dart';
@@ -184,7 +184,7 @@ class ContactsPageState extends State<ContactsPage> {
     final body = Column(
       children: [
         if (failure != null)
-          StarsInlineErrorAlert(
+          HyveInlineErrorAlert(
             error: safeFailureMessage(context, failure),
             isDesktop: isDesktop,
             onDismiss: widget.viewModel.clearError,
@@ -231,9 +231,9 @@ class ContactsPageState extends State<ContactsPage> {
       searchHintText: S.of(context).searchBots,
       searchFocusNode: _searchFocusNode,
       onSearchChanged: _filterBots,
-      contentMaxWidth: StarsDesktopThemeSpec.formContentMaxWidth,
-      padding: StarsDesktopThemeSpec.formPagePadding,
-      backgroundColor: StarsDesktopThemeSpec.workspaceSurface(context),
+      contentMaxWidth: HyveDesktopThemeSpec.formContentMaxWidth,
+      padding: HyveDesktopThemeSpec.formPagePadding,
+      backgroundColor: HyveDesktopThemeSpec.workspaceSurface(context),
       action: ShadButton(
         onPressed: _openAddBotPage,
         leading: const Icon(LucideIcons.plus, size: 16),

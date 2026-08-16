@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:stars/data/services/attachment_picker_service.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
+import 'package:hyve/data/services/attachment_picker_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
 
 typedef AttachmentDocumentsDirectoryProvider = Future<Directory> Function();
 

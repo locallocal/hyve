@@ -1,6 +1,6 @@
 {
     "@@locale": "de_DE",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "Anwendungsname"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "Thema auf dunkles Design gesetzt"
     },
-    "aboutApp": "Über Stars",
+    "aboutApp": "Über Hyve",
     "@aboutApp": {
         "description": "Über die App"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "App-Beschreibung"
     },
-    "copyright": "© {year} Stars-Team",
+    "copyright": "© {year} Hyve-Team",
     "@copyright": {
         "description": "Copyright-Informationen",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "Versionsinformationen"
     },
-    "appTitle": "Stars - KI-Chat-Assistent",
+    "appTitle": "Hyve - KI-Chat-Assistent",
     "@appTitle": {
         "description": "App-Titel"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "Erscheinungsbild und Sprache",
     "desktopGeneral": "Allgemein",
     "applicationInjectedPrompt": "System-Prompt",
-    "applicationInjectedPromptDescription": "Wird von Stars verwaltet und jeder Modellanfrage hinzugefügt. Die Kennungen des aktuellen Agenten und der Unterhaltung werden zur Laufzeit ergänzt und können nicht bearbeitet werden.",
+    "applicationInjectedPromptDescription": "Wird von Hyve verwaltet und jeder Modellanfrage hinzugefügt. Die Kennungen des aktuellen Agenten und der Unterhaltung werden zur Laufzeit ergänzt und können nicht bearbeitet werden.",
     "desktopHelpAndSupport": "Hilfe und Support",
     "desktopAboutAndLegal": "Info und Rechtliches",
     "desktopSettingsDescription": "Verwalte dein Profil, das Erscheinungsbild, die Sprache und den App-Support.",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -899,11 +899,11 @@
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
     "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
-    "startupStarting": "Stars wird gestartet…",
+    "startupStarting": "Hyve wird gestartet…",
     "startupFailed": "Start fehlgeschlagen. Bitte erneut versuchen.",
     "videoPlaybackError": "Fehler bei der Videowiedergabe: {error}",
     "videoLoadFailed": "Video konnte nicht geladen werden",
-    "databaseDowngradeNotSupported": "Diese Datenbank wurde mit einer neueren Version von Stars erstellt. Aktualisieren Sie die App, bevor Sie sie öffnen.",
+    "databaseDowngradeNotSupported": "Diese Datenbank wurde mit einer neueren Version von Hyve erstellt. Aktualisieren Sie die App, bevor Sie sie öffnen.",
     "databaseRecoveryFailed": "Die Integritätsprüfung der Datenbank ist fehlgeschlagen, und die Wiederherstellung aus der Sicherung dieser Version war nicht möglich.",
     "durationMilliseconds": "{milliseconds} ms",
     "durationSeconds": "{seconds} s"

@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/conversation_history.dart';
+import 'package:hyve/domain/models/conversation_history.dart';
 
 abstract interface class ConversationHistoryRepository {
   Future<ConversationHistoryPage> search({

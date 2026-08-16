@@ -3,11 +3,11 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/use_cases/agent_run_coordinator.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/use_cases/agent_run_coordinator.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 part 'chat_generation_events.dart';
 part 'chat_generation_persistence.dart';

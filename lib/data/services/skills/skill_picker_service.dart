@@ -1,5 +1,5 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 final class SkillPickerService {
   const SkillPickerService();

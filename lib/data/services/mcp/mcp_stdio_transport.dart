@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:stars/data/services/mcp/mcp_transport.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/mcp/mcp_transport.dart';
+import 'package:hyve/domain/models/models.dart';
 
 /// Runs a local MCP server without invoking a shell and exchanges one JSON-RPC
 /// message per line over stdin/stdout.

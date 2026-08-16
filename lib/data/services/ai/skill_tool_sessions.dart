@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 part 'skill_tool_agent_sessions.dart';
 part 'skill_tool_name_codec.dart';

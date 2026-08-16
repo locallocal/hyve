@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/skills/skill_package_storage_service.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/skills/skill_package_storage_service.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   late Directory temporaryDirectory;
@@ -12,7 +12,7 @@ void main() {
 
   setUp(() async {
     temporaryDirectory = await Directory.systemTemp.createTemp(
-      'stars-skill-storage-',
+      'hyve-skill-storage-',
     );
     supportDirectory = Directory('${temporaryDirectory.path}/support');
     service = SkillPackageStorageService(

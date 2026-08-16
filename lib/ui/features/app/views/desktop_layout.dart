@@ -4,22 +4,22 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/dependency_injection/app_dependencies.dart';
-import 'package:stars/ui/core/dependency_injection/app_scope.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/ui/core/widgets/model_modalities.dart';
-import 'package:stars/ui/features/bots/views/edit_bot.dart';
-import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
-import 'package:stars/ui/features/chat/view_models/conversation_memory_view_model.dart';
-import 'package:stars/ui/features/chat/views/chat.dart';
-import 'package:stars/ui/features/chat/views/conversation_memory_panel.dart';
-import 'package:stars/ui/features/chat/views/conversation_model_controls.dart';
-import 'package:stars/ui/features/chat/views/token_usage_chart.dart';
-import 'package:stars/utils/theme.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
+import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/ui/core/widgets/model_modalities.dart';
+import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
+import 'package:hyve/ui/features/chat/views/conversation_model_controls.dart';
+import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
+import 'package:hyve/utils/theme.dart';
+import 'package:hyve/utils/utils.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 part 'desktop_layout_workspace.dart';
@@ -80,8 +80,8 @@ class DesktopLayout extends StatefulWidget {
 class _DesktopLayoutState extends State<DesktopLayout> {
   void _updateState(VoidCallback callback) => setState(callback);
 
-  double _sidebarWidth = StarsDesktopThemeSpec.sidebarWidth;
-  double _inspectorWidth = StarsDesktopThemeSpec.inspectorWidth;
+  double _sidebarWidth = HyveDesktopThemeSpec.sidebarWidth;
+  double _inspectorWidth = HyveDesktopThemeSpec.inspectorWidth;
   bool _sidebarVisible = true;
   bool _compactSidebarOpen = false;
   bool _inspectorOpen = false;
@@ -200,7 +200,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           ),
     );
     final baseTheme = ShadTheme.of(context);
-    return StarsChatThemeScope(
+    return HyveChatThemeScope(
       child: Builder(
         builder:
             (chatThemeContext) => ShadTheme(
@@ -230,8 +230,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         width < 1200
             ? _sidebarWidth.clamp(260.0, 280.0)
             : _sidebarWidth.clamp(
-              StarsDesktopThemeSpec.sidebarMinWidth,
-              StarsDesktopThemeSpec.sidebarMaxWidth,
+              HyveDesktopThemeSpec.sidebarMinWidth,
+              HyveDesktopThemeSpec.sidebarMaxWidth,
             );
     final inspectorAvailable =
         width >= 800 && widget.currentIndex == 0 && _activeBot != null;
@@ -242,18 +242,18 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     final overlayInspector =
         width < 1500 && _inspectorOpen && inspectorAvailable;
     final inspectorMaxWidth = math.min(
-      StarsDesktopThemeSpec.inspectorMaxWidth,
+      HyveDesktopThemeSpec.inspectorMaxWidth,
       math.max(
-        StarsDesktopThemeSpec.inspectorMinWidth,
+        HyveDesktopThemeSpec.inspectorMinWidth,
         width -
             (showSidebar ? sidebarWidth : 0) -
-            StarsDesktopThemeSpec.detailMinWidth -
-            StarsDesktopThemeSpec.splitterHitWidth * 2,
+            HyveDesktopThemeSpec.detailMinWidth -
+            HyveDesktopThemeSpec.splitterHitWidth * 2,
       ),
     );
     final inspectorWidth =
         _inspectorWidth
-            .clamp(StarsDesktopThemeSpec.inspectorMinWidth, inspectorMaxWidth)
+            .clamp(HyveDesktopThemeSpec.inspectorMinWidth, inspectorMaxWidth)
             .toDouble();
 
     if (isChat) {
@@ -278,7 +278,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         child: Focus(
           autofocus: true,
           child: ColoredBox(
-            color: StarsDesktopThemeSpec.shellBackground(context),
+            color: HyveDesktopThemeSpec.shellBackground(context),
             child: SafeArea(
               child: Stack(
                 children: [

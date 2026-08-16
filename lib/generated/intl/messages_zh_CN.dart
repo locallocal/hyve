@@ -44,7 +44,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m11(name) => "确定卸载技能“${name}”？相关智能体绑定也会被移除。";
 
-  static String m12(year) => "© ${year} Stars 团队";
+  static String m12(year) => "© ${year} Hyve 团队";
 
   static String m13(error) => "创建聊天失败：${error}";
 
@@ -102,7 +102,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "Bots": MessageLookupByLibrary.simpleMessage("智能体"),
     "about": MessageLookupByLibrary.simpleMessage("关于"),
-    "aboutApp": MessageLookupByLibrary.simpleMessage("关于 Stars"),
+    "aboutApp": MessageLookupByLibrary.simpleMessage("关于 Hyve"),
     "activeRequestCannotCancel": MessageLookupByLibrary.simpleMessage(
       "当前请求无法取消，请等待生成完成。",
     ),
@@ -125,12 +125,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDescription": MessageLookupByLibrary.simpleMessage(
       "一个简单而强大的AI聊天应用，让您随时随地与AI进行对话。",
     ),
-    "appName": MessageLookupByLibrary.simpleMessage("Stars"),
-    "appTitle": MessageLookupByLibrary.simpleMessage("Stars - AI 聊天助手"),
+    "appName": MessageLookupByLibrary.simpleMessage("Hyve"),
+    "appTitle": MessageLookupByLibrary.simpleMessage("Hyve - AI 聊天助手"),
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage("系统提示词"),
     "applicationInjectedPromptDescription":
         MessageLookupByLibrary.simpleMessage(
-          "由 Stars 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
+          "由 Hyve 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
         ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("附加文件"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("附加图片"),
@@ -219,7 +219,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("每日用量"),
     "darkMode": MessageLookupByLibrary.simpleMessage("深色模式"),
     "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
-      "数据库由更高版本的 Stars 创建，请升级应用后再打开。",
+      "数据库由更高版本的 Hyve 创建，请升级应用后再打开。",
     ),
     "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
       "数据库完整性检查失败，且无法从当前版本备份恢复。",
@@ -406,7 +406,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpProcessStartedAt": MessageLookupByLibrary.simpleMessage("启动时间"),
     "mcpProcessStatus": MessageLookupByLibrary.simpleMessage("进程状态"),
     "mcpProgressiveDiscoveryDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
+      "Hyve 会保存已发现的工具目录。请在编辑智能体时逐个开启工具，只有该智能体会将其提供给模型。",
     ),
     "mcpRequestTimedOut": MessageLookupByLibrary.simpleMessage("MCP 请求超时。"),
     "mcpSecureEnvironmentVariables": MessageLookupByLibrary.simpleMessage(
@@ -598,9 +598,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "shareImage": MessageLookupByLibrary.simpleMessage("分享图片"),
     "shareImageFailed": m35,
-    "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
-      "来自 Stars 的图片",
-    ),
+    "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage("来自 Hyve 的图片"),
     "showApiKey": MessageLookupByLibrary.simpleMessage("显示 API 密钥"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
       "在会话内容中显示执行状态。",

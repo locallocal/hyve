@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:path/path.dart' as path;
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/skill_ecosystem_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 
 final class SkillSignatureVerification {
   const SkillSignatureVerification({
@@ -36,7 +36,7 @@ final class SkillSignatureService {
     required String skillName,
     required String version,
   }) {
-    return 'stars-skill-v1\n$publisherId\n$keyId\n'
+    return 'hyve-skill-v1\n$publisherId\n$keyId\n'
         '$contentDigest\n$skillName\n$version';
   }
 

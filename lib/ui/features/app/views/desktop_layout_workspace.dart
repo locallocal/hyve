@@ -6,7 +6,7 @@ part of 'desktop_layout.dart';
 extension _DesktopLayoutWorkspace on _DesktopLayoutState {
   Widget _buildSidebar(BuildContext context, {VoidCallback? onToggleSidebar}) {
     return DecoratedBox(
-      decoration: StarsDesktopThemeSpec.sidebarDecoration(context),
+      decoration: HyveDesktopThemeSpec.sidebarDecoration(context),
       child: Column(
         children: [
           Padding(
@@ -26,14 +26,14 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
-                    'Stars',
+                    'Hyve',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 if (onToggleSidebar != null)
-                  StarsDesktopIconAction(
+                  HyveDesktopIconAction(
                     label: S.of(context).hideSidebar,
                     onPressed: onToggleSidebar,
                     selected: true,
@@ -52,7 +52,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                   width: double.infinity,
                   child: ShadButton(
                     size: ShadButtonSize.sm,
-                    height: StarsDesktopThemeSpec.botFormFieldHeight,
+                    height: HyveDesktopThemeSpec.botFormFieldHeight,
                     mainAxisAlignment: MainAxisAlignment.start,
                     expands: true,
                     onPressed: widget.onCreateChat,
@@ -99,7 +99,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
 
   Widget _buildSidebarOverlay(BuildContext context, double availableWidth) {
     final width = math.min(
-      StarsDesktopThemeSpec.sidebarWidth,
+      HyveDesktopThemeSpec.sidebarWidth,
       math.max(0.0, availableWidth - 48.0),
     );
     return Positioned.fill(
@@ -112,7 +112,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
               child: GestureDetector(
                 onTap: () => setState(() => _compactSidebarOpen = false),
                 child: ColoredBox(
-                  color: StarsDesktopTokens.of(
+                  color: HyveDesktopTokens.of(
                     context,
                   ).scrim.withValues(alpha: 0.22),
                 ),
@@ -126,10 +126,10 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             width: width,
             child: Material(
               elevation: 8,
-              shadowColor: StarsDesktopTokens.of(
+              shadowColor: HyveDesktopTokens.of(
                 context,
               ).scrim.withValues(alpha: 0.22),
-              color: StarsDesktopThemeSpec.sidebarSurface(context),
+              color: HyveDesktopThemeSpec.sidebarSurface(context),
               child: _buildSidebar(context),
             ),
           ),
@@ -153,7 +153,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
     final profilePage =
         widget.pages.length > 4 ? widget.pages[4] : const SizedBox.shrink();
     return ColoredBox(
-      color: StarsDesktopThemeSpec.workspaceSurface(context),
+      color: HyveDesktopThemeSpec.workspaceSurface(context),
       child: IndexedStack(
         index: widget.currentIndex,
         children: [
@@ -224,11 +224,11 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
     final width =
         _inspectorWidth
             .clamp(
-              StarsDesktopThemeSpec.inspectorMinWidth,
+              HyveDesktopThemeSpec.inspectorMinWidth,
               math.min(
-                StarsDesktopThemeSpec.inspectorMaxWidth,
+                HyveDesktopThemeSpec.inspectorMaxWidth,
                 math.max(
-                  StarsDesktopThemeSpec.inspectorMinWidth,
+                  HyveDesktopThemeSpec.inspectorMinWidth,
                   availableWidth - 24.0,
                 ),
               ),
@@ -241,7 +241,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             child: GestureDetector(
               onTap: () => setState(() => _inspectorOpen = false),
               child: ColoredBox(
-                color: StarsDesktopTokens.of(
+                color: HyveDesktopTokens.of(
                   context,
                 ).scrim.withValues(alpha: 0.12),
               ),
@@ -255,10 +255,10 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             child: Material(
               color: Colors.transparent,
               elevation: 10,
-              shadowColor: StarsDesktopTokens.of(
+              shadowColor: HyveDesktopTokens.of(
                 context,
               ).scrim.withValues(alpha: 0.2),
-              borderRadius: StarsDesktopThemeSpec.containerRadius,
+              borderRadius: HyveDesktopThemeSpec.containerRadius,
               clipBehavior: Clip.antiAlias,
               child: _buildInspector(context, overlay: true),
             ),
@@ -287,9 +287,9 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             : null;
     final decoration =
         overlay && showHeader
-            ? StarsDesktopThemeSpec.overlayInspectorDecoration(context)
+            ? HyveDesktopThemeSpec.overlayInspectorDecoration(context)
             : showHeader
-            ? StarsDesktopThemeSpec.inspectorDecoration(context)
+            ? HyveDesktopThemeSpec.inspectorDecoration(context)
             : const BoxDecoration();
     return Container(
       decoration: decoration,
@@ -304,11 +304,11 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                 Expanded(
                   child: Text(
                     S.of(context).botInformation,
-                    style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+                    style: HyveDesktopThemeSpec.sectionTitleStyle(context),
                   ),
                 ),
                 if (widget.currentIndex == 0)
-                  StarsDesktopIconAction(
+                  HyveDesktopIconAction(
                     label: MaterialLocalizations.of(context).closeButtonTooltip,
                     onPressed: () => setState(() => _inspectorOpen = false),
                     icon: LucideIcons.x,

@@ -6,7 +6,7 @@ extension _ProfileAboutSection on _ProfilePageState {
     required bool embedded,
   }) {
     final strings = S.of(dialogContext);
-    final tokens = StarsDesktopTokens.of(dialogContext);
+    final tokens = HyveDesktopTokens.of(dialogContext);
     final titleStyle =
         embedded
             ? ShadTheme.of(dialogContext).textTheme.h4
@@ -15,7 +15,7 @@ extension _ProfileAboutSection on _ProfilePageState {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600);
     final bodyStyle =
         embedded
-            ? StarsDesktopThemeSpec.bodyStyle(dialogContext)
+            ? HyveDesktopThemeSpec.bodyStyle(dialogContext)
             : Theme.of(dialogContext).textTheme.bodyMedium;
     final mutedStyle =
         embedded
@@ -47,7 +47,7 @@ extension _ProfileAboutSection on _ProfilePageState {
               ),
               child: Row(
                 children: [
-                  const StarsLogo(size: 60),
+                  const HyveLogo(size: 60),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -206,7 +206,7 @@ extension _ProfileAboutSection on _ProfilePageState {
       showShadDialog<void>(
         context: context,
         builder: (dialogContext) {
-          final tokens = StarsDesktopTokens.of(dialogContext);
+          final tokens = HyveDesktopTokens.of(dialogContext);
           return ShadDialog(
             key: const ValueKey<String>('profile-language-dialog'),
             closeIcon: _buildDesktopDialogClose(
@@ -229,7 +229,7 @@ extension _ProfileAboutSection on _ProfilePageState {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: tokens.raisedSurface,
-                    borderRadius: StarsDesktopThemeSpec.containerRadius,
+                    borderRadius: HyveDesktopThemeSpec.containerRadius,
                   ),
                   child: SingleChildScrollView(
                     child: Column(
@@ -369,7 +369,7 @@ extension _ProfileAboutSection on _ProfilePageState {
       onTap: onTap,
       borderRadius:
           isDesktop
-              ? StarsDesktopThemeSpec.itemRadius
+              ? HyveDesktopThemeSpec.itemRadius
               : BorderRadius.circular(16),
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -384,8 +384,8 @@ extension _ProfileAboutSection on _ProfilePageState {
               decoration:
                   isDesktop
                       ? BoxDecoration(
-                        color: StarsDesktopThemeSpec.selectedFill(context),
-                        borderRadius: StarsDesktopThemeSpec.controlRadius,
+                        color: HyveDesktopThemeSpec.selectedFill(context),
+                        borderRadius: HyveDesktopThemeSpec.controlRadius,
                       )
                       : null,
               child: Icon(
@@ -403,9 +403,7 @@ extension _ProfileAboutSection on _ProfilePageState {
                     title,
                     style:
                         isDesktop
-                            ? StarsDesktopThemeSpec.bodyStyle(
-                              context,
-                            )?.copyWith(
+                            ? HyveDesktopThemeSpec.bodyStyle(context)?.copyWith(
                               fontSize: _fontSize,
                               fontWeight: FontWeight.w600,
                             )
@@ -418,7 +416,7 @@ extension _ProfileAboutSection on _ProfilePageState {
                     subtitle,
                     style:
                         isDesktop
-                            ? StarsDesktopThemeSpec.metaStyle(
+                            ? HyveDesktopThemeSpec.metaStyle(
                               context,
                             )?.copyWith(fontSize: _fontSize - 2)
                             : TextStyle(

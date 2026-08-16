@@ -1,6 +1,6 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 
 typedef McpServerConnector =
     Future<McpServer> Function(
@@ -35,7 +35,7 @@ final class AddMcpServerTool implements ExecutableTool {
     name: addMcpServerToolName,
     title: 'Add MCP server',
     description:
-        'Create one new Stars MCP server from explicit Streamable HTTP or '
+        'Create one new Hyve MCP server from explicit Streamable HTTP or '
         'stdio connection details, store credentials securely, and optionally '
         'connect it to discover Tools. Existing servers are never overwritten.',
     inputSchema: const {

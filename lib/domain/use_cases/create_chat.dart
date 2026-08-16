@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
 
 typedef Clock = DateTime Function();
 

@@ -1,6 +1,6 @@
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/message.dart';
-import 'package:stars/domain/repositories/model_usage_repository.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/message.dart';
+import 'package:hyve/domain/repositories/model_usage_repository.dart';
 
 final class SqliteModelUsageRepository implements ModelUsageRepository {
   const SqliteModelUsageRepository({

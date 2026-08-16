@@ -1,16 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/bot_api_key_cipher.dart';
-import 'package:stars/data/services/mcp/secure_mcp_credential_store.dart';
+import 'package:hyve/data/services/bot_api_key_cipher.dart';
+import 'package:hyve/data/services/mcp/secure_mcp_credential_store.dart';
 
 void main() {
-  const applicationId = 'io.github.locallocal.stars';
+  const applicationId = 'io.github.locallocal.hyve';
 
-  test('all platform release identifiers use the Stars application id', () {
+  test('all platform release identifiers use the Hyve application id', () {
     final expectedConfiguration = <String, String>{
       'android/app/build.gradle.kts': applicationId,
-      'android/app/src/main/kotlin/io/github/locallocal/stars/MainActivity.kt':
+      'android/app/src/main/kotlin/io/github/locallocal/hyve/MainActivity.kt':
           'package $applicationId',
       'ios/Runner.xcodeproj/project.pbxproj': applicationId,
       'macos/Runner/Configs/AppInfo.xcconfig': applicationId,

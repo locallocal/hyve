@@ -63,7 +63,7 @@ class _BotMcpServerSearchListState extends State<_BotMcpServerSearchList> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            StarsSearchField(
+            HyveSearchField(
               key: const ValueKey<String>('bot-mcp-server-search'),
               hintText: strings.searchMcpServers,
               semanticLabel: strings.searchMcpServers,
@@ -74,7 +74,7 @@ class _BotMcpServerSearchListState extends State<_BotMcpServerSearchList> {
               suffixIcon:
                   _query.isEmpty
                       ? null
-                      : StarsDesktopIconAction(
+                      : HyveDesktopIconAction(
                         key: const ValueKey<String>(
                           'clear-bot-mcp-server-search',
                         ),
@@ -99,7 +99,7 @@ class _BotMcpServerSearchListState extends State<_BotMcpServerSearchList> {
                             textAlign: TextAlign.center,
                             style:
                                 widget.embedded
-                                    ? StarsDesktopThemeSpec.metaStyle(context)
+                                    ? HyveDesktopThemeSpec.metaStyle(context)
                                     : Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
@@ -142,7 +142,7 @@ class _BotMcpServerSearchListState extends State<_BotMcpServerSearchList> {
                                         '${strings.mcpTools}',
                                         style:
                                             widget.embedded
-                                                ? StarsDesktopThemeSpec.metaStyle(
+                                                ? HyveDesktopThemeSpec.metaStyle(
                                                   context,
                                                 )
                                                 : Theme.of(

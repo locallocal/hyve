@@ -1,6 +1,6 @@
 {
     "@@locale": "ko_KR",
-    "appName": "Stars",
+    "appName": "Hyve",
     "@appName": {
         "description": "애플리케이션 이름"
     },
@@ -171,7 +171,7 @@
     "@themeSetToDark": {
         "description": "테마가 다크 모드로 설정되었습니다"
     },
-    "aboutApp": "Stars 정보",
+    "aboutApp": "Hyve 정보",
     "@aboutApp": {
         "description": "앱 정보"
     },
@@ -179,7 +179,7 @@
     "@appDescription": {
         "description": "앱 설명"
     },
-    "copyright": "© {year} Stars 팀",
+    "copyright": "© {year} Hyve 팀",
     "@copyright": {
         "description": "저작권 정보",
         "placeholders": {
@@ -201,7 +201,7 @@
     "@version": {
         "description": "버전 정보"
     },
-    "appTitle": "Stars - AI 채팅 어시스턴트",
+    "appTitle": "Hyve - AI 채팅 어시스턴트",
     "@appTitle": {
         "description": "앱 제목"
     },
@@ -566,7 +566,7 @@
     "desktopAppearanceAndLanguage": "모양 및 언어",
     "desktopGeneral": "일반",
     "applicationInjectedPrompt": "시스템 프롬프트",
-    "applicationInjectedPromptDescription": "Stars에서 관리하며 모든 모델 요청에 주입됩니다. 현재 에이전트와 대화 식별자는 런타임에 추가되며 편집할 수 없습니다.",
+    "applicationInjectedPromptDescription": "Hyve에서 관리하며 모든 모델 요청에 주입됩니다. 현재 에이전트와 대화 식별자는 런타임에 추가되며 편집할 수 없습니다.",
     "desktopHelpAndSupport": "도움말 및 지원",
     "desktopAboutAndLegal": "앱 정보 및 법적 고지",
     "desktopSettingsDescription": "프로필, 모양, 언어 및 앱 지원을 관리합니다.",
@@ -806,7 +806,7 @@
     "imageSavedToGallery": "Image saved to gallery",
     "saveImageFailed": "Could not save image: {error}",
     "shareImageFailed": "Could not share image: {error}",
-    "sharedImageFromStars": "Image from Stars",
+    "sharedImageFromHyve": "Image from Hyve",
     "includesDuration": "Includes duration",
     "pleaseEnterSpeechDescription": "Enter a description for speech generation",
     "speechGenerated": "Speech generated",
@@ -848,7 +848,7 @@
     "localMcpDisabledDescription": "Local process-based MCP servers remain disabled pending a platform security review.",
     "mcpLocalProcessSecurityTitle": "Local process security",
     "mcpLocalProcessSecurityDescription": "stdio servers run commands on this computer. Only add servers and environment variables you trust.",
-    "mcpProgressiveDiscoveryDescription": "Stars stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
+    "mcpProgressiveDiscoveryDescription": "Hyve stores discovered Tool catalogs. Enable individual Tools when editing an agent; only that agent can expose them to the model.",
     "mcpHttpsRequired": "Remote MCP endpoints must use HTTPS.",
     "mcpPrivateEndpointBlocked": "Private, local, and link-local MCP endpoints are blocked.",
     "mcpAuthorizationRequired": "Authorization required",
@@ -903,7 +903,7 @@
     "startupFailed": "시작하지 못했습니다. 다시 시도해 주세요.",
     "videoPlaybackError": "동영상 재생 오류: {error}",
     "videoLoadFailed": "동영상을 불러올 수 없습니다",
-    "databaseDowngradeNotSupported": "이 데이터베이스는 더 최신 버전의 Stars에서 생성되었습니다. 앱을 업데이트한 후 열어 주세요.",
+    "databaseDowngradeNotSupported": "이 데이터베이스는 더 최신 버전의 Hyve에서 생성되었습니다. 앱을 업데이트한 후 열어 주세요.",
     "databaseRecoveryFailed": "데이터베이스 무결성 검사에 실패했으며 현재 버전의 백업에서도 복구하지 못했습니다.",
     "durationMilliseconds": "{milliseconds}밀리초",
     "durationSeconds": "{seconds}초"

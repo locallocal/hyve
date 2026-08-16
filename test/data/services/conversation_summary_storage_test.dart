@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
-import 'package:stars/data/services/conversation_summary_storage.dart';
-import 'package:stars/domain/models/conversation_memory.dart';
+import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
 
 void main() {
   late Directory root;
   late ConversationSummaryStorage storage;
 
   setUp(() async {
-    root = await Directory.systemTemp.createTemp('stars_summary_storage_');
+    root = await Directory.systemTemp.createTemp('hyve_summary_storage_');
     storage = ConversationSummaryStorage(
       documentsDirectoryProvider: () async => root,
     );

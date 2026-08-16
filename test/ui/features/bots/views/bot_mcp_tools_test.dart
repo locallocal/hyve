@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/l10n/app_localizations.dart';
-import 'package:stars/ui/features/bots/views/add_bot.dart';
-import 'package:stars/ui/features/bots/views/edit_bot.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/bots/views/add_bot.dart';
+import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/utils/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -551,7 +551,7 @@ void main() {
       find.descendant(
         of: serverSearchField,
         matching: find.byKey(
-          const ValueKey<String>('stars-search-inset-focus-ring'),
+          const ValueKey<String>('hyve-search-inset-focus-ring'),
         ),
       ),
       findsOneWidget,
@@ -635,7 +635,7 @@ void main() {
       find.descendant(
         of: toolSearchField,
         matching: find.byKey(
-          const ValueKey<String>('stars-search-inset-focus-ring'),
+          const ValueKey<String>('hyve-search-inset-focus-ring'),
         ),
       ),
       findsOneWidget,
@@ -828,7 +828,7 @@ Widget _addHarness({
 }) {
   final server = _server();
   final secondServer = _server(id: 'server-2', name: 'Analytics');
-  final shadTheme = buildStarsShadTheme(
+  final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
     fontSize: 16,
   );

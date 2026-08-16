@@ -1,4 +1,4 @@
-package io.github.locallocal.stars
+package io.github.locallocal.hyve
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter

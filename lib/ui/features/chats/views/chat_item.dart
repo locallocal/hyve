@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/core/widgets/logo.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
+import 'package:hyve/utils/theme.dart';
 
 class ChatListItem extends StatefulWidget {
   final Bot bot;
@@ -42,12 +42,12 @@ class _ChatListItemState extends State<ChatListItem> {
         widget.isSelected
             ? ShadTheme.of(context).colorScheme.primaryForeground
             : null;
-    final titleStyle = StarsDesktopThemeSpec.bodyStyle(context)?.copyWith(
+    final titleStyle = HyveDesktopThemeSpec.bodyStyle(context)?.copyWith(
       fontWeight: FontWeight.w600,
       fontSize: (fontSize - 2).clamp(13, 14),
       color: selectedTextColor,
     );
-    final metaStyle = StarsDesktopThemeSpec.metaStyle(context)?.copyWith(
+    final metaStyle = HyveDesktopThemeSpec.metaStyle(context)?.copyWith(
       fontSize: (fontSize - 3).clamp(12, 13),
       color: selectedTextColor,
     );
@@ -120,7 +120,7 @@ class _ChatListItemState extends State<ChatListItem> {
                             ? ShadTheme.of(
                               context,
                             ).colorScheme.primaryForeground
-                            : StarsDesktopThemeSpec.mutedText(context),
+                            : HyveDesktopThemeSpec.mutedText(context),
                   ),
                 ),
               ],

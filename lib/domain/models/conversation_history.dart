@@ -1,9 +1,9 @@
-import 'package:stars/domain/models/message.dart';
+import 'package:hyve/domain/models/message.dart';
 
 const conversationHistorySkillId = 'system:conversation-history';
 const conversationHistorySkillPromptVersion = 2;
 const conversationHistorySkillContentDigest =
-    '0235c46d7ccec49ca6e1378fdecb8073bd67c101a6a854a246ce82f42cd76515';
+    '856ef0edad1d00f73588062a110242ea39f85eefd60f2b56f40c4073b1594a02';
 const searchConversationHistoryToolName = 'search_conversation_history';
 const readConversationHistoryToolName = 'read_conversation_history';
 const conversationHistoryToolNames = {
@@ -15,7 +15,7 @@ const conversationHistorySkillPolicy = '''
 Use the current summary and recent turns first. Query conversation history only
 when the user asks about earlier context or when an exact quote, number, date,
 decision, file name, or source is needed. The read-only history tools connect to
-Stars' SQLite database and execute parameterized queries against persisted
+Hyve' SQLite database and execute parameterized queries against persisted
 messages in the current chat; never submit SQL, a table name, chat ID, or file
 path yourself.
 

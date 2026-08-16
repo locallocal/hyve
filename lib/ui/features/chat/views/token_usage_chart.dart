@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/chat/view_models/chat_token_usage_view_model.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
+import 'package:hyve/utils/theme.dart';
 
 enum TokenUsageChartOrientation { horizontal, vertical }
 
@@ -33,7 +33,7 @@ class ConversationTokenUsagePanel extends StatelessWidget {
             Text(
               key: const ValueKey<String>('token-usage-section-title'),
               S.of(context).tokenUsage,
-              style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+              style: HyveDesktopThemeSpec.sectionTitleStyle(context),
             ),
             const SizedBox(height: 12),
             if (viewModel.isLoading && viewModel.dailyBuckets.isEmpty)
@@ -105,11 +105,11 @@ class TokenUsageTimelineSection extends StatelessWidget {
                 hourly
                     ? S.of(context).hourlyTokenUsage
                     : S.of(context).dailyTokenUsage,
-                style: StarsDesktopThemeSpec.sectionTitleStyle(context),
+                style: HyveDesktopThemeSpec.sectionTitleStyle(context),
               ),
             ),
             if (hourly)
-              StarsDesktopIconAction(
+              HyveDesktopIconAction(
                 key: const ValueKey<String>('token-usage-back-to-daily'),
                 icon: LucideIcons.arrowLeft,
                 label: S.of(context).backToDailyUsage,
@@ -129,7 +129,7 @@ class TokenUsageTimelineSection extends StatelessWidget {
           Text(
             key: const ValueKey<String>('token-usage-drilldown-hint'),
             S.of(context).clickDayForHourlyUsage,
-            style: StarsDesktopThemeSpec.metaStyle(context),
+            style: HyveDesktopThemeSpec.metaStyle(context),
           ),
         ],
         const SizedBox(height: 10),
@@ -204,7 +204,7 @@ class _InspectorTokenMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      StarsInspectorInfoRow(icon: icon, label: label, value: value);
+      HyveInspectorInfoRow(icon: icon, label: label, value: value);
 }
 
 class TokenUsageChart extends StatelessWidget {

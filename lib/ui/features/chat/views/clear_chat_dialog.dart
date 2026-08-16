@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/utils/utils.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/utils.dart';
 
 /// 显示清除聊天历史对话框
 Future<bool> showClearChatDialog(BuildContext context, String botName) async {

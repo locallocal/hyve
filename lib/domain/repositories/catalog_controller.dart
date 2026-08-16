@@ -1,4 +1,4 @@
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 /// Domain-facing capability used to refresh and inspect MCP catalogs.
 abstract interface class McpCatalogController {

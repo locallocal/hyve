@@ -1,49 +1,49 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/services/stars_system_prompt.dart';
+import 'package:hyve/domain/services/hyve_system_prompt.dart';
 
 void main() {
-  test('describes Stars and safely includes operating system details', () {
-    final prompt = buildStarsSystemPrompt(
+  test('describes Hyve and safely includes operating system details', () {
+    final prompt = buildHyveSystemPrompt(
       operatingSystem: 'test<os>',
       operatingSystemVersion: '1.0 & newer',
     );
 
-    expect(prompt, startsWith('<stars_application_context>'));
-    expect(prompt, contains('Application: Stars'));
+    expect(prompt, startsWith('<hyve_application_context>'));
+    expect(prompt, contains('Application: Hyve'));
     expect(
       prompt,
       contains(
-        'Stars is a cross-platform AI chat client for configurable '
+        'Hyve is a cross-platform AI chat client for configurable '
         'assistants, Skills, MCP tools, and locally stored conversations.',
       ),
     );
     expect(prompt, contains('Operating system type: test&lt;os&gt;'));
     expect(prompt, contains('Operating system version: 1.0 &amp; newer'));
-    expect(prompt, endsWith('</stars_application_context>'));
+    expect(prompt, endsWith('</hyve_application_context>'));
   });
 
-  test('places Stars context before the existing system prompt', () {
-    final prompt = prependStarsSystemPrompt(
+  test('places Hyve context before the existing system prompt', () {
+    final prompt = prependHyveSystemPrompt(
       '  Existing assistant instructions.  ',
-      starsSystemPromptProvider: _testStarsSystemPrompt,
+      hyveSystemPromptProvider: _testHyveSystemPrompt,
     );
 
-    expect(prompt, startsWith('<stars_application_context>'));
+    expect(prompt, startsWith('<hyve_application_context>'));
     expect(
-      prompt.indexOf('</stars_application_context>'),
+      prompt.indexOf('</hyve_application_context>'),
       lessThan(prompt.indexOf('Existing assistant instructions.')),
     );
     expect(prompt, endsWith('Existing assistant instructions.'));
   });
 
   test('safely describes the current agent and conversation identity', () {
-    final prompt = buildStarsConversationContext(
+    final prompt = buildHyveConversationContext(
       agentId: 'agent<1>',
       agentName: 'Research & Review',
       conversationId: 'chat>2',
     );
 
-    expect(prompt, startsWith('<stars_conversation_context>'));
+    expect(prompt, startsWith('<hyve_conversation_context>'));
     expect(
       prompt,
       contains('Application-provided runtime identity for the current turn.'),
@@ -51,11 +51,11 @@ void main() {
     expect(prompt, contains('Agent ID: agent&lt;1&gt;'));
     expect(prompt, contains('Agent name: Research &amp; Review'));
     expect(prompt, contains('Current conversation ID: chat&gt;2'));
-    expect(prompt, endsWith('</stars_conversation_context>'));
+    expect(prompt, endsWith('</hyve_conversation_context>'));
   });
 }
 
-String _testStarsSystemPrompt() => buildStarsSystemPrompt(
+String _testHyveSystemPrompt() => buildHyveSystemPrompt(
   operatingSystem: 'TestOS',
   operatingSystemVersion: '1.2.3',
 );

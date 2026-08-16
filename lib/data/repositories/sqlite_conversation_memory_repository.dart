@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:stars/data/services/conversation_summary_storage.dart';
-import 'package:stars/data/services/local_database_service.dart';
-import 'package:stars/domain/models/conversation_memory.dart';
-import 'package:stars/domain/repositories/conversation_memory_repository.dart';
+import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/conversation_memory.dart';
+import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
 
 final class SqliteConversationMemoryRepository
     implements ConversationMemoryRepository {

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/features/app/views/stars_app.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/features/app/views/hyve_app.dart';
 
 void main() {
   testWidgets('startup shell uses the platform locale before Profile loads', (
@@ -30,7 +30,7 @@ void main() {
       expect(find.text('Startup failed. Please try again.'), findsOneWidget);
       expect(
         find.text(
-          'This database was created by a newer version of Stars. '
+          'This database was created by a newer version of Hyve. '
           'Update the app before opening it.',
         ),
         findsOneWidget,

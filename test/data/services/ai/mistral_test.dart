@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/data/services/ai/mistral.dart';
-import 'package:stars/domain/models/ai_models.dart';
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/data/services/ai/mistral.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 void main() {
   test('Mistral streams thinking chunks separately from answer text', () async {

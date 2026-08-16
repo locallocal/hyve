@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/ui/core/view_models/token_usage_timeline.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
 
 @immutable
 class BotConversationTokenUsage {

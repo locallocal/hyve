@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
 
 class AttachmentBars extends StatelessWidget {
   final VoidCallback onCameraPressed;

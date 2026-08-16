@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:stars/domain/models/mcp.dart';
+import 'package:hyve/domain/models/mcp.dart';
 
 enum AppFailureKind {
   validation,

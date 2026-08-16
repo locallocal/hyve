@@ -112,7 +112,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
 
   Widget _buildDesktopHeader(BuildContext context) {
     final strings = S.of(context);
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
@@ -185,20 +185,20 @@ extension _AddBotDesktopForm on _AddBotPageState {
                   strings.addBot,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.pageTitleStyle(context),
+                  style: HyveDesktopThemeSpec.pageTitleStyle(context),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   strings.botInformation,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: StarsDesktopThemeSpec.metaStyle(context),
+                  style: HyveDesktopThemeSpec.metaStyle(context),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          StarsDesktopIconAction(
+          HyveDesktopIconAction(
             key: const ValueKey<String>('add-bot-close'),
             icon: LucideIcons.x,
             iconSize: 18,
@@ -217,7 +217,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
     List<Widget> children, {
     required Key sectionKey,
   }) {
-    final tokens = StarsDesktopTokens.of(context);
+    final tokens = HyveDesktopTokens.of(context);
     return ShadCard(
       key: sectionKey,
       width: double.infinity,
@@ -230,9 +230,9 @@ extension _AddBotDesktopForm on _AddBotPageState {
       columnCrossAxisAlignment: CrossAxisAlignment.stretch,
       title: Text(
         title,
-        style: StarsDesktopThemeSpec.sectionTitleStyle(context)?.copyWith(
-          fontSize: StarsDesktopThemeSpec.botFormSectionTitleFontSize,
-        ),
+        style: HyveDesktopThemeSpec.sectionTitleStyle(
+          context,
+        )?.copyWith(fontSize: HyveDesktopThemeSpec.botFormSectionTitleFontSize),
       ),
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
@@ -270,7 +270,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (_errorMessage case final error?)
-                        StarsInlineErrorAlert(
+                        HyveInlineErrorAlert(
                           error: error,
                           isDesktop: true,
                           onDismiss: _dismissError,
@@ -333,7 +333,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
     required IconData icon,
     required VoidCallback? onPressed,
   }) {
-    return StarsDesktopIconAction(
+    return HyveDesktopIconAction(
       icon: icon,
       label: tooltip,
       enabled: onPressed != null,
@@ -363,13 +363,13 @@ extension _AddBotDesktopForm on _AddBotPageState {
     bool constrainMenuWidth = false,
   }) {
     assert(!alignEnd || menuWidth != null);
-    return StarsDesktopMenu<T>(
+    return HyveDesktopMenu<T>(
       key: key,
       width: menuWidth ?? (constrainMenuWidth ? 420 : 220),
       alignEnd: alignEnd,
       items: [
         for (final option in options)
-          StarsDesktopMenuItem<T>(
+          HyveDesktopMenuItem<T>(
             value: option,
             label: labelBuilder?.call(option) ?? option.toString(),
             leading: leadingBuilder?.call(option),
@@ -386,7 +386,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-name'),
       id: 'name',
       controller: nameController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).botName),
       placeholder: Text(S.of(context).enterBotName),
@@ -403,7 +403,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-provider'),
       id: 'provider',
       controller: providerController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).provider),
       placeholder: Text(S.of(context).selectProvider),
@@ -443,7 +443,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
             key: const ValueKey<String>('add-bot-sub-provider'),
             id: 'subProvider',
             controller: subProviderController,
-            padding: StarsDesktopThemeSpec.formFieldPadding,
+            padding: HyveDesktopThemeSpec.formFieldPadding,
             textInputAction: TextInputAction.next,
             label: Text('${S.of(context).provider} (HuggingFace)'),
             placeholder: Text(S.of(context).selectProvider),
@@ -471,7 +471,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
             key: const ValueKey<String>('add-bot-api-type'),
             id: 'apiType',
             controller: apiTypeController,
-            padding: StarsDesktopThemeSpec.formFieldPadding,
+            padding: HyveDesktopThemeSpec.formFieldPadding,
             enabled: _isCustomProvider,
             textInputAction: TextInputAction.next,
             label: Text(S.of(context).apiType),
@@ -491,7 +491,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-base-url'),
       id: 'baseUrl',
       controller: baseURLController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).apiAddress),
       leading: _desktopInputLeading(LucideIcons.link),
@@ -507,7 +507,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-api-key'),
       id: 'apiKey',
       controller: apiKeyController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       obscureText: !_isPasswordVisible,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).apiKey),
@@ -536,7 +536,7 @@ extension _AddBotDesktopForm on _AddBotPageState {
       key: const ValueKey<String>('add-bot-model'),
       id: 'model',
       controller: selectedModelController,
-      padding: StarsDesktopThemeSpec.formFieldPadding,
+      padding: HyveDesktopThemeSpec.formFieldPadding,
       textInputAction: TextInputAction.next,
       label: Text(S.of(context).model),
       placeholder: Text(S.of(context).selectModel),

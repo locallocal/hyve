@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/catalog_controller.dart';
-import 'package:stars/domain/repositories/mcp_server_repository.dart';
-import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
-import 'package:stars/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/catalog_controller.dart';
+import 'package:hyve/domain/repositories/mcp_server_repository.dart';
+import 'package:hyve/domain/use_cases/mcp_server_mutations.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 final class McpServersViewModel extends DisposableChangeNotifier {
   McpServersViewModel({

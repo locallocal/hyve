@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/ai_provider_repository.dart';
-import 'package:stars/domain/repositories/attachment_repository.dart';
-import 'package:stars/domain/repositories/bot_repository.dart';
-import 'package:stars/domain/repositories/bot_skill_binding_repository.dart';
-import 'package:stars/domain/repositories/chat_repository.dart';
-import 'package:stars/domain/repositories/message_repository.dart';
-import 'package:stars/domain/use_cases/create_chat.dart';
-import 'package:stars/ui/features/bots/view_models/bot_list_view_model.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/bot_repository.dart';
+import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/message_repository.dart';
+import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
 
 void main() {
   group('BotListViewModel search', () {

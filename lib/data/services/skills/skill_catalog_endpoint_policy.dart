@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:stars/domain/models/models.dart';
+import 'package:hyve/domain/models/models.dart';
 
 typedef SkillCatalogDnsLookup =
     Future<List<InternetAddress>> Function(String host);

@@ -1,6 +1,6 @@
 # 模型供应商、模型目录与代码能力清单（2026-08-03）
 
-本文以 Stars 当前代码为边界，记录截至 2026-08-03 的供应商入口、公开模型目录、
+本文以 Hyve 当前代码为边界，记录截至 2026-08-03 的供应商入口、公开模型目录、
 模型能力和适配器实现状态。它同时是一份模型目录维护规范：新增模型或供应商时，应按
 “模型元数据”和“运行时能力”两个层次更新，而不能仅凭模型名称开放功能。
 
@@ -11,10 +11,10 @@
 - `AIStudio` 与 `Gemini` 共用 `gemini` 适配器；`OpenAI`、`ChatGLM`、
   `SiliconFlow` 共用 `openai` 适配器，所以入口数大于 API 类型数。
 - `apiTypeAzure` 只有常量，没有供应商入口和工厂分支，不计入“当前支持”。
-- 本文的“模型列表”只覆盖 Stars 有调用契约的模型类型：对话/推理、多模态输入、
+- 本文的“模型列表”只覆盖 Hyve 有调用契约的模型类型：对话/推理、多模态输入、
   图片、语音、音乐和视频生成。Embedding、Rerank、Moderation 等模型即使被
-  `/models` 返回，也不代表 Stars 可以正确调用。为完整说明 OpenAI 目录，第 4.1 节
-  额外收录其全部官方模型条目，包括 Stars 尚无调用契约的 Embedding 和 Moderation。
+  `/models` 返回，也不代表 Hyve 可以正确调用。为完整说明 OpenAI 目录，第 4.1 节
+  额外收录其全部官方模型条目，包括 Hyve 尚无调用契约的 Embedding 和 Moderation。
 - 第一方、数量稳定的目录列出明确模型 ID；聚合平台、模型市场、本地部署和账号授权
   目录不复制可能随时变化的数百个 ID，而记录官方目录接口，并以其在
   **2026-08-03 的账号返回结果**为准。
@@ -92,7 +92,7 @@
 
 这张表表示“代码存在覆写”，不保证旧模型 ID、旧地址和请求参数在快照日期仍可用。
 
-## 3. Stars 内置模型元数据
+## 3. Hyve 内置模型元数据
 
 以下 23 个 ID 会在第一方 `/models` 结果缺失或分阶段发布时被补入目录。`T/I/A/V/F`
 分别表示文本、图片、音频、视频和文件输入；输出均为文本。
@@ -136,7 +136,7 @@
 
 状态说明：
 
-- **内置 + 在线**：合并 Stars 内置快照和供应商在线目录；
+- **内置 + 在线**：合并 Hyve 内置快照和供应商在线目录；
 - **在线**：调用 `/models` 或供应商等价接口，模型 ID 以账号返回为准；
 - **静态/手填**：代码不读取模型目录，需要用户输入或代码内判断；
 - **本地**：模型由用户部署决定；
@@ -147,7 +147,7 @@
 本节依据 OpenAI Developer Docs 的[完整模型目录](https://developers.openai.com/api/docs/models)
 及各模型卡核对。这里的“完整”指该目录在 2026-08-03 展示的 **93 个主模型 ID**；
 日期快照只在关键表格中列出，不把每个历史快照重复计为独立模型。`gpt-5.6` 是额外的
-路由别名，指向 `gpt-5.6-sol`。Stars 的实际支持状态按当前
+路由别名，指向 `gpt-5.6-sol`。Hyve 的实际支持状态按当前
 [`openai.dart`](../lib/data/services/ai/openai.dart) 请求路由、消息序列化和响应解析判断。
 
 #### 4.1.1 当前推荐的 GPT-5.6
@@ -161,7 +161,7 @@
 三者共同支持 Streaming、Structured Outputs、Function Calling、File Search、图片输入、
 Web Search 和 Prompt Caching；官方原生工具为 `web_search`、`file_search`、
 `image_generation`、`code_interpreter`、`hosted_shell`、`apply_patch`、`skills`、
-`computer_use`、`mcp`、`tool_search`。Stars 当前只接通文本/图片输入、推理、
+`computer_use`、`mcp`、`tool_search`。Hyve 当前只接通文本/图片输入、推理、
 Web Search、Function Calling，以及由客户端执行的 MCP/Skill Agent Loop；并未接通
 OpenAI 托管的 Skills、MCP、Shell、Computer Use、Code Interpreter、File Search、
 Image Generation 或 Tool Search。
@@ -247,10 +247,10 @@ gpt-oss-120b                     gpt-oss-20b
 #### 4.1.3 模型家族特性
 
 `R`、`C`、`B`、`A`、`I`、`V`、`E`、`M` 分别代表 Responses、Chat Completions、
-Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列表示当前代码的
+Batch、Audio、Images、Videos、Embeddings、Moderation API。“Hyve”列表示当前代码的
 实际执行能力，而不是 OpenAI 原生能力。
 
-| 模型/家族 | 模态 | API | 上下文 / 最大输出 | OpenAI 原生特性 | Stars 当前状态 |
+| 模型/家族 | 模态 | API | 上下文 / 最大输出 | OpenAI 原生特性 | Hyve 当前状态 |
 | --- | --- | --- | ---: | --- | --- |
 | GPT-5.6 Sol/Terra/Luna | T/I → T | R/C/B | 1.05M / 128K | 推理、结构化输出、Functions、Web/File Search、图片输入、缓存及完整托管工具集 | **可用**：文本、图片、推理、Web、MCP/自动 Skill；托管工具未接 |
 | GPT-5.5 | T/I → T | R/C/B | 1.05M / 128K | `none/low/medium/high/xhigh` 推理、Functions、Web、File、Computer、Skills、MCP 等 | **可用**：Responses 文本/图片/推理/Web、客户端 Functions/MCP/自动 Skill；托管工具未接 |
@@ -295,7 +295,7 @@ Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列�
   不适合要求固定回归结果的生产助手。
 - GPT-5.5/5.4/5.2/5.1/5、GPT-4.1/4o 和 o-series 仍出现在完整目录中，但大多已被
   新一代模型取代；选择器应显示“Previous/Legacy”，而不是与 GPT-5.6 同级推荐。
-- DALL·E 2/3 已不在当前完整模型目录中。Stars 已迁到 GPT Image
+- DALL·E 2/3 已不在当前完整模型目录中。Hyve 已迁到 GPT Image
   2/1.5/1/mini 的生成和编辑接口；DALL·E 2/3 只保留旧配置兼容，不再补入当前目录。
 
 #### 4.1.5 已补齐的代码特性与剩余边界
@@ -311,7 +311,7 @@ Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列�
 | `supportedEndpoints` | 在 Responses、Chat Completions、Realtime、Images 等正确端点间路由 |
 | `reasoningEfforts` | 避免给只支持 `medium/high/xhigh` 的 Pro 模型发送无效档位 |
 | `supportedFeatures` | 精确表达 Streaming、Structured/Predicted Outputs、Fine-tuning、Prompt Caching、Background 等 |
-| `nativeTools` | 将 OpenAI 托管工具与 Stars 客户端 MCP/Skill Agent Loop 分开表示 |
+| `nativeTools` | 将 OpenAI 托管工具与 Hyve 客户端 MCP/Skill Agent Loop 分开表示 |
 
 本次实现结果与剩余边界：
 
@@ -330,7 +330,7 @@ Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列�
 
 ### 4.2 第一方模型供应商
 
-| UI 入口（API 类型） | 截至 2026-08-03 的模型列表 | 目录状态 | Stars 当前特性与需要补齐的代码 |
+| UI 入口（API 类型） | 截至 2026-08-03 的模型列表 | 目录状态 | Hyve 当前特性与需要补齐的代码 |
 | --- | --- | --- | --- |
 | **OpenAI** (`openai`) | 第 4.1 节已列出官方目录的 93 个主模型 ID 和 `gpt-5.6` 别名；账号实际可用范围以 `/v1/models` 为准 | 内置 + 在线 | GPT-5.x、GPT-4.x、o-series、Codex 与 GPT-OSS 已按 Responses/Chat 元数据路由，客户端 MCP/自动 Skill 已接；GPT Image 生成/编辑、Sora 和 TTS 已接。Realtime/完整音频、转写、Embedding、Moderation、Deep Research、Computer Use 仍不可用并过滤 |
 | **Anthropic** (`anthropic`) | `claude-fable-5`、`claude-opus-5`、`claude-sonnet-5`、`claude-haiku-4-5-20251001`、`claude-haiku-4-5` | 内置 + 在线 | T/I、Web、thinking、MCP、自动 Skill 已接通；继续从模型卡维护上下文和输出上限 |
@@ -359,14 +359,14 @@ Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列�
 
 这些供应商的“完整模型列表”必须在运行时读取；静态复制会在发布后很快失真。
 
-| UI 入口（API 类型） | 2026-08-03 模型目录 | 目录状态 | Stars 当前特性与需要补齐的代码 |
+| UI 入口（API 类型） | 2026-08-03 模型目录 | 目录状态 | Hyve 当前特性与需要补齐的代码 |
 | --- | --- | --- | --- |
 | **AiHubMix** (`aihubmix`) | 官方新目录 [`GET /api/v1/models`](https://docs.aihubmix.com/en/api/Models-API) 返回类型、features、输入模态、上下文和最大输出；账号可用列表另见 `/api/user/available_models` | 在线 | 代码仍请求 Legacy `/v1/models`，只能拿 ID，且把 Web 对所有模型设为 true；应迁新目录并直接映射 `thinking/tools/web/deepsearch`，再按适配器能力关闭无实现功能 |
 | **AiMass** (`aimass`) | 公共官方目录不可稳定核对；代码已知文本/推理 ID：`taichu_o1`、`deepseek_r1`、三个 DeepSeek R1 Distill；视觉：`taichu_vl`、`taichu_vl_2b`、`taichu_vlr_7b`、`taichu_vlr_3b`；语音：`taichu_tts` | 静态/手填 | 代码拒绝目录；以上只能作为“代码兼容列表”，不能视作 2026 官方在售保证。应接入账号目录或在无法验证时隐藏入口 |
 | **Cerebras** (`cerebras`) | Serverless Production：`gpt-oss-120b`；Preview：`gemma-4-31b`、`zai-glm-4.7`（计划 2026-08-17 下线）；Dedicated 另有更多家族，以[官方模型页](https://inference-docs.cerebras.ai/models/overview)和 `/v1/models` 为准 | 在线 | 当前统一 T、无思考/工具；应读取图片输入、上下文、reasoning/tool 元数据，并注意已退役的 Llama 3.1 8B/Qwen 旧 ID |
 | **DeepInfra** (`deepinfra`) | 100+ 文本、视觉、图片、语音模型，以[官方模型目录](https://docs.deepinfra.com/models)和[列表 API](https://docs.deepinfra.com/api-reference/models/models-list)为准 | 在线 | Chat 与若干图片模型有实现；思考统一 false、图片输出靠旧 ID 白名单。应按任务类型过滤目录，并把视觉/推理/上下文映射到 `AiModelInfo` |
 | **Fireworks** (`fireworks`) | Serverless、On-demand、Fine-tuned 模型以[官方模型总览](https://docs.fireworks.ai/models/overview)和[列表 API](https://docs.fireworks.ai/api-reference/list-models)为准 | 在线 | 当前所有模型统一 T、无思考；需要读取模型 kind、context、supports tools/vision，并过滤非 Chat 部署 |
-| **HuggingFace** (`huggingface`) | Hugging Face Inference Providers 的模型与后端组合由[官方目录](https://huggingface.co/docs/inference-providers/en/index)动态决定；Stars 预置 Cerebras、Cohere、Fal-AI、Fireworks-AI、Hyperbolic、HF-Inference、Nebius、Novita、Replicate、SambaNova、Together 11 个路由 | 在线 | 当前存在大量 Qwen2/LLaVA 等名称规则，Web/思考均 false；应优先使用统一 Router 元数据，按后端能力处理 Chat、Vision、Whisper、图片生成，不能把同一请求格式用于所有后端 |
+| **HuggingFace** (`huggingface`) | Hugging Face Inference Providers 的模型与后端组合由[官方目录](https://huggingface.co/docs/inference-providers/en/index)动态决定；Hyve 预置 Cerebras、Cohere、Fal-AI、Fireworks-AI、Hyperbolic、HF-Inference、Nebius、Novita、Replicate、SambaNova、Together 11 个路由 | 在线 | 当前存在大量 Qwen2/LLaVA 等名称规则，Web/思考均 false；应优先使用统一 Router 元数据，按后端能力处理 Chat、Vision、Whisper、图片生成，不能把同一请求格式用于所有后端 |
 | **InfiniGence** (`infinigence`) | 无问芯穹 MaaS 的可用模型随账号和区域变化，以 `GET https://cloud.infini-ai.com/maas/v1/models` 返回为准 | 在线 | 思考与视觉规则仍匹配 DeepSeek R1、QwQ、Qwen2.5-VL；应以在线目录为准补 DeepSeek V4/Qwen 新家族，无法公开核对的字段保持 `null` |
 | **ModelScope** (`modelscope`) | API-Inference 可调用的社区模型动态变化；模型页明确支持 OpenAI 兼容地址 `https://api-inference.modelscope.cn/v1`，例如 `Qwen/Qwen3-VL-235B-A22B-Instruct`，见[API-Inference 文档](https://www.modelscope.cn/docs/model-service/API-Inference/intro) | 在线 | Chat 和图片生成有实现，但模型类型过滤与模态规则停留在 Qwen2/2.5；应读取任务类型，支持 Qwen3/3.5 VL/Thinking，并避免把任意社区仓库当作在线可调用模型 |
 | **Monica** (`monica`) | 模型由[官方 Models & Pricing](https://platform.monica.im/docs/en/models-and-pricing)和账号 `/v1/models` 动态给出，覆盖 OpenAI、Anthropic、Gemini、xAI、Llama、Mistral 等 | 在线 | Chat 和图片生成有实现，但 Vision 白名单与 Web/思考判断过旧；聚合模型能力必须来自目录，不能继承底层厂商名称猜测 |
@@ -380,7 +380,7 @@ Batch、Audio、Images、Videos、Embeddings、Moderation API。“Stars”列�
 
 ### 4.4 本地、账号部署和退场入口
 
-| UI 入口（API 类型） | 模型列表 | 目录状态 | Stars 当前特性与需要补齐的代码 |
+| UI 入口（API 类型） | 模型列表 | 目录状态 | Hyve 当前特性与需要补齐的代码 |
 | --- | --- | --- | --- |
 | **Ollama** (`ollama`) | 完全取决于本机已安装模型；权威列表是本机 [`GET /api/tags`](https://docs.ollama.com/api/tags) | 本地 | 代码能读取本机模型，但目录只提供 family/量化等有限信息；Vision、thinking、tools 应结合 `/api/show` 的 capabilities，而不是仅返回 ID |
 | **ChatGLM** (`openai`) | 取决于 `localhost:8000` 上的 OpenAI 兼容部署，不存在统一列表 | 本地 | 复用 OpenAI adapter，但不能因此注入 OpenAI 第一方模型；当前 `_builtInProviderId` 已避免注入，仍需按部署 `/models` 与实际 tool protocol 决定能力 |
@@ -404,7 +404,7 @@ Flux、Stability 更适合维护官方静态“服务/端点”清单；Jina 只
 其余适配器会尝试在线拉取，但“能请求 `/models`”不等于目录正确：
 
 - 模型市场可能混入 Embedding、Rerank、图片、音频、微调或不可调用仓库；
-- 聚合平台返回的 `tools` 是底层模型能力，不代表 Stars adapter 已实现工具结果回传；
+- 聚合平台返回的 `tools` 是底层模型能力，不代表 Hyve adapter 已实现工具结果回传；
 - 账号权限、区域和部署 Endpoint 会使同一供应商返回不同列表；
 - 旧基础地址可能仍返回 200，但目录已经冻结或产品正在迁移。
 
@@ -429,7 +429,7 @@ Flux、Stability 更适合维护官方静态“服务/端点”清单；Jina 只
 ### P1：修正工具与 Skill 能力边界
 
 1. `supportsMcp` 和 `supportsAutomaticSkillActivation` 不应仅由在线目录的 `tools`
-   自动推导为可运行；应分别保存“模型原生 tool use”和“Stars 已实现 Agent Loop”。
+   自动推导为可运行；应分别保存“模型原生 tool use”和“Hyve 已实现 Agent Loop”。
 2. 为 Gemini、Mistral、Cohere、OpenRouter、SiliconFlow 等逐个实现并测试
    `openModelSession`、tool-call delta、tool result 和终止原因后，再开启运行时门禁。
 3. OpenAI 兼容不代表工具事件完全兼容；ChatGLM、SiliconFlow 等必须做协议级能力探测。
@@ -453,5 +453,5 @@ Doubao Seed 2.0 等新家族，删除 DeepSeek R1、Qwen2.5-VL、GLM-Z1、Doubao
 5. 对动态目录保存脱敏 fixture，测试任务过滤和 `AiModelInfo` 映射；
 6. 供应商宣布迁移或退场时，先在 UI 停止新增配置，再提供已有助手的迁移路径。
 
-聚合平台的模型列表不应在本文中人工全量展开；官方目录接口及 Stars 运行时过滤逻辑才是
+聚合平台的模型列表不应在本文中人工全量展开；官方目录接口及 Hyve 运行时过滤逻辑才是
 可维护的真源。

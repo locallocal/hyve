@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:stars/ui/features/bots/view_models/bot_skill_view_model.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../support/widget_test_support.dart';
 
@@ -150,7 +150,7 @@ void main() {
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(find.byType(ShadForm), findsOneWidget);
       expect(
-        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        find.byWidgetPredicate((widget) => widget is HyveDesktopMenu<Object?>),
         findsNWidgets(2),
       );
       final addBotClose = find.byKey(const ValueKey<String>('add-bot-close'));
@@ -201,7 +201,7 @@ void main() {
       );
       final modelMenuButton = find.descendant(
         of: modelMenu,
-        matching: find.byType(StarsDesktopIconAction),
+        matching: find.byType(HyveDesktopIconAction),
       );
       expect(modelMenu, findsOneWidget);
       expect(modelMenuButton, findsOneWidget);
@@ -249,7 +249,7 @@ void main() {
         );
         expect(
           titleText.style?.fontSize,
-          StarsDesktopThemeSpec.botFormSectionTitleFontSize,
+          HyveDesktopThemeSpec.botFormSectionTitleFontSize,
         );
       }
       expect(
@@ -388,10 +388,10 @@ void main() {
         inputSize('add-bot-model'),
       ];
       expect(singleLineInputSizes.map((size) => size.width).toSet(), {
-        StarsDesktopThemeSpec.addBotFormFieldWidth,
+        HyveDesktopThemeSpec.addBotFormFieldWidth,
       });
       expect(singleLineInputSizes.map((size) => size.height).toSet(), {
-        StarsDesktopThemeSpec.botFormFieldHeight,
+        HyveDesktopThemeSpec.botFormFieldHeight,
       });
 
       final nameField = find.byKey(const ValueKey<String>('add-bot-name'));
@@ -416,13 +416,13 @@ void main() {
       );
       expect(
         systemPromptSize,
-        const Size(StarsDesktopThemeSpec.addBotFormFieldWidth, 114),
+        const Size(HyveDesktopThemeSpec.addBotFormFieldWidth, 114),
       );
 
       final providerMenuAnchor = find.descendant(
         of: providerField,
         matching: find.byWidgetPredicate(
-          (widget) => widget is StarsDesktopMenu<Object?>,
+          (widget) => widget is HyveDesktopMenu<Object?>,
         ),
       );
       expect(providerMenuAnchor, findsOneWidget);
@@ -434,7 +434,7 @@ void main() {
       final providerDropdownIconRect = tester.getRect(providerDropdownIcon);
       final providerMenuButton = find.descendant(
         of: providerMenuAnchor,
-        matching: find.byType(StarsDesktopIconAction),
+        matching: find.byType(HyveDesktopIconAction),
       );
       await tester.enterText(
         find.descendant(of: providerField, matching: find.byType(EditableText)),
@@ -504,7 +504,7 @@ void main() {
 
       expect(find.byType(ShadDialog), findsOneWidget);
       expect(
-        find.byWidgetPredicate((widget) => widget is StarsDesktopMenu<Object?>),
+        find.byWidgetPredicate((widget) => widget is HyveDesktopMenu<Object?>),
         findsNWidgets(3),
       );
       expect(controllerFor('add-bot-sub-provider').text, 'HF-Inference');
@@ -666,7 +666,7 @@ void main() {
       expect(find.textContaining('模型服务不可用'), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
       expect(
-        find.ancestor(of: alert, matching: find.byType(StarsInlineErrorAlert)),
+        find.ancestor(of: alert, matching: find.byType(HyveInlineErrorAlert)),
         findsOneWidget,
       );
       expect(tester.getSize(alert).height, lessThanOrEqualTo(58));

@@ -2,7 +2,7 @@
 
 ## 1. 背景
 
-Stars 当前由 `ComposeChatTurn` 组装文本模型请求：
+Hyve 当前由 `ComposeChatTurn` 组装文本模型请求：
 
 - 智能体系统提示词和本轮启用的 Skills 被合并为 system 消息；
 - 历史消息最多保留最近 100 条；
@@ -136,7 +136,7 @@ ChatGenerationViewModel.startText
     +--> 终态后达到软阈值 --> 后台预压缩下一段
 ```
 
-分层仍遵循 Stars 现有约束：
+分层仍遵循 Hyve 现有约束：
 
 ```text
 View -> ViewModel -> Use Case -> Repository contract

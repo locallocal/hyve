@@ -1,6 +1,6 @@
 # Changelog
 
-All notable user-visible changes to Stars are documented here. The format is
+All notable user-visible changes to Hyve are documented here. The format is
 based on Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
@@ -16,9 +16,9 @@ based on Keep a Changelog, and the project uses semantic versioning.
 
 ### Changed
 
-- Relicensed Stars from the MIT License to the GNU Affero General Public
+- Relicensed Hyve from the MIT License to the GNU Affero General Public
   License v3.0 only (`AGPL-3.0-only`).
-- Unified the application identifier as `io.github.locallocal.stars` on all
+- Unified the application identifier as `io.github.locallocal.hyve` on all
   release platforms and added migration reads for legacy Apple secure-storage
   namespaces.
 - Standardized localization generation on `intl_utils` and the Italian catalog
@@ -30,4 +30,4 @@ based on Keep a Changelog, and the project uses semantic versioning.
 - Updated desktop architecture, quality commands, release conventions, and
   local/CI cache guidance to match the current implementation.
 
-[Unreleased]: https://github.com/locallocal/stars/commits/main
+[Unreleased]: https://github.com/locallocal/hyve/commits/main

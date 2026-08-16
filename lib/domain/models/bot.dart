@@ -1,5 +1,5 @@
-import 'package:stars/domain/models/mcp.dart';
-import 'package:stars/domain/models/modalities.dart';
+import 'package:hyve/domain/models/mcp.dart';
+import 'package:hyve/domain/models/modalities.dart';
 
 class Bot {
   static const parameterSupportsMcp = 'supports_mcp';

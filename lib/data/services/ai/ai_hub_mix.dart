@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/data/services/ai/provider_service.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/data/services/ai/provider_service.dart';
 
 typedef AiHubMixRequestSender =
     Future<http.StreamedResponse> Function(http.BaseRequest request);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/generated/l10n.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/utils/theme.dart';
 
 enum TokenUsageBreakdownLayout { cards, inspector }
 
@@ -152,17 +152,17 @@ class _TokenMetricRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 9),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: StarsDesktopThemeSpec.mutedText(context)),
+          Icon(icon, size: 17, color: HyveDesktopThemeSpec.mutedText(context)),
           const SizedBox(width: 9),
           Expanded(
-            child: Text(label, style: StarsDesktopThemeSpec.bodyStyle(context)),
+            child: Text(label, style: HyveDesktopThemeSpec.bodyStyle(context)),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: SelectableText(
               value,
               textAlign: TextAlign.right,
-              style: StarsDesktopThemeSpec.metaStyle(context),
+              style: HyveDesktopThemeSpec.metaStyle(context),
             ),
           ),
         ],

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:stars/utils/theme.dart';
+import 'package:hyve/utils/theme.dart';
 
 // Shared desktop interaction primitives used by multiple feature views.
 const IconData desktopStartConversationIcon = LucideIcons.messageCircle;
 const IconData desktopBotIcon = LucideIcons.bot;
-const double starsInspectorIconLabelGap = 9;
+const double hyveInspectorIconLabelGap = 9;
 const double _appIconCornerRadiusRatio = 0.24;
 
 BorderRadius desktopAppIconBorderRadius(double size) =>
     BorderRadius.all(Radius.circular(size * _appIconCornerRadiusRatio));
 
 /// A compact, dismissible inline error shared by chat and form workflows.
-class StarsInlineErrorAlert extends StatelessWidget {
-  const StarsInlineErrorAlert({
+class HyveInlineErrorAlert extends StatelessWidget {
+  const HyveInlineErrorAlert({
     super.key,
     required this.error,
     required this.isDesktop,
@@ -56,7 +56,7 @@ class StarsInlineErrorAlert extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(error, key: messageKey, textAlign: TextAlign.center),
         ),
-        trailing: StarsDesktopIconAction(
+        trailing: HyveDesktopIconAction(
           key: dismissKey,
           icon: LucideIcons.x,
           label: closeLabel,
@@ -73,8 +73,8 @@ class StarsInlineErrorAlert extends StatelessWidget {
 /// The label always starts after the same icon gutter. Text values occupy the
 /// available trailing region and align to its right edge, while controls can
 /// opt into a fixed-width trailing column.
-class StarsInspectorInfoRow extends StatelessWidget {
-  const StarsInspectorInfoRow({
+class HyveInspectorInfoRow extends StatelessWidget {
+  const HyveInspectorInfoRow({
     super.key,
     required this.icon,
     required this.label,
@@ -107,7 +107,7 @@ class StarsInspectorInfoRow extends StatelessWidget {
         SelectableText(
           value!,
           textAlign: valueTextAlign,
-          style: StarsDesktopThemeSpec.metaStyle(context),
+          style: HyveDesktopThemeSpec.metaStyle(context),
         );
     final trailingColumn = switch (trailingWidth) {
       final width? => SizedBox(width: width, child: trailingContent),
@@ -121,10 +121,10 @@ class StarsInspectorInfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: crossAxisAlignment,
         children: [
-          Icon(icon, size: 17, color: StarsDesktopThemeSpec.mutedText(context)),
-          SizedBox(key: iconLabelGapKey, width: starsInspectorIconLabelGap),
+          Icon(icon, size: 17, color: HyveDesktopThemeSpec.mutedText(context)),
+          SizedBox(key: iconLabelGapKey, width: hyveInspectorIconLabelGap),
           Expanded(
-            child: Text(label, style: StarsDesktopThemeSpec.bodyStyle(context)),
+            child: Text(label, style: HyveDesktopThemeSpec.bodyStyle(context)),
           ),
           const SizedBox(width: 8),
           trailingColumn,
@@ -136,8 +136,8 @@ class StarsInspectorInfoRow extends StatelessWidget {
 
 /// Applies desktop-chat-specific layout and surface overrides without
 /// changing the app-wide Shad theme.
-class StarsChatThemeScope extends StatelessWidget {
-  const StarsChatThemeScope({super.key, required this.child});
+class HyveChatThemeScope extends StatelessWidget {
+  const HyveChatThemeScope({super.key, required this.child});
 
   final Widget child;
 
@@ -276,8 +276,8 @@ void _restoreFocus(FocusNode? focusNode) {
 ///
 /// [icon] is expected to be a Lucide icon. The tooltip and button intentionally
 /// share one focus node so keyboard focus exposes the same label as hover.
-class StarsDesktopIconAction extends StatefulWidget {
-  const StarsDesktopIconAction({
+class HyveDesktopIconAction extends StatefulWidget {
+  const HyveDesktopIconAction({
     super.key,
     required this.icon,
     required this.label,
@@ -310,10 +310,10 @@ class StarsDesktopIconAction extends StatefulWidget {
   final bool showFocusRing;
 
   @override
-  State<StarsDesktopIconAction> createState() => _StarsDesktopIconActionState();
+  State<HyveDesktopIconAction> createState() => _HyveDesktopIconActionState();
 }
 
-class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
+class _HyveDesktopIconActionState extends State<HyveDesktopIconAction> {
   late FocusNode _focusNode;
   late bool _ownsFocusNode;
 
@@ -324,7 +324,7 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
   }
 
   @override
-  void didUpdateWidget(covariant StarsDesktopIconAction oldWidget) {
+  void didUpdateWidget(covariant HyveDesktopIconAction oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
       if (_ownsFocusNode) _focusNode.dispose();
@@ -336,7 +336,7 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
     _ownsFocusNode = focusNode == null;
     _focusNode =
         focusNode ??
-        FocusNode(debugLabel: 'StarsDesktopIconAction(${widget.label})');
+        FocusNode(debugLabel: 'HyveDesktopIconAction(${widget.label})');
   }
 
   @override
@@ -414,9 +414,9 @@ class _StarsDesktopIconActionState extends State<StarsDesktopIconAction> {
   }
 }
 
-/// Data for one entry in a [StarsDesktopMenu].
-class StarsDesktopMenuItem<T> {
-  const StarsDesktopMenuItem({
+/// Data for one entry in a [HyveDesktopMenu].
+class HyveDesktopMenuItem<T> {
+  const HyveDesktopMenuItem({
     required this.value,
     required this.label,
     this.key,
@@ -438,11 +438,11 @@ class StarsDesktopMenuItem<T> {
 /// The standard click/tap menu for desktop controls.
 ///
 /// This keeps all desktop selection and overflow menus on Shad popovers while
-/// [StarsContextMenu] owns secondary-click menus. The trigger is responsible
+/// [HyveContextMenu] owns secondary-click menus. The trigger is responsible
 /// for its own visual style and should normally be a
-/// [StarsDesktopIconAction], [ShadButton], or [ShadInput].
-class StarsDesktopMenu<T> extends StatefulWidget {
-  const StarsDesktopMenu({
+/// [HyveDesktopIconAction], [ShadButton], or [ShadInput].
+class HyveDesktopMenu<T> extends StatefulWidget {
+  const HyveDesktopMenu({
     super.key,
     required this.items,
     required this.onSelected,
@@ -452,7 +452,7 @@ class StarsDesktopMenu<T> extends StatefulWidget {
     this.alignEnd = false,
   });
 
-  final List<StarsDesktopMenuItem<T>> items;
+  final List<HyveDesktopMenuItem<T>> items;
   final ValueChanged<T> onSelected;
   final Widget Function(BuildContext context, VoidCallback toggle, bool isOpen)
   triggerBuilder;
@@ -461,10 +461,10 @@ class StarsDesktopMenu<T> extends StatefulWidget {
   final bool alignEnd;
 
   @override
-  State<StarsDesktopMenu<T>> createState() => _StarsDesktopMenuState<T>();
+  State<HyveDesktopMenu<T>> createState() => _HyveDesktopMenuState<T>();
 }
 
-class _StarsDesktopMenuState<T> extends State<StarsDesktopMenu<T>> {
+class _HyveDesktopMenuState<T> extends State<HyveDesktopMenu<T>> {
   late final ShadPopoverController _controller;
 
   @override
@@ -477,7 +477,7 @@ class _StarsDesktopMenuState<T> extends State<StarsDesktopMenu<T>> {
     if (mounted) setState(() {});
   }
 
-  void _select(StarsDesktopMenuItem<T> item) {
+  void _select(HyveDesktopMenuItem<T> item) {
     if (!item.enabled) return;
     _controller.hide();
     widget.onSelected(item.value);
@@ -564,8 +564,8 @@ class _StarsDesktopMenuState<T> extends State<StarsDesktopMenu<T>> {
   }
 }
 
-class _OpenStarsContextMenuIntent extends Intent {
-  const _OpenStarsContextMenuIntent();
+class _OpenHyveContextMenuIntent extends Intent {
+  const _OpenHyveContextMenuIntent();
 }
 
 /// Adds mouse and keyboard access to the same Shad context-menu items.
@@ -574,8 +574,8 @@ class _OpenStarsContextMenuIntent extends Intent {
 /// not handle Shift+F10 or the platform Menu key. This adapter keeps the
 /// pointer region and keyboard-anchored menu independently controlled while
 /// ensuring only one is open at a time.
-class StarsContextMenu extends StatefulWidget {
-  const StarsContextMenu({
+class HyveContextMenu extends StatefulWidget {
+  const HyveContextMenu({
     super.key,
     required this.child,
     required this.items,
@@ -602,10 +602,10 @@ class StarsContextMenu extends StatefulWidget {
   final bool enabled;
 
   @override
-  State<StarsContextMenu> createState() => _StarsContextMenuState();
+  State<HyveContextMenu> createState() => _HyveContextMenuState();
 }
 
-class _StarsContextMenuState extends State<StarsContextMenu> {
+class _HyveContextMenuState extends State<HyveContextMenu> {
   late final ShadContextMenuController _pointerController;
   late final ShadContextMenuController _keyboardController;
   late FocusNode _focusNode;
@@ -625,7 +625,7 @@ class _StarsContextMenuState extends State<StarsContextMenu> {
   }
 
   @override
-  void didUpdateWidget(covariant StarsContextMenu oldWidget) {
+  void didUpdateWidget(covariant HyveContextMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
       if (_ownsFocusNode) _focusNode.dispose();
@@ -639,7 +639,7 @@ class _StarsContextMenuState extends State<StarsContextMenu> {
 
   void _setFocusNode(FocusNode? focusNode) {
     _ownsFocusNode = focusNode == null;
-    _focusNode = focusNode ?? FocusNode(debugLabel: 'StarsContextMenu');
+    _focusNode = focusNode ?? FocusNode(debugLabel: 'HyveContextMenu');
   }
 
   void _handlePointerMenuChanged() {
@@ -677,7 +677,7 @@ class _StarsContextMenuState extends State<StarsContextMenu> {
     });
   }
 
-  Object? _openKeyboardMenu(_OpenStarsContextMenuIntent intent) {
+  Object? _openKeyboardMenu(_OpenHyveContextMenuIntent intent) {
     if (_canOpen) _keyboardController.show();
     return null;
   }
@@ -705,14 +705,14 @@ class _StarsContextMenuState extends State<StarsContextMenu> {
     trigger = Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
         SingleActivator(LogicalKeyboardKey.f10, shift: true):
-            _OpenStarsContextMenuIntent(),
+            _OpenHyveContextMenuIntent(),
         SingleActivator(LogicalKeyboardKey.contextMenu):
-            _OpenStarsContextMenuIntent(),
+            _OpenHyveContextMenuIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
-          _OpenStarsContextMenuIntent:
-              CallbackAction<_OpenStarsContextMenuIntent>(
+          _OpenHyveContextMenuIntent:
+              CallbackAction<_OpenHyveContextMenuIntent>(
                 onInvoke: _openKeyboardMenu,
               ),
         },

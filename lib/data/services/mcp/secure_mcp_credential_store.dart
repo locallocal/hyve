@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:stars/domain/models/models.dart';
-import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/mcp_credential_store.dart';
 
 final class SecureMcpCredentialStore implements McpCredentialStore {
   SecureMcpCredentialStore({
@@ -27,8 +27,8 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
                : null);
 
   static const secureStorageAccountName =
-      'io.github.locallocal.stars.mcp.credentials';
-  static const legacyStorageAccountName = 'com.example.stars.mcp.credentials';
+      'io.github.locallocal.hyve.mcp.credentials';
+  static const legacyStorageAccountName = 'com.example.hyve.mcp.credentials';
 
   final FlutterSecureStorage _storage;
   final FlutterSecureStorage? _legacyStorage;
@@ -125,7 +125,7 @@ final class SecureMcpCredentialStore implements McpCredentialStore {
     if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$').hasMatch(serverId)) {
       throw ArgumentError.value(serverId, 'serverId', 'Invalid MCP server id.');
     }
-    return 'stars.mcp.credential.$serverId';
+    return 'hyve.mcp.credential.$serverId';
   }
 }
 

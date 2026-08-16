@@ -29,16 +29,25 @@ void main() {
       expect(viewModel.isLoading, isFalse);
       expect(viewModel.error, isNull);
       expect(viewModel.chats, hasLength(2));
+      final chatsSnapshot = viewModel.chats;
       expect(
         () => viewModel.chats.add(_chat('x', 'x', 'x')),
         throwsUnsupportedError,
       );
+      expect(() => viewModel.bots.clear(), throwsUnsupportedError);
+      expect(() => viewModel.filteredChats.clear(), throwsUnsupportedError);
 
       viewModel.search('coder');
       expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-2']);
 
       viewModel.search('architecture');
       expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-1']);
+
+      chatRepository.items.add(_chat('chat-3', 'bot-1', 'New snapshot'));
+      await viewModel.load();
+
+      expect(viewModel.chats, hasLength(3));
+      expect(chatsSnapshot, hasLength(2));
     },
   );
 

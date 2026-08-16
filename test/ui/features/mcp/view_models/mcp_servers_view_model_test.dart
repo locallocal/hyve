@@ -8,8 +8,10 @@ import 'package:stars/data/services/local_database_service.dart';
 import 'package:stars/data/services/mcp/mcp_catalog_service.dart';
 import 'package:stars/data/services/tools/add_mcp_server_tool.dart';
 import 'package:stars/domain/models/models.dart';
+import 'package:stars/domain/repositories/catalog_controller.dart';
 import 'package:stars/domain/repositories/mcp_client.dart';
 import 'package:stars/domain/repositories/mcp_credential_store.dart';
+import 'package:stars/domain/repositories/mcp_server_repository.dart';
 import 'package:stars/domain/use_cases/mcp_server_mutations.dart';
 import 'package:stars/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 
@@ -159,6 +161,85 @@ void main() {
     final tool = viewModel.toolsFor(viewModel.servers.single.id).single;
 
     expect(registry.find(tool.canonicalName), isNotNull);
+  });
+
+  test('publishes immutable server and Tool snapshots', () async {
+    final timestamp = DateTime(2026, 7, 29, 11);
+    final firstServer = McpServer(
+      id: 'first',
+      name: 'First',
+      transport: McpStreamableHttpServerTransport(
+        endpoint: Uri.parse('https://example.com/first'),
+      ),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+    final firstTool = McpToolDescriptor(
+      serverId: firstServer.id,
+      remoteName: 'first_tool',
+      title: 'First Tool',
+      description: 'First tool.',
+      inputSchema: const {'type': 'object'},
+      updatedAt: timestamp,
+    );
+    final mutableRepository = _MutableMcpServerRepository(
+      servers: [firstServer],
+      toolsByServer: {
+        firstServer.id: [firstTool],
+      },
+    );
+    final catalog = _StubMcpCatalogController();
+    final mutableViewModel = McpServersViewModel(
+      repository: mutableRepository,
+      catalogService: catalog,
+      saveAndConnect: SaveAndConnectMcpServer(
+        repository: mutableRepository,
+        credentialStore: _MemoryCredentialStore(),
+        catalogController: catalog,
+      ),
+      deleteServer: DeleteMcpServer(
+        repository: mutableRepository,
+        credentialStore: _MemoryCredentialStore(),
+        catalogController: catalog,
+      ),
+    );
+    addTearDown(mutableViewModel.dispose);
+    await mutableViewModel.load();
+    final serversSnapshot = mutableViewModel.servers;
+    final toolsSnapshot = mutableViewModel.toolsFor(firstServer.id);
+
+    expect(() => serversSnapshot.clear(), throwsUnsupportedError);
+    expect(() => toolsSnapshot.clear(), throwsUnsupportedError);
+
+    mutableRepository.servers.add(
+      McpServer(
+        id: 'second',
+        name: 'Second',
+        transport: McpStreamableHttpServerTransport(
+          endpoint: Uri.parse('https://example.com/second'),
+        ),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ),
+    );
+    mutableRepository.toolsByServer[firstServer.id]!.add(
+      McpToolDescriptor(
+        serverId: firstServer.id,
+        remoteName: 'second_tool',
+        title: 'Second Tool',
+        description: 'Second tool.',
+        inputSchema: const {'type': 'object'},
+        updatedAt: timestamp,
+      ),
+    );
+
+    expect(serversSnapshot, hasLength(1));
+    expect(toolsSnapshot, hasLength(1));
+    await mutableViewModel.load();
+    expect(mutableViewModel.servers, hasLength(2));
+    expect(mutableViewModel.toolsFor(firstServer.id), hasLength(2));
+    expect(serversSnapshot, hasLength(1));
+    expect(toolsSnapshot, hasLength(1));
   });
 
   test('a new server remains saved when remote discovery fails', () async {
@@ -371,6 +452,37 @@ final class _MemoryCredentialStore implements McpCredentialStore {
     if (writeError case final error?) throw error;
     values[serverId] = credential;
   }
+}
+
+final class _MutableMcpServerRepository implements McpServerRepository {
+  _MutableMcpServerRepository({
+    required this.servers,
+    required this.toolsByServer,
+  });
+
+  final List<McpServer> servers;
+  final Map<String, List<McpToolDescriptor>> toolsByServer;
+
+  @override
+  Stream<List<McpServer>> get changes => const Stream.empty();
+
+  @override
+  Future<List<McpServer>> getServers() async => servers;
+
+  @override
+  Future<List<McpToolDescriptor>> getTools(String serverId) async =>
+      toolsByServer[serverId] ?? const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class _StubMcpCatalogController implements McpCatalogController {
+  @override
+  McpStdioProcessInfo? getStdioProcessInfo(String serverId) => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 final class _FakeMcpClient implements McpClient {

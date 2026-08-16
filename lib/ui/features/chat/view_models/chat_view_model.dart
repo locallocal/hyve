@@ -35,7 +35,7 @@ class ChatViewModel extends DisposableChangeNotifier {
     final history = _workflow.peekHistory();
     if (history == null) return null;
     _applyHistoryState(history);
-    return history.messages;
+    return List<Message>.unmodifiable(history.messages);
   }
 
   AppFailure? get historyError => _historyError;
@@ -52,7 +52,7 @@ class ChatViewModel extends DisposableChangeNotifier {
     try {
       final history = await _workflow.loadHistory();
       if (isDisposed || generation != _historyLoadGeneration) return;
-      _messages = history.messages;
+      _messages = List<Message>.unmodifiable(history.messages);
       _applyHistoryState(history);
     } catch (error) {
       if (isDisposed || generation != _historyLoadGeneration) return;

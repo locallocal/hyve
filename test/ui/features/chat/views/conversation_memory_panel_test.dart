@@ -17,6 +17,43 @@ import 'package:stars/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:stars/utils/theme.dart';
 
 void main() {
+  test('publishes immutable memory item snapshots', () async {
+    final repository = _MemoryRepository();
+    final viewModel = ConversationMemoryViewModel(
+      chatId: 'chat_1',
+      bot: _bot,
+      repository: repository,
+      compactConversation: CompactConversation(
+        messageRepository: _MessageRepository(),
+        memoryRepository: repository,
+        summarizerFactory: (_) => const _Summarizer(),
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+    final itemsSnapshot = viewModel.items;
+
+    expect(() => itemsSnapshot.clear(), throwsUnsupportedError);
+
+    repository.items.add(
+      ConversationMemoryItem(
+        id: 'memory_2',
+        chatId: 'chat_1',
+        memoryKey: 'storage.backup',
+        kind: ConversationMemoryKind.fact,
+        content: 'Keep a backup',
+        createdAt: DateTime(2026, 8, 9),
+        updatedAt: DateTime(2026, 8, 9),
+      ),
+    );
+
+    expect(itemsSnapshot, hasLength(1));
+    await viewModel.load();
+    expect(viewModel.items, hasLength(2));
+    expect(itemsSnapshot, hasLength(1));
+  });
+
   testWidgets('shows summary, memory controls, and opens the manager', (
     tester,
   ) async {
@@ -487,9 +524,21 @@ final _bot = Bot(
 );
 
 final class _MemoryRepository implements ConversationMemoryRepository {
-  _MemoryRepository({this.hasSummary = true});
+  _MemoryRepository({this.hasSummary = true})
+    : items = [
+        ConversationMemoryItem(
+          id: 'memory_1',
+          chatId: 'chat_1',
+          memoryKey: 'storage.choice',
+          kind: ConversationMemoryKind.decision,
+          content: 'Use SQLite metadata',
+          createdAt: DateTime(2026, 8, 8),
+          updatedAt: DateTime(2026, 8, 8),
+        ),
+      ];
 
   final bool hasSummary;
+  final List<ConversationMemoryItem> items;
   final StreamController<String> controller = StreamController.broadcast();
 
   @override
@@ -520,17 +569,7 @@ final class _MemoryRepository implements ConversationMemoryRepository {
   }
 
   @override
-  Future<List<ConversationMemoryItem>> getItems(String chatId) async => [
-    ConversationMemoryItem(
-      id: 'memory_1',
-      chatId: chatId,
-      memoryKey: 'storage.choice',
-      kind: ConversationMemoryKind.decision,
-      content: 'Use SQLite metadata',
-      createdAt: DateTime(2026, 8, 8),
-      updatedAt: DateTime(2026, 8, 8),
-    ),
-  ];
+  Future<List<ConversationMemoryItem>> getItems(String chatId) async => items;
 
   @override
   Future<ConversationMemoryState> getState(String chatId) async =>

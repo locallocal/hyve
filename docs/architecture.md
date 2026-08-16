@@ -13,7 +13,7 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 
 - `lib/domain/models`：不可变领域模型的公共入口。
 - `lib/domain/repositories`：UI/业务层依赖的数据契约。
-- `lib/domain/use_cases`：跨步骤或可复用业务规则，例如创建会话。
+- `lib/domain/use_cases`：跨步骤或可复用业务规则，例如创建项目。
 - `lib/data/models`：数据库/API 原始记录与领域模型之间的映射。
 - `lib/data/services`：SQLite、HTTP、平台插件等外部系统边界；AI 厂商适配器统一位于
   `lib/data/services/ai`。
@@ -31,8 +31,8 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 旧 `lib/pages` 也已完成迁移并删除。应用入口 `main.dart` 只负责平台初始化和启动；应用
 壳、功能页面与组件全部位于 UI 分层目录。相机、相册和文件选择通过
 `AttachmentRepository` 注入 ViewModel；消息保存、分享和外链打开通过
-`MessageActionRepository` 注入 ViewModel，View 不直接调用平台插件。会话草稿由有界
-`ConversationDraftRepository` 管理，并在会话删除时清理。
+`MessageActionRepository` 注入 ViewModel，View 不直接调用平台插件。项目草稿由有界
+`ConversationDraftRepository` 管理，并在项目删除时清理。
 
 ## 功能开发顺序
 

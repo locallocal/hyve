@@ -84,10 +84,7 @@ class WelcomeView extends StatelessWidget {
                   vertical: 8,
                 ),
                 child: Text(
-                  desktopConversationText(
-                    context,
-                    S.of(context).startChatPrompt,
-                  ),
+                  desktopProjectText(context, S.of(context).startChatPrompt),
                   style: TextStyle(
                     color:
                         isDesktop && shadTheme != null

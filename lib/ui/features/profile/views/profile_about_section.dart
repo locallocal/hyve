@@ -54,10 +54,7 @@ extension _ProfileAboutSection on _ProfilePageState {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          desktopConversationText(
-                            dialogContext,
-                            strings.appTitle,
-                          ),
+                          desktopProjectText(dialogContext, strings.appTitle),
                           style: titleStyle,
                         ),
                         const SizedBox(height: 8),
@@ -73,7 +70,7 @@ extension _ProfileAboutSection on _ProfilePageState {
             ),
             const SizedBox(height: 18),
             Text(
-              desktopConversationText(dialogContext, strings.appDescription),
+              desktopProjectText(dialogContext, strings.appDescription),
               key: const ValueKey<String>('profile-about-description'),
               style: bodyStyle,
               textAlign: TextAlign.start,

@@ -149,7 +149,7 @@ class ChatListPageState extends State<ChatListPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   leading: const Icon(desktopStartConversationIcon, size: 16),
                   child: Text(
-                    desktopConversationText(context, S.of(context).newChat),
+                    desktopProjectText(context, S.of(context).newChat),
                   ),
                 ),
         child: body,
@@ -179,7 +179,7 @@ class ChatListPageState extends State<ChatListPage> {
         child: ShadAlert.destructive(
           icon: const Icon(LucideIcons.circleAlert),
           title: Text(
-            desktopConversationText(context, S.of(context).unableToLoadChats),
+            desktopProjectText(context, S.of(context).unableToLoadChats),
           ),
           description: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +252,7 @@ class ChatListPageState extends State<ChatListPage> {
             searchQuery.isNotEmpty
                 ? LucideIcons.searchX
                 : desktopStartConversationIcon,
-        title: desktopConversationText(
+        title: desktopProjectText(
           context,
           searchQuery.isNotEmpty
               ? S.of(context).noMatchingChats
@@ -261,10 +261,7 @@ class ChatListPageState extends State<ChatListPage> {
         description:
             searchQuery.isNotEmpty
                 ? S.of(context).tryDifferentSearch
-                : desktopConversationText(
-                  context,
-                  S.of(context).clickToStartChat,
-                ),
+                : desktopProjectText(context, S.of(context).clickToStartChat),
         supportingText:
             searchQuery.isNotEmpty ? S.of(context).chatSearchScope : null,
         action:

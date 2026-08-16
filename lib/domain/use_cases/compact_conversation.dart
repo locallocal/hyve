@@ -272,7 +272,7 @@ final class CompactConversation {
     if (result.markdown.trim().isEmpty || result.markdown.length > 200000) {
       return false;
     }
-    if (!result.markdown.trimLeft().startsWith('# 会话摘要')) {
+    if (!result.markdown.trimLeft().startsWith('# 项目摘要')) {
       return false;
     }
     for (final item in result.items) {

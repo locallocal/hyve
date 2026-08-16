@@ -476,7 +476,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                     (context) => ShadDialog.alert(
                       title: Text(S.of(context).deleteBot),
                       description: Text(
-                        desktopConversationText(
+                        desktopProjectText(
                           context,
                           S.of(context).confirmDeleteBot(widget.bot.name),
                         ),
@@ -507,7 +507,7 @@ extension _EditBotCommands on _EditAIBotPageState {
                         ),
                       ),
                       content: Text(
-                        desktopConversationText(
+                        desktopProjectText(
                           context,
                           S.of(context).confirmDeleteBot(widget.bot.name),
                         ),

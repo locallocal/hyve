@@ -67,9 +67,9 @@ final class SkillInventoryToolSession {
         },
       );
     } on TimeoutException {
-      return _error(call, 'skill_inventory_timeout', '会话 Skill 查询超时。');
+      return _error(call, 'skill_inventory_timeout', '项目 Skill 查询超时。');
     } on Object {
-      return _error(call, 'skill_inventory_failed', '无法查询当前会话的 Skill。');
+      return _error(call, 'skill_inventory_failed', '无法查询当前项目的 Skill。');
     }
   }
 

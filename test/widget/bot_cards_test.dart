@@ -695,7 +695,7 @@ void main() {
         const ValueKey<String>('desktop-bot-details-bot-menu'),
       );
       final pageContext = tester.element(find.byType(ContactsPage));
-      final startChatLabel = desktopConversationText(
+      final startChatLabel = desktopProjectText(
         pageContext,
         S.of(pageContext).startChatting,
       );

@@ -279,11 +279,11 @@ void main() {
             height: 700,
             child: DesktopListPanel(
               title: '聊天',
-              description: '最近会话',
+              description: '最近项目',
               searchHintText: '搜索聊天记录',
               onSearchChanged: (value) => query = value,
               action: const Icon(Icons.add_rounded),
-              child: const Text('会话内容'),
+              child: const Text('项目内容'),
             ),
           ),
         ),
@@ -291,8 +291,8 @@ void main() {
     );
 
     expect(find.text('聊天'), findsOneWidget);
-    expect(find.text('最近会话'), findsOneWidget);
-    expect(find.text('会话内容'), findsOneWidget);
+    expect(find.text('最近项目'), findsOneWidget);
+    expect(find.text('项目内容'), findsOneWidget);
     expect(find.byType(HyveSearchField), findsOneWidget);
     expect(find.byType(Card), findsNothing);
     expect(
@@ -322,7 +322,7 @@ void main() {
                   children: [
                     HyveSearchField(
                       key: const ValueKey<String>('chat-search-field'),
-                      hintText: '搜索会话',
+                      hintText: '搜索项目',
                       onChanged: (_) {},
                     ),
                     const SizedBox(height: 12),
@@ -437,11 +437,11 @@ void main() {
             child: DesktopListPanel(
               title: '',
               description: '',
-              searchHintText: '搜索会话',
+              searchHintText: '搜索项目',
               onSearchChanged: (_) {},
               showHeader: false,
               action: const SizedBox.shrink(),
-              child: const Text('会话内容'),
+              child: const Text('项目内容'),
             ),
           ),
         ),

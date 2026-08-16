@@ -55,7 +55,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('新建会话'), findsOneWidget);
+      expect(find.text('新建项目'), findsOneWidget);
       expect(find.text('选择智能体'), findsOneWidget);
       expect(find.byIcon(LucideIcons.x), findsOneWidget);
       expect(find.byType(ShadDialog), findsOneWidget);

@@ -157,7 +157,7 @@ MCP 适合作为 Hyve 的外部能力层：
 
 - `AiProvider` 统一了流式文本、思考过程、Token 用量、完成和错误回调；
 - `ChatGenerationViewModel` 管理单次生成的生命周期、取消、持久化和幂等终态；
-- `ChatGenerationRegistry` 按会话持有生成状态；
+- `ChatGenerationRegistry` 按项目持有生成状态；
 - `MessageProcessInfo` 已能保存并展示 `MessageToolCall`、
   `MessageCommandExecution` 和文件编辑信息；
 - SQLite Repository、领域契约、ViewModel、View 和 `AppDependencies` 已形成清晰分层；
@@ -192,7 +192,7 @@ MCP 适合作为 Hyve 的外部能力层：
 - 全文和资源按需进入上下文，Token 成本可控；
 - 同一套 Skill 运行时适配不同模型 Provider；
 - Tool 调用具有最小权限、明确审批、可取消和可审计；
-- Skill 激活、版本、Tool 调用和结果可在会话中追踪；
+- Skill 激活、版本、Tool 调用和结果可在项目中追踪；
 - 桌面端优先实现，纯指令能力可复用于移动端。
 
 ### 5.2 第一阶段非目标
@@ -261,7 +261,7 @@ Data services
 1. `bundled`：随应用发布的只读 Skill；
 2. `user`：用户导入并安装到 Hyve 应用数据目录的 Skill；
 3. `project`：将来 Hyve 引入工作区概念后，扫描项目 `.agents/skills/`；
-4. `conversation override`：用户为当前会话明确选择的具体 Skill 版本。
+4. `conversation override`：用户为当前项目明确选择的具体 Skill 版本。
 
 同名冲突采用确定性规则：`project > user > bundled`，并在管理 UI 显示被遮蔽项。Bot
 绑定引用稳定 `skillId`；一次运行记录内容摘要，防止更新后无法解释旧结果。
@@ -474,7 +474,7 @@ ON skill_activations(run_id);
 - `auto`：模型根据目录调用 `activate_skill(name)`；仅 Provider 支持结构化 Tool
   Calling 时开启。
 - `always`：Bot 管理者确认后每轮加载，适合简短且稳定的写作规范。
-- `conversation pin`：会话级临时固定，不修改 Bot 全局绑定；后续阶段支持。
+- `conversation pin`：项目级临时固定，不修改 Bot 全局绑定；后续阶段支持。
 
 自动激活是模型驱动而不是仅靠关键词匹配。官方指南指出，大多数实现让模型依据
 `description` 判断；官方的描述优化指南也建议同时维护应触发和不应触发的近似用例，并
@@ -489,7 +489,7 @@ ON skill_activations(run_id);
 1. 应用安全规则和运行边界
 2. Bot.systemPrompt
 3. 本轮已激活 Skill 的完整指令
-4. 会话历史
+4. 项目历史
 5. 当前用户输入和附件描述
 6. Tool 执行结果（Agent Loop 中追加）
 ```
@@ -515,7 +515,7 @@ Bot 系统提示词和 Skill 都可能由用户导入。若 Provider 只有单�
 - 单个 Tool 返回：先结构化、摘要和截断，再进入模型上下文；
 - references 只按需加载，不在激活时全部拼接。
 
-预算不足时优先保留用户输入、最近会话和必要 Tool 结果，暂停自动激活低优先级 Skill，
+预算不足时优先保留用户输入、最近项目和必要 Tool 结果，暂停自动激活低优先级 Skill，
 并在 UI 显示原因。Skill Token 应计入现有 Token 用量统计；后续可增加
 `skill_context_tokens` 估算指标，但不能伪装成 Provider 返回的精确用量。
 
@@ -741,7 +741,7 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
 - 对 `always` 和高风险能力显示额外说明；
 - 删除 Bot 时只删除绑定，不卸载共享 Skill。
 
-### 13.3 会话页
+### 13.3 项目页
 
 - 输入区增加 Skill 选择器，显示本轮手动选择；
 - 自动激活后显示紧凑状态，例如“已启用 pdf-processing”；
@@ -830,7 +830,7 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
 
 目标：
 
-- 将会话历史和系统提示词拼装从 View 移到 `PromptComposer` / Use Case；
+- 将项目历史和系统提示词拼装从 View 移到 `PromptComposer` / Use Case；
 - 为 Provider 声明结构化 Tool 能力；
 - 定义 Skill、Tool、Activation 的领域模型和 Repository 契约。
 
@@ -868,19 +868,19 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
 - 受根目录约束的 `read_skill_resource`，按需读取 `references/`；
 - Provider 能力过滤；
 - 描述测试工具、触发日志和 Token 预算；
-- 会话级 pin；
+- 项目级 pin；
 - 大目录的本地召回和渐进披露。
 
 验收重点是误触发率和额外 Token，不以“支持自动”作为唯一完成标准。
 
 实现状态（2026-07-28）：
 
-- 已实现结构化 `activate_skill` 和 `read_skill_resource` 专用会话，不解析文本标记；
+- 已实现结构化 `activate_skill` 和 `read_skill_resource` 专用项目，不解析文本标记；
 - 已为 OpenAI 与 Anthropic Provider 开启结构化能力，其他 Provider 保持手动模式；
 - 已实现候选权限过滤、本地关键词召回、目录条数/Token 限制和确定性排序；
 - 已实现每轮最多 3 个 Skill、单 Skill/总上下文/资源/工具回合与调用次数预算；
 - 已实现 references 根目录约束、真实路径校验、UTF-8 与大小限制；
-- 已实现会话级 pin 持久化、自动模式设置、Provider 降级提示和描述触发测试；
+- 已实现项目级 pin 持久化、自动模式设置、Provider 降级提示和描述触发测试；
 - 自动激活、跳过、失败与资源读取会写入消息执行信息，激活记录写入审计表；
 - 预检请求 Token 会与最终生成 Token 合并记账。
 
@@ -898,7 +898,7 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
 
 - 已实现 Provider 无关的 `ModelRequest`、`ModelEvent`、
   `ToolCallRequested`、`ToolResult` 和 `AgentModelSession` 协议；
-- 已为 OpenAI 与 Anthropic 接入通用结构化模型会话，支持 Tool Schema、结果回传、
+- 已为 OpenAI 与 Anthropic 接入通用结构化模型项目，支持 Tool Schema、结果回传、
   多 Tool 请求和安全纯计算 Tool 的并行执行；其他 Provider 在没有可执行 Tool 时继续
   使用原有 `generateText` 路径；
 - 已实现 `ToolRegistry`、受支持 JSON Schema 子集的严格校验和未知约束失败关闭、
@@ -907,8 +907,8 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
   `allowed-tools` 请求后才向模型暴露；MCP、脚本、网络和文件写入未因此开放；
 - 已实现 `AgentRunCoordinator` 的模型循环、参数与输出校验、审批、单 Tool/总运行超时、
   最大回合/调用/重试限制、重复 `callId` 幂等和取消传播；
-- 已在聊天 ViewModel 和桌面/移动会话页接入待审批状态，审批卡展示 Tool、风险和参数，
-  允许或拒绝后继续同一模型会话；
+- 已在聊天 ViewModel 和桌面/移动项目页接入待审批状态，审批卡展示 Tool、风险和参数，
+  允许或拒绝后继续同一模型项目；
 - 已扩展 `MessageToolCall` 快照，保存调用 ID、来源、风险、参数/结果摘要、审批结论、
   错误码、状态和耗时，并继续随 `MessageProcessInfo` 持久化；
 - 已覆盖单 Tool、多 Tool、并行 Tool、Schema 错误、审批允许/拒绝、审批中取消、
@@ -926,17 +926,17 @@ Hyve 若支持一键添加本地 Server，必须在启动前显示完整命令�
 实现状态（2026-08-05）：
 
 - 已实现 Streamable HTTP 和桌面端 stdio MCP Host，覆盖 `initialize`、协议版本
-  协商、`notifications/initialized`、会话 ID、分页 `tools/list`、`tools/call`、
+  协商、`notifications/initialized`、项目 ID、分页 `tools/list`、`tools/call`、
   JSON 与 SSE 响应、换行分隔的 stdio JSON-RPC、取消、超时和进程生命周期管理；
 - 仅实现当前稳定 MCP `2025-11-25` 契约，不保留旧协议协商分支；严格拒绝响应 ID
   不匹配、非法 JSON-RPC、跨端点重定向、非当前协议版本和不符合当前 Schema 的字段；
-- 已将 HTTP/stdio 收敛为统一可插拔 Transport 契约；HTTP 会话失效后只重建并重试一次，
+- 已将 HTTP/stdio 收敛为统一可插拔 Transport 契约；HTTP 项目失效后只重建并重试一次，
   SSE 支持空 priming event，远程响应和 stdio 单条消息均设有大小上限；远程连接使用
   预校验并固定的公网 IP 建立 TLS，避免校验后再次 DNS 解析；
 - 已实现 `McpServerRepository`、SQLite Server/Tool Catalog、`McpClientService`、
   `McpToolAdapter`、动态 Tool Registry 和系统安全凭据存储；访问令牌不进入 SQLite、
   Skill 文件、模型上下文、调用结果或错误日志；
-- MCP Server 使用互斥的 Streamable HTTP/stdio 配置模型，协议协商结果只存在于活动会话；
+- MCP Server 使用互斥的 Streamable HTTP/stdio 配置模型，协议协商结果只存在于活动项目；
   Server 状态与 Tool Catalog 通过单一事务原子替换。当前 v17 Schema 直接创建最新 MCP 表，
   应用不提供旧数据库升级或旧字段解析回退；
 - 已实现远程端点安全策略：仅 HTTPS，禁止 URI 用户信息，阻止 localhost、私网、
@@ -1105,7 +1105,7 @@ Repository、Use Case、Tool Registry 和各 ViewModel。
 - 非法 YAML、路径穿越、超限包不会进入正式安装目录；
 - 管理页能查看说明、版本、来源、摘要、诊断和脚本禁用状态；
 - 一个 Skill 可绑定多个 Bot，删除 Bot 不会误删共享 Skill；
-- 用户能在会话中为本轮选择 Skill，只有被选中的完整说明进入上下文；
+- 用户能在项目中为本轮选择 Skill，只有被选中的完整说明进入上下文；
 - 未选择的 Skill 只贡献简短目录或完全不进入上下文；
 - Provider 不支持工具时仍能正常使用纯指令 Skill；
 - Skill 激活记录和内容摘要可在消息执行详情追踪；

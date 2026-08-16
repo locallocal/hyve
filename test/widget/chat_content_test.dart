@@ -133,7 +133,7 @@ void main() {
                           chatId: 'chat-1',
                           botId: 'bot-1',
                           senderId: 'bot-1',
-                          content: '桌面会话内容',
+                          content: '桌面项目内容',
                           timestamp: DateTime(2026),
                         ),
                       ],
@@ -735,7 +735,7 @@ void main() {
       final chat = Chat(
         id: 'chat-1',
         botId: bot.id,
-        lastMessage: '测试会话',
+        lastMessage: '测试项目',
         lastMessageTimestamp: timestamp,
         createTimestamp: timestamp,
         modifyTimestamp: timestamp,
@@ -860,7 +860,7 @@ void main() {
         final chat = Chat(
           id: 'chat-navigation',
           botId: bot.id,
-          lastMessage: '测试会话',
+          lastMessage: '测试项目',
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,
@@ -970,7 +970,7 @@ void main() {
       final chat = Chat(
         id: 'chat-delete',
         botId: bot.id,
-        lastMessage: '待删除会话',
+        lastMessage: '待删除项目',
         lastMessageTimestamp: timestamp,
         createTimestamp: timestamp,
         modifyTimestamp: timestamp,
@@ -1046,7 +1046,7 @@ void main() {
                 width: 320,
                 child: ChatListItem(
                   bot: bot,
-                  lastMessage: '测试会话',
+                  lastMessage: '测试项目',
                   timestamp: '刚刚',
                   onTap: () {},
                   trailing: const SizedBox.square(

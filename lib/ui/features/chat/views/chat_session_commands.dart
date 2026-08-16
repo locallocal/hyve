@@ -25,7 +25,7 @@ extension ChatPageSessionCommands on ChatPageState {
     } catch (error) {
       if (!mounted) return;
       _updateState(() {
-        _generationError = desktopConversationText(
+        _generationError = desktopProjectText(
           context,
           S.of(context).clearChatFailed(safeFailureMessage(context, error)),
         );

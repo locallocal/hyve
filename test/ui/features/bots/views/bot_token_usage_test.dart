@@ -24,12 +24,12 @@ void main() {
           conversationUsages: [
             BotConversationTokenUsage(
               chatId: 'chat-large',
-              preview: '第一段会话',
+              preview: '第一段项目',
               usage: ModelTokenUsage(totalTokens: 75),
             ),
             BotConversationTokenUsage(
               chatId: 'chat-small',
-              preview: '第二段会话',
+              preview: '第二段项目',
               usage: ModelTokenUsage(totalTokens: 25),
             ),
           ],
@@ -72,13 +72,13 @@ void main() {
       tester.getTopLeft(summary).dx,
       lessThan(tester.getTopLeft(chart).dx),
     );
-    expect(find.text('第一段会话'), findsOneWidget);
-    expect(find.text('第二段会话'), findsOneWidget);
-    expect(find.text('会话 Token 占比'), findsNothing);
+    expect(find.text('第一段项目'), findsOneWidget);
+    expect(find.text('第二段项目'), findsOneWidget);
+    expect(find.text('项目 Token 占比'), findsNothing);
     expect(find.text('75.0%'), findsOneWidget);
     expect(find.text('25.0%'), findsOneWidget);
     expect(
-      find.bySemanticsLabel(RegExp(r'会话 Token 占比, 第一段会话 75\.0%, 第二段会话 25\.0%')),
+      find.bySemanticsLabel(RegExp(r'项目 Token 占比, 第一段项目 75\.0%, 第二段项目 25\.0%')),
       findsOneWidget,
     );
     semantics.dispose();

@@ -194,13 +194,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("清空聊天"),
     "clearChatFailed": m6,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("清空聊天記錄"),
-    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除會話固定技能"),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除專案固定技能"),
     "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
     "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
       "Select a day to view hourly usage",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage("點擊右上角 + 添加智能體"),
-    "clickToStartChat": MessageLookupByLibrary.simpleMessage("點擊新建聊天建立會話"),
+    "clickToStartChat": MessageLookupByLibrary.simpleMessage("點擊新建聊天建立專案"),
     "commandExecutions": MessageLookupByLibrary.simpleMessage("命令執行"),
     "compactNow": MessageLookupByLibrary.simpleMessage("立即壓縮"),
     "compactingContext": MessageLookupByLibrary.simpleMessage("正在整理上下文…"),
@@ -217,7 +217,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "contextAndMemory": MessageLookupByLibrary.simpleMessage("上下文與記憶"),
     "contextCompacted": MessageLookupByLibrary.simpleMessage("上下文已壓縮"),
     "contextWindow": MessageLookupByLibrary.simpleMessage("上下文視窗"),
-    "conversationSummary": MessageLookupByLibrary.simpleMessage("會話摘要"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage("專案摘要"),
     "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
       "Token share by conversation",
     ),
@@ -525,7 +525,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noChats": MessageLookupByLibrary.simpleMessage("還沒有聊天記錄"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("未傳回內容"),
     "noConversationSummary": MessageLookupByLibrary.simpleMessage(
-      "目前還沒有可用的會話摘要。",
+      "目前還沒有可用的專案摘要。",
     ),
     "noMatchingBots": MessageLookupByLibrary.simpleMessage(
       "No matching bots found",
@@ -565,7 +565,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseAudio": MessageLookupByLibrary.simpleMessage("暫停播放"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("暫停生成"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("固定"),
-    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在目前會話固定已選技能"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在目前專案固定已選技能"),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("已固定"),
     "playAudio": MessageLookupByLibrary.simpleMessage("播放音訊"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage("請先輸入API密鑰"),

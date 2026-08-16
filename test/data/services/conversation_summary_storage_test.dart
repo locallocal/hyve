@@ -24,7 +24,7 @@ void main() {
     final stored = await storage.write(
       chatId: 'chat_1',
       summaryId: 'summary_1',
-      markdown: '# 会话摘要\r\n\r\n- 目标',
+      markdown: '# 项目摘要\r\n\r\n- 目标',
     );
     final metadata = _metadata(
       digest: stored.contentDigest,
@@ -33,7 +33,7 @@ void main() {
 
     final markdown = await storage.read(metadata);
 
-    expect(markdown, '# 会话摘要\n\n- 目标');
+    expect(markdown, '# 项目摘要\n\n- 目标');
     expect(
       File(
         path.join(root.path, 'chats', 'chat_1', 'summaries', 'summary_1.md'),

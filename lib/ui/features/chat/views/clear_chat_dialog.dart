@@ -80,10 +80,8 @@ Future<bool> _showDesktopConversationConfirmation({
     variant: ShadDialogVariant.alert,
     builder:
         (dialogContext) => ShadDialog.alert(
-          title: Text(desktopConversationText(dialogContext, title)),
-          description: Text(
-            desktopConversationText(dialogContext, description),
-          ),
+          title: Text(desktopProjectText(dialogContext, title)),
+          description: Text(desktopProjectText(dialogContext, description)),
           actions: [
             ShadButton.outline(
               onPressed: () => Navigator.of(dialogContext).pop(false),

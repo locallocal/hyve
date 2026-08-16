@@ -54,10 +54,29 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 - 删除/更新操作先完成持久化，再发布变更通知。
 - Data、Domain、UI 新分层目录启用 `strict-casts`、`strict-inference` 和
   `strict-raw-types`。
-- 排除生成代码后，单个生产 Dart library/part 文件不超过 1000 行；超出时应按职责和
-  状态边界拆分。
+- 排除生成代码后，单个生产 Dart library/part 文件不超过 800 行；View 文件不超过
+  780 行。超出时应按页面壳、section/widget、状态/命令或协调器/策略边界拆分。
+- 单个测试入口不超过 1500 行；`test/widget/` 下的 Widget feature group 不超过
+  1200 行。共享 fake 与 harness 放在 `test/support`，不要重新聚合到单体入口。
 - AI 厂商适配器当前保留项目通用 lint；其上层领域契约与 Repository 实现继续使用严格
   分析。新增厂商响应解析优先定义 DTO，避免扩展动态 Map 边界。
+
+## 职责边界 Review Checklist
+
+行数是触发 review 的信号，不是拆分目标。修改接近门禁的文件时逐项确认：
+
+- View 的页面壳只负责组合布局与路由；可命名的 section、弹窗、菜单和复杂控件进入同
+  feature 的独立文件。
+- ViewModel 的不可变 snapshot/state 与异步 command 分开；业务策略或跨 Repository
+  协调进入 Use Case，而不是继续扩展 ViewModel。
+- 构造函数出现超过 8 个直接协作者时，确认是否缺少按工作流组织的 facade/use case；
+  不用 service locator 或可空依赖掩盖依赖数量。
+- `build` 方法超过约 120 行、包含 3 个以上独立布局分支，或同一层同时处理布局、弹窗和
+  命令时，提取有语义名称的 Widget/section。
+- 单个测试入口接近 1000 行时按 feature group 拆分；各入口拥有独立 `main()`，只共享
+  无状态 harness、fake 和 fixture，以便单独运行及并行定位失败。
+- 拆分后至少运行原文件对应的定向测试与 `test/architecture/`；纯粹移动代码但仍共享多
+  项职责，不视为完成拆分。
 
 ## 自动门禁与例外
 
@@ -67,7 +86,8 @@ View -> ViewModel -> Use Case（按需） -> Repository contract
 - `ui` 禁止导入 `data`，唯一例外是生产组合根
   `lib/ui/core/dependency_injection/app_dependencies.dart`。
 - 所有 View 禁止直接导入文件/图片选择、相册保存、系统分享和外链插件。
-- 非生成生产 Dart 文件保持在 1000 行以内。
+- 非生成生产 Dart 文件默认保持在 800 行以内，View 保持在 780 行以内。
+- 测试入口保持在 1500 行以内，Widget feature group 保持在 1200 行以内。
 - 桌面专用视图必须使用共享语义 token、组件、菜单、图标动作和通知入口。
 
 `test/architecture/release_configuration_test.dart` 另行锁定全平台发布标识和安全存储

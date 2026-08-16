@@ -1,5 +1,10 @@
 part of 'message_input.dart';
 
+/// A controlled auto-growing adapter for shadcn_ui 0.55's textarea.
+///
+/// In 0.55, [ShadTextarea.minHeight] and [ShadTextarea.maxHeight] describe the
+/// editable area rather than the complete decorated control. Measuring here
+/// keeps the visible control within the desktop composer's 44–120/160 contract.
 class StarsChatTextarea extends StatefulWidget {
   const StarsChatTextarea({
     super.key,

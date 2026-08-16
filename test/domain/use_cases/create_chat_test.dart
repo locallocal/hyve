@@ -20,11 +20,44 @@ void main() {
     expect(first.modifyTimestamp, now);
     expect(repository.added, [first, second]);
   });
+
+  test('CreateChat stores a project name and ordered unique Bots', () async {
+    final repository = _FakeChatRepository();
+    final createChat = CreateChat(
+      chatRepository: repository,
+      clock: () => DateTime(2026, 8, 17),
+    );
+    final writer = _botWithId('bot-2');
+
+    final project = await createChat(
+      _bot,
+      name: '  Product launch  ',
+      bots: [_bot, writer, _bot],
+    );
+
+    expect(project.name, 'Product launch');
+    expect(project.botId, _bot.id);
+    expect(project.projectBotIds, ['bot-1', 'bot-2']);
+  });
 }
 
 final _bot = Bot(
   id: 'bot-1',
   name: 'Assistant',
+  avatar: '',
+  provider: 'OpenAI',
+  baseURL: 'https://example.test',
+  apiKey: 'secret',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'test-model',
+  systemPrompt: '',
+  createTimestamp: DateTime(2026),
+  modifyTimestamp: DateTime(2026),
+);
+
+Bot _botWithId(String id) => Bot(
+  id: id,
+  name: 'Assistant $id',
   avatar: '',
   provider: 'OpenAI',
   baseURL: 'https://example.test',

@@ -40,6 +40,16 @@
     "@newChat": {
         "description": "नई चैट"
     },
+    "newProject": "New Project",
+    "newProjectDescription": "Name the project and add one or more bots.",
+    "projectName": "Project name",
+    "projectNameHint": "Enter a project name",
+    "projectNameRequired": "Enter a project name.",
+    "selectProjectBots": "Add bots",
+    "selectAtLeastOneBot": "Select at least one bot.",
+    "selectedBotCount": "{count} selected",
+    "createProject": "Create Project",
+    "createProjectFailed": "Could not create the project: {error}",
     "themeSettings": "थीम सेटिंग्स",
     "@themeSettings": {
         "description": "थीम सेटिंग्स"

@@ -61,7 +61,11 @@ class SqliteChatRepository
   Future<void> addChat(Chat chat) async {
     await createChatDirectory(chat.id);
     try {
-      await _localDatabase.insertChat(ChatRecord.fromDomain(chat).values);
+      await _localDatabase.insertChatProject(
+        chat: ChatRecord.fromDomain(chat).values,
+        name: chat.name,
+        botIds: chat.projectBotIds,
+      );
     } catch (_) {
       try {
         await deleteChatDirectory(chat.id);
@@ -178,6 +182,8 @@ class SqliteChatRepository
             Chat(
               id: chat.id,
               botId: chat.botId,
+              name: chat.name,
+              botIds: chat.botIds,
               lastMessage: content,
               lastMessageTimestamp: timestamp,
               createTimestamp: chat.createTimestamp,
@@ -216,6 +222,8 @@ class SqliteChatRepository
             Chat(
               id: chat.id,
               botId: chat.botId,
+              name: chat.name,
+              botIds: chat.botIds,
               lastMessage: '',
               lastMessageTimestamp: timestamp,
               createTimestamp: chat.createTimestamp,

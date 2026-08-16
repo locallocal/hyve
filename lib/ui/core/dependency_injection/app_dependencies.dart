@@ -103,6 +103,7 @@ import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model
 import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/view_models/new_chat_view_model.dart';
+import 'package:hyve/ui/features/chats/view_models/new_project_view_model.dart';
 import 'package:hyve/ui/features/feedback/view_models/feedback_view_model.dart';
 import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
@@ -708,6 +709,9 @@ class AppDependencies {
 
   NewChatViewModel createNewChatViewModel() =>
       NewChatViewModel(botRepository: botRepository, createChat: createChat);
+
+  NewProjectViewModel createNewProjectViewModel() =>
+      NewProjectViewModel(botRepository: botRepository, createChat: createChat);
 
   ChatViewModel createChatViewModel(String chatId, Bot bot) {
     final workflow = ChatWorkflowFacade(

@@ -66,15 +66,34 @@ final class ChatRecord {
   final Map<String, Object?> values;
 
   Chat toDomain() {
+    final primaryBotId = _string(values['bot_id']);
     return Chat(
       id: _string(values['id']),
-      botId: _string(values['bot_id']),
+      botId: primaryBotId,
+      name:
+          values['project_name'] is String
+              ? values['project_name']! as String
+              : '',
+      botIds: _projectBotIds(values['project_bot_ids'], primaryBotId),
       lastMessage: _string(values['last_message']),
       lastMessageTimestamp: _timestamp(values['last_message_timestamp']),
       createTimestamp: _timestamp(values['create_timestamp']),
       modifyTimestamp: _timestamp(values['modify_timestamp']),
     );
   }
+}
+
+List<String> _projectBotIds(Object? raw, String primaryBotId) {
+  if (raw == null) return List<String>.unmodifiable(<String>[primaryBotId]);
+  if (raw is! String) {
+    throw const FormatException('Project Bot ids must be stored as JSON text.');
+  }
+  final decoded = jsonDecode(raw);
+  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
+    throw const FormatException('Project Bot ids must contain a string list.');
+  }
+  final ids = <String>{primaryBotId, ...decoded.cast<String>()}..remove('');
+  return List<String>.unmodifiable(ids);
 }
 
 /// JSON-compatible representation of message execution metadata.

@@ -135,6 +135,101 @@ class S {
     );
   }
 
+  /// `New Project`
+  String get newProject {
+    return Intl.message('New Project', name: 'newProject', desc: '', args: []);
+  }
+
+  /// `Name the project and add one or more bots.`
+  String get newProjectDescription {
+    return Intl.message(
+      'Name the project and add one or more bots.',
+      name: 'newProjectDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Project name`
+  String get projectName {
+    return Intl.message(
+      'Project name',
+      name: 'projectName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a project name`
+  String get projectNameHint {
+    return Intl.message(
+      'Enter a project name',
+      name: 'projectNameHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a project name.`
+  String get projectNameRequired {
+    return Intl.message(
+      'Enter a project name.',
+      name: 'projectNameRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add bots`
+  String get selectProjectBots {
+    return Intl.message(
+      'Add bots',
+      name: 'selectProjectBots',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select at least one bot.`
+  String get selectAtLeastOneBot {
+    return Intl.message(
+      'Select at least one bot.',
+      name: 'selectAtLeastOneBot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} selected`
+  String selectedBotCount(int count) {
+    return Intl.message(
+      '$count selected',
+      name: 'selectedBotCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Create Project`
+  String get createProject {
+    return Intl.message(
+      'Create Project',
+      name: 'createProject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not create the project: {error}`
+  String createProjectFailed(String error) {
+    return Intl.message(
+      'Could not create the project: $error',
+      name: 'createProjectFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
   /// `Theme Settings`
   String get themeSettings {
     return Intl.message(

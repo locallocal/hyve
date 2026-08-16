@@ -250,7 +250,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('测试技能描述'), findsOneWidget);
-      expect(find.byType(ShadTextarea), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-description-test-input')),
+        findsOneWidget,
+      );
 
       await tester.tap(
         find.byKey(const ValueKey<String>('cancel-skill-description-test')),

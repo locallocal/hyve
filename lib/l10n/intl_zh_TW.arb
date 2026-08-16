@@ -40,6 +40,16 @@
     "@newChat": {
         "description": "新建聊天"
     },
+    "newProject": "新建專案",
+    "newProjectDescription": "設定專案名稱，並加入一個或多個智慧體。",
+    "projectName": "專案名稱",
+    "projectNameHint": "輸入專案名稱",
+    "projectNameRequired": "請輸入專案名稱。",
+    "selectProjectBots": "加入智慧體",
+    "selectAtLeastOneBot": "請至少選擇一個智慧體。",
+    "selectedBotCount": "已選擇 {count} 個",
+    "createProject": "建立專案",
+    "createProjectFailed": "建立專案失敗：{error}",
     "themeSettings": "主題設定",
     "@themeSettings": {
         "description": "主題設定"

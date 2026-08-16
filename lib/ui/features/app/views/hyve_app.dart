@@ -664,7 +664,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _requestCreateChat() {
-    _chatListKey.currentState?.openNewChatDialog();
+    _chatListKey.currentState?.openNewProjectPage();
   }
 
   Future<bool> _guardActiveChatRun() async {

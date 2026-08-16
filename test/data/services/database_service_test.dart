@@ -322,6 +322,8 @@ Future<void> _expectCurrentSchema(Database database) async {
     tables.map((table) => table['name']),
     unorderedEquals(<String>[
       'chats',
+      'chat_projects',
+      'chat_project_bots',
       'messages',
       'token_usage_records',
       'skills',
@@ -352,6 +354,7 @@ Future<void> _expectCurrentSchema(Database database) async {
     indexes.map((index) => index['name']),
     unorderedEquals(<String>[
       'messages_message_id_unique',
+      'chat_project_bots_bot_id_index',
       'messages_bot_id_index',
       'token_usage_records_chat_id_index',
       'token_usage_records_bot_id_index',

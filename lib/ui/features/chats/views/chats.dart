@@ -8,7 +8,9 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/core/widgets/common.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
-import 'package:hyve/ui/features/chats/views/new_chat_dialog.dart';
+import 'package:hyve/ui/features/chat/views/chat.dart';
+import 'package:hyve/ui/features/chats/view_models/new_project_view_model.dart';
+import 'package:hyve/ui/features/chats/views/new_project_page.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 
@@ -58,7 +60,7 @@ class ChatListPageState extends State<ChatListPage> {
 
   void focusSearch() => _searchFocusNode.requestFocus();
 
-  void openNewChatDialog() => _openNewChatDialog();
+  Future<void> openNewProjectPage() => _openNewProjectPage();
 
   Future<void> _loadChatList() => widget.viewModel.load();
 
@@ -111,7 +113,7 @@ class ChatListPageState extends State<ChatListPage> {
                 Icons.add_circle_rounded,
                 semanticLabel: S.of(context).newChat,
               ),
-              onPressed: _openNewChatDialog,
+              onPressed: _openNewProjectPage,
             ),
           ],
         ),
@@ -144,7 +146,7 @@ class ChatListPageState extends State<ChatListPage> {
                 ? const SizedBox.shrink()
                 : ShadButton(
                   size: ShadButtonSize.sm,
-                  onPressed: _openNewChatDialog,
+                  onPressed: _openNewProjectPage,
                   height: HyveDesktopThemeSpec.botFormFieldHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   leading: const Icon(desktopStartConversationIcon, size: 16),
@@ -318,7 +320,7 @@ class ChatListPageState extends State<ChatListPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _openNewChatDialog,
+                onPressed: _openNewProjectPage,
                 icon: const Icon(Icons.add_circle_outline),
                 label: Text(S.of(context).newChat),
                 style: ElevatedButton.styleFrom(
@@ -342,26 +344,36 @@ class ChatListPageState extends State<ChatListPage> {
     );
   }
 
-  void _openNewChatDialog() {
+  Future<void> _openNewProjectPage() async {
     if (!mounted) return;
-    Widget dialogBuilder(BuildContext dialogContext) => NewChatDialog(
-      viewModel: AppScope.of(context).createNewChatViewModel(),
-      onChatCreated: (chatId, bot) {
-        _loadChatList();
-        widget.onChatSelected(chatId, bot);
-      },
+    final desktop = isDesktopPlatform(context);
+    final viewModel = AppScope.of(context).createNewProjectViewModel();
+    final result =
+        desktop
+            ? await showShadDialog<CreatedProject>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => NewProjectPage(viewModel: viewModel),
+            )
+            : await showDialog<CreatedProject>(
+              context: context,
+              builder: (context) => NewProjectPage(viewModel: viewModel),
+            );
+    if (!mounted || result == null) return;
+    await _loadChatList();
+    if (!mounted) return;
+    widget.onChatSelected(result.chat.id, result.primaryBot);
+    ChatPageState.requestComposerFocus(result.chat.id);
+    if (isDesktopPlatform(context)) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder:
+            (context) => ChatPage(
+              id: result.chat.id,
+              bot: result.primaryBot,
+              showExecutionStatus: widget.showExecutionStatus,
+            ),
+      ),
     );
-
-    if (isDesktopPlatform(context)) {
-      showChatShadDialog<void>(
-        context: context,
-        barrierLabel:
-            MaterialLocalizations.of(context).modalBarrierDismissLabel,
-        builder: dialogBuilder,
-      );
-      return;
-    }
-
-    showDialog<void>(context: context, builder: dialogBuilder);
   }
 }

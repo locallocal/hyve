@@ -87,6 +87,47 @@ void main() {
     expect(await botRepository.getBots(forceRefresh: true), hasLength(1));
   });
 
+  test('project name and multiple Bot members round-trip atomically', () async {
+    final primary = _bot(id: 'project-primary');
+    final reviewer = _bot(id: 'project-reviewer');
+    final timestamp = DateTime(2026, 8, 17, 10);
+    await botRepository.addBot(primary);
+    await botRepository.addBot(reviewer);
+
+    final project = Chat(
+      id: 'project-1',
+      botId: primary.id,
+      name: 'Release planning',
+      botIds: [primary.id, reviewer.id],
+      lastMessageTimestamp: timestamp,
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    await localDatabase.insertChatProject(
+      chat: ChatRecord.fromDomain(project).values,
+      name: project.name,
+      botIds: project.projectBotIds,
+    );
+
+    final uncachedRepository = SqliteChatRepository(
+      localDatabase: localDatabase,
+    );
+    addTearDown(uncachedRepository.dispose);
+    final restored = await uncachedRepository.getChat('project-1');
+
+    expect(restored, isNotNull);
+    expect(restored!.name, 'Release planning');
+    expect(restored.projectBotIds, ['project-primary', 'project-reviewer']);
+    expect(
+      await database.query(
+        'chat_project_bots',
+        where: 'chat_id = ?',
+        whereArgs: ['project-1'],
+      ),
+      hasLength(2),
+    );
+  });
+
   test(
     'message history cache stays coherent across writes and clears',
     () async {

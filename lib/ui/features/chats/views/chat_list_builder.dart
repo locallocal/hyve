@@ -237,6 +237,7 @@ class ChatListBuilder extends StatelessWidget {
         ChatListItem buildListItem({Widget? trailing}) {
           return ChatListItem(
             bot: bot,
+            title: chat.name,
             isSelected:
                 isDesktop && selectionVisible && selectedChatId == chat.id,
             lastMessage:

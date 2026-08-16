@@ -43,6 +43,9 @@ void main() {
       viewModel.search('architecture');
       expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-1']);
 
+      viewModel.search('launch');
+      expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-2']);
+
       chatRepository.items.add(_chat('chat-3', 'bot-1', 'New snapshot'));
       await viewModel.load();
 
@@ -92,6 +95,7 @@ Bot _bot(String id, String name) => Bot(
 Chat _chat(String id, String botId, String preview) => Chat(
   id: id,
   botId: botId,
+  name: id == 'chat-2' ? 'Launch project' : '',
   lastMessage: preview,
   lastMessageTimestamp: DateTime(2026),
   createTimestamp: DateTime(2026),

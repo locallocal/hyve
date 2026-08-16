@@ -1,7 +1,9 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+
 import 'package:chewie/chewie.dart';
+import 'package:flutter/material.dart';
+import 'package:stars/generated/l10n.dart';
+import 'package:video_player/video_player.dart';
 
 /// Renders a local generated video with platform playback controls.
 class VideoPlayerWidget extends StatefulWidget {
@@ -42,7 +44,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         errorBuilder: (context, errorMessage) {
           return Center(
             child: Text(
-              '视频播放错误: $errorMessage',
+              S.of(context).videoPlaybackError(errorMessage),
               style: const TextStyle(color: Colors.white),
             ),
           );
@@ -67,7 +69,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         color: Theme.of(context).colorScheme.secondary,
         child: Center(
           child: Text(
-            '无法加载视频',
+            S.of(context).videoLoadFailed,
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
         ),

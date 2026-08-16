@@ -918,5 +918,13 @@
     "mcpSecureEnvironmentVariables": "Secure environment variables",
     "mcpHiddenEnvironmentVariableCount": "{count} configured (values hidden)",
     "mcpCommunicationChannel": "Communication channel",
-    "mcpStdioPipeChannel": "stdin / stdout / stderr (operating system pipes)"
+    "mcpStdioPipeChannel": "stdin / stdout / stderr (operating system pipes)",
+    "startupStarting": "正在啟動…",
+    "startupFailed": "啟動失敗，請再試一次。",
+    "videoPlaybackError": "影片播放錯誤：{error}",
+    "videoLoadFailed": "無法載入影片",
+    "databaseDowngradeNotSupported": "資料庫由較新版本的 Stars 建立，請升級應用程式後再開啟。",
+    "databaseRecoveryFailed": "資料庫完整性檢查失敗，且無法從目前版本的備份還原。",
+    "durationMilliseconds": "{milliseconds} 毫秒",
+    "durationSeconds": "{seconds} 秒"
 }

@@ -56,48 +56,54 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m14(error) => "Could not delete the chat: ${error}";
 
-  static String m15(name) =>
+  static String m15(milliseconds) => "${milliseconds} मिलीसेकंड";
+
+  static String m16(seconds) => "${seconds} सेकंड";
+
+  static String m17(name) =>
       "${name} को घोषित स्क्रिप्ट टूल के रूप में पंजीकृत करने दें। हर कॉल को फिर भी स्वीकृति चाहिए।";
 
-  static String m16(count) => "${count} files";
+  static String m18(count) => "${count} files";
 
-  static String m17(error) => "Generate image failed: ${error}";
+  static String m19(error) => "Generate image failed: ${error}";
 
-  static String m18(error) => "Could not generate music: ${error}";
+  static String m20(error) => "Could not generate music: ${error}";
 
-  static String m19(error) => "Could not generate speech: ${error}";
+  static String m21(error) => "Could not generate speech: ${error}";
 
-  static String m20(error) => "Could not generate video: ${error}";
+  static String m22(error) => "Could not generate video: ${error}";
 
-  static String m21(count) => "${count} items";
+  static String m23(count) => "${count} items";
 
-  static String m22(language) => "भाषा ${language} में बदली गई";
+  static String m24(language) => "भाषा ${language} में बदली गई";
 
-  static String m23(error) => "MCP connection failed: ${error}";
+  static String m25(error) => "MCP connection failed: ${error}";
 
-  static String m24(count) => "${count} configured (values hidden)";
+  static String m26(count) => "${count} configured (values hidden)";
 
-  static String m25(minutes) => "${minutes} मिनट पहले";
+  static String m27(minutes) => "${minutes} मिनट पहले";
 
-  static String m26(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
+  static String m28(count) => "सफलतापूर्वक ${count} मॉडल प्राप्त किए गए";
 
-  static String m27(count) => "${count} कमांड निष्पादन";
+  static String m29(count) => "${count} कमांड निष्पादन";
 
-  static String m28(duration) => "अवधि ${duration}";
+  static String m30(duration) => "अवधि ${duration}";
 
-  static String m29(count) => "${count} फ़ाइल बदलाव";
+  static String m31(count) => "${count} फ़ाइल बदलाव";
 
-  static String m30(count) => "${count} टूल कॉल";
+  static String m32(count) => "${count} टूल कॉल";
 
-  static String m31(error) => "उत्तर प्राप्त करने में विफल: ${error}";
+  static String m33(error) => "उत्तर प्राप्त करने में विफल: ${error}";
 
-  static String m32(error) => "Could not save image: ${error}";
+  static String m34(error) => "Could not save image: ${error}";
 
-  static String m33(error) => "Could not share image: ${error}";
+  static String m35(error) => "Could not share image: ${error}";
 
-  static String m34(error) => "कौशल आयात नहीं हो सका: ${error}";
+  static String m36(error) => "कौशल आयात नहीं हो सका: ${error}";
 
-  static String m35(duration) => "सोचना पूर्ण · ${duration}";
+  static String m37(duration) => "सोचना पूर्ण · ${duration}";
+
+  static String m38(error) => "वीडियो चलाने में त्रुटि: ${error}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -139,9 +145,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "सिस्टम प्रॉम्प्ट",
     ),
-    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
-      "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
-    ),
+    "applicationInjectedPromptDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "Stars इसे प्रबंधित करता है और हर मॉडल अनुरोध में जोड़ता है। वर्तमान एजेंट और बातचीत के पहचानकर्ता रनटाइम पर जोड़े जाते हैं और संपादित नहीं किए जा सकते।",
+        ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -266,6 +273,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "customProvider": MessageLookupByLibrary.simpleMessage("कस्टम प्रदाता..."),
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("डार्क मोड"),
+    "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
+      "यह डेटाबेस Stars के नए संस्करण से बनाया गया था। इसे खोलने से पहले ऐप अपडेट करें।",
+    ),
+    "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
+      "डेटाबेस अखंडता जाँच विफल रही और इस संस्करण के बैकअप से पुनर्प्राप्ति नहीं हो सकी।",
+    ),
     "deepThinking": MessageLookupByLibrary.simpleMessage("गहन चिंतन"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "आप एक सहायक AI हैं। कृपया हिंदी में उत्तर दें।",
@@ -311,6 +324,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट अक्षम करें",
     ),
+    "durationMilliseconds": m15,
+    "durationSeconds": m16,
     "edit": MessageLookupByLibrary.simpleMessage("संपादित करें"),
     "editBot": MessageLookupByLibrary.simpleMessage("बॉट संपादित करें"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
@@ -328,7 +343,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "स्क्रिप्ट सक्षम करें",
     ),
-    "enableSkillScriptsDescription": m15,
+    "enableSkillScriptsDescription": m17,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "अलग की गई कौशल स्क्रिप्ट सक्षम करें?",
     ),
@@ -385,7 +400,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "कृपया पहले मॉडल सूची प्राप्त करें",
     ),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m16,
+    "fileCount": m18,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("फ़ाइल स्थिति"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("संगीत"),
@@ -402,10 +417,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "फॉन्ट साइज़ अपडेट किया गया",
     ),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("भूलें"),
-    "generateImageFailed": m17,
-    "generateMusicFailed": m18,
-    "generateSpeechFailed": m19,
-    "generateVideoFailed": m20,
+    "generateImageFailed": m19,
+    "generateMusicFailed": m20,
+    "generateSpeechFailed": m21,
+    "generateVideoFailed": m22,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -450,10 +465,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidSummary": MessageLookupByLibrary.simpleMessage(
       "सारांश सत्यापन में विफल रहा",
     ),
-    "itemCount": m21,
+    "itemCount": m23,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("अभी-अभी"),
-    "languageChanged": m22,
+    "languageChanged": m24,
     "languageSettings": MessageLookupByLibrary.simpleMessage("भाषा सेटिंग्स"),
     "lightMode": MessageLookupByLibrary.simpleMessage("लाइट मोड"),
     "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
@@ -492,7 +507,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
       "Connection error",
     ),
-    "mcpConnectionFailed": m23,
+    "mcpConnectionFailed": m25,
     "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
@@ -504,7 +519,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
     ),
-    "mcpHiddenEnvironmentVariableCount": m24,
+    "mcpHiddenEnvironmentVariableCount": m26,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "Remote MCP endpoints must use HTTPS.",
     ),
@@ -588,7 +603,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
-    "minutesAgo": m25,
+    "minutesAgo": m27,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
     "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
     "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
@@ -607,7 +622,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
     "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
-    "modelsRetrievedSuccess": m26,
+    "modelsRetrievedSuccess": m28,
     "modificationTime": MessageLookupByLibrary.simpleMessage(
       "Modification Time",
     ),
@@ -709,13 +724,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("टेक्स्ट प्रीव्यू"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("गोपनीयता नीति"),
-    "processCommandCount": m27,
-    "processDuration": m28,
-    "processFileCount": m29,
+    "processCommandCount": m29,
+    "processDuration": m30,
+    "processFileCount": m31,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "प्रक्रिया जानकारी",
     ),
-    "processToolCount": m30,
+    "processToolCount": m32,
     "profile": MessageLookupByLibrary.simpleMessage("प्रोफाइल"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "अपने सुझाव और प्रतिक्रिया प्रदान करें",
@@ -755,7 +770,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetToDefault": MessageLookupByLibrary.simpleMessage(
       "डिफ़ॉल्ट पर रीसेट करें",
     ),
-    "responseError": m31,
+    "responseError": m33,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("पुनर्स्थापित करें"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "हाल के रखे गए चरण",
@@ -768,7 +783,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("परिवर्तन सहेजें"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m32,
+    "saveImageFailed": m34,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -789,7 +804,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("भेजें"),
     "settings": MessageLookupByLibrary.simpleMessage("सेटिंग्स"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m33,
+    "shareImageFailed": m35,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),
@@ -817,7 +832,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("बंद"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("चालू"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("फ़ाइलें"),
-    "skillImportFailed": m34,
+    "skillImportFailed": m36,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "कौशल आयात किया गया",
     ),
@@ -895,6 +910,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "चैट शुरू करने के लिए नीचे इनपुट फील्ड में संदेश भेजें",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("चैटिंग शुरू करें"),
+    "startupFailed": MessageLookupByLibrary.simpleMessage(
+      "शुरू नहीं हो सका। फिर से कोशिश करें।",
+    ),
+    "startupStarting": MessageLookupByLibrary.simpleMessage("शुरू हो रहा है…"),
     "statusActivated": MessageLookupByLibrary.simpleMessage("सक्रिय"),
     "statusAttached": MessageLookupByLibrary.simpleMessage("संलग्न"),
     "statusAwaitingApproval": MessageLookupByLibrary.simpleMessage(
@@ -950,7 +969,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "themeSettings": MessageLookupByLibrary.simpleMessage("थीम सेटिंग्स"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("सोचना पूर्ण"),
-    "thinkingCompletedWithDuration": m35,
+    "thinkingCompletedWithDuration": m37,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("सोच रहा है…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
@@ -994,6 +1013,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "userAgreement": MessageLookupByLibrary.simpleMessage("उपयोगकर्ता समझौता"),
     "version": MessageLookupByLibrary.simpleMessage("संस्करण 1.0.0"),
     "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
+    "videoLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "वीडियो लोड नहीं हो सका",
+    ),
+    "videoPlaybackError": m38,
     "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("सारांश देखें"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(

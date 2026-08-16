@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "शुरू हो रहा है…",
+    "startupFailed": "शुरू नहीं हो सका। फिर से कोशिश करें।",
+    "videoPlaybackError": "वीडियो चलाने में त्रुटि: {error}",
+    "videoLoadFailed": "वीडियो लोड नहीं हो सका",
+    "databaseDowngradeNotSupported": "यह डेटाबेस Stars के नए संस्करण से बनाया गया था। इसे खोलने से पहले ऐप अपडेट करें।",
+    "databaseRecoveryFailed": "डेटाबेस अखंडता जाँच विफल रही और इस संस्करण के बैकअप से पुनर्प्राप्ति नहीं हो सकी।",
+    "durationMilliseconds": "{milliseconds} मिलीसेकंड",
+    "durationSeconds": "{seconds} सेकंड"
 }

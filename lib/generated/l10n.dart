@@ -1,6 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -1509,8 +1510,7 @@ class S {
     return Intl.message(
       'Generating…',
       name: 'generating',
-      desc:
-          'Disabled primary action label while a request is running and cannot be cancelled',
+      desc: 'Disabled primary action label while a request is running and cannot be cancelled',
       args: [],
     );
   }
@@ -4503,6 +4503,89 @@ class S {
       name: 'memoryCorrection',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Starting…`
+  String get startupStarting {
+    return Intl.message(
+      'Starting…',
+      name: 'startupStarting',
+      desc:
+          'Status shown while Stars loads the profile before the main application starts',
+      args: [],
+    );
+  }
+
+  /// `Startup failed. Please try again.`
+  String get startupFailed {
+    return Intl.message(
+      'Startup failed. Please try again.',
+      name: 'startupFailed',
+      desc: 'Status shown when Stars cannot finish loading the application',
+      args: [],
+    );
+  }
+
+  /// `Video playback error: {error}`
+  String videoPlaybackError(String error) {
+    return Intl.message(
+      'Video playback error: $error',
+      name: 'videoPlaybackError',
+      desc: 'Error shown by the embedded video controls',
+      args: [error],
+    );
+  }
+
+  /// `Unable to load video`
+  String get videoLoadFailed {
+    return Intl.message(
+      'Unable to load video',
+      name: 'videoLoadFailed',
+      desc: 'Error shown when a local generated video cannot be initialized',
+      args: [],
+    );
+  }
+
+  /// `This database was created by a newer version of Stars. Update the app before opening it.`
+  String get databaseDowngradeNotSupported {
+    return Intl.message(
+      'This database was created by a newer version of Stars. Update the app before opening it.',
+      name: 'databaseDowngradeNotSupported',
+      desc:
+          'Safe error shown when the local database is newer than the application',
+      args: [],
+    );
+  }
+
+  /// `The database integrity check failed, and recovery from this version's backup was unsuccessful.`
+  String get databaseRecoveryFailed {
+    return Intl.message(
+      'The database integrity check failed, and recovery from this version\'s backup was unsuccessful.',
+      name: 'databaseRecoveryFailed',
+      desc:
+          'Safe error shown when database validation and backup recovery both fail',
+      args: [],
+    );
+  }
+
+  /// `{milliseconds} ms`
+  String durationMilliseconds(String milliseconds) {
+    return Intl.message(
+      '$milliseconds ms',
+      name: 'durationMilliseconds',
+      desc: 'Localized duration shorter than one second',
+      args: [milliseconds],
+    );
+  }
+
+  /// `{seconds} s`
+  String durationSeconds(String seconds) {
+    return Intl.message(
+      '$seconds s',
+      name: 'durationSeconds',
+      desc: 'Localized duration measured in seconds',
+      args: [seconds],
     );
   }
 }

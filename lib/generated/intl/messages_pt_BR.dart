@@ -56,49 +56,55 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m14(error) => "Could not delete the chat: ${error}";
 
-  static String m15(name) =>
+  static String m15(milliseconds) => "${milliseconds} ms";
+
+  static String m16(seconds) => "${seconds} s";
+
+  static String m17(name) =>
       "Permitir que ${name} registre os scripts declarados como ferramentas. Cada chamada ainda exigirá aprovação.";
 
-  static String m16(count) => "${count} files";
+  static String m18(count) => "${count} files";
 
-  static String m17(error) => "Generate image failed: ${error}";
+  static String m19(error) => "Generate image failed: ${error}";
 
-  static String m18(error) => "Could not generate music: ${error}";
+  static String m20(error) => "Could not generate music: ${error}";
 
-  static String m19(error) => "Could not generate speech: ${error}";
+  static String m21(error) => "Could not generate speech: ${error}";
 
-  static String m20(error) => "Could not generate video: ${error}";
+  static String m22(error) => "Could not generate video: ${error}";
 
-  static String m21(count) => "${count} items";
+  static String m23(count) => "${count} items";
 
-  static String m22(language) => "Idioma alterado para ${language}";
+  static String m24(language) => "Idioma alterado para ${language}";
 
-  static String m23(error) => "MCP connection failed: ${error}";
+  static String m25(error) => "MCP connection failed: ${error}";
 
-  static String m24(count) => "${count} configured (values hidden)";
+  static String m26(count) => "${count} configured (values hidden)";
 
-  static String m25(minutes) => "há ${minutes} minutos";
+  static String m27(minutes) => "há ${minutes} minutos";
 
-  static String m26(count) => "${count} modelos recuperados com sucesso";
+  static String m28(count) => "${count} modelos recuperados com sucesso";
 
-  static String m27(count) => "${count} execuções de comando";
+  static String m29(count) => "${count} execuções de comando";
 
-  static String m28(duration) => "Duração ${duration}";
+  static String m30(duration) => "Duração ${duration}";
 
-  static String m29(count) => "${count} alterações de arquivo";
+  static String m31(count) => "${count} alterações de arquivo";
 
-  static String m30(count) => "${count} chamadas de ferramenta";
+  static String m32(count) => "${count} chamadas de ferramenta";
 
-  static String m31(error) => "Falha ao obter resposta: ${error}";
+  static String m33(error) => "Falha ao obter resposta: ${error}";
 
-  static String m32(error) => "Could not save image: ${error}";
+  static String m34(error) => "Could not save image: ${error}";
 
-  static String m33(error) => "Could not share image: ${error}";
+  static String m35(error) => "Could not share image: ${error}";
 
-  static String m34(error) =>
+  static String m36(error) =>
       "Não foi possível importar a habilidade: ${error}";
 
-  static String m35(duration) => "Pensamento concluído · ${duration}";
+  static String m37(duration) => "Pensamento concluído · ${duration}";
+
+  static String m38(error) => "Erro na reprodução do vídeo: ${error}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -142,9 +148,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage(
       "Prompt do sistema",
     ),
-    "applicationInjectedPromptDescription": MessageLookupByLibrary.simpleMessage(
-      "Gerenciado pelo Stars e adicionado a cada solicitação ao modelo. Os identificadores do agente e da conversa atuais são incluídos em tempo de execução e não podem ser editados.",
-    ),
+    "applicationInjectedPromptDescription":
+        MessageLookupByLibrary.simpleMessage(
+          "Gerenciado pelo Stars e adicionado a cada solicitação ao modelo. Os identificadores do agente e da conversa atuais são incluídos em tempo de execução e não podem ser editados.",
+        ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("Attached Files"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("Attached Images"),
     "attachments": MessageLookupByLibrary.simpleMessage("Attachments"),
@@ -275,6 +282,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "dailyTokenUsage": MessageLookupByLibrary.simpleMessage("Daily usage"),
     "darkMode": MessageLookupByLibrary.simpleMessage("Modo escuro"),
+    "databaseDowngradeNotSupported": MessageLookupByLibrary.simpleMessage(
+      "Este banco de dados foi criado por uma versão mais recente do Stars. Atualize o aplicativo antes de abri-lo.",
+    ),
+    "databaseRecoveryFailed": MessageLookupByLibrary.simpleMessage(
+      "A verificação de integridade do banco de dados falhou e não foi possível recuperá-lo pelo backup desta versão.",
+    ),
     "deepThinking": MessageLookupByLibrary.simpleMessage("Raciocínio profundo"),
     "defaultSystemPrompt": MessageLookupByLibrary.simpleMessage(
       "Você é um assistente de IA útil. Por favor, responda em português.",
@@ -320,6 +333,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Desativar scripts",
     ),
+    "durationMilliseconds": m15,
+    "durationSeconds": m16,
     "edit": MessageLookupByLibrary.simpleMessage("Editar"),
     "editBot": MessageLookupByLibrary.simpleMessage("Editar bot"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("Edit MCP Server"),
@@ -337,7 +352,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage(
       "Ativar scripts",
     ),
-    "enableSkillScriptsDescription": m15,
+    "enableSkillScriptsDescription": m17,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "Ativar scripts isolados?",
     ),
@@ -396,7 +411,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Por favor, obtenha a lista de modelos primeiro",
     ),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m16,
+    "fileCount": m18,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("Status dos arquivos"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("Música"),
@@ -413,10 +428,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Tamanho da fonte atualizado",
     ),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("Esquecer"),
-    "generateImageFailed": m17,
-    "generateMusicFailed": m18,
-    "generateSpeechFailed": m19,
-    "generateVideoFailed": m20,
+    "generateImageFailed": m19,
+    "generateMusicFailed": m20,
+    "generateSpeechFailed": m21,
+    "generateVideoFailed": m22,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -461,10 +476,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidSummary": MessageLookupByLibrary.simpleMessage(
       "O resumo gerado não passou na validação",
     ),
-    "itemCount": m21,
+    "itemCount": m23,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("Agora mesmo"),
-    "languageChanged": m22,
+    "languageChanged": m24,
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Configurações de idioma",
     ),
@@ -503,7 +518,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage(
       "Connection error",
     ),
-    "mcpConnectionFailed": m23,
+    "mcpConnectionFailed": m25,
     "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("Connection"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage(
@@ -515,7 +530,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "Enter one KEY=VALUE per line. Values are stored in the operating system\'s secure credential store; leave blank while editing to keep existing values.",
     ),
-    "mcpHiddenEnvironmentVariableCount": m24,
+    "mcpHiddenEnvironmentVariableCount": m26,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "Remote MCP endpoints must use HTTPS.",
     ),
@@ -603,7 +618,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Digite uma mensagem...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
-    "minutesAgo": m25,
+    "minutesAgo": m27,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
     "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
     "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
@@ -622,7 +637,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
     "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
-    "modelsRetrievedSuccess": m26,
+    "modelsRetrievedSuccess": m28,
     "modificationTime": MessageLookupByLibrary.simpleMessage(
       "Modification Time",
     ),
@@ -728,13 +743,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyPolicy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidade",
     ),
-    "processCommandCount": m27,
-    "processDuration": m28,
-    "processFileCount": m29,
+    "processCommandCount": m29,
+    "processDuration": m30,
+    "processFileCount": m31,
     "processInformation": MessageLookupByLibrary.simpleMessage(
       "Informações do processo",
     ),
-    "processToolCount": m30,
+    "processToolCount": m32,
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Forneça suas sugestões e feedback",
@@ -778,7 +793,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Interrompido · Resposta parcial mantida",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Restaurar padrão"),
-    "responseError": m31,
+    "responseError": m33,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("Restaurar"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "Turnos recentes mantidos",
@@ -791,7 +806,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Salvar alterações"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m32,
+    "saveImageFailed": m34,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -814,7 +829,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "send": MessageLookupByLibrary.simpleMessage("Enviar"),
     "settings": MessageLookupByLibrary.simpleMessage("Configurações"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m33,
+    "shareImageFailed": m35,
     "sharedImageFromStars": MessageLookupByLibrary.simpleMessage(
       "Image from Stars",
     ),
@@ -846,7 +861,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Desativada"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Ativada"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Arquivos"),
-    "skillImportFailed": m34,
+    "skillImportFailed": m36,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Habilidade importada",
     ),
@@ -926,6 +941,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Envie uma mensagem no campo de texto abaixo para começar a conversar",
     ),
     "startChatting": MessageLookupByLibrary.simpleMessage("Comece a conversar"),
+    "startupFailed": MessageLookupByLibrary.simpleMessage(
+      "Falha ao iniciar. Tente novamente.",
+    ),
+    "startupStarting": MessageLookupByLibrary.simpleMessage("Iniciando…"),
     "statusActivated": MessageLookupByLibrary.simpleMessage("Ativado"),
     "statusAttached": MessageLookupByLibrary.simpleMessage("Anexado"),
     "statusAwaitingApproval": MessageLookupByLibrary.simpleMessage(
@@ -989,7 +1008,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Pensamento concluído",
     ),
-    "thinkingCompletedWithDuration": m35,
+    "thinkingCompletedWithDuration": m37,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Pensando…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
@@ -1031,6 +1050,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "userAgreement": MessageLookupByLibrary.simpleMessage("Acordo do usuário"),
     "version": MessageLookupByLibrary.simpleMessage("Versão 1.0.0"),
     "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
+    "videoLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "Não foi possível carregar o vídeo",
+    ),
+    "videoPlaybackError": m38,
     "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("Ver resumo"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(

@@ -164,11 +164,32 @@ void main() => print('done');
       initialTurns,
     );
   });
+
+  testWidgets(
+    'execution durations use localized units and decimal separators',
+    (tester) async {
+      await tester.pumpWidget(
+        _messageListHarness(
+          const ProcessInfoSection(
+            processInfo: MessageProcessInfo(durationMs: 1200),
+          ),
+          locale: const Locale('de', 'DE'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dauer 1,2 s'), findsOneWidget);
+      expect(find.textContaining('1.2s'), findsNothing);
+    },
+  );
 }
 
-Widget _messageListHarness(Widget child) {
+Widget _messageListHarness(
+  Widget child, {
+  Locale locale = const Locale('zh', 'CN'),
+}) {
   return MaterialApp(
-    locale: const Locale('zh', 'CN'),
+    locale: locale,
     supportedLocales: supportedLocales,
     localizationsDelegates: const [
       GlobalMaterialLocalizations.delegate,

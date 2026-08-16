@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "Запуск…",
+    "startupFailed": "Не удалось запустить приложение. Повторите попытку.",
+    "videoPlaybackError": "Ошибка воспроизведения видео: {error}",
+    "videoLoadFailed": "Не удалось загрузить видео",
+    "databaseDowngradeNotSupported": "Эта база данных создана более новой версией Stars. Обновите приложение, прежде чем открывать её.",
+    "databaseRecoveryFailed": "Проверка целостности базы данных завершилась ошибкой, восстановить её из резервной копии этой версии не удалось.",
+    "durationMilliseconds": "{milliseconds} мс",
+    "durationSeconds": "{seconds} с"
 }

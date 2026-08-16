@@ -898,5 +898,13 @@
     "mcpTokenLeaveBlank": "Leave blank to keep the existing secure credential.",
     "saveAndConnect": "Save and connect",
     "noMcpServers": "No MCP Servers",
-    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog."
+    "noMcpServersDescription": "Add a Streamable HTTP or desktop stdio server to discover its Tool catalog.",
+    "startupStarting": "Iniciando…",
+    "startupFailed": "Falha ao iniciar. Tente novamente.",
+    "videoPlaybackError": "Erro na reprodução do vídeo: {error}",
+    "videoLoadFailed": "Não foi possível carregar o vídeo",
+    "databaseDowngradeNotSupported": "Este banco de dados foi criado por uma versão mais recente do Stars. Atualize o aplicativo antes de abri-lo.",
+    "databaseRecoveryFailed": "A verificação de integridade do banco de dados falhou e não foi possível recuperá-lo pelo backup desta versão.",
+    "durationMilliseconds": "{milliseconds} ms",
+    "durationSeconds": "{seconds} s"
 }

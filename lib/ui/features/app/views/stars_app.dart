@@ -61,18 +61,13 @@ class _StarsBootstrapAppState extends State<StarsBootstrapApp> {
       listenable: _viewModel,
       builder: (context, _) {
         if (_viewModel.isLoading) {
-          return const StartupShell(title: 'Stars', message: '正在启动...');
+          return const StartupShell.loading();
         }
 
         final profile = _viewModel.profile;
         if (_viewModel.hasError || profile == null) {
-          return StartupShell(
-            title: 'Stars',
-            message: '启动失败，请重试',
-            details:
-                _viewModel.error == null
-                    ? null
-                    : safeFailureMessage(context, _viewModel.error!),
+          return StartupShell.failure(
+            error: _viewModel.error,
             onRetry: _retryBootstrap,
           );
         }
@@ -89,18 +84,17 @@ class _StarsBootstrapAppState extends State<StarsBootstrapApp> {
 }
 
 class StartupShell extends StatelessWidget {
-  final String title;
-  final String message;
-  final String? details;
+  final _StartupShellStatus _status;
+  final AppFailure? error;
   final VoidCallback? onRetry;
 
-  const StartupShell({
-    super.key,
-    required this.title,
-    required this.message,
-    this.details,
-    this.onRetry,
-  });
+  const StartupShell.loading({super.key})
+    : _status = _StartupShellStatus.loading,
+      error = null,
+      onRetry = null;
+
+  const StartupShell.failure({super.key, this.error, required this.onRetry})
+    : _status = _StartupShellStatus.failure;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +106,14 @@ class StartupShell extends StatelessWidget {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          S.delegate,
+        ],
+        supportedLocales: supportedLocales,
+        localeResolutionCallback: _resolvePlatformLocale,
         home: _buildHome(theme),
       );
     }
@@ -138,7 +140,10 @@ class StartupShell extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
+            S.delegate,
           ],
+          supportedLocales: supportedLocales,
+          localeResolutionCallback: _resolvePlatformLocale,
           builder: (context, child) {
             final shadTheme = buildStarsShadTheme(
               brightness: Theme.of(context).brightness,
@@ -157,71 +162,102 @@ class StartupShell extends StatelessWidget {
   }
 
   Widget _buildHome(ThemeData theme) {
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Builder(
-              builder:
-                  (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: Image.asset(
-                          'assets/icon/app_icon.png',
-                          width: 72,
-                          height: 72,
-                          cacheWidth: 144,
-                          cacheHeight: 144,
-                        ),
+    return Builder(
+      builder: (context) {
+        final strings = S.of(context);
+        final isLoading = _status == _StartupShellStatus.loading;
+        return Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Image.asset(
+                        'assets/icon/app_icon.png',
+                        width: 72,
+                        height: 72,
+                        cacheWidth: 144,
+                        cacheHeight: 144,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      if (details == null) ...[
-                        const SizedBox(height: 20),
-                        const CircularProgressIndicator(),
-                      ] else ...[
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      strings.appName,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isLoading
+                          ? strings.startupStarting
+                          : strings.startupFailed,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    if (isLoading) ...[
+                      const SizedBox(height: 20),
+                      const CircularProgressIndicator(),
+                    ] else ...[
+                      if (error != null) ...[
                         const SizedBox(height: 12),
                         Text(
-                          details!,
+                          safeFailureMessage(context, error!),
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        if (onRetry != null) ...[
-                          const SizedBox(height: 20),
-                          if (isDesktopPlatform(context))
-                            ShadButton(
-                              onPressed: onRetry,
-                              child: const Text('重试'),
-                            )
-                          else
-                            FilledButton(
-                              onPressed: onRetry,
-                              child: const Text('重试'),
-                            ),
-                        ],
+                      ],
+                      if (onRetry != null) ...[
+                        const SizedBox(height: 20),
+                        if (isDesktopPlatform(context))
+                          ShadButton(
+                            onPressed: onRetry,
+                            child: Text(strings.retry),
+                          )
+                        else
+                          FilledButton(
+                            onPressed: onRetry,
+                            child: Text(strings.retry),
+                          ),
                       ],
                     ],
-                  ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+}
+
+enum _StartupShellStatus { loading, failure }
+
+Locale _resolvePlatformLocale(
+  Locale? locale,
+  Iterable<Locale> supportedLocales,
+) {
+  const englishFallback = Locale('en', 'US');
+  if (locale == null) return englishFallback;
+
+  for (final supported in supportedLocales) {
+    if (supported.languageCode == locale.languageCode &&
+        supported.countryCode == locale.countryCode) {
+      return supported;
+    }
+  }
+  if (locale.languageCode == 'zh' && locale.scriptCode == 'Hant') {
+    return const Locale('zh', 'TW');
+  }
+  for (final supported in supportedLocales) {
+    if (supported.languageCode == locale.languageCode) return supported;
+  }
+  return englishFallback;
 }
 
 class MyApp extends StatefulWidget {

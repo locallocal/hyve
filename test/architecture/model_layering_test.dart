@@ -206,21 +206,51 @@ void main() {
     }
   });
 
-  test('production source files stay below the reviewability limit', () {
+  test('production source files respect responsibility review limits', () {
     final sourceFiles = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
         .where(
           (file) =>
-              file.path.endsWith('.dart') && !file.path.contains('/generated/'),
+              file.path.endsWith('.dart') &&
+              !file.path.contains('/generated/') &&
+              !file.path.endsWith('.g.dart') &&
+              !file.path.endsWith('.freezed.dart'),
         );
 
     for (final file in sourceFiles) {
       final lineCount = file.readAsLinesSync().length;
+      final isView =
+          file.path.contains('/ui/') && file.path.contains('/views/');
+      final lineLimit = isView ? 780 : 800;
       expect(
         lineCount,
-        lessThanOrEqualTo(1000),
-        reason: '${file.path} has $lineCount lines; split by responsibility',
+        lessThanOrEqualTo(lineLimit),
+        reason:
+            '${file.path} has $lineCount lines; its responsibility limit is '
+            '$lineLimit',
+      );
+    }
+  });
+
+  test('test entry points stay within feature-group review limits', () {
+    final testFiles = Directory('test')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('_test.dart'));
+
+    for (final file in testFiles) {
+      final lineCount = file.readAsLinesSync().length;
+      final isWidgetFeatureGroup =
+          file.path == 'test/widget_test.dart' ||
+          file.path.contains('/widget/');
+      final lineLimit = isWidgetFeatureGroup ? 1200 : 1500;
+      expect(
+        lineCount,
+        lessThanOrEqualTo(lineLimit),
+        reason:
+            '${file.path} has $lineCount lines; split tests into independent '
+            'feature groups (limit $lineLimit)',
       );
     }
   });

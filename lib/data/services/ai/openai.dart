@@ -8,6 +8,8 @@ import 'package:stars/data/services/ai/skill_tool_sessions.dart';
 import 'package:stars/domain/models/models.dart';
 
 part 'openai_model_catalog.dart';
+part 'openai_core_model_specs.dart';
+part 'openai_specialized_model_specs.dart';
 
 class OpenAI extends Provider {
   static const String defaultApiModelsUrl = 'https://api.openai.com/v1/models';

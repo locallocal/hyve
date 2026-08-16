@@ -19,8 +19,11 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 part 'message_list_actions.dart';
 part 'message_list_bubble.dart';
+part 'message_list_media_preview.dart';
 part 'message_list_process.dart';
+part 'message_list_process_labels.dart';
 part 'message_list_reasoning.dart';
+part 'message_list_status.dart';
 
 class MessageList extends StatefulWidget {
   final List<Message> messages;

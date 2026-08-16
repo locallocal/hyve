@@ -16,6 +16,8 @@ based on Keep a Changelog, and the project uses semantic versioning.
 
 ### Changed
 
+- Relicensed Stars from the MIT License to the GNU Affero General Public
+  License v3.0 only (`AGPL-3.0-only`).
 - Unified the application identifier as `io.github.locallocal.stars` on all
   release platforms and added migration reads for legacy Apple secure-storage
   namespaces.

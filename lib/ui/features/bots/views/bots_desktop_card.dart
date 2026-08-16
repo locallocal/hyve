@@ -89,10 +89,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(desktopStartConversationIcon, size: 16),
                     child: Text(
-                      desktopConversationText(
-                        context,
-                        S.of(context).startChatting,
-                      ),
+                      desktopProjectText(context, S.of(context).startChatting),
                     ),
                   ),
                   ShadButton.ghost(
@@ -157,7 +154,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
               leading: const Icon(desktopStartConversationIcon, size: 16),
               onPressed: widget.onStartChat,
               child: Text(
-                desktopConversationText(context, S.of(context).startChatting),
+                desktopProjectText(context, S.of(context).startChatting),
               ),
             ),
             ShadContextMenuItem(

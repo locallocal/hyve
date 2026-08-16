@@ -104,13 +104,13 @@ class ChatListBuilder extends StatelessWidget {
                     builder:
                         (dialogContext) => ShadDialog.alert(
                           title: Text(
-                            desktopConversationText(
+                            desktopProjectText(
                               dialogContext,
                               S.of(dialogContext).deleteChat,
                             ),
                           ),
                           description: Text(
-                            desktopConversationText(
+                            desktopProjectText(
                               dialogContext,
                               S.of(dialogContext).confirmDeleteChat(bot.name),
                             ),
@@ -241,10 +241,7 @@ class ChatListBuilder extends StatelessWidget {
                 isDesktop && selectionVisible && selectedChatId == chat.id,
             lastMessage:
                 chat.lastMessage.isEmpty
-                    ? desktopConversationText(
-                      context,
-                      S.of(context).startChatting,
-                    )
+                    ? desktopProjectText(context, S.of(context).startChatting)
                     : chat.lastMessage.length > 25
                     ? '${chat.lastMessage.substring(0, 25)}...'
                     : chat.lastMessage,
@@ -261,7 +258,7 @@ class ChatListBuilder extends StatelessWidget {
               enabled: !isOrphaned,
               onPressed: openChat,
               child: Text(
-                desktopConversationText(context, S.of(context).startChatting),
+                desktopProjectText(context, S.of(context).startChatting),
               ),
             ),
             const ShadSeparator.horizontal(
@@ -401,10 +398,7 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     leading: const Icon(LucideIcons.messageCircle, size: 16),
                     child: Text(
-                      desktopConversationText(
-                        context,
-                        S.of(context).startChatting,
-                      ),
+                      desktopProjectText(context, S.of(context).startChatting),
                     ),
                   ),
                   ShadButton.raw(

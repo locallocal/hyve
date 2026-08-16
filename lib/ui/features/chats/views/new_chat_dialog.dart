@@ -118,7 +118,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  desktopConversationText(context, S.of(context).newChat),
+                  desktopProjectText(context, S.of(context).newChat),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: HyveDesktopThemeSpec.toolbarTitleStyle(context),
@@ -355,7 +355,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
       chat = await viewModel.create(bot);
     } catch (error) {
       if (!mounted) return;
-      final message = desktopConversationText(
+      final message = desktopProjectText(
         context,
         S.of(context).createChatFailed(safeFailureMessage(context, error)),
       );

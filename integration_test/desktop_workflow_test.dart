@@ -100,11 +100,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('删除').last);
         await tester.pumpAndSettle();
-        expect(find.text('删除会话'), findsOneWidget);
+        expect(find.text('删除项目'), findsOneWidget);
         await tester.tap(find.text('删除').last);
         await tester.pumpAndSettle();
 
-        expect(find.text('会话已删除'), findsOneWidget);
+        expect(find.text('项目已删除'), findsOneWidget);
         expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
         expect(tester.takeException(), isNull);
       } finally {
@@ -297,7 +297,7 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
                 enabled: bot != null,
                 onPressed: _openNewChat,
                 leading: const Icon(LucideIcons.messageCircle, size: 16),
-                child: const Text('新建会话'),
+                child: const Text('新建项目'),
               ),
             ],
           ),
@@ -344,7 +344,7 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
             ),
           ] else
             const Spacer(),
-          if (_deleted) const Text('会话已删除'),
+          if (_deleted) const Text('项目已删除'),
         ],
       ),
     );

@@ -27,14 +27,14 @@ void main() {
         home: const Scaffold(
           body: DesktopEmptyStateCard(
             icon: Icons.forum_outlined,
-            title: '尚未选择会话',
-            description: '从侧边栏选择会话。',
+            title: '尚未选择项目',
+            description: '从侧边栏选择项目。',
           ),
         ),
       ),
     );
 
-    expect(find.text('尚未选择会话'), findsOneWidget);
+    expect(find.text('尚未选择项目'), findsOneWidget);
     expect(find.byType(Card), findsNothing);
   });
 
@@ -111,7 +111,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('还没有会话记录'), findsOneWidget);
+      expect(find.text('还没有项目记录'), findsOneWidget);
       final chatEmptyStateFinder = find.byType(DesktopEmptyStateCard);
       final chatEmptyState = tester.widget<DesktopEmptyStateCard>(
         chatEmptyStateFinder,
@@ -162,7 +162,7 @@ void main() {
         desktopAppIconBorderRadius(DesktopEmptyStateCard.imageSize),
       );
       expect(
-        find.descendant(of: emptyState, matching: find.text('点击新建会话创建会话')),
+        find.descendant(of: emptyState, matching: find.text('点击新建项目创建项目')),
         findsOneWidget,
       );
       expect(find.textContaining('聊天'), findsNothing);
@@ -192,7 +192,7 @@ void main() {
         find.byKey(const ValueKey<String>('desktop-toolbar-clear-chat')),
         findsOneWidget,
       );
-      expect(find.bySemanticsLabel('清空会话记录'), findsOneWidget);
+      expect(find.bySemanticsLabel('清空项目记录'), findsOneWidget);
     });
   });
 
@@ -316,14 +316,14 @@ void main() {
                 body: ShadButton(
                   onPressed:
                       () => unawaited(showClearChatDialog(context, '测试智能体')),
-                  child: const Text('打开清空会话弹窗'),
+                  child: const Text('打开清空项目弹窗'),
                 ),
               ),
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('打开清空会话弹窗'));
+      await tester.tap(find.text('打开清空项目弹窗'));
       await tester.pumpAndSettle();
 
       final cancelButtonFinder =
@@ -543,7 +543,7 @@ void main() {
           chatListPage: DesktopListPanel(
             title: '',
             description: '',
-            searchHintText: '搜索会话',
+            searchHintText: '搜索项目',
             onSearchChanged: (_) {},
             action: const SizedBox.shrink(),
             showHeader: false,

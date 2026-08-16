@@ -14,7 +14,7 @@
 | Secondary-click context menu | `HyveContextMenu` + `ShadContextMenuItem` | 仅用于上下文操作；普通点击菜单不得模拟右键菜单 |
 | Dialog / alert / sheet | `ShadDialog`、`showChatShadDialog`、`showChatShadSheet` | 保持同一 Shad overlay stack 与局部主题 |
 | Form field | `ShadInput(FormField)`、`ShadTextarea(FormField)` | 单行桌面输入使用 `HyveDesktopThemeSpec.formFieldPadding` 和 48px 外框 |
-| Inline error | `HyveInlineErrorAlert` | 可恢复的表单/会话内错误就地显示 |
+| Inline error | `HyveInlineErrorAlert` | 可恢复的表单/项目内错误就地显示 |
 | Transient notice | `showHyveNotice` | 桌面统一 Sonner；移动端统一 SnackBar，业务页不直接访问二者 |
 | Empty / loading state | `DesktopEmptyStateCard`、`ShadProgress` | 不额外创建卡片层级或自定义进度动画 |
 | Icons | `LucideIcons` | Material `Icons` 仅保留在明确的移动端分支 |
@@ -36,7 +36,7 @@
 `test/ui/desktop_visual_regression_test.dart` 的每张组合图固定包含六个真实场景：
 
 1. 桌面壳；
-2. 会话列表；
+2. 项目列表；
 3. Bot grid；
 4. Bot 新增/编辑；
 5. 长消息与工具执行状态；
@@ -59,7 +59,7 @@ flutter test test/ui/desktop_visual_regression_test.dart
 ```
 
 完整桌面交互流位于 `integration_test/desktop_workflow_test.dart`，覆盖新增 Bot、
-新建会话、发送、取消与删除：
+新建项目、发送、取消与删除：
 
 ```bash
 flutter test integration_test/desktop_workflow_test.dart -d linux

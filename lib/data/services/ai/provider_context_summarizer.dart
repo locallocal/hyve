@@ -200,7 +200,7 @@ String _renderMarkdown(Map<String, Object?> payload) {
   final narrative = _redactSecrets(
     payload['narrative_summary']?.toString().trim() ?? '',
   );
-  final buffer = StringBuffer('# 会话摘要\n');
+  final buffer = StringBuffer('# 项目摘要\n');
   if (narrative.isNotEmpty) {
     buffer
       ..writeln('\n## 目标与约束\n')

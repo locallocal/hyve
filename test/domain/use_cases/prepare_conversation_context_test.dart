@@ -223,7 +223,7 @@ ConversationSummaryDocument _summary() {
       createdAt: now,
       updatedAt: now,
     ),
-    markdown: '# 会话摘要\n\n## 已确认决策\n\n- Use the desktop layout.',
+    markdown: '# 项目摘要\n\n## 已确认决策\n\n- Use the desktop layout.',
   );
 }
 

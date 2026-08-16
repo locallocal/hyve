@@ -6,7 +6,7 @@
 页面路径、第三方侧栏或移动页面横向拼接方案。桌面代码位于：
 
 - 应用壳：`lib/ui/features/app/views/desktop_layout.dart` 及同 library 的 part 文件；
-- 会话：`lib/ui/features/chats/`、`lib/ui/features/chat/`；
+- 项目：`lib/ui/features/chats/`、`lib/ui/features/chat/`；
 - Bot：`lib/ui/features/bots/`；
 - 共享组件：`lib/ui/core/widgets/desktop_chat_primitives.dart`；
 - 语义颜色与尺寸：`lib/utils/theme.dart`、`lib/utils/desktop_theme_spec.dart`；
@@ -18,7 +18,7 @@
 ## 2. 产品方向
 
 Hyve 桌面端采用紧凑、连续的工作台布局：结构面板之间以分隔线和语义表面区分，外壳
-不增加卡片式留白。目标是提高长会话、Bot 配置和工具执行信息的可读性，并保持鼠标、
+不增加卡片式留白。目标是提高长项目、Bot 配置和工具执行信息的可读性，并保持鼠标、
 键盘和辅助技术的一致操作体验。
 
 当前方向不再使用旧稿的大圆角卡片拼接。稳定基线为：
@@ -54,13 +54,13 @@ Hyve 桌面端采用紧凑、连续的工作台布局：结构面板之间以分
 
 ### 3.2 Sidebar
 
-Sidebar 顶部展示品牌、新建会话和 Bot 入口，中部始终保留会话列表，底部提供账户与
+Sidebar 顶部展示品牌、新建项目和 Bot 入口，中部始终保留项目列表，底部提供账户与
 设置入口。列表选择、hover、pressed、focus 状态统一调用
 `HyveDesktopThemeSpec.listItemDecoration`；不使用第三方 sidebar 组件。
 
 ### 3.3 Workspace
 
-Workspace 使用 `IndexedStack` 保留功能页状态。会话详情、Bot 详情、Skill、MCP 与设置
+Workspace 使用 `IndexedStack` 保留功能页状态。项目详情、Bot 详情、Skill、MCP 与设置
 共享同一语义表面；未选择实体时使用 `DesktopEmptyStateCard`。嵌入式详情不得再创建
 移动端 AppBar 或第二层桌面 shell。
 
@@ -119,7 +119,7 @@ light、dark、high contrast 都必须有确定值；系统 high-contrast 状态
 - 可恢复错误优先使用 `HyveInlineErrorAlert`；
 - overlay/dialog/sheet 维持同一 Shad theme stack。
 
-## 6. 会话体验
+## 6. 项目体验
 
 ### 6.1 消息流
 
@@ -129,12 +129,12 @@ light、dark、high contrast 都必须有确定值；系统 high-contrast 状态
 
 ### 6.2 输入区
 
-输入区固定在会话详情底部，使用共享 input radius、边框、focus ring 和语义表面。附件、
+输入区固定在项目详情底部，使用共享 input radius、边框、focus ring 和语义表面。附件、
 模型选择、发送/停止必须可通过键盘到达；窄宽度允许控件收缩或进入菜单，但不能溢出。
 
 ### 6.3 空态与加载
 
-无选中会话/Bot 时使用共享空态；加载使用 `ShadProgress`。空态操作应直接进入新建或
+无选中项目/Bot 时使用共享空态；加载使用 `ShadProgress`。空态操作应直接进入新建或
 选择流程，不创建无效 route。
 
 ## 7. 可访问性与输入方式
@@ -163,7 +163,7 @@ Material 菜单、Material 产品图标、临时颜色/圆角、直接 Sonner/Sn
 - 宽度：1024、1280、1600；
 - 外观：light、dark、high contrast；
 - 语言：`zh_CN`、`en`；
-- 场景：桌面壳、会话列表、Bot grid、Bot 表单、长消息/工具状态、设置页。
+- 场景：桌面壳、项目列表、Bot grid、Bot 表单、长消息/工具状态、设置页。
 
 共 18 张组合图、108 个场景组合。更新前必须人工查看差异，并在固定 Flutter SDK 和
 Linux 字体环境运行：
@@ -185,7 +185,7 @@ flutter test integration_test/desktop_workflow_test.dart -d linux
 
 1. 三种桌面平台共享同一组件与 token 体系；
 2. 960/1200/1500 附近没有溢出、双层滚动或不可见焦点；
-3. 新建会话、选择会话、发送/停止、Bot 新增/编辑/删除流程无回归；
+3. 新建项目、选择项目、发送/停止、Bot 新增/编辑/删除流程无回归；
 4. 移动端外观与交互无回归；
 5. 架构测试、widget tests、视觉矩阵和 Linux 集成流程通过；
 6. 新增视觉语义已进入共享 spec，而不是业务文件的局部常量。

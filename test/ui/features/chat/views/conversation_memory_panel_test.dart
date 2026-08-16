@@ -243,7 +243,7 @@ void main() {
       find.byKey(const ValueKey<String>('conversation-summary-surface')),
       findsOneWidget,
     );
-    expect(find.text('会话摘要'), findsOneWidget);
+    expect(find.text('项目摘要'), findsOneWidget);
     expect(find.textContaining('Summary'), findsOneWidget);
     final summaryMarkdown = tester.widget<Markdown>(
       find.byKey(const ValueKey<String>('conversation-summary-markdown')),
@@ -460,7 +460,7 @@ void main() {
     await tester.pump();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('当前还没有可用的会话摘要。'), findsOneWidget);
+    expect(find.text('当前还没有可用的项目摘要。'), findsOneWidget);
     expect(find.byType(ShadToast), findsNothing);
     expect(find.byType(SnackBar), findsOneWidget);
     expect(
@@ -564,7 +564,7 @@ final class _MemoryRepository implements ConversationMemoryRepository {
         createdAt: now,
         updatedAt: now,
       ),
-      markdown: '# 会话摘要\n\n- Summary',
+      markdown: '# 项目摘要\n\n- Summary',
     );
   }
 

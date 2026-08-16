@@ -59,7 +59,7 @@ void main() {
         createdAt: now,
         updatedAt: now,
       ),
-      markdown: '# 会话摘要\n\n## 目标与约束\n\n- 完成实现',
+      markdown: '# 项目摘要\n\n## 目标与约束\n\n- 完成实现',
     );
     final item = ConversationMemoryItem(
       id: 'memory_1',
@@ -163,7 +163,7 @@ void main() {
         createdAt: now,
         updatedAt: now,
       ),
-      markdown: '# 会话摘要\n\n- valid',
+      markdown: '# 项目摘要\n\n- valid',
     );
     await repository.commitCompaction(
       chatId: 'chat_1',

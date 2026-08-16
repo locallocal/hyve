@@ -47,7 +47,7 @@ void main() {
           (_) => _Summarizer((request) {
             final now = DateTime(2026);
             return ContextSummaryResult(
-              markdown: '# 会话摘要\n\n- text',
+              markdown: '# 项目摘要\n\n- text',
               items: [
                 ConversationMemoryItem(
                   id: 'bad',
@@ -132,7 +132,7 @@ List<Message> _history(int turns) => [
 ContextSummaryResult _validResult(ContextSummaryRequest request) {
   final now = DateTime(2026);
   return ContextSummaryResult(
-    markdown: '# 会话摘要\n\n## 关键事实与纠正\n\n- saved',
+    markdown: '# 项目摘要\n\n## 关键事实与纠正\n\n- saved',
     items: [
       ConversationMemoryItem(
         id: '${request.summaryId}_memory',

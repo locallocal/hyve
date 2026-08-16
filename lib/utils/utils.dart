@@ -72,11 +72,11 @@ bool isDesktopPlatform(BuildContext context) {
       platform == TargetPlatform.linux;
 }
 
-/// Uses conversation terminology for Chinese copy in the desktop workspace.
+/// Uses project terminology for Chinese copy in the desktop workspace.
 ///
 /// Mobile keeps its existing chat terminology, while non-Chinese locales are
 /// returned unchanged.
-String desktopConversationText(BuildContext context, String text) {
+String desktopProjectText(BuildContext context, String text) {
   if (!isDesktopPlatform(context)) return text;
 
   final locale = Localizations.localeOf(context);
@@ -84,5 +84,5 @@ String desktopConversationText(BuildContext context, String text) {
 
   final useTraditionalChinese =
       locale.scriptCode == 'Hant' || locale.countryCode == 'TW';
-  return text.replaceAll('聊天', useTraditionalChinese ? '會話' : '会话');
+  return text.replaceAll('聊天', useTraditionalChinese ? '專案' : '项目');
 }

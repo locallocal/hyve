@@ -224,10 +224,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  desktopConversationText(
-                    context,
-                    S.of(context).appDescription,
-                  ),
+                  desktopProjectText(context, S.of(context).appDescription),
                   style: TextStyle(
                     color: HyveDesktopThemeSpec.text(context),
                     fontSize: _fontSize,

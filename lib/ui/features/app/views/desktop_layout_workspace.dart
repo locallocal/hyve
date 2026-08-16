@@ -58,10 +58,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                     onPressed: widget.onCreateChat,
                     child: _SidebarButtonContent(
                       icon: desktopStartConversationIcon,
-                      label: desktopConversationText(
-                        context,
-                        S.of(context).newChat,
-                      ),
+                      label: desktopProjectText(context, S.of(context).newChat),
                     ),
                   ),
                 ),
@@ -186,11 +183,8 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
     }
     return DesktopEmptyStateCard(
       icon: desktopStartConversationIcon,
-      title: desktopConversationText(context, S.of(context).chats),
-      description: desktopConversationText(
-        context,
-        S.of(context).clickToStartChat,
-      ),
+      title: desktopProjectText(context, S.of(context).chats),
+      description: desktopProjectText(context, S.of(context).clickToStartChat),
       imageAsset: 'assets/icon/app_icon.png',
       imageBorderRadius: desktopAppIconBorderRadius(
         DesktopEmptyStateCard.imageSize,

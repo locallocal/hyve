@@ -235,7 +235,7 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
       currentIndex: 0,
       onPageChanged: (_) {},
       pages: [
-        Center(child: Text(_isChinese ? '会话列表' : 'Conversations')),
+        Center(child: Text(_isChinese ? '项目列表' : 'Conversations')),
         Center(child: Text(_isChinese ? '智能体列表' : 'Bots')),
         const Center(child: Text('Skills')),
         const Center(child: Text('MCP')),
@@ -250,13 +250,13 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
 
   Widget _buildConversationList(Bot bot) {
     return DesktopListPanel(
-      title: _isChinese ? '会话' : 'Conversations',
+      title: _isChinese ? '项目' : 'Conversations',
       description: _isChinese ? '最近的对话' : 'Recent conversations',
-      searchHintText: _isChinese ? '搜索会话' : 'Search conversations',
+      searchHintText: _isChinese ? '搜索项目' : 'Search conversations',
       onSearchChanged: (_) {},
       action: HyveDesktopIconAction(
         icon: LucideIcons.plus,
-        label: _isChinese ? '新建会话' : 'New conversation',
+        label: _isChinese ? '新建项目' : 'New conversation',
         onPressed: () {},
       ),
       child: ListView(

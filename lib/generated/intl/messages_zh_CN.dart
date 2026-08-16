@@ -48,7 +48,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m13(error) => "创建聊天失败：${error}";
 
-  static String m14(error) => "删除会话失败：${error}";
+  static String m14(error) => "删除项目失败：${error}";
 
   static String m15(milliseconds) => "${milliseconds} 毫秒";
 
@@ -130,7 +130,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "applicationInjectedPrompt": MessageLookupByLibrary.simpleMessage("系统提示词"),
     "applicationInjectedPromptDescription":
         MessageLookupByLibrary.simpleMessage(
-          "由 Hyve 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
+          "由 Hyve 管理并注入到每次模型请求中。当前智能体与项目标识会在运行时补充，不可编辑。",
         ),
     "attachedFiles": MessageLookupByLibrary.simpleMessage("附加文件"),
     "attachedImages": MessageLookupByLibrary.simpleMessage("附加图片"),
@@ -169,7 +169,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "changeAvatar": MessageLookupByLibrary.simpleMessage("更换头像"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("已保存"),
     "chatDeleted": m5,
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("会话执行状态"),
+    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("项目执行状态"),
     "chatHistoryCleared": MessageLookupByLibrary.simpleMessage("聊天记录已清空"),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "搜索会匹配智能体名称和最后一条消息。",
@@ -182,13 +182,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearChat": MessageLookupByLibrary.simpleMessage("清空聊天"),
     "clearChatFailed": m6,
     "clearChatHistory": MessageLookupByLibrary.simpleMessage("清空聊天记录"),
-    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除会话固定技能"),
+    "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除项目固定技能"),
     "clearSearch": MessageLookupByLibrary.simpleMessage("清除搜索"),
     "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
       "选择一天查看小时用量",
     ),
     "clickToCreateBot": MessageLookupByLibrary.simpleMessage("点击右上角 + 添加智能体"),
-    "clickToStartChat": MessageLookupByLibrary.simpleMessage("点击新建聊天创建会话"),
+    "clickToStartChat": MessageLookupByLibrary.simpleMessage("点击新建聊天创建项目"),
     "commandExecutions": MessageLookupByLibrary.simpleMessage("命令执行"),
     "compactNow": MessageLookupByLibrary.simpleMessage("立即压缩"),
     "compactingContext": MessageLookupByLibrary.simpleMessage("正在整理上下文…"),
@@ -205,9 +205,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "contextAndMemory": MessageLookupByLibrary.simpleMessage("上下文与记忆"),
     "contextCompacted": MessageLookupByLibrary.simpleMessage("上下文已压缩"),
     "contextWindow": MessageLookupByLibrary.simpleMessage("上下文窗口"),
-    "conversationSummary": MessageLookupByLibrary.simpleMessage("会话摘要"),
+    "conversationSummary": MessageLookupByLibrary.simpleMessage("项目摘要"),
     "conversationTokenShare": MessageLookupByLibrary.simpleMessage(
-      "会话 Token 占比",
+      "项目 Token 占比",
     ),
     "copyApiKey": MessageLookupByLibrary.simpleMessage("复制 API 密钥"),
     "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage("复制安装位置"),
@@ -480,7 +480,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "newChat": MessageLookupByLibrary.simpleMessage("新建聊天"),
     "newChatWorkspaceHint": MessageLookupByLibrary.simpleMessage(
-      "新建聊天后会直接在工作区打开会话。",
+      "新建聊天后会直接在工作区打开项目。",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "暂无已连接且可用的 MCP 工具。",
@@ -493,7 +493,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noChats": MessageLookupByLibrary.simpleMessage("还没有聊天记录"),
     "noContentReturned": MessageLookupByLibrary.simpleMessage("未返回内容"),
     "noConversationSummary": MessageLookupByLibrary.simpleMessage(
-      "当前还没有可用的会话摘要。",
+      "当前还没有可用的项目摘要。",
     ),
     "noMatchingBots": MessageLookupByLibrary.simpleMessage("没有找到匹配的智能体"),
     "noMatchingChats": MessageLookupByLibrary.simpleMessage("没有找到匹配的聊天"),
@@ -520,14 +520,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "notSupported": MessageLookupByLibrary.simpleMessage("不支持"),
     "nothingToCompact": MessageLookupByLibrary.simpleMessage("没有足够的旧上下文可压缩"),
     "orphanedChatGuidance": MessageLookupByLibrary.simpleMessage(
-      "删除这条孤立会话，或重新创建缺失的智能体。",
+      "删除这条孤立项目，或重新创建缺失的智能体。",
     ),
     "outputTokens": MessageLookupByLibrary.simpleMessage("输出 Token"),
     "partialResponse": MessageLookupByLibrary.simpleMessage("部分回复"),
     "pauseAudio": MessageLookupByLibrary.simpleMessage("暂停播放"),
     "pauseGeneration": MessageLookupByLibrary.simpleMessage("暂停生成"),
     "pinMemory": MessageLookupByLibrary.simpleMessage("固定"),
-    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在当前会话中固定已选技能"),
+    "pinSelectedSkills": MessageLookupByLibrary.simpleMessage("在当前项目中固定已选技能"),
     "pinnedSkill": MessageLookupByLibrary.simpleMessage("已固定"),
     "playAudio": MessageLookupByLibrary.simpleMessage("播放音频"),
     "pleaseEnterApiKey": MessageLookupByLibrary.simpleMessage("请先输入API密钥"),
@@ -584,7 +584,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage("保存到相册失败"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("保存中..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("搜索智能体"),
-    "searchChats": MessageLookupByLibrary.simpleMessage("搜索会话"),
+    "searchChats": MessageLookupByLibrary.simpleMessage("搜索项目"),
     "searchMcpServers": MessageLookupByLibrary.simpleMessage("搜索 MCP 服务器"),
     "searchMcpTools": MessageLookupByLibrary.simpleMessage("搜索工具"),
     "searchMemory": MessageLookupByLibrary.simpleMessage("搜索记忆"),
@@ -601,7 +601,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage("来自 Hyve 的图片"),
     "showApiKey": MessageLookupByLibrary.simpleMessage("显示 API 密钥"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
-      "在会话内容中显示执行状态。",
+      "在项目内容中显示执行状态。",
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("显示智能体信息"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("显示侧栏"),
@@ -747,7 +747,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "videoResult": MessageLookupByLibrary.simpleMessage("视频结果"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("查看摘要"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(
-      "请等待生成完成后再离开当前会话。",
+      "请等待生成完成后再离开当前项目。",
     ),
     "waitForGenerationToFinish": MessageLookupByLibrary.simpleMessage(
       "请等待生成完成。",

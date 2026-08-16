@@ -33,9 +33,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeBot = bot;
     final title = switch (currentIndex) {
-      0 =>
-        activeBot?.name ??
-            desktopConversationText(context, S.of(context).chats),
+      0 => activeBot?.name ?? desktopProjectText(context, S.of(context).chats),
       1 => activeBot?.name ?? S.of(context).Bots,
       2 => S.of(context).skillLibrary,
       3 => S.of(context).mcpServers,
@@ -139,7 +137,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             key: const ValueKey<String>(
                               'desktop-toolbar-new-chat',
                             ),
-                            label: desktopConversationText(
+                            label: desktopProjectText(
                               context,
                               S.of(context).newChat,
                             ),
@@ -151,7 +149,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             key: const ValueKey<String>(
                               'desktop-toolbar-clear-chat',
                             ),
-                            label: desktopConversationText(
+                            label: desktopProjectText(
                               context,
                               S.of(context).clearChatHistory,
                             ),

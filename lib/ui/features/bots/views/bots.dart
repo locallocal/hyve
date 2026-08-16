@@ -128,7 +128,7 @@ class ContactsPageState extends State<ContactsPage> {
           (context) => ShadDialog.alert(
             title: Text(S.of(context).confirmDelete),
             description: Text(
-              desktopConversationText(
+              desktopProjectText(
                 context,
                 S.of(context).confirmDeleteBot(bot.name),
               ),

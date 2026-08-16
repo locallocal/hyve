@@ -426,7 +426,7 @@ class ChatPageState extends State<ChatPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.cleaning_services_rounded, size: 24),
-            tooltip: desktopConversationText(
+            tooltip: desktopProjectText(
               context,
               S.of(context).clearChatHistory,
             ),

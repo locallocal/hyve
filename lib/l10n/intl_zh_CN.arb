@@ -224,7 +224,7 @@
     "@noChats": {
         "description": "还没有聊天记录"
     },
-    "clickToStartChat": "点击新建聊天创建会话",
+    "clickToStartChat": "点击新建聊天创建项目",
     "@clickToStartChat": {
         "description": "点击开始聊天提示"
     },
@@ -589,9 +589,9 @@
     "@noMatchingChats": {
         "description": "没有找到匹配的聊天的提示"
     },
-    "searchChats": "搜索会话",
+    "searchChats": "搜索项目",
     "@searchChats": {
-      "description": "搜索会话的输入提示"
+      "description": "搜索项目的输入提示"
     },
     "searchBots": "搜索智能体",
     "@searchBots": {
@@ -601,14 +601,14 @@
     "desktopAppearanceAndLanguage": "外观与语言",
     "desktopGeneral": "通用",
     "applicationInjectedPrompt": "系统提示词",
-    "applicationInjectedPromptDescription": "由 Hyve 管理并注入到每次模型请求中。当前智能体与会话标识会在运行时补充，不可编辑。",
+    "applicationInjectedPromptDescription": "由 Hyve 管理并注入到每次模型请求中。当前智能体与项目标识会在运行时补充，不可编辑。",
     "desktopHelpAndSupport": "帮助与支持",
     "desktopAboutAndLegal": "关于与法律信息",
     "desktopSettingsDescription": "管理个人信息、外观、语言与应用支持。",
     "desktopEditProfileDescription": "修改头像与展示名称。",
     "desktopSavedImmediatelyDescription": "修改后会立即生效并保存到本地。",
-    "chatExecutionStatus": "会话执行状态",
-    "showExecutionStatusDescription": "在会话内容中显示执行状态。",
+    "chatExecutionStatus": "项目执行状态",
+    "showExecutionStatusDescription": "在项目内容中显示执行状态。",
     "changeAvatar": "更换头像",
     "resetToDefault": "恢复默认",
     "hideSidebar": "隐藏侧栏",
@@ -656,7 +656,7 @@
     "noMatchingBots": "没有找到匹配的智能体",
     "tryDifferentSearch": "试试其他关键词，或直接新建。",
     "chatSearchScope": "搜索会匹配智能体名称和最后一条消息。",
-    "newChatWorkspaceHint": "新建聊天后会直接在工作区打开会话。",
+    "newChatWorkspaceHint": "新建聊天后会直接在工作区打开项目。",
     "botSearchScope": "搜索会按智能体名称过滤列表。",
     "newBotWorkspaceHint": "新建智能体会留在工作区中继续编辑。",
     "retry": "重试",
@@ -664,10 +664,10 @@
     "clearSearch": "清除搜索",
     "unavailableBot": "智能体不可用",
     "botUnavailableTitle": "此智能体已不可用",
-    "orphanedChatGuidance": "删除这条孤立会话，或重新创建缺失的智能体。",
+    "orphanedChatGuidance": "删除这条孤立项目，或重新创建缺失的智能体。",
     "activeRequestCannotStop": "当前请求无法停止",
     "waitForGenerationToFinish": "请等待生成完成。",
-    "waitForGenerationBeforeLeaving": "请等待生成完成后再离开当前会话。",
+    "waitForGenerationBeforeLeaving": "请等待生成完成后再离开当前项目。",
     "activeRequestCannotCancel": "当前请求无法取消，请等待生成完成。",
     "attachments": "附件",
     "itemCount": "{count} 项",
@@ -829,14 +829,14 @@
             "error": {"type": "String"}
         }
     },
-    "deleteChatFailed": "删除会话失败：{error}",
+    "deleteChatFailed": "删除项目失败：{error}",
     "@deleteChatFailed": {
         "placeholders": {
             "error": {"type": "String"}
         }
     },
     "tokenUsage": "Token 用量",
-    "conversationTokenShare": "会话 Token 占比",
+    "conversationTokenShare": "项目 Token 占比",
     "inputTokens": "输入 Token",
     "outputTokens": "输出 Token",
     "totalTokens": "Token 总量",
@@ -908,8 +908,8 @@
     "runSkillDescriptionTest": "运行测试",
     "skillDescriptionTestResult": "激活结果",
     "pinnedSkill": "已固定",
-    "pinSelectedSkills": "在当前会话中固定已选技能",
-    "clearPinnedSkills": "清除会话固定技能",
+    "pinSelectedSkills": "在当前项目中固定已选技能",
+    "clearPinnedSkills": "清除项目固定技能",
     "messageSkills": "技能",
     "alwaysOn": "始终启用",
     "skillNotExecutable": "当前版本不会执行技能中的脚本或命令。",
@@ -1034,14 +1034,14 @@
     "compactingContext": "正在整理上下文…",
     "automaticMemory": "自动记忆",
     "viewSummary": "查看摘要",
-    "noConversationSummary": "当前还没有可用的会话摘要。",
+    "noConversationSummary": "当前还没有可用的项目摘要。",
     "manageMemory": "管理记忆",
     "compactNow": "立即压缩",
     "contextCompacted": "上下文已压缩",
     "nothingToCompact": "没有足够的旧上下文可压缩",
     "memoryChangedRetry": "记忆已发生变化，请重试",
     "invalidSummary": "生成的摘要未通过校验",
-    "conversationSummary": "会话摘要",
+    "conversationSummary": "项目摘要",
     "searchMemory": "搜索记忆",
     "automaticSummaryWarning": "自动摘要可能不准确，当前消息始终优先。",
     "rebuildMemory": "重新构建",

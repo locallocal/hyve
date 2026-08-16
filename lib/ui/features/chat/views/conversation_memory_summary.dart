@@ -154,7 +154,7 @@ MarkdownStyleSheet _summaryMarkdownStyle(BuildContext context) {
 String _summaryMarkdownBody(String markdown) {
   final lines = markdown.replaceAll('\r\n', '\n').split('\n');
   final headingIndex = lines.indexWhere((line) => line.trim().isNotEmpty);
-  if (headingIndex < 0 || lines[headingIndex].trim() != '# 会话摘要') {
+  if (headingIndex < 0 || lines[headingIndex].trim() != '# 项目摘要') {
     return markdown;
   }
   var bodyStart = headingIndex + 1;

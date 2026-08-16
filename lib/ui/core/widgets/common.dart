@@ -79,6 +79,10 @@ void showStarsNotice(
     StarsNoticeTone.warning || StarsNoticeTone.error => colorScheme.error,
     _ => colorScheme.inverseSurface,
   };
+  final mediaSize = MediaQuery.sizeOf(context);
+  final scaledBodySize = MediaQuery.textScalerOf(context).scale(16);
+  final useFixedSnackBar =
+      mediaSize.width < 360 || mediaSize.height < 600 || scaledBodySize >= 24;
   messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
@@ -89,8 +93,12 @@ void showStarsNotice(
         ),
         backgroundColor: background,
         duration: const Duration(seconds: 5),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+        behavior:
+            useFixedSnackBar
+                ? SnackBarBehavior.fixed
+                : SnackBarBehavior.floating,
+        margin:
+            useFixedSnackBar ? null : const EdgeInsets.fromLTRB(16, 0, 16, 16),
         action:
             actionLabel == null
                 ? null

@@ -344,6 +344,57 @@ void main() {
       }
     },
   );
+
+  testWidgets('narrow mobile composer supports pseudolocalized text at 2x', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 568);
+    final controller = TextEditingController(
+      text: '⟦Check this narrow responsive composer carefully⟧',
+    );
+    addTearDown(controller.dispose);
+
+    try {
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        desktopMode: false,
+        viewport: const Size(320, 568),
+        textScaler: const TextScaler.linear(2),
+        stringsDelegate: const _LongMessageInputStringsDelegate(),
+        provider: _FakeProvider(
+          _bot,
+          inputModalities: const [
+            InputModality.text,
+            InputModality.image,
+            InputModality.file,
+          ],
+        ),
+      );
+
+      final sendButton = find.byTooltip(_longSend);
+      final attachmentAction = find.bySemanticsLabel(_longAddAttachment);
+      expect(sendButton, findsOneWidget);
+      expect(attachmentAction, findsOneWidget);
+      expect(tester.getSize(attachmentAction), const Size.square(48));
+      expect(tester.getRect(sendButton).right, lessThanOrEqualTo(320));
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(attachmentAction);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(MenuItemButton, _longUploadFile),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+      tester.view.reset();
+    }
+  });
 }
 
 Widget _harness(Widget child) {
@@ -389,6 +440,9 @@ Future<void> _pumpMessageInput(
   VoidCallback? onCamera,
   bool desktopMode = true,
   Size viewport = const Size(1000, 800),
+  Locale locale = const Locale('zh', 'CN'),
+  TextScaler textScaler = TextScaler.noScaling,
+  LocalizationsDelegate<S> stringsDelegate = S.delegate,
 }) async {
   final shadTheme = buildStarsShadTheme(
     brightness: Brightness.light,
@@ -413,22 +467,24 @@ Future<void> _pumpMessageInput(
               context: shadContext,
               fontSize: 16,
             ),
-            locale: const Locale('zh', 'CN'),
+            locale: locale,
             supportedLocales: supportedLocales,
-            localizationsDelegates: const [
+            localizationsDelegates: [
               GlobalShadLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
-              S.delegate,
+              stringsDelegate,
             ],
             builder: (context, child) => ShadAppBuilder(child: child!),
             home: Builder(
               builder:
                   (context) => MediaQuery(
-                    data: MediaQuery.of(
-                      context,
-                    ).copyWith(size: viewport, disableAnimations: true),
+                    data: MediaQuery.of(context).copyWith(
+                      size: viewport,
+                      textScaler: textScaler,
+                      disableAnimations: true,
+                    ),
                     child: Scaffold(
                       body: Align(
                         alignment: Alignment.topCenter,
@@ -472,6 +528,47 @@ Future<void> _focusAndEnterText(WidgetTester tester, String text) async {
 void _noop() {}
 
 void _ignoreString(String _) {}
+
+const _longSend = '⟦Send this translated message now⟧';
+const _longAddAttachment = '⟦Add a file or media attachment⟧';
+const _longUploadFile =
+    '⟦Upload a document from this device for the conversation⟧';
+
+final class _LongMessageInputStrings extends S {
+  @override
+  String get messageHint =>
+      '⟦Enter a detailed message for this conversation here⟧';
+
+  @override
+  String get send => _longSend;
+
+  @override
+  String get addAttachment => _longAddAttachment;
+
+  @override
+  String get takePhoto => '⟦Take a new photograph with the camera⟧';
+
+  @override
+  String get chooseFromGallery =>
+      '⟦Choose an existing image from the photo gallery⟧';
+
+  @override
+  String get uploadFile => _longUploadFile;
+}
+
+final class _LongMessageInputStringsDelegate extends LocalizationsDelegate<S> {
+  const _LongMessageInputStringsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<S> load(Locale locale) =>
+      SynchronousFuture(_LongMessageInputStrings());
+
+  @override
+  bool shouldReload(_LongMessageInputStringsDelegate old) => false;
+}
 
 class _FakeProvider extends AiProvider {
   _FakeProvider(

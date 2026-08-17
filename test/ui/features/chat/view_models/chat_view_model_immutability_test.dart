@@ -13,6 +13,7 @@ import 'package:hyve/domain/use_cases/create_user_message.dart';
 import 'package:hyve/domain/use_cases/generate_media_turn.dart';
 import 'package:hyve/domain/use_cases/persist_conversation_assets.dart';
 import 'package:hyve/domain/use_cases/prepare_text_generation.dart';
+import 'package:hyve/domain/use_cases/resolve_project_mentions.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_interaction_facade.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_view_model.dart';
@@ -41,6 +42,45 @@ void main() {
     await harness.viewModel.loadMessages();
     expect(harness.viewModel.messages, hasLength(3));
     expect(loadedSnapshot, hasLength(2));
+  });
+
+  test('dispatches one project turn to every mentioned agent', () async {
+    final repository = _MutableMessageRepository(const []);
+    final harness = _createHarness(repository);
+    addTearDown(harness.dispose);
+    final reviewer = Bot(
+      id: 'bot-2',
+      name: 'Reviewer',
+      avatar: '',
+      provider: 'Test',
+      baseURL: '',
+      apiKey: '',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'model',
+      systemPrompt: '',
+      createTimestamp: DateTime(2026),
+      modifyTimestamp: DateTime(2026),
+    );
+    final startedBots = <String>[];
+    final userMessage = harness.viewModel.createUserMessage(
+      currentUserId: 'me',
+      targetBotIds: [_bot.id, reviewer.id],
+      content: '@Bot draft. @Reviewer review.',
+    );
+
+    final lifecycles = await harness.viewModel.generateMentionedReplies(
+      userMessage: userMessage,
+      targets: [_bot, reviewer],
+      history: const [],
+      currentUserId: 'me',
+      restoreBot: _bot,
+      onBotStarted: (bot) => startedBots.add(bot.id),
+    );
+
+    expect(lifecycles, [ChatRunLifecycle.failed, ChatRunLifecycle.failed]);
+    expect(startedBots, [_bot.id, reviewer.id, _bot.id]);
+    expect(harness.viewModel.bot, same(_bot));
+    expect(userMessage.targetBotIds, [_bot.id, reviewer.id]);
   });
 }
 
@@ -81,6 +121,7 @@ _ChatHarness _createHarness(_MutableMessageRepository messages) {
     workflow.bot,
   );
   final viewModel = ChatViewModel(
+    resolveProjectMentions: const ResolveProjectMentions(),
     interaction: ChatInteractionFacade(
       workflow: workflow,
       messageActions: MessageActionViewModel(

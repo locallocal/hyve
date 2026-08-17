@@ -7,10 +7,12 @@ final class McpInventoryToolSession {
   const McpInventoryToolSession({
     required McpInventoryRepository repository,
     required this.chatId,
+    required this.botId,
   }) : _repository = repository;
 
   final McpInventoryRepository _repository;
   final String chatId;
+  final String botId;
 
   List<ExecutableTool> createTools() => [
     ListInstalledMcpServersTool._(this),
@@ -50,7 +52,7 @@ final class McpInventoryToolSession {
   Future<ToolResult> listCurrentConversation(ToolCallRequest call) async {
     try {
       final inventory = await _repository
-          .listForConversation(chatId)
+          .listForConversation(chatId, botId)
           .timeout(const Duration(seconds: 2));
       final servers = [
         for (final server in inventory.servers) _conversationServerMap(server),

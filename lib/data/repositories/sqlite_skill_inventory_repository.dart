@@ -44,12 +44,17 @@ final class SqliteSkillInventoryRepository implements SkillInventoryRepository {
   @override
   Future<List<ConversationSkillInventoryItem>> listForConversation(
     String chatId,
+    String botId,
   ) async {
     if (chatId.trim().isEmpty) {
       throw ArgumentError.value(chatId, 'chatId', 'Must not be empty.');
     }
+    if (botId.trim().isEmpty) {
+      throw ArgumentError.value(botId, 'botId', 'Must not be empty.');
+    }
     final records = await _localDatabase.queryConversationSkillInventory(
       chatId,
+      botId,
     );
     return List<ConversationSkillInventoryItem>.unmodifiable(
       records.map(_conversationFromRecord),

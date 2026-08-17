@@ -2,7 +2,7 @@ part of 'chat.dart';
 
 extension ChatPageSessionCommands on ChatPageState {
   Future<void> requestClearChat() async {
-    final shouldClear = await showClearChatDialog(context, widget.bot.name);
+    final shouldClear = await showClearChatDialog(context, _activeBot.name);
     if (!mounted) return;
     if (shouldClear) {
       if (!await _confirmStopBeforeMutation()) return;

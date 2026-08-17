@@ -12,6 +12,7 @@ void main() {
     final session = SkillInventoryToolSession(
       repository: repository,
       chatId: 'chat-current',
+      botId: 'bot-current',
     );
     tools = {
       for (final tool in session.createTools()) tool.definition.name: tool,
@@ -90,6 +91,7 @@ void main() {
       );
 
       expect(repository.chatId, 'chat-current');
+      expect(repository.botId, 'bot-current');
       expect(result.isError, isFalse);
       expect(
         const JsonSchemaValidator().validate(
@@ -138,6 +140,7 @@ final class _FakeSkillInventoryRepository implements SkillInventoryRepository {
   String query = '';
   int limit = 0;
   String chatId = '';
+  String botId = '';
 
   @override
   Future<InstalledSkillInventoryPage> listInstalled({
@@ -171,8 +174,10 @@ final class _FakeSkillInventoryRepository implements SkillInventoryRepository {
   @override
   Future<List<ConversationSkillInventoryItem>> listForConversation(
     String chatId,
+    String botId,
   ) async {
     this.chatId = chatId;
+    this.botId = botId;
     return [
       ConversationSkillInventoryItem(
         id: 'user:reviewer',

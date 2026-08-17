@@ -136,6 +136,7 @@ class ChatGenerationViewModel extends DisposableChangeNotifier
   Future<bool> startTextWithPreparation({
     required Message userMessage,
     required TextGenerationPreparer prepare,
+    bool persistUserMessage = true,
   }) async {
     if (isDisposed || hasBlockingRun) return false;
 
@@ -171,7 +172,8 @@ class ChatGenerationViewModel extends DisposableChangeNotifier
       // Preparation can always be abandoned, even when the provider itself
       // cannot cancel an in-flight generation request.
       supportsCancellation: true,
-      submittedUserMessage: identifiedUser,
+      userPersisted: !persistUserMessage,
+      submittedUserMessage: persistUserMessage ? identifiedUser : null,
     );
     notifyListeners();
 
@@ -215,24 +217,26 @@ class ChatGenerationViewModel extends DisposableChangeNotifier
             trigger: skill.trigger.name,
           ),
       ],
-      submittedUserMessage: preparedUser,
+      submittedUserMessage: persistUserMessage ? preparedUser : null,
     );
     notifyListeners();
 
-    try {
-      await _messagePersister(preparedUser);
-    } catch (error) {
-      if (_isActiveRun(runId)) {
-        _preflightCancellationRuns.remove(runId);
-        _snapshot = _snapshot.copyWith(
-          lifecycle: ChatRunLifecycle.failed,
-          error: AppFailure.from(error, code: 'generation_start_failed').code,
-          userPersisted: false,
-        );
-        _completeTerminal(ChatRunLifecycle.failed);
-        notifyListeners();
+    if (persistUserMessage) {
+      try {
+        await _messagePersister(preparedUser);
+      } catch (error) {
+        if (_isActiveRun(runId)) {
+          _preflightCancellationRuns.remove(runId);
+          _snapshot = _snapshot.copyWith(
+            lifecycle: ChatRunLifecycle.failed,
+            error: AppFailure.from(error, code: 'generation_start_failed').code,
+            userPersisted: false,
+          );
+          _completeTerminal(ChatRunLifecycle.failed);
+          notifyListeners();
+        }
+        return false;
       }
-      return false;
     }
 
     if (!_isActiveRun(runId) || _snapshot.lifecycle.isTerminal) return false;
@@ -341,6 +345,13 @@ class ChatGenerationViewModel extends DisposableChangeNotifier
       notifyListeners();
     }
     return true;
+  }
+
+  Future<ChatRunLifecycle> waitForTerminal() async {
+    if (_snapshot.lifecycle.isTerminal) return _snapshot.lifecycle;
+    final terminal = _terminalCompleter;
+    if (terminal == null) return _snapshot.lifecycle;
+    return terminal.future;
   }
 
   Future<ChatRunLifecycle> cancel({

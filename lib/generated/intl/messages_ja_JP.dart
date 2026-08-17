@@ -531,10 +531,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("設定"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("未解決の質問"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("タスク"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
-    "messageHint": MessageLookupByLibrary.simpleMessage("メッセージを入力..."),
+    "messageHint": MessageLookupByLibrary.simpleMessage(
+      "メッセージを入力し、@でエージェントをメンション...",
+    ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("スキル"),
     "minutesAgo": m28,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),

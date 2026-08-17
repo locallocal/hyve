@@ -14,5 +14,5 @@ class NewChatViewModel {
 
   Future<List<Bot>> loadBots() => _botRepository.getBots();
 
-  Future<Chat> create(Bot bot) => _createChat(bot);
+  Future<Chat> create(Bot bot) => _createChat(bots: [bot]);
 }

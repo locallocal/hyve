@@ -38,21 +38,22 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
 
   Future<List<Map<String, Object?>>> queryConversationMcpIdentity(
     String chatId,
+    String botId,
   ) async {
     final database = await _databaseProvider();
     return database.rawQuery(
       '''
       SELECT
-        c.id AS chat_id,
+        member.chat_id,
         b.id AS bot_id,
         b.name AS bot_name,
         b.parameters AS bot_parameters
-      FROM chats AS c
-      JOIN bots AS b ON b.id = c.bot_id
-      WHERE c.id = ?
+      FROM chat_project_bots AS member
+      JOIN bots AS b ON b.id = member.bot_id
+      WHERE member.chat_id = ? AND member.bot_id = ?
       LIMIT 1
     ''',
-      [chatId],
+      [chatId, botId],
     );
   }
 

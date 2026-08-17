@@ -45,12 +45,19 @@ final class SqliteMcpInventoryRepository implements McpInventoryRepository {
   }
 
   @override
-  Future<ConversationMcpInventory> listForConversation(String chatId) async {
+  Future<ConversationMcpInventory> listForConversation(
+    String chatId,
+    String botId,
+  ) async {
     if (chatId.trim().isEmpty) {
       throw ArgumentError.value(chatId, 'chatId', 'Must not be empty.');
     }
+    if (botId.trim().isEmpty) {
+      throw ArgumentError.value(botId, 'botId', 'Must not be empty.');
+    }
     final identities = await _localDatabase.queryConversationMcpIdentity(
       chatId,
+      botId,
     );
     if (identities.isEmpty) {
       return const ConversationMcpInventory(

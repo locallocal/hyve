@@ -56,6 +56,45 @@ void main() {
   });
 
   group('desktop MessageInput', () {
+    testWidgets('inserts a project agent through @ mention suggestions', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final reviewer = Bot(
+        id: 'reviewer',
+        name: '代码审查',
+        avatar: '',
+        provider: 'test',
+        baseURL: '',
+        apiKey: '',
+        apiType: Bot.apiTypeOpenAI,
+        model: 'test-model',
+        systemPrompt: '',
+        createTimestamp: DateTime.fromMillisecondsSinceEpoch(1),
+        modifyTimestamp: DateTime.fromMillisecondsSinceEpoch(1),
+      );
+
+      await _pumpMessageInput(
+        tester,
+        controller: controller,
+        mentionBots: [_bot, reviewer],
+      );
+      await _focusAndEnterText(tester, '@代码');
+
+      expect(
+        find.byKey(const ValueKey<String>('agent-mention-suggestions')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('mention-agent-reviewer')),
+      );
+      await tester.pump();
+
+      expect(controller.text, '@代码审查 ');
+      expect(controller.selection.baseOffset, controller.text.length);
+    });
+
     testWidgets('does not show provider or model metadata', (tester) async {
       final controller = TextEditingController();
       addTearDown(controller.dispose);
@@ -435,6 +474,7 @@ Future<void> _pumpMessageInput(
   bool canCancel = false,
   bool isStopping = false,
   AiProvider? provider,
+  List<Bot> mentionBots = const <Bot>[],
   VoidCallback? onSend,
   VoidCallback? onCancel,
   VoidCallback? onCamera,
@@ -493,6 +533,7 @@ Future<void> _pumpMessageInput(
                           child: MessageInput(
                             provider: provider ?? _FakeProvider(_bot),
                             controller: controller,
+                            mentionBots: mentionBots,
                             requestInProgress: requestInProgress,
                             canCancel: canCancel,
                             isStopping: isStopping,

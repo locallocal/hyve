@@ -3,6 +3,7 @@ part of 'desktop_layout.dart';
 class _UnifiedDesktopToolbar extends StatelessWidget {
   final int currentIndex;
   final Bot? bot;
+  final String projectName;
   final bool isChat;
   final bool compact;
   final bool sidebarVisible;
@@ -17,6 +18,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   const _UnifiedDesktopToolbar({
     required this.currentIndex,
     required this.bot,
+    required this.projectName,
     required this.isChat,
     required this.compact,
     required this.sidebarVisible,
@@ -33,7 +35,11 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeBot = bot;
     final title = switch (currentIndex) {
-      0 => activeBot?.name ?? desktopProjectText(context, S.of(context).chats),
+      0 =>
+        projectName.trim().isNotEmpty
+            ? projectName.trim()
+            : activeBot?.name ??
+                desktopProjectText(context, S.of(context).chats),
       1 => activeBot?.name ?? S.of(context).Bots,
       2 => S.of(context).skillLibrary,
       3 => S.of(context).mcpServers,
@@ -90,19 +96,6 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isChat && activeBot != null) ...[
-                  ShadAvatar(
-                    activeBot.avatar.isEmpty ? null : File(activeBot.avatar),
-                    size: const Size.square(28),
-                    placeholder: buildProviderLogo(
-                      context,
-                      '',
-                      activeBot.provider,
-                      14,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
                 Flexible(
                   child: Text(
                     title,
@@ -111,7 +104,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                     style: HyveDesktopThemeSpec.toolbarTitleStyle(context),
                   ),
                 ),
-                if (summary != null && summary.isNotEmpty) ...[
+                if (!isChat && summary != null && summary.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(

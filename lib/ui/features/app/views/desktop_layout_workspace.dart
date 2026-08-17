@@ -178,6 +178,8 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
         key: _chatPageKey,
         id: widget.selectedChatId!,
         bot: widget.selectedChatBot!,
+        bots: widget.selectedChatBots,
+        projectName: widget.selectedProjectName,
         showExecutionStatus: widget.showExecutionStatus,
       );
     }

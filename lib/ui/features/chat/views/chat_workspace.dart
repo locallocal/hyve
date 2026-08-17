@@ -73,6 +73,7 @@ extension _ChatPageWorkspace on ChatPageState {
               _buildGenerationAlert(isDesktop: true),
               MessageInput(
                 provider: _provider,
+                mentionBots: _projectBots,
                 controller: _messageController,
                 requestInProgress: _isTyping,
                 canCancel: _isCancellable,
@@ -153,7 +154,7 @@ extension _ChatPageWorkspace on ChatPageState {
     final conversation =
         _messages.isEmpty
             ? WelcomeView(
-              bot: widget.bot,
+              bot: _activeBot,
               fontSize: fontSize,
               isDesktop: isDesktop,
             )
@@ -161,6 +162,8 @@ extension _ChatPageWorkspace on ChatPageState {
               children: [
                 MessageList(
                   messages: _messages,
+                  bots: _projectBots,
+                  activeBot: _activeBot,
                   messageRevision: _messageRevision,
                   scrollController: _scrollController,
                   isStreaming: _isStreaming,
@@ -175,7 +178,7 @@ extension _ChatPageWorkspace on ChatPageState {
                   actionViewModel: _chatViewModel.messageActions,
                 ),
                 AssistantTypingIndicator(
-                  botName: widget.bot.name,
+                  botName: _activeBot.name,
                   isResponding: _isTyping,
                   streamingResponse: _streamingResponse,
                   reasoningResponse: _reasoningResponse,

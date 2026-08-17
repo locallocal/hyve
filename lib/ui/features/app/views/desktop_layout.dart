@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:hyve/ui/core/widgets/logo.dart';
 import 'package:hyve/ui/core/widgets/model_modalities.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
@@ -41,6 +39,8 @@ class DesktopLayout extends StatefulWidget {
   final List<Widget> pages;
   final String? selectedChatId;
   final Bot? selectedChatBot;
+  final List<Bot> selectedChatBots;
+  final String selectedProjectName;
   final Bot? selectedBot;
   final bool isEditingBot;
   final bool showExecutionStatus;
@@ -60,6 +60,8 @@ class DesktopLayout extends StatefulWidget {
     required this.pages,
     this.selectedChatId,
     this.selectedChatBot,
+    this.selectedChatBots = const <Bot>[],
+    this.selectedProjectName = '',
     this.selectedBot,
     this.isEditingBot = false,
     this.showExecutionStatus = true,
@@ -320,6 +322,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                             _UnifiedDesktopToolbar(
                               currentIndex: widget.currentIndex,
                               bot: _activeBot,
+                              projectName: widget.selectedProjectName,
                               sidebarVisible:
                                   overlaySidebar
                                       ? isChat

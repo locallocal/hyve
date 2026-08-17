@@ -7,10 +7,12 @@ final class SkillInventoryToolSession {
   const SkillInventoryToolSession({
     required SkillInventoryRepository repository,
     required this.chatId,
+    required this.botId,
   }) : _repository = repository;
 
   final SkillInventoryRepository _repository;
   final String chatId;
+  final String botId;
 
   List<ExecutableTool> createTools() => [
     ListInstalledSkillsTool._(this),
@@ -53,7 +55,7 @@ final class SkillInventoryToolSession {
   Future<ToolResult> listCurrentConversation(ToolCallRequest call) async {
     try {
       final items = await _repository
-          .listForConversation(chatId)
+          .listForConversation(chatId, botId)
           .timeout(const Duration(seconds: 2));
       final skills = [for (final item in items) _conversationMap(item)];
       return ToolResult(

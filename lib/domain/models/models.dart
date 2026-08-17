@@ -14,6 +14,7 @@ export 'mcp_inventory.dart';
 export 'mcp_installer.dart';
 export 'modalities.dart';
 export 'profile.dart';
+export 'project.dart';
 export 'shell_command.dart';
 export 'skill.dart';
 export 'skill_ecosystem.dart';

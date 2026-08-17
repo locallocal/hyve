@@ -7,6 +7,7 @@ import 'package:hyve/utils/theme.dart';
 
 class ChatListItem extends StatefulWidget {
   final Bot bot;
+  final List<Bot> bots;
   final String? title;
   final String lastMessage;
   final String timestamp;
@@ -17,6 +18,7 @@ class ChatListItem extends StatefulWidget {
   const ChatListItem({
     super.key,
     required this.bot,
+    this.bots = const <Bot>[],
     this.title,
     required this.lastMessage,
     required this.timestamp,
@@ -73,22 +75,8 @@ class _ChatListItemState extends State<ChatListItem> {
       padding: const EdgeInsetsDirectional.fromSTEB(8, 10, 8, 10),
       child: Row(
         children: [
-          ShadAvatar(
-            widget.bot.avatar.isEmpty ? null : File(widget.bot.avatar),
-            size: const Size.square(32),
-            backgroundColor:
-                widget.bot.avatar.isEmpty
-                    ? getFrostedProviderColor(
-                      widget.bot.provider,
-                      Theme.of(context).colorScheme.primary,
-                    )
-                    : Theme.of(context).colorScheme.primary,
-            placeholder: buildProviderLogo(
-              context,
-              '',
-              widget.bot.provider,
-              16,
-            ),
+          _ProjectBotAvatars(
+            bots: widget.bots.isEmpty ? [widget.bot] : widget.bots,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -139,6 +127,63 @@ class _ChatListItemState extends State<ChatListItem> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _ProjectBotAvatars extends StatelessWidget {
+  const _ProjectBotAvatars({required this.bots});
+
+  final List<Bot> bots;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = bots.take(3).toList(growable: false);
+    final avatarSize = visible.length == 1 ? 32.0 : 26.0;
+    final overlapOffset = visible.length == 1 ? 0.0 : 12.0;
+    return Semantics(
+      label: bots.map((bot) => bot.name).join(', '),
+      child: SizedBox(
+        width: avatarSize + overlapOffset * (visible.length - 1),
+        height: 32,
+        child: Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            for (var index = visible.length - 1; index >= 0; index--)
+              PositionedDirectional(
+                start: overlapOffset * index,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.surface,
+                      width: visible.length == 1 ? 0 : 2,
+                    ),
+                  ),
+                  child: ShadAvatar(
+                    visible[index].avatar.isEmpty
+                        ? null
+                        : File(visible[index].avatar),
+                    size: Size.square(avatarSize),
+                    backgroundColor:
+                        visible[index].avatar.isEmpty
+                            ? getFrostedProviderColor(
+                              visible[index].provider,
+                              Theme.of(context).colorScheme.primary,
+                            )
+                            : Theme.of(context).colorScheme.primary,
+                    placeholder: buildProviderLogo(
+                      context,
+                      '',
+                      visible[index].provider,
+                      visible.length == 1 ? 16 : 13,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

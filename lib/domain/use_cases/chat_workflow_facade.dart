@@ -27,9 +27,9 @@ final class ChatHistoryBatch {
 /// Repository capabilities and multi-step Use Cases stay behind this boundary,
 /// so the Chat ViewModel only coordinates immutable UI state.
 final class ChatWorkflowFacade {
-  const ChatWorkflowFacade({
+  ChatWorkflowFacade({
     required this.chatId,
-    required this.bot,
+    required Bot bot,
     required MessageRepository messageRepository,
     required ChatRepository chatRepository,
     required AiProviderRepository aiProviderRepository,
@@ -39,7 +39,8 @@ final class ChatWorkflowFacade {
     required PersistConversationAssets persistConversationAssets,
     required GenerateMediaTurn generateMediaTurn,
     required PrepareTextGeneration prepareTextGeneration,
-  }) : _messages = messageRepository,
+  }) : _bot = bot,
+       _messages = messageRepository,
        _chats = chatRepository,
        _providers = aiProviderRepository,
        _attachments = attachmentRepository,
@@ -50,7 +51,8 @@ final class ChatWorkflowFacade {
        _prepareTextGeneration = prepareTextGeneration;
 
   final String chatId;
-  final Bot bot;
+  Bot _bot;
+  Bot get bot => _bot;
   final MessageRepository _messages;
   final ChatRepository _chats;
   final AiProviderRepository _providers;
@@ -60,6 +62,13 @@ final class ChatWorkflowFacade {
   final PersistConversationAssets _persistConversationAssets;
   final GenerateMediaTurn _generateMediaTurn;
   final PrepareTextGeneration _prepareTextGeneration;
+
+  void updateBot(Bot bot) {
+    if (bot.id.trim().isEmpty) {
+      throw ArgumentError.value(bot.id, 'bot.id', 'Agent id cannot be empty.');
+    }
+    _bot = bot;
+  }
 
   ChatHistoryBatch? peekHistory() {
     final messages = _messages;
@@ -89,6 +98,7 @@ final class ChatWorkflowFacade {
 
   Message createUserMessage({
     required String currentUserId,
+    required Iterable<String> targetBotIds,
     required String content,
     List<String> imagePaths = const [],
     List<String> filePaths = const [],
@@ -96,7 +106,7 @@ final class ChatWorkflowFacade {
     String fileDetail = '',
   }) => _createUserMessage(
     chatId: chatId,
-    botId: bot.id,
+    targetBotIds: targetBotIds,
     senderId: currentUserId,
     content: content,
     imagePaths: imagePaths,

@@ -1,17 +1,25 @@
 class Chat {
-  const Chat({
+  Chat({
     required this.id,
-    required this.botId,
+    required Iterable<String> botIds,
     this.name = '',
-    this.botIds = const <String>[],
     this.lastMessage = '',
     required this.lastMessageTimestamp,
     required this.createTimestamp,
     required this.modifyTimestamp,
-  });
+  }) : botIds = List<String>.unmodifiable(
+         <String>{...botIds.map((id) => id.trim())}..remove(''),
+       ) {
+    if (this.botIds.isEmpty) {
+      throw ArgumentError.value(
+        botIds,
+        'botIds',
+        'A project must contain at least one agent.',
+      );
+    }
+  }
 
   final String id;
-  final String botId;
   final String name;
   final List<String> botIds;
   final String lastMessage;
@@ -19,8 +27,21 @@ class Chat {
   final DateTime createTimestamp;
   final DateTime modifyTimestamp;
 
-  List<String> get projectBotIds {
-    final ids = <String>{botId, ...botIds}..remove('');
-    return List<String>.unmodifiable(ids);
-  }
+  List<String> get projectBotIds => botIds;
+
+  Chat copyWith({
+    String? name,
+    List<String>? botIds,
+    String? lastMessage,
+    DateTime? lastMessageTimestamp,
+    DateTime? modifyTimestamp,
+  }) => Chat(
+    id: id,
+    name: name ?? this.name,
+    botIds: botIds ?? this.botIds,
+    lastMessage: lastMessage ?? this.lastMessage,
+    lastMessageTimestamp: lastMessageTimestamp ?? this.lastMessageTimestamp,
+    createTimestamp: createTimestamp,
+    modifyTimestamp: modifyTimestamp ?? this.modifyTimestamp,
+  );
 }

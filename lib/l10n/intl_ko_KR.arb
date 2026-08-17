@@ -47,6 +47,7 @@
     "projectNameRequired": "Enter a project name.",
     "selectProjectBots": "Add bots",
     "selectAtLeastOneBot": "Select at least one bot.",
+    "mentionAgentToSend": "Use @ to mention at least one project agent.",
     "selectedBotCount": "{count} selected",
     "createProject": "Create Project",
     "createProjectFailed": "Could not create the project: {error}",
@@ -235,7 +236,7 @@
     "@deleteChat": {
         "description": "채팅 삭제"
     },
-    "messageHint": "메시지 입력...",
+    "messageHint": "메시지를 입력하고 @로 에이전트를 멘션하세요...",
     "@messageHint": {
         "description": "메시지 입력 힌트"
     },

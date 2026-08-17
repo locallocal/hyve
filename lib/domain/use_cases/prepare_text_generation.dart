@@ -122,6 +122,7 @@ final class PrepareTextGeneration {
             ? SkillInventoryToolSession(
               repository: skillInventoryRepository,
               chatId: chatId,
+              botId: bot.id,
             ).createTools()
             : const <ExecutableTool>[];
     final mcpInventoryRepository = _mcpInventoryRepository;
@@ -133,6 +134,7 @@ final class PrepareTextGeneration {
             ? McpInventoryToolSession(
               repository: mcpInventoryRepository,
               chatId: chatId,
+              botId: bot.id,
             ).createTools()
             : const <ExecutableTool>[];
 

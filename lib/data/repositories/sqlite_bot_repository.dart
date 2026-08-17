@@ -12,14 +12,14 @@ import 'package:hyve/domain/repositories/chat_repository.dart';
 class SqliteBotRepository implements BotAggregateRepository {
   SqliteBotRepository({
     required LocalDatabaseService localDatabase,
-    required ChatRepository chatRepository,
+    required ChatAggregateRepository chatRepository,
     required BotApiKeyCipher apiKeyCipher,
   }) : _localDatabase = localDatabase,
        _chatRepository = chatRepository,
        _apiKeyCipher = apiKeyCipher;
 
   final LocalDatabaseService _localDatabase;
-  final ChatRepository _chatRepository;
+  final ChatAggregateRepository _chatRepository;
   final BotApiKeyCipher _apiKeyCipher;
   final StreamController<List<Bot>> _changes =
       StreamController<List<Bot>>.broadcast();
@@ -104,31 +104,15 @@ class SqliteBotRepository implements BotAggregateRepository {
 
   @override
   Future<void> deleteBot(String id) async {
-    final chatRepository = _chatRepository;
-    final BotChatDeletionParticipant? deletionParticipant =
-        chatRepository is BotChatDeletionParticipant
-            ? chatRepository as BotChatDeletionParticipant
-            : null;
-    final BotChatDeletionStage? stage;
-    if (deletionParticipant != null) {
-      stage = await deletionParticipant.stageChatsForBotDeletion(id);
-    } else {
-      stage = null;
-    }
+    final stage = await _chatRepository.stageChatsForBotDeletion(id);
     try {
       await _localDatabase.deleteBot(id);
     } catch (_) {
-      await stage?.rollback();
+      await stage.rollback();
       rethrow;
     }
-    await stage?.commit();
-    if (stage != null && deletionParticipant != null) {
-      await deletionParticipant.completeStagedBotDeletion(stage);
-    } else {
-      // Compatibility for injected repositories. Production always uses the
-      // staged participant above.
-      chatRepository.invalidate();
-    }
+    await stage.commit();
+    await _chatRepository.completeStagedBotDeletion(stage);
     final cache = _cache;
     if (cache == null) {
       await _refreshCache();

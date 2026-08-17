@@ -47,6 +47,7 @@
     "projectNameRequired": "請輸入專案名稱。",
     "selectProjectBots": "加入智慧體",
     "selectAtLeastOneBot": "請至少選擇一個智慧體。",
+    "mentionAgentToSend": "請使用 @ 提及至少一個專案智慧體。",
     "selectedBotCount": "已選擇 {count} 個",
     "createProject": "建立專案",
     "createProjectFailed": "建立專案失敗：{error}",
@@ -234,7 +235,7 @@
     "@deleteChat": {
         "description": "刪除聊天"
     },
-    "messageHint": "輸入消息...",
+    "messageHint": "輸入消息，使用 @ 提及智慧體...",
     "@messageHint": {
         "description": "消息輸入提示"
     },

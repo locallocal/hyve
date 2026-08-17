@@ -173,7 +173,7 @@ class BotListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Chat> startChat(Bot bot) => _createChat(bot);
+  Future<Chat> startChat(Bot bot) => _createChat(bots: [bot]);
 
   Future<List<AiModelInfo>> listModels(Bot bot) =>
       _aiProviderRepository.listModels(bot);

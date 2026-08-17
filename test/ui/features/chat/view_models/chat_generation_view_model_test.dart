@@ -70,6 +70,37 @@ void main() {
       expect(harness.lastMessages, <String>['Hello', 'answer']);
     });
 
+    test('reuses one persisted project message for an agent reply', () async {
+      final harness = _ControllerHarness(cancellable: true);
+      final controller = harness.controller;
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.startTextWithPreparation(
+          userMessage: _userMessage(),
+          persistUserMessage: false,
+          prepare:
+              (userMessage) async => PreparedTextGeneration(
+                userMessage: userMessage,
+                messages: <ChatMessage>[
+                  ChatMessage(role: 'user', content: 'Hello'),
+                ],
+              ),
+        ),
+        isTrue,
+      );
+      expect(harness.persisted, isEmpty);
+      expect(controller.snapshot.submittedUserMessage, isNull);
+
+      harness.runProvider.emitToken('agent answer');
+      harness.runProvider.emitTerminal(ProviderTerminalType.completed);
+
+      expect(await controller.waitForTerminal(), ChatRunLifecycle.completed);
+      expect(harness.persisted, hasLength(1));
+      expect(harness.persisted.single.senderId, _bot.id);
+      expect(harness.persisted.single.content, 'agent answer');
+    });
+
     test(
       'registry keeps generating and persists incremental drafts after detach',
       () async {

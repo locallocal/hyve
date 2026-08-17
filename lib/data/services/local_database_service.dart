@@ -62,44 +62,50 @@ class LocalDatabaseService {
 
   Future<void> deleteBot(String id) async {
     final database = await _databaseProvider();
-    final chatRows = await database.query(
-      'chats',
-      columns: const ['id'],
-      where: 'bot_id = ?',
-      whereArgs: [id],
-    );
+    final deletedChatIds = <String>[];
     await database.transaction((transaction) async {
-      await transaction.delete(
-        'skill_activations',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
+      final soleMemberships = await transaction.rawQuery(
+        '''
+        SELECT member.chat_id
+        FROM chat_project_bots AS member
+        WHERE member.bot_id = ?
+          AND NOT EXISTS (
+            SELECT 1
+            FROM chat_project_bots AS peer
+            WHERE peer.chat_id = member.chat_id AND peer.bot_id != ?
+          )
+        ''',
+        [id, id],
       );
-      await transaction.delete(
-        'messages',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
+      deletedChatIds.addAll(
+        soleMemberships
+            .map((record) => record['chat_id']?.toString() ?? '')
+            .where((chatId) => chatId.isNotEmpty),
       );
-      await transaction.delete(
-        'conversation_skill_pins',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
-      );
-      await transaction.delete(
-        'conversation_summary_segments',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
-      );
-      await transaction.delete(
-        'conversation_memory_items',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
-      );
-      await transaction.delete(
-        'conversation_memory_state',
-        where: 'chat_id IN (SELECT id FROM chats WHERE bot_id = ?)',
-        whereArgs: [id],
-      );
-      await transaction.delete('chats', where: 'bot_id = ?', whereArgs: [id]);
+
+      if (deletedChatIds.isNotEmpty) {
+        final placeholders = List.filled(deletedChatIds.length, '?').join(',');
+        final where = 'chat_id IN ($placeholders)';
+        for (final table in const <String>[
+          'skill_activations',
+          'messages',
+          'conversation_skill_pins',
+          'conversation_summary_segments',
+          'conversation_memory_items',
+          'conversation_memory_state',
+        ]) {
+          await transaction.delete(
+            table,
+            where: where,
+            whereArgs: deletedChatIds,
+          );
+        }
+        await transaction.delete(
+          'chats',
+          where: 'id IN ($placeholders)',
+          whereArgs: deletedChatIds,
+        );
+      }
       await transaction.delete(
         'bot_skill_bindings',
         where: 'bot_id = ?',
@@ -112,8 +118,8 @@ class LocalDatabaseService {
       );
       await transaction.delete('bots', where: 'id = ?', whereArgs: [id]);
     });
-    for (final row in chatRows) {
-      _advanceMessageRevision(row['id']?.toString() ?? '');
+    for (final chatId in deletedChatIds) {
+      _advanceMessageRevision(chatId);
     }
   }
 
@@ -176,20 +182,25 @@ class LocalDatabaseService {
 
   Future<List<Map<String, Object?>>> queryConversationSkillInventory(
     String chatId,
+    String botId,
   ) async {
     final database = await _databaseProvider();
     return database.rawQuery(
       '''
       WITH current_chat AS (
-        SELECT id AS chat_id, bot_id
-        FROM chats
-        WHERE id = ?
+        SELECT chat_id, bot_id
+        FROM chat_project_bots
+        WHERE chat_id = ? AND bot_id = ?
         LIMIT 1
+      ),
+      agent_bindings AS (
+        SELECT b.*
+        FROM bot_skill_bindings AS b
+        JOIN current_chat AS c ON c.bot_id = b.bot_id
       ),
       skill_ids AS (
         SELECT b.skill_id
-        FROM bot_skill_bindings AS b
-        JOIN current_chat AS c ON c.bot_id = b.bot_id
+        FROM agent_bindings AS b
         UNION
         SELECT p.skill_id
         FROM conversation_skill_pins AS p
@@ -238,13 +249,12 @@ class LocalDatabaseService {
       FROM skill_ids AS ids
       CROSS JOIN current_chat AS c
       LEFT JOIN skills AS s ON s.id = ids.skill_id
-      LEFT JOIN bot_skill_bindings AS b
-        ON b.bot_id = c.bot_id AND b.skill_id = ids.skill_id
+      LEFT JOIN agent_bindings AS b ON b.skill_id = ids.skill_id
       LEFT JOIN conversation_skill_pins AS p
         ON p.chat_id = c.chat_id AND p.skill_id = ids.skill_id
       ORDER BY configured_enabled DESC, priority DESC, lower(name) ASC, id ASC
     ''',
-      [chatId],
+      [chatId, botId],
     );
   }
 

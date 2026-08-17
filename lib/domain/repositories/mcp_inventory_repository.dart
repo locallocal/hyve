@@ -6,5 +6,8 @@ abstract interface class McpInventoryRepository {
     int limit = 50,
   });
 
-  Future<ConversationMcpInventory> listForConversation(String chatId);
+  Future<ConversationMcpInventory> listForConversation(
+    String chatId,
+    String botId,
+  );
 }

@@ -32,8 +32,14 @@ extension LocalDatabaseConversations on LocalDatabaseService {
     required Iterable<String> botIds,
   }) async {
     final database = await _databaseProvider();
-    final ids = <String>{chat['bot_id']?.toString() ?? '', ...botIds}
-      ..remove('');
+    final ids = <String>{...botIds}..remove('');
+    if (ids.isEmpty) {
+      throw ArgumentError.value(
+        botIds,
+        'botIds',
+        'A project must contain at least one agent.',
+      );
+    }
     await database.transaction((transaction) async {
       await _upsertByPrimaryKey(transaction, 'chats', chat, 'id');
       final chatId = chat['id']?.toString() ?? '';

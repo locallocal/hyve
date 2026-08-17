@@ -9,7 +9,7 @@ final class CreateUserMessage {
 
   Message call({
     required String chatId,
-    required String botId,
+    required Iterable<String> targetBotIds,
     required String senderId,
     required String content,
     List<String> imagePaths = const [],
@@ -20,7 +20,10 @@ final class CreateUserMessage {
     messageId: _messages.createId('message'),
     turnId: _messages.createId('turn'),
     chatId: chatId,
-    botId: botId,
+    botId: '',
+    targetBotIds: List<String>.unmodifiable(
+      <String>{...targetBotIds}..remove(''),
+    ),
     senderId: senderId,
     content: content,
     images: imagePaths,

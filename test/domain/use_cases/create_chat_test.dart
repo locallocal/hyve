@@ -11,11 +11,11 @@ void main() {
     final now = DateTime(2026, 7, 21, 10);
     final createChat = CreateChat(chatRepository: repository, clock: () => now);
 
-    final first = await createChat(_bot);
-    final second = await createChat(_bot);
+    final first = await createChat(bots: [_bot]);
+    final second = await createChat(bots: [_bot]);
 
     expect(first.id, isNot(second.id));
-    expect(first.botId, _bot.id);
+    expect(first.botIds, [_bot.id]);
     expect(first.createTimestamp, now);
     expect(first.modifyTimestamp, now);
     expect(repository.added, [first, second]);
@@ -30,13 +30,11 @@ void main() {
     final writer = _botWithId('bot-2');
 
     final project = await createChat(
-      _bot,
       name: '  Product launch  ',
       bots: [_bot, writer, _bot],
     );
 
     expect(project.name, 'Product launch');
-    expect(project.botId, _bot.id);
     expect(project.projectBotIds, ['bot-1', 'bot-2']);
   });
 }

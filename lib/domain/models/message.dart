@@ -203,6 +203,7 @@ class Message {
     this.runId = '',
     required this.chatId,
     required this.botId,
+    this.targetBotIds = const [],
     required this.senderId,
     required this.content,
     this.reasoning = '',
@@ -223,6 +224,7 @@ class Message {
   final String runId;
   final String chatId;
   final String botId;
+  final List<String> targetBotIds;
   final String senderId;
   final String content;
   final String reasoning;
@@ -243,6 +245,7 @@ class Message {
     String? runId,
     String? chatId,
     String? botId,
+    List<String>? targetBotIds,
     String? senderId,
     String? content,
     String? reasoning,
@@ -264,6 +267,7 @@ class Message {
       runId: runId ?? this.runId,
       chatId: chatId ?? this.chatId,
       botId: botId ?? this.botId,
+      targetBotIds: targetBotIds ?? this.targetBotIds,
       senderId: senderId ?? this.senderId,
       content: content ?? this.content,
       reasoning: reasoning ?? this.reasoning,

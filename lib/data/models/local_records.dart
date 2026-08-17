@@ -54,7 +54,6 @@ final class ChatRecord {
   factory ChatRecord.fromDomain(Chat chat) {
     return ChatRecord({
       'id': chat.id,
-      'bot_id': chat.botId,
       'last_message': chat.lastMessage,
       'last_message_timestamp':
           chat.lastMessageTimestamp.millisecondsSinceEpoch,
@@ -66,15 +65,13 @@ final class ChatRecord {
   final Map<String, Object?> values;
 
   Chat toDomain() {
-    final primaryBotId = _string(values['bot_id']);
     return Chat(
       id: _string(values['id']),
-      botId: primaryBotId,
       name:
           values['project_name'] is String
               ? values['project_name']! as String
               : '',
-      botIds: _projectBotIds(values['project_bot_ids'], primaryBotId),
+      botIds: _projectBotIds(values['project_bot_ids']),
       lastMessage: _string(values['last_message']),
       lastMessageTimestamp: _timestamp(values['last_message_timestamp']),
       createTimestamp: _timestamp(values['create_timestamp']),
@@ -83,8 +80,7 @@ final class ChatRecord {
   }
 }
 
-List<String> _projectBotIds(Object? raw, String primaryBotId) {
-  if (raw == null) return List<String>.unmodifiable(<String>[primaryBotId]);
+List<String> _projectBotIds(Object? raw) {
   if (raw is! String) {
     throw const FormatException('Project Bot ids must be stored as JSON text.');
   }
@@ -92,7 +88,7 @@ List<String> _projectBotIds(Object? raw, String primaryBotId) {
   if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
     throw const FormatException('Project Bot ids must contain a string list.');
   }
-  final ids = <String>{primaryBotId, ...decoded.cast<String>()}..remove('');
+  final ids = <String>{...decoded.cast<String>()}..remove('');
   return List<String>.unmodifiable(ids);
 }
 
@@ -169,6 +165,7 @@ final class MessageRecord {
       'run_id': message.runId,
       'chat_id': message.chatId,
       'bot_id': message.botId,
+      'target_bot_ids': jsonEncode(message.targetBotIds),
       'sender_id': message.senderId,
       'content': message.content,
       'reasoning': message.reasoning,
@@ -199,6 +196,7 @@ final class MessageRecord {
       runId: _string(values['run_id']),
       chatId: _string(values['chat_id']),
       botId: _string(values['bot_id']),
+      targetBotIds: _stringList(values['target_bot_ids']),
       senderId: _string(values['sender_id']),
       content: _string(values['content']),
       reasoning: _string(values['reasoning']),

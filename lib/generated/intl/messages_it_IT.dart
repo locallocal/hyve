@@ -617,11 +617,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("Preferenza"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("Domanda aperta"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("Attività"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
-      "Inserisci messaggio...",
+      "Inserisci un messaggio e menziona gli agenti con @...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Competenze"),
     "minutesAgo": m28,

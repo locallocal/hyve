@@ -15,6 +15,7 @@ part 'message_input_toolbar.dart';
 class MessageInput extends StatefulWidget {
   final TextEditingController controller;
   final AiProvider provider;
+  final List<Bot> mentionBots;
   final bool requestInProgress;
   final bool canCancel;
   final bool isStopping;
@@ -35,6 +36,7 @@ class MessageInput extends StatefulWidget {
     super.key,
     required this.provider,
     required this.controller,
+    this.mentionBots = const <Bot>[],
     required this.requestInProgress,
     this.canCancel = false,
     this.isStopping = false,
@@ -99,6 +101,7 @@ class _MessageInputState extends State<MessageInput> {
       }
     });
     _focusNode.addListener(_handleFocusChanged);
+    widget.controller.addListener(_handleComposerChanged);
     _attachmentPopoverController.addListener(_handlePopoverChanged);
     _imageOptionsPopoverController.addListener(_handlePopoverChanged);
     _videoOptionsPopoverController.addListener(_handlePopoverChanged);
@@ -109,6 +112,7 @@ class _MessageInputState extends State<MessageInput> {
     _focusNode
       ..removeListener(_handleFocusChanged)
       ..dispose();
+    widget.controller.removeListener(_handleComposerChanged);
     _attachmentButtonFocusNode.dispose();
     _attachmentPopoverController
       ..removeListener(_handlePopoverChanged)
@@ -125,6 +129,10 @@ class _MessageInputState extends State<MessageInput> {
   @override
   void didUpdateWidget(covariant MessageInput oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_handleComposerChanged);
+      widget.controller.addListener(_handleComposerChanged);
+    }
     if (oldWidget.focusRequestToken != widget.focusRequestToken) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusNode.requestFocus();
@@ -138,6 +146,51 @@ class _MessageInputState extends State<MessageInput> {
         _hasFocus = _focusNode.hasFocus;
       });
     }
+  }
+
+  void _handleComposerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  ({int start, String query})? get _mentionQuery {
+    final selection = widget.controller.selection;
+    final cursor = selection.isValid ? selection.baseOffset : -1;
+    if (cursor < 0) return null;
+    final beforeCursor = widget.controller.text.substring(0, cursor);
+    final start = beforeCursor.lastIndexOf('@');
+    if (start < 0 ||
+        (start > 0 && !RegExp(r'\s').hasMatch(beforeCursor[start - 1]))) {
+      return null;
+    }
+    final query = beforeCursor.substring(start + 1);
+    if (query.contains(RegExp(r'\s'))) return null;
+    return (start: start, query: query.toLowerCase());
+  }
+
+  List<Bot> get _mentionCandidates {
+    final mention = _mentionQuery;
+    if (mention == null || widget.requestInProgress) return const [];
+    return widget.mentionBots
+        .where((bot) => bot.name.toLowerCase().contains(mention.query))
+        .take(6)
+        .toList(growable: false);
+  }
+
+  void _insertMention(Bot bot) {
+    final mention = _mentionQuery;
+    if (mention == null) return;
+    final value = widget.controller.value;
+    final cursor = value.selection.baseOffset;
+    final replacement = '@${bot.name} ';
+    final text = value.text.replaceRange(mention.start, cursor, replacement);
+    widget.controller.value = value.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(
+        offset: mention.start + replacement.length,
+      ),
+      composing: TextRange.empty,
+    );
+    _focusNode.requestFocus();
   }
 
   void _handlePopoverChanged() {
@@ -200,6 +253,12 @@ class _MessageInputState extends State<MessageInput> {
 
     return Column(
       children: [
+        if (_hasFocus && _mentionCandidates.isNotEmpty)
+          _MentionSuggestions(
+            bots: _mentionCandidates,
+            onSelected: _insertMention,
+            isDesktop: isDesktop,
+          ),
         AnimatedContainer(
           duration:
               isDesktop && disableAnimations
@@ -297,6 +356,46 @@ class _MessageInputState extends State<MessageInput> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MentionSuggestions extends StatelessWidget {
+  const _MentionSuggestions({
+    required this.bots,
+    required this.onSelected,
+    required this.isDesktop,
+  });
+
+  final List<Bot> bots;
+  final ValueChanged<Bot> onSelected;
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey<String>('agent-mention-suggestions'),
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(isDesktop ? 0 : 16, 0, isDesktop ? 0 : 16, 0),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: HyveDesktopTokens.of(context).contentBackground,
+        borderRadius: HyveDesktopThemeSpec.containerRadius,
+        border: Border.all(color: HyveDesktopTokens.of(context).separator),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          for (final bot in bots)
+            ActionChip(
+              key: ValueKey<String>('mention-agent-${bot.id}'),
+              avatar: const Icon(Icons.alternate_email_rounded, size: 16),
+              label: Text(bot.name),
+              onPressed: () => onSelected(bot),
+            ),
+        ],
+      ),
     );
   }
 }

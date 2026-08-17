@@ -11,12 +11,18 @@ void main() {
     'ChatListViewModel loads immutable state and filters by bot or preview',
     () async {
       final chatRepository = _FakeChatRepository([
-        _chat('chat-1', 'bot-1', 'Architecture notes'),
+        _chat(
+          'chat-1',
+          'bot-1',
+          'Architecture notes',
+          botIds: const ['bot-1', 'bot-3'],
+        ),
         _chat('chat-2', 'bot-2', 'Weekend plan'),
       ]);
       final botRepository = _FakeBotRepository([
         _bot('bot-1', 'Planner'),
         _bot('bot-2', 'Coder'),
+        _bot('bot-3', 'Reviewer'),
       ]);
       final viewModel = ChatListViewModel(
         chatRepository: chatRepository,
@@ -36,6 +42,8 @@ void main() {
       );
       expect(() => viewModel.bots.clear(), throwsUnsupportedError);
       expect(() => viewModel.filteredChats.clear(), throwsUnsupportedError);
+      expect(viewModel.projects.first.bots, hasLength(2));
+      expect(() => viewModel.projects.clear(), throwsUnsupportedError);
 
       viewModel.search('coder');
       expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-2']);
@@ -45,6 +53,11 @@ void main() {
 
       viewModel.search('launch');
       expect(viewModel.filteredChats.map((chat) => chat.id), ['chat-2']);
+
+      viewModel.search('reviewer');
+      expect(viewModel.filteredProjects.map((project) => project.id), [
+        'chat-1',
+      ]);
 
       chatRepository.items.add(_chat('chat-3', 'bot-1', 'New snapshot'));
       await viewModel.load();
@@ -92,9 +105,14 @@ Bot _bot(String id, String name) => Bot(
   modifyTimestamp: DateTime(2026),
 );
 
-Chat _chat(String id, String botId, String preview) => Chat(
+Chat _chat(
+  String id,
+  String botId,
+  String preview, {
+  List<String> botIds = const <String>[],
+}) => Chat(
   id: id,
-  botId: botId,
+  botIds: botIds.isEmpty ? [botId] : botIds,
   name: id == 'chat-2' ? 'Launch project' : '',
   lastMessage: preview,
   lastMessageTimestamp: DateTime(2026),

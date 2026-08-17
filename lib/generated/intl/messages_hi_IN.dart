@@ -603,10 +603,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("पसंद"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("खुला प्रश्न"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("कार्य"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
-    "messageHint": MessageLookupByLibrary.simpleMessage("संदेश लिखें..."),
+    "messageHint": MessageLookupByLibrary.simpleMessage(
+      "संदेश लिखें और @ से एजेंट का उल्लेख करें...",
+    ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("कौशल"),
     "minutesAgo": m28,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),

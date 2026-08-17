@@ -22,7 +22,7 @@ class DatabaseService {
   Future<Database>? _openingDatabase;
   // This is the only supported schema generation. Every other version is
   // deleted before the database is opened.
-  static const int databaseVersion = 17;
+  static const int databaseVersion = 18;
   static const String _databaseFileName = 'app.db';
   static const String _currentBackupName = '.hyve_backup_current';
   static const String _previousBackupName = '.hyve_backup_previous';
@@ -307,12 +307,10 @@ class DatabaseService {
     await db.execute('''
       CREATE TABLE chats (
         id TEXT PRIMARY KEY,
-        bot_id TEXT NOT NULL,
         last_message TEXT NOT NULL,
         last_message_timestamp INTEGER NOT NULL,
         create_timestamp INTEGER NOT NULL,
-        modify_timestamp INTEGER NOT NULL,
-        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
+        modify_timestamp INTEGER NOT NULL
       )
     ''');
     await _ensureProjectSchema(db);
@@ -324,6 +322,7 @@ class DatabaseService {
         run_id TEXT NOT NULL,
         chat_id TEXT NOT NULL,
         bot_id TEXT NOT NULL,
+        target_bot_ids TEXT NOT NULL,
         sender_id TEXT NOT NULL,
         content TEXT NOT NULL,
         reasoning TEXT NOT NULL,
@@ -341,8 +340,7 @@ class DatabaseService {
         has_partial_content INTEGER NOT NULL
           CHECK (has_partial_content IN (0, 1)),
         timestamp INTEGER NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
+        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
       )
     ''');
     await db.execute(

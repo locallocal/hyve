@@ -18,6 +18,34 @@ import 'package:hyve/utils/theme.dart';
 import '../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('desktop project toolbar exposes one shared project chat', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    addTearDown(tester.view.reset);
+    final primary = _shellBot('project-primary', '研究员');
+    final reviewer = _shellBot('project-reviewer', '审阅员');
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        desktopHarness(
+          selectedChatBot: primary,
+          selectedChatBots: [primary, reviewer],
+          selectedProjectName: '发布项目',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('发布项目'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('desktop-project-agent-selector')),
+        findsNothing,
+      );
+      expect(find.text('审阅员'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   testWidgets('desktop empty state renders without a card shell', (
     tester,
   ) async {
@@ -104,7 +132,7 @@ void main() {
               (context) => Scaffold(
                 body: ChatListPage(
                   viewModel: chatViewModel,
-                  onChatSelected: (_, _) {},
+                  onProjectSelected: (_) {},
                 ),
               ),
         ),
@@ -680,3 +708,17 @@ void main() {
     expect(chatBorder.bottom.style, BorderStyle.solid);
   });
 }
+
+Bot _shellBot(String id, String name) => Bot(
+  id: id,
+  name: name,
+  avatar: '',
+  provider: 'OpenAI',
+  baseURL: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'gpt-test',
+  systemPrompt: '',
+  createTimestamp: DateTime(2026),
+  modifyTimestamp: DateTime(2026),
+);

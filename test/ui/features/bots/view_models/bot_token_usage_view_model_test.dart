@@ -82,7 +82,7 @@ ModelTokenUsageRecord _record(
 
 Chat _chat(String id, String lastMessage) => Chat(
   id: id,
-  botId: 'bot-1',
+  botIds: const ['bot-1'],
   lastMessage: lastMessage,
   lastMessageTimestamp: DateTime(2026, 7, 26),
   createTimestamp: DateTime(2026, 7, 26),

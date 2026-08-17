@@ -64,6 +64,7 @@ class DatabaseService {
     );
     try {
       await _ensureProjectSchema(database);
+      await _ensureBotSkillBindingSchema(database);
       await _verifyIntegrity(database);
       return database;
     } on Object {
@@ -450,20 +451,7 @@ class DatabaseService {
         UNIQUE(scope, name)
       )
     ''');
-    await db.execute('''
-      CREATE TABLE bot_skill_bindings (
-        bot_id TEXT NOT NULL,
-        skill_id TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        activation_mode TEXT NOT NULL DEFAULT 'auto',
-        priority INTEGER NOT NULL DEFAULT 0,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        PRIMARY KEY (bot_id, skill_id),
-        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE,
-        FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
-      )
-    ''');
+    await _createBotSkillBindingsTable(db);
     await db.execute(
       'CREATE INDEX bot_skill_bindings_skill_id_index '
       'ON bot_skill_bindings(skill_id)',
@@ -493,6 +481,71 @@ class DatabaseService {
       'CREATE INDEX skill_activations_chat_id_index '
       'ON skill_activations(chat_id)',
     );
+  }
+
+  static Future<void> _createBotSkillBindingsTable(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE bot_skill_bindings (
+        bot_id TEXT NOT NULL,
+        skill_id TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        activation_mode TEXT NOT NULL DEFAULT 'auto',
+        priority INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (bot_id, skill_id),
+        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  /// Bundled Skills are runtime assets and intentionally have no row in the
+  /// installed `skills` table. Version 17 originally added a foreign key that
+  /// made those valid bindings impossible to persist. Repair that constraint
+  /// in place so current-version databases keep their Bots and bindings.
+  static Future<void> _ensureBotSkillBindingSchema(Database database) async {
+    final foreignKeys = await database.rawQuery(
+      'PRAGMA foreign_key_list(bot_skill_bindings)',
+    );
+    final referencesInstalledSkills = foreignKeys.any(
+      (foreignKey) => foreignKey['table'] == 'skills',
+    );
+    if (!referencesInstalledSkills) return;
+
+    await database.transaction((transaction) async {
+      await transaction.execute(
+        'ALTER TABLE bot_skill_bindings '
+        'RENAME TO bot_skill_bindings_with_installed_skill_fk',
+      );
+      await _createBotSkillBindingsTable(transaction);
+      await transaction.execute('''
+        INSERT INTO bot_skill_bindings (
+          bot_id,
+          skill_id,
+          enabled,
+          activation_mode,
+          priority,
+          created_at,
+          updated_at
+        )
+        SELECT
+          bot_id,
+          skill_id,
+          enabled,
+          activation_mode,
+          priority,
+          created_at,
+          updated_at
+        FROM bot_skill_bindings_with_installed_skill_fk
+      ''');
+      await transaction.execute(
+        'DROP TABLE bot_skill_bindings_with_installed_skill_fk',
+      );
+      await transaction.execute(
+        'CREATE INDEX bot_skill_bindings_skill_id_index '
+        'ON bot_skill_bindings(skill_id)',
+      );
+    });
   }
 
   static Future<void> _createSkillEcosystemSchema(DatabaseExecutor db) async {

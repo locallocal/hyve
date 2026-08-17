@@ -92,6 +92,25 @@ void main() {
         );
       },
     );
+
+    test('allows a Bot to bind a bundled Skill', () async {
+      final database = await _openCurrentDatabase();
+      addTearDown(database.close);
+
+      await database.insert('bots', _botRow('bot-bundled-skill'));
+      await database.insert('bot_skill_bindings', <String, Object?>{
+        'bot_id': 'bot-bundled-skill',
+        'skill_id': 'system:conversation-history',
+        'enabled': 1,
+        'activation_mode': 'auto',
+        'priority': 0,
+        'created_at': 1,
+        'updated_at': 1,
+      });
+
+      expect(await database.query('bot_skill_bindings'), hasLength(1));
+      expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+    });
   });
 
   group('database version reset policy', () {
@@ -129,6 +148,94 @@ void main() {
           whereArgs: const <Object?>['current-bot'],
         ),
         hasLength(1),
+      );
+    });
+
+    test('repairs the version 17 installed-Skill binding constraint', () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'hyve_skill_binding_schema_repair_',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final databasePath = path.join(directory.path, 'app.db');
+      final initialDatabase = await databaseFactoryFfi.openDatabase(
+        databasePath,
+        options: OpenDatabaseOptions(
+          version: DatabaseService.databaseVersion,
+          onConfigure: DatabaseService.configure,
+          onCreate: DatabaseService.createSchema,
+        ),
+      );
+      await initialDatabase.insert('bots', _botRow('bot-preserved'));
+      await initialDatabase.insert('skills', _skillRow('user:preserved'));
+      await initialDatabase.execute(
+        'DROP INDEX bot_skill_bindings_skill_id_index',
+      );
+      await initialDatabase.execute(
+        'ALTER TABLE bot_skill_bindings '
+        'RENAME TO bot_skill_bindings_without_skill_fk',
+      );
+      await initialDatabase.execute('''
+        CREATE TABLE bot_skill_bindings (
+          bot_id TEXT NOT NULL,
+          skill_id TEXT NOT NULL,
+          enabled INTEGER NOT NULL DEFAULT 1,
+          activation_mode TEXT NOT NULL DEFAULT 'auto',
+          priority INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (bot_id, skill_id),
+          FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE,
+          FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
+        )
+      ''');
+      await initialDatabase.execute('''
+        INSERT INTO bot_skill_bindings
+        SELECT * FROM bot_skill_bindings_without_skill_fk
+      ''');
+      await initialDatabase.execute(
+        'DROP TABLE bot_skill_bindings_without_skill_fk',
+      );
+      await initialDatabase.execute(
+        'CREATE INDEX bot_skill_bindings_skill_id_index '
+        'ON bot_skill_bindings(skill_id)',
+      );
+      await initialDatabase.insert('bot_skill_bindings', <String, Object?>{
+        'bot_id': 'bot-preserved',
+        'skill_id': 'user:preserved',
+        'enabled': 1,
+        'activation_mode': 'auto',
+        'priority': 0,
+        'created_at': 1,
+        'updated_at': 1,
+      });
+      await initialDatabase.close();
+
+      final service = DatabaseService(
+        applicationDocumentsDirectoryProvider: () async => directory,
+      );
+      final repairedDatabase = await service.initDatabase();
+      addTearDown(repairedDatabase.close);
+      await repairedDatabase.insert('bot_skill_bindings', <String, Object?>{
+        'bot_id': 'bot-preserved',
+        'skill_id': 'system:conversation-history',
+        'enabled': 1,
+        'activation_mode': 'auto',
+        'priority': 0,
+        'created_at': 2,
+        'updated_at': 2,
+      });
+
+      expect(await repairedDatabase.query('bots'), hasLength(1));
+      expect(await repairedDatabase.query('bot_skill_bindings'), hasLength(2));
+      expect(
+        (await repairedDatabase.rawQuery(
+          'PRAGMA foreign_key_list(bot_skill_bindings)',
+        )).map((foreignKey) => foreignKey['table']),
+        isNot(contains('skills')),
+      );
+      expect(
+        await repairedDatabase.rawQuery('PRAGMA foreign_key_check'),
+        isEmpty,
       );
     });
 

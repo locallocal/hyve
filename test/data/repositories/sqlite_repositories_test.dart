@@ -556,6 +556,26 @@ void main() {
     expect(await bindingRepository.getForBot(bot.id), isEmpty);
   });
 
+  test('a Bot and bundled Skill binding persist atomically', () async {
+    final bot = _bot(id: 'bot-with-bundled-skill');
+    final timestamp = DateTime(2026, 8, 18);
+    final binding = BotSkillBinding(
+      botId: bot.id,
+      skillId: 'system:conversation-history',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+
+    await botRepository.addBotWithSkillBindings(bot, [binding]);
+
+    expect((await botRepository.getBot(bot.id))?.id, bot.id);
+    final restoredBindings = await bindingRepository.getForBot(bot.id);
+    expect(restoredBindings, hasLength(1));
+    expect(restoredBindings.single.botId, binding.botId);
+    expect(restoredBindings.single.skillId, binding.skillId);
+    expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+  });
+
   test('Bot and Skill bindings roll back as one transaction', () async {
     final bot = _bot();
     await database.execute('''

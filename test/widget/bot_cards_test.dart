@@ -709,7 +709,7 @@ void main() {
       expect(
         find.descendant(
           of: startChatAction,
-          matching: find.byIcon(desktopStartConversationIcon),
+          matching: find.byIcon(desktopProjectIcon),
         ),
         findsOneWidget,
       );

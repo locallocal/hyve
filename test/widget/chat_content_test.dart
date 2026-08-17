@@ -819,7 +819,7 @@ void main() {
       );
 
       await tester.tap(
-        find.byIcon(LucideIcons.messageCircle),
+        find.byIcon(desktopProjectIcon),
         kind: PointerDeviceKind.mouse,
       );
       await tester.pumpAndSettle();

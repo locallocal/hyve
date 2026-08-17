@@ -149,7 +149,7 @@ class ChatListPageState extends State<ChatListPage> {
                   onPressed: _openNewProjectPage,
                   height: HyveDesktopThemeSpec.botFormFieldHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  leading: const Icon(desktopStartConversationIcon, size: 16),
+                  leading: const Icon(desktopProjectIcon, size: 16),
                   child: Text(
                     desktopProjectText(context, S.of(context).newChat),
                   ),
@@ -250,10 +250,7 @@ class ChatListPageState extends State<ChatListPage> {
   Widget _buildEmptyChatsView(bool isDesktop) {
     if (isDesktop) {
       return DesktopEmptyStateCard(
-        icon:
-            searchQuery.isNotEmpty
-                ? LucideIcons.searchX
-                : desktopStartConversationIcon,
+        icon: searchQuery.isNotEmpty ? LucideIcons.searchX : desktopProjectIcon,
         title: desktopProjectText(
           context,
           searchQuery.isNotEmpty

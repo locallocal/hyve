@@ -116,13 +116,13 @@ void main() {
       final chatEmptyState = tester.widget<DesktopEmptyStateCard>(
         chatEmptyStateFinder,
       );
-      expect(chatEmptyState.icon, desktopStartConversationIcon);
+      expect(chatEmptyState.icon, desktopProjectIcon);
       expect(chatEmptyState.imageAsset, isNull);
       expect(chatEmptyState.supportingText, isNull);
       expect(
         find.descendant(
           of: chatEmptyStateFinder,
-          matching: find.byIcon(desktopStartConversationIcon),
+          matching: find.byIcon(desktopProjectIcon),
         ),
         findsOneWidget,
       );
@@ -447,7 +447,7 @@ void main() {
         final newChatButtonFinder =
             find
                 .ancestor(
-                  of: find.byIcon(desktopStartConversationIcon),
+                  of: find.byIcon(desktopProjectIcon),
                   matching: find.byType(ShadButton),
                 )
                 .first;
@@ -464,7 +464,7 @@ void main() {
           find
               .descendant(
                 of: newChatButtonFinder,
-                matching: find.byIcon(desktopStartConversationIcon),
+                matching: find.byIcon(desktopProjectIcon),
               )
               .first,
         );
@@ -563,7 +563,7 @@ void main() {
 
       final conversationIconLeft =
           tester.getTopLeft(find.byType(ShadAvatar)).dx;
-      for (final icon in [desktopStartConversationIcon, LucideIcons.bot]) {
+      for (final icon in [desktopProjectIcon, LucideIcons.bot]) {
         final iconFinder = find.byIcon(icon).first;
         final buttonFinder =
             find

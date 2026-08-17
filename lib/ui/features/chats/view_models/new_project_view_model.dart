@@ -1,26 +1,19 @@
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
-import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/use_cases/create_project.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 enum NewProjectValidationError { nameRequired, botRequired }
 
-final class CreatedProject {
-  const CreatedProject({required this.chat, required this.primaryBot});
-
-  final Chat chat;
-  final Bot primaryBot;
-}
-
 final class NewProjectViewModel extends DisposableChangeNotifier {
   NewProjectViewModel({
     required BotRepository botRepository,
-    required CreateChat createChat,
+    required CreateProject createProject,
   }) : _botRepository = botRepository,
-       _createChat = createChat;
+       _createProject = createProject;
 
   final BotRepository _botRepository;
-  final CreateChat _createChat;
+  final CreateProject _createProject;
 
   List<Bot> _bots = const <Bot>[];
   List<String> _selectedBotIds = const <String>[];
@@ -103,7 +96,7 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
     notifyListeners();
   }
 
-  Future<CreatedProject?> submit() async {
+  Future<Project?> submit() async {
     if (isDisposed || _isSaving) return null;
     final errors = <NewProjectValidationError>{};
     if (_name.trim().isEmpty) {
@@ -133,13 +126,7 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final primaryBot = selectedBots.first;
-      final chat = await _createChat(
-        primaryBot,
-        name: _name,
-        bots: selectedBots,
-      );
-      return CreatedProject(chat: chat, primaryBot: primaryBot);
+      return await _createProject(name: _name, bots: selectedBots);
     } on Object catch (error) {
       _error = AppFailure.from(error, code: 'project_create_failed');
       return null;

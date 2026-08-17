@@ -12,6 +12,7 @@ void main() {
     final session = McpInventoryToolSession(
       repository: repository,
       chatId: 'chat-current',
+      botId: 'bot-current',
     );
     tools = {
       for (final tool in session.createTools()) tool.definition.name: tool,
@@ -66,6 +67,7 @@ void main() {
     );
 
     expect(repository.chatId, 'chat-current');
+    expect(repository.botId, 'bot-current');
     expect(result.isError, isFalse);
     expect(
       const JsonSchemaValidator().validate(
@@ -112,6 +114,7 @@ final class _FakeMcpInventoryRepository implements McpInventoryRepository {
   String query = '';
   int limit = 0;
   String chatId = '';
+  String botId = '';
 
   @override
   Future<InstalledMcpServerInventoryPage> listInstalled({
@@ -142,8 +145,12 @@ final class _FakeMcpInventoryRepository implements McpInventoryRepository {
   }
 
   @override
-  Future<ConversationMcpInventory> listForConversation(String chatId) async {
+  Future<ConversationMcpInventory> listForConversation(
+    String chatId,
+    String botId,
+  ) async {
     this.chatId = chatId;
+    this.botId = botId;
     return const ConversationMcpInventory(
       conversationFound: true,
       botId: 'bot-1',

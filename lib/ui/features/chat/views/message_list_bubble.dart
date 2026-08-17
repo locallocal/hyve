@@ -4,6 +4,7 @@ class _MessageBubble extends StatelessWidget {
   final bool isCurrentUser;
   final bool isDesktop;
   final bool isStreaming;
+  final String agentName;
   final String reasoning;
   final MessageProcessInfo processInfo;
   final ModelTokenUsage tokenUsage;
@@ -22,6 +23,7 @@ class _MessageBubble extends StatelessWidget {
     required this.isCurrentUser,
     required this.isDesktop,
     this.isStreaming = false,
+    this.agentName = '',
     required this.reasoning,
     this.processInfo = const MessageProcessInfo(),
     this.tokenUsage = ModelTokenUsage.empty,
@@ -49,6 +51,17 @@ class _MessageBubble extends StatelessWidget {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (!isCurrentUser && agentName.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              agentName,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: HyveDesktopTokens.of(context).secondaryText,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         if (reasoning.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(

@@ -14,25 +14,23 @@ import 'package:hyve/utils/theme.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatListBuilder extends StatelessWidget {
-  final List<Chat> chatList;
-  final List<Bot> bots;
+  final List<Project> projects;
   final String? selectedChatId;
   final bool selectionVisible;
   final bool showExecutionStatus;
   final ValueChanged<String> onChatDeleted;
-  final void Function(String chatId, Bot bot) onChatSelected;
+  final ValueChanged<Project> onProjectSelected;
   final Future<void> Function(String chatId) onDeleteChat;
   final ChatGenerationRegistry generationRegistry;
 
   const ChatListBuilder({
     super.key,
-    required this.chatList,
-    required this.bots,
+    required this.projects,
     this.selectedChatId,
     this.selectionVisible = true,
     this.showExecutionStatus = true,
     required this.onChatDeleted,
-    required this.onChatSelected,
+    required this.onProjectSelected,
     required this.onDeleteChat,
     required this.generationRegistry,
   });
@@ -42,39 +40,15 @@ class ChatListBuilder extends StatelessWidget {
     final isDesktop = isDesktopPlatform(context);
     return ListView.separated(
       padding: EdgeInsets.only(bottom: isDesktop ? 8 : 0),
-      itemCount: chatList.length,
+      itemCount: projects.length,
       separatorBuilder: (context, index) => SizedBox(height: isDesktop ? 8 : 0),
       itemBuilder: (context, index) {
-        final chat = chatList[index];
-        final matchingBots = bots.where((bot) => bot.id == chat.botId);
-        final isOrphaned = matchingBots.isEmpty;
-        final bot =
-            matchingBots.firstOrNull ??
-            Bot(
-              id: '',
-              name: S.of(context).unavailableBot,
-              avatar: '',
-              provider: '',
-              baseURL: '',
-              apiKey: '',
-              apiType: '',
-              systemPrompt: '',
-              model: '',
-              createTimestamp: DateTime.now(),
-              modifyTimestamp: DateTime.now(),
-            );
+        final project = projects[index];
+        final chat = project.chat;
+        final bot = project.firstBot;
         void openChat({bool refreshAfterClose = false}) {
-          if (isOrphaned) {
-            showHyveNotice(
-              context,
-              S.of(context).botUnavailableTitle,
-              description: S.of(context).orphanedChatGuidance,
-              tone: HyveNoticeTone.error,
-            );
-            return;
-          }
           if (isDesktop) {
-            onChatSelected(chat.id, bot);
+            onProjectSelected(project);
             return;
           }
 
@@ -85,6 +59,8 @@ class ChatListBuilder extends StatelessWidget {
                   (context) => ChatPage(
                     id: chat.id,
                     bot: bot,
+                    bots: project.bots,
+                    projectName: project.name,
                     showExecutionStatus: showExecutionStatus,
                   ),
             ),
@@ -237,6 +213,7 @@ class ChatListBuilder extends StatelessWidget {
         ChatListItem buildListItem({Widget? trailing}) {
           return ChatListItem(
             bot: bot,
+            bots: project.bots,
             title: chat.name,
             isSelected:
                 isDesktop && selectionVisible && selectedChatId == chat.id,
@@ -256,7 +233,6 @@ class ChatListBuilder extends StatelessWidget {
           final contextItems = <Widget>[
             ShadContextMenuItem(
               leading: const Icon(desktopProjectIcon, size: 16),
-              enabled: !isOrphaned,
               onPressed: openChat,
               child: Text(
                 desktopProjectText(context, S.of(context).startChatting),
@@ -283,7 +259,7 @@ class ChatListBuilder extends StatelessWidget {
             items: contextItems,
             child: buildListItem(
               trailing: _ChatRowActions(
-                canOpen: !isOrphaned,
+                canOpen: true,
                 onOpen: openChat,
                 onDelete: deleteChat,
               ),

@@ -603,10 +603,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("Предпочтение"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("Открытый вопрос"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("Задача"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
-    "messageHint": MessageLookupByLibrary.simpleMessage("Введите сообщение..."),
+    "messageHint": MessageLookupByLibrary.simpleMessage(
+      "Введите сообщение и упомяните агентов через @...",
+    ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Навыки"),
     "minutesAgo": m28,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),

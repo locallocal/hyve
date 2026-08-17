@@ -8,6 +8,7 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
 import 'package:hyve/domain/repositories/chat_repository.dart';
 import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/use_cases/create_project.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/l10n/app_localizations.dart';
 import 'package:hyve/ui/features/chats/view_models/new_project_view_model.dart';
@@ -26,7 +27,9 @@ void main() {
     final bots = [_bot('bot-1', 'Researcher'), _bot('bot-2', 'Writer')];
     final viewModel = NewProjectViewModel(
       botRepository: _BotRepository(bots),
-      createChat: CreateChat(chatRepository: chatRepository),
+      createProject: CreateProject(
+        createChat: CreateChat(chatRepository: chatRepository),
+      ),
     );
 
     await withDesktopPlatform(() async {
@@ -38,7 +41,7 @@ void main() {
                 body: Center(
                   child: FilledButton(
                     onPressed:
-                        () => showShadDialog<CreatedProject>(
+                        () => showShadDialog<Project>(
                           context: context,
                           barrierDismissible: false,
                           builder:
@@ -113,7 +116,9 @@ void main() {
     final bots = [_bot('bot-1', 'Researcher'), _bot('bot-2', 'Writer')];
     final viewModel = NewProjectViewModel(
       botRepository: _BotRepository(bots),
-      createChat: CreateChat(chatRepository: _ChatRepository()),
+      createProject: CreateProject(
+        createChat: CreateChat(chatRepository: _ChatRepository()),
+      ),
     );
 
     await withMobilePlatform(() async {
@@ -133,7 +138,7 @@ void main() {
                   body: Center(
                     child: FilledButton(
                       onPressed:
-                          () => showDialog<CreatedProject>(
+                          () => showDialog<Project>(
                             context: context,
                             builder:
                                 (context) =>

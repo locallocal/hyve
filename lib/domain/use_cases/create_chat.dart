@@ -12,22 +12,24 @@ class CreateChat {
   final Clock _clock;
   int _sequence = 0;
 
-  Future<Chat> call(
-    Bot bot, {
-    String name = '',
-    Iterable<Bot> bots = const <Bot>[],
-  }) async {
+  Future<Chat> call({String name = '', required Iterable<Bot> bots}) async {
     final now = _clock();
     _sequence = (_sequence + 1) & 0x7fffffff;
     final projectName = name.trim();
     if (projectName.length > 80) {
       throw ArgumentError.value(name, 'name', 'Must be at most 80 characters.');
     }
-    final botIds = <String>{bot.id, ...bots.map((item) => item.id)}
+    final botIds = <String>{...bots.map((item) => item.id)}
       ..removeWhere((id) => id.trim().isEmpty);
+    if (botIds.isEmpty) {
+      throw ArgumentError.value(
+        bots,
+        'bots',
+        'A project must contain at least one agent.',
+      );
+    }
     final chat = Chat(
       id: 'chat_${now.microsecondsSinceEpoch}_$_sequence',
-      botId: bot.id,
       name: projectName,
       botIds: List<String>.unmodifiable(botIds),
       lastMessage: '',

@@ -28,10 +28,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -195,6 +194,16 @@ class S {
     return Intl.message(
       'Select at least one bot.',
       name: 'selectAtLeastOneBot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use @ to mention at least one project agent.`
+  String get mentionAgentToSend {
+    return Intl.message(
+      'Use @ to mention at least one project agent.',
+      name: 'mentionAgentToSend',
       desc: '',
       args: [],
     );
@@ -650,10 +659,10 @@ class S {
     );
   }
 
-  /// `Type a message...`
+  /// `Type a message and mention agents with @...`
   String get messageHint {
     return Intl.message(
-      'Type a message...',
+      'Type a message and mention agents with @...',
       name: 'messageHint',
       desc: 'Message input hint',
       args: [],

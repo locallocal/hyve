@@ -525,10 +525,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("환경 설정"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("열린 질문"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("작업"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
-    "messageHint": MessageLookupByLibrary.simpleMessage("메시지 입력..."),
+    "messageHint": MessageLookupByLibrary.simpleMessage(
+      "메시지를 입력하고 @로 에이전트를 멘션하세요...",
+    ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("스킬"),
     "minutesAgo": m28,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),

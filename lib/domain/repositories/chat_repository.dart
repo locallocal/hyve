@@ -35,3 +35,6 @@ abstract interface class BotChatDeletionParticipant {
 
   Future<void> completeStagedBotDeletion(BotChatDeletionStage stage);
 }
+
+abstract interface class ChatAggregateRepository
+    implements ChatRepository, BotChatDeletionParticipant {}

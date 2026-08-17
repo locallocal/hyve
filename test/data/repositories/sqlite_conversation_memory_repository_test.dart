@@ -199,9 +199,8 @@ Map<String, Object?> _botRow(String id) => <String, Object?>{
   'modify_timestamp': 1,
 };
 
-Map<String, Object?> _chatRow(String id, String botId) => <String, Object?>{
+Map<String, Object?> _chatRow(String id, String _) => <String, Object?>{
   'id': id,
-  'bot_id': botId,
   'last_message': '',
   'last_message_timestamp': 1,
   'create_timestamp': 1,

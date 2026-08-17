@@ -47,6 +47,7 @@
     "projectNameRequired": "请输入项目名称。",
     "selectProjectBots": "添加智能体",
     "selectAtLeastOneBot": "请至少选择一个智能体。",
+    "mentionAgentToSend": "请使用 @ 提及至少一个项目智能体。",
     "selectedBotCount": "已选择 {count} 个",
     "createProject": "创建项目",
     "createProjectFailed": "创建项目失败：{error}",
@@ -242,7 +243,7 @@
     "@deleteChat": {
         "description": "删除聊天"
     },
-    "messageHint": "输入消息...",
+    "messageHint": "输入消息，使用 @ 提及智能体...",
     "@messageHint": {
         "description": "消息输入提示"
     },

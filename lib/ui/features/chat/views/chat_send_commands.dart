@@ -43,24 +43,40 @@ extension ChatPageSendCommands on ChatPageState {
         _generationError = null;
       });
     }
-    if (_provider.getOutputModalites().contains(OutputModality.image) &&
+    final targets =
+        _chatViewModel
+            .resolveMentionedBots(_messageController.text, _projectBots)
+            .bots;
+    if (targets.isEmpty) {
+      _updateState(() {
+        _generationError = S.of(context).mentionAgentToSend;
+      });
+      return;
+    }
+    _chatViewModel.updateBot(targets.first);
+    _showBotForRun(targets.first);
+    if (targets.length == 1 &&
+        _provider.getOutputModalites().contains(OutputModality.image) &&
         _selectedImageSize.isNotEmpty) {
       await _generateImage();
       return;
-    } else if (_provider.getOutputModalites().contains(OutputModality.speech)) {
+    } else if (targets.length == 1 &&
+        _provider.getOutputModalites().contains(OutputModality.speech)) {
       await _generateSpeech();
       return;
-    } else if (_provider.getOutputModalites().contains(OutputModality.music)) {
+    } else if (targets.length == 1 &&
+        _provider.getOutputModalites().contains(OutputModality.music)) {
       await _generateMusic();
       return;
-    } else if (_provider.getOutputModalites().contains(OutputModality.video)) {
+    } else if (targets.length == 1 &&
+        _provider.getOutputModalites().contains(OutputModality.video)) {
       await _generateVideo();
       return;
     }
-    await _generateText();
+    await _generateText(targets);
   }
 
-  Future<void> _generateText() async {
+  Future<void> _generateText(List<Bot> targets) async {
     final bool hasText = _messageController.text.trim().isNotEmpty;
     final bool hasImages = _selectedImages.isNotEmpty;
     final bool hasFiles = _selectedFiles.isNotEmpty;
@@ -75,11 +91,13 @@ extension ChatPageSendCommands on ChatPageState {
     _pendingDraftFiles = List<File>.of(_selectedFiles);
     await _persistDraft();
     String? optimisticMessageId;
+    var userPersisted = false;
     try {
       final (imagePaths, filePaths) = await _persistSelectedAttachments();
 
       final userMessage = _chatViewModel.createUserMessage(
         currentUserId: _currentUserId,
+        targetBotIds: targets.map((bot) => bot.id),
         content: messageText,
         imagePaths: imagePaths,
         filePaths: filePaths,
@@ -87,6 +105,9 @@ extension ChatPageSendCommands on ChatPageState {
         fileDetail: fileAttachmentDetail,
       );
       optimisticMessageId = userMessage.messageId;
+      await _chatViewModel.upsertMessage(userMessage);
+      await _chatViewModel.updateLastMessage(userMessage.content);
+      userPersisted = true;
 
       if (mounted) {
         _updateState(() {
@@ -102,30 +123,29 @@ extension ChatPageSendCommands on ChatPageState {
         });
         _scheduleScrollToLatest(force: true, animate: true);
       }
+      _clearPendingDraft();
 
-      final started = await _generationViewModel.startTextWithPreparation(
+      await _chatViewModel.generateMentionedReplies(
         userMessage: userMessage,
-        prepare:
-            (identifiedUserMessage) => _chatViewModel.prepareTextGeneration(
-              history: history,
-              userMessage: identifiedUserMessage,
-              currentUserId: _currentUserId,
-            ),
+        targets: targets,
+        history: history,
+        currentUserId: _currentUserId,
+        restoreBot: widget.bot,
+        onBotStarted: (bot) {
+          if (mounted) _showBotForRun(bot);
+        },
       );
-      if (started || _generationViewModel.snapshot.userPersisted) {
-        _clearPendingDraft();
-      }
     } catch (error) {
       if (mounted) {
         _updateState(() {
-          if (optimisticMessageId != null) {
+          if (!userPersisted && optimisticMessageId != null) {
             final previousLength = _messages.length;
             _messages.removeWhere(
               (message) => message.messageId == optimisticMessageId,
             );
             if (_messages.length != previousLength) _messageRevision += 1;
           }
-          _restorePendingDraft();
+          if (!userPersisted) _restorePendingDraft();
           _generationError = safeFailureMessage(context, error);
         });
       }

@@ -8,5 +8,6 @@ abstract interface class SkillInventoryRepository {
 
   Future<List<ConversationSkillInventoryItem>> listForConversation(
     String chatId,
+    String botId,
   );
 }

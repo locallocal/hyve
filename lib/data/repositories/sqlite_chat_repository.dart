@@ -10,8 +10,7 @@ import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
 import 'package:hyve/domain/repositories/conversation_draft_repository.dart';
 import 'package:hyve/utils/utils.dart';
 
-class SqliteChatRepository
-    implements ChatRepository, BotChatDeletionParticipant {
+class SqliteChatRepository implements ChatAggregateRepository {
   SqliteChatRepository({
     required LocalDatabaseService localDatabase,
     ConversationMemoryRepository? conversationMemoryRepository,
@@ -131,7 +130,9 @@ class SqliteChatRepository
     final chats = await getChats(forceRefresh: true);
     final chatIds = <String>[
       for (final chat in chats)
-        if (chat.botId == botId) chat.id,
+        if (chat.projectBotIds.contains(botId) &&
+            chat.projectBotIds.where((id) => id != botId).isEmpty)
+          chat.id,
     ];
     final staged = <StagedConversationDeletion>[];
     final storage = _conversationSummaryStorage;
@@ -161,7 +162,8 @@ class SqliteChatRepository
     for (final chatId in deleted) {
       await _conversationDraftRepository?.delete(chatId);
     }
-    _cache = _cache?.where((chat) => !deleted.contains(chat.id)).toList();
+    _cache = null;
+    await getChats(forceRefresh: true);
     _emit();
   }
 
@@ -179,14 +181,9 @@ class SqliteChatRepository
       _cache = [
         for (final chat in cache)
           if (chat.id == id)
-            Chat(
-              id: chat.id,
-              botId: chat.botId,
-              name: chat.name,
-              botIds: chat.botIds,
+            chat.copyWith(
               lastMessage: content,
               lastMessageTimestamp: timestamp,
-              createTimestamp: chat.createTimestamp,
               modifyTimestamp: timestamp,
             )
           else
@@ -219,14 +216,9 @@ class SqliteChatRepository
       _cache = [
         for (final chat in cache)
           if (chat.id == id)
-            Chat(
-              id: chat.id,
-              botId: chat.botId,
-              name: chat.name,
-              botIds: chat.botIds,
+            chat.copyWith(
               lastMessage: '',
               lastMessageTimestamp: timestamp,
-              createTimestamp: chat.createTimestamp,
               modifyTimestamp: timestamp,
             )
           else

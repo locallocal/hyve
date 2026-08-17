@@ -40,7 +40,7 @@ void main() {
             homeBuilder:
                 (context) => ChatListPage(
                   viewModel: viewModel,
-                  onChatSelected: (_, _) {},
+                  onProjectSelected: (_) {},
                 ),
           ),
         );
@@ -734,7 +734,7 @@ void main() {
       );
       final chat = Chat(
         id: 'chat-1',
-        botId: bot.id,
+        botIds: [bot.id],
         lastMessage: '测试项目',
         lastMessageTimestamp: timestamp,
         createTimestamp: timestamp,
@@ -750,13 +750,14 @@ void main() {
                   width: 320,
                   height: 240,
                   child: ChatListBuilder(
-                    chatList: [chat],
-                    bots: [bot],
+                    projects: [
+                      Project(chat: chat, bots: [bot]),
+                    ],
                     selectedChatId: chat.id,
                     generationRegistry: registry,
                     onChatDeleted: (_) {},
                     onDeleteChat: (_) async {},
-                    onChatSelected: (_, _) => openCount += 1,
+                    onProjectSelected: (_) => openCount += 1,
                   ),
                 ),
               ),
@@ -859,7 +860,7 @@ void main() {
         );
         final chat = Chat(
           id: 'chat-navigation',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessage: '测试项目',
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
@@ -867,7 +868,7 @@ void main() {
         );
         final shell = MainShellViewModel(
           botRepository: BotCardTestBotRepository([bot]),
-        )..selectChat(chat.id, bot);
+        )..selectProject(Project(chat: chat, bots: [bot]));
         addTearDown(shell.dispose);
 
         await tester.pumpWidget(
@@ -883,14 +884,15 @@ void main() {
                           onPageChanged: shell.selectPage,
                           pages: [
                             ChatListBuilder(
-                              chatList: [chat],
-                              bots: [bot],
+                              projects: [
+                                Project(chat: chat, bots: [bot]),
+                              ],
                               selectedChatId: shell.selectedChatId,
                               selectionVisible: shell.isChatSelectionVisible,
                               generationRegistry: registry,
                               onChatDeleted: (_) {},
                               onDeleteChat: (_) async {},
-                              onChatSelected: shell.selectChat,
+                              onProjectSelected: shell.selectProject,
                             ),
                             const Center(child: Text('bot list')),
                             const Center(child: Text('skills')),
@@ -969,7 +971,7 @@ void main() {
       );
       final chat = Chat(
         id: 'chat-delete',
-        botId: bot.id,
+        botIds: [bot.id],
         lastMessage: '待删除项目',
         lastMessageTimestamp: timestamp,
         createTimestamp: timestamp,
@@ -985,12 +987,13 @@ void main() {
                   width: 320,
                   height: 240,
                   child: ChatListBuilder(
-                    chatList: [chat],
-                    bots: [bot],
+                    projects: [
+                      Project(chat: chat, bots: [bot]),
+                    ],
                     generationRegistry: registry,
                     onChatDeleted: (_) {},
                     onDeleteChat: (_) async => deleteCount += 1,
-                    onChatSelected: (_, _) {},
+                    onProjectSelected: (_) {},
                   ),
                 ),
               ),

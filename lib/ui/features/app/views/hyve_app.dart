@@ -522,7 +522,7 @@ class _MainPageState extends State<MainPage> {
         sidebarMode: isDesktopOrTablet,
         selectedChatId: _viewModel.selectedChatId,
         selectionVisible: _viewModel.isChatSelectionVisible,
-        onChatSelected: _onChatSelected,
+        onProjectSelected: _onProjectSelected,
         onSelectionCleared: _viewModel.clearSelectedChat,
       ),
       ContactsPage(
@@ -531,7 +531,7 @@ class _MainPageState extends State<MainPage> {
         selectedBotId: _viewModel.selectedBot?.id,
         onBotSelected: _onBotSelected,
         onBotEditSelected: _onBotEditSelected,
-        onChatCreated: _onChatSelected,
+        onProjectCreated: _onProjectSelected,
         onSelectionCleared: _viewModel.clearSelectedBot,
       ),
       SkillLibraryPage(viewModel: _skillLibraryViewModel),
@@ -553,6 +553,8 @@ class _MainPageState extends State<MainPage> {
               pages: pages,
               selectedChatId: _viewModel.selectedChatId,
               selectedChatBot: _viewModel.selectedChatBot,
+              selectedChatBots: _viewModel.selectedChatBots,
+              selectedProjectName: _viewModel.selectedProject?.name ?? '',
               selectedBot: _viewModel.selectedBot,
               isEditingBot: _viewModel.isEditingSelectedBot,
               showExecutionStatus: widget.showExecutionStatus,
@@ -642,10 +644,9 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  // 新增：处理聊天选择的回调
-  void _onChatSelected(String chatId, Bot bot) {
+  void _onProjectSelected(Project project) {
     if (!mounted) return;
-    _viewModel.selectChat(chatId, bot);
+    _viewModel.selectProject(project);
   }
 
   void _onBotSelected(Bot bot) {

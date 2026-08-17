@@ -616,11 +616,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Pergunta em aberto",
     ),
     "memoryTask": MessageLookupByLibrary.simpleMessage("Tarefa"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage(
-      "Digite uma mensagem...",
+      "Digite uma mensagem e mencione agentes com @...",
     ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Habilidades"),
     "minutesAgo": m28,

@@ -9,23 +9,26 @@ class MainShellViewModel extends DisposableChangeNotifier {
   final BotRepository _botRepository;
 
   int _currentIndex = 0;
-  String? _selectedChatId;
+  Project? _selectedProject;
   Bot? _selectedChatBot;
   Bot? _selectedBot;
   bool _isEditingSelectedBot = false;
   int _selectedProfileSection = 0;
 
   int get currentIndex => _currentIndex;
-  String? get selectedChatId => _selectedChatId;
+  Project? get selectedProject => _selectedProject;
+  String? get selectedChatId => _selectedProject?.id;
   Bot? get selectedChatBot => _selectedChatBot;
+  List<Bot> get selectedChatBots => _selectedProject?.bots ?? const <Bot>[];
   Bot? get selectedBot => _selectedBot;
   bool get isEditingSelectedBot => _isEditingSelectedBot;
   int get selectedProfileSection => _selectedProfileSection;
   bool get isChatSelectionVisible => _currentIndex == 0;
 
-  void selectChat(String chatId, Bot bot) {
-    _selectedChatId = chatId;
-    _selectedChatBot = bot;
+  void selectProject(Project project) {
+    final activeBot = project.firstBot;
+    _selectedProject = project;
+    _selectedChatBot = activeBot;
     _currentIndex = 0;
     notifyListeners();
   }
@@ -45,7 +48,7 @@ class MainShellViewModel extends DisposableChangeNotifier {
   }
 
   void clearSelectedChat() {
-    _selectedChatId = null;
+    _selectedProject = null;
     _selectedChatBot = null;
     notifyListeners();
   }
@@ -73,7 +76,11 @@ class MainShellViewModel extends DisposableChangeNotifier {
 
   void applyBotUpdate(Bot bot) {
     if (_selectedBot?.id == bot.id) _selectedBot = bot;
-    if (_selectedChatBot?.id == bot.id) _selectedChatBot = bot;
+    final project = _selectedProject;
+    if (project?.botById(bot.id) != null) {
+      _selectedProject = project!.replaceBot(bot);
+      if (_selectedChatBot?.id == bot.id) _selectedChatBot = bot;
+    }
     notifyListeners();
   }
 
@@ -90,9 +97,16 @@ class MainShellViewModel extends DisposableChangeNotifier {
     if (botId == null) return;
     await _botRepository.deleteBot(botId);
     if (isDisposed) return;
-    if (_selectedChatBot?.id == botId) {
-      _selectedChatId = null;
-      _selectedChatBot = null;
+    final project = _selectedProject;
+    if (project?.botById(botId) != null) {
+      final updatedProject = project!.removeBot(botId);
+      if (updatedProject != null) {
+        _selectedProject = updatedProject;
+        _selectedChatBot = updatedProject.firstBot;
+      } else {
+        _selectedProject = null;
+        _selectedChatBot = null;
+      }
     }
     _selectedBot = null;
     _isEditingSelectedBot = false;

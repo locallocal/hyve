@@ -2,25 +2,35 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/use_cases/chat_workflow_facade.dart';
 import 'package:hyve/domain/use_cases/compose_chat_turn.dart';
 import 'package:hyve/domain/use_cases/generate_media_turn.dart';
+import 'package:hyve/domain/use_cases/resolve_project_mentions.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_interaction_facade.dart';
 import 'package:hyve/ui/features/chat/view_models/message_action_view_model.dart';
 
 class ChatViewModel extends DisposableChangeNotifier {
-  ChatViewModel({required ChatInteractionFacade interaction})
-    : _interaction = interaction,
-      chatId = interaction.chatId,
-      bot = interaction.bot;
+  ChatViewModel({
+    required ChatInteractionFacade interaction,
+    required ResolveProjectMentions resolveProjectMentions,
+  }) : _resolveProjectMentions = resolveProjectMentions,
+       _interaction = interaction,
+       chatId = interaction.chatId;
 
   final String chatId;
-  final Bot bot;
   final ChatInteractionFacade _interaction;
+  final ResolveProjectMentions _resolveProjectMentions;
+
+  Bot get bot => _interaction.bot;
 
   ChatWorkflowFacade get _workflow => _interaction.workflow;
   MessageActionViewModel get messageActions => _interaction.messageActions;
   ChatGenerationViewModel get generationViewModel =>
       _interaction.generationViewModel;
+
+  void updateBot(Bot bot) {
+    _workflow.updateBot(bot);
+    generationViewModel.updateBot(bot);
+  }
 
   List<Message> _messages = const [];
   AppFailure? _historyError;
@@ -112,6 +122,7 @@ class ChatViewModel extends DisposableChangeNotifier {
 
   Message createUserMessage({
     required String currentUserId,
+    required Iterable<String> targetBotIds,
     required String content,
     List<String> imagePaths = const [],
     List<String> filePaths = const [],
@@ -119,12 +130,18 @@ class ChatViewModel extends DisposableChangeNotifier {
     String fileDetail = '',
   }) => _workflow.createUserMessage(
     currentUserId: currentUserId,
+    targetBotIds: targetBotIds,
     content: content,
     imagePaths: imagePaths,
     filePaths: filePaths,
     imageDetail: imageDetail,
     fileDetail: fileDetail,
   );
+
+  ProjectMentionResolution resolveMentionedBots(
+    String text,
+    Iterable<Bot> projectBots,
+  ) => _resolveProjectMentions(text: text, projectBots: projectBots);
 
   Future<Message> upsertMessage(Message message) =>
       _workflow.upsertMessage(message);
@@ -166,6 +183,49 @@ class ChatViewModel extends DisposableChangeNotifier {
       runScopedTools: prepared.runScopedTools,
       contextAssemblyReport: prepared.contextAssemblyReport,
     );
+  }
+
+  /// Fans one persisted project message out to every explicitly mentioned
+  /// agent. Each agent receives the same pre-reply history, so one agent's
+  /// answer cannot silently become another agent's prompt in the same turn.
+  Future<List<ChatRunLifecycle>> generateMentionedReplies({
+    required Message userMessage,
+    required List<Bot> targets,
+    required List<Message> history,
+    required String currentUserId,
+    required Bot restoreBot,
+    void Function(Bot bot)? onBotStarted,
+  }) async {
+    final lifecycles = <ChatRunLifecycle>[];
+    try {
+      for (final target in targets) {
+        if (isDisposed) break;
+        updateBot(target);
+        onBotStarted?.call(target);
+        final started = await generationViewModel.startTextWithPreparation(
+          userMessage: userMessage.copyWith(botId: target.id),
+          persistUserMessage: false,
+          prepare:
+              (identifiedUserMessage) => prepareTextGeneration(
+                history: history,
+                userMessage: identifiedUserMessage,
+                currentUserId: currentUserId,
+              ),
+        );
+        final lifecycle = await generationViewModel.waitForTerminal();
+        lifecycles.add(lifecycle);
+        if (lifecycle == ChatRunLifecycle.cancelled ||
+            (!started && !lifecycle.isTerminal)) {
+          break;
+        }
+      }
+    } finally {
+      if (!isDisposed) {
+        updateBot(restoreBot);
+        onBotStarted?.call(restoreBot);
+      }
+    }
+    return List<ChatRunLifecycle>.unmodifiable(lifecycles);
   }
 
   Future<String?> captureImage() => _workflow.captureImage();

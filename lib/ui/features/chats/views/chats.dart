@@ -9,14 +9,13 @@ import 'package:hyve/ui/core/widgets/common.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
-import 'package:hyve/ui/features/chats/view_models/new_project_view_model.dart';
 import 'package:hyve/ui/features/chats/views/new_project_page.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 
 class ChatListPage extends StatefulWidget {
   final String? selectedChatId;
-  final void Function(String chatId, Bot bot) onChatSelected;
+  final ValueChanged<Project> onProjectSelected;
   final VoidCallback? onSelectionCleared;
   final bool sidebarMode;
   final bool selectionVisible;
@@ -26,7 +25,7 @@ class ChatListPage extends StatefulWidget {
     super.key,
     required this.viewModel,
     this.selectedChatId,
-    required this.onChatSelected,
+    required this.onProjectSelected,
     this.onSelectionCleared,
     this.sidebarMode = false,
     this.selectionVisible = true,
@@ -43,6 +42,8 @@ class ChatListPageState extends State<ChatListPage> {
 
   List<Chat> get chatList => widget.viewModel.chats;
   List<Chat> get filteredChatList => widget.viewModel.filteredChats;
+  List<Project> get projects => widget.viewModel.projects;
+  List<Project> get filteredProjects => widget.viewModel.filteredProjects;
   List<Bot> get bots => widget.viewModel.bots;
   bool get isLoading => widget.viewModel.isLoading;
   String? get loadError =>
@@ -207,8 +208,7 @@ class ChatListPageState extends State<ChatListPage> {
     }
 
     return ChatListBuilder(
-      chatList: filteredChatList,
-      bots: bots,
+      projects: filteredProjects,
       selectedChatId: widget.selectedChatId,
       selectionVisible: widget.selectionVisible,
       showExecutionStatus: widget.showExecutionStatus,
@@ -228,14 +228,14 @@ class ChatListPageState extends State<ChatListPage> {
               final adjacentIndex =
                   deletedIndex.clamp(0, remainingChats.length - 1).toInt();
               final adjacentChat = remainingChats[adjacentIndex];
-              final adjacentBot = bots.cast<Bot?>().firstWhere(
-                (bot) => bot?.id == adjacentChat.botId,
+              final adjacentProject = projects.cast<Project?>().firstWhere(
+                (project) => project?.id == adjacentChat.id,
                 orElse: () => null,
               );
-              if (adjacentBot == null) {
+              if (adjacentProject == null) {
                 widget.onSelectionCleared?.call();
               } else {
-                widget.onChatSelected(adjacentChat.id, adjacentBot);
+                widget.onProjectSelected(adjacentProject);
               }
             }
           }
@@ -243,7 +243,7 @@ class ChatListPageState extends State<ChatListPage> {
           _loadChatList();
         }
       },
-      onChatSelected: widget.onChatSelected,
+      onProjectSelected: widget.onProjectSelected,
     );
   }
 
@@ -347,27 +347,29 @@ class ChatListPageState extends State<ChatListPage> {
     final viewModel = AppScope.of(context).createNewProjectViewModel();
     final result =
         desktop
-            ? await showShadDialog<CreatedProject>(
+            ? await showShadDialog<Project>(
               context: context,
               barrierDismissible: false,
               builder: (context) => NewProjectPage(viewModel: viewModel),
             )
-            : await showDialog<CreatedProject>(
+            : await showDialog<Project>(
               context: context,
               builder: (context) => NewProjectPage(viewModel: viewModel),
             );
     if (!mounted || result == null) return;
     await _loadChatList();
     if (!mounted) return;
-    widget.onChatSelected(result.chat.id, result.primaryBot);
-    ChatPageState.requestComposerFocus(result.chat.id);
+    widget.onProjectSelected(result);
+    ChatPageState.requestComposerFocus(result.id);
     if (isDesktopPlatform(context)) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder:
             (context) => ChatPage(
-              id: result.chat.id,
-              bot: result.primaryBot,
+              id: result.id,
+              bot: result.firstBot,
+              bots: result.bots,
+              projectName: result.name,
               showExecutionStatus: widget.showExecutionStatus,
             ),
       ),

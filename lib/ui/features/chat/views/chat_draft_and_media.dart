@@ -97,7 +97,7 @@ extension _ChatPageDraftAndMedia on ChatPageState {
         MediaTurnRequest(
           kind: kind,
           chatId: widget.id,
-          bot: widget.bot,
+          bot: _activeBot,
           currentUserId: _currentUserId,
           prompt: prompt,
           generatedPreview: generatedPreview,
@@ -174,6 +174,8 @@ extension _ChatPageDraftAndMedia on ChatPageState {
       });
       unawaited(_persistDraft());
     } finally {
+      _chatViewModel.updateBot(widget.bot);
+      if (mounted) _showBotForRun(widget.bot);
       _finishMediaRun(widget.id);
     }
   }

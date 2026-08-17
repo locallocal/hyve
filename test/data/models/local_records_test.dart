@@ -128,7 +128,7 @@ void main() {
     );
     final chat = Chat(
       id: 'chat-1',
-      botId: bot.id,
+      botIds: [bot.id],
       lastMessage: 'Hello',
       lastMessageTimestamp: timestamp,
       createTimestamp: timestamp,
@@ -150,7 +150,11 @@ void main() {
       storedApiKey: 'encrypted-api-key',
     );
     final restoredBot = botRecord.toDomain(apiKey: bot.apiKey);
-    final restoredChat = ChatRecord.fromDomain(chat).toDomain();
+    final restoredChat =
+        ChatRecord(<String, Object?>{
+          ...ChatRecord.fromDomain(chat).values,
+          'project_bot_ids': '["bot-1"]',
+        }).toDomain();
     final restoredProfile = ProfileRecord.fromDomain(profile).toDomain();
 
     expect(restoredBot.parameters, {'temperature': 0.3});
@@ -158,6 +162,7 @@ void main() {
     expect(botRecord.storedApiKey, 'encrypted-api-key');
     expect(restoredChat.lastMessage, 'Hello');
     expect(restoredChat.lastMessageTimestamp, timestamp);
+    expect(restoredChat.botIds, ['bot-1']);
     expect(restoredProfile.fontSize, 18);
     expect(restoredProfile.showExecutionStatus, isFalse);
   });
@@ -187,6 +192,24 @@ void main() {
     });
 
     expect(() => corrupt.toDomain(apiKey: ''), throwsFormatException);
+  });
+
+  test('message records preserve project mention targets', () {
+    final message = Message(
+      messageId: 'message-group',
+      turnId: 'turn-group',
+      chatId: 'chat-group',
+      botId: '',
+      targetBotIds: const ['researcher', 'reviewer'],
+      senderId: 'me',
+      content: '@Researcher investigate. @Reviewer review.',
+      timestamp: DateTime.fromMillisecondsSinceEpoch(1),
+    );
+
+    final restored = MessageRecord.fromDomain(message).toDomain();
+
+    expect(restored.botId, isEmpty);
+    expect(restored.targetBotIds, ['researcher', 'reviewer']);
   });
 
   test('rejects corrupt message assets and timestamps', () {

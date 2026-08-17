@@ -75,11 +75,22 @@ void main() {
 
       final user = facade.createUserMessage(
         currentUserId: 'user-1',
+        targetBotIds: const ['bot-1'],
         content: 'hello',
       );
       expect(user.chatId, 'chat-1');
-      expect(user.botId, 'bot-1');
+      expect(user.botId, isEmpty);
+      expect(user.targetBotIds, ['bot-1']);
       expect(user.messageId, startsWith('message-'));
+      final reviewer = _copyBot(_bot, id: 'bot-2', name: 'Reviewer');
+      facade.updateBot(reviewer);
+      final reviewerUser = facade.createUserMessage(
+        currentUserId: 'user-1',
+        targetBotIds: const ['bot-2'],
+        content: 'review this',
+      );
+      expect(facade.bot, same(reviewer));
+      expect(reviewerUser.targetBotIds, ['bot-2']);
       expect(await facade.persistAssets(['/tmp/source.png']), [
         '/conversation/source.png',
       ]);
@@ -105,6 +116,21 @@ final _bot = Bot(
   systemPrompt: '',
   createTimestamp: DateTime(2026),
   modifyTimestamp: DateTime(2026),
+);
+
+Bot _copyBot(Bot source, {required String id, required String name}) => Bot(
+  id: id,
+  name: name,
+  avatar: source.avatar,
+  provider: source.provider,
+  baseURL: source.baseURL,
+  apiKey: source.apiKey,
+  apiType: source.apiType,
+  model: source.model,
+  systemPrompt: source.systemPrompt,
+  parameters: source.parameters,
+  createTimestamp: source.createTimestamp,
+  modifyTimestamp: source.modifyTimestamp,
 );
 
 Message _message(String id) => Message(

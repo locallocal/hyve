@@ -47,6 +47,7 @@
     "projectNameRequired": "Enter a project name.",
     "selectProjectBots": "Add bots",
     "selectAtLeastOneBot": "Select at least one bot.",
+    "mentionAgentToSend": "Use @ to mention at least one project agent.",
     "selectedBotCount": "{count} selected",
     "createProject": "Create Project",
     "createProjectFailed": "Could not create the project: {error}",
@@ -243,7 +244,7 @@
     "@deleteChat": {
         "description": "Elimina chat"
     },
-    "messageHint": "Inserisci messaggio...",
+    "messageHint": "Inserisci un messaggio e menziona gli agenti con @...",
     "@messageHint": {
         "description": "Suggerimento inserimento messaggio"
     },

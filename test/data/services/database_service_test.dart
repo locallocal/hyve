@@ -47,7 +47,7 @@ void main() {
     });
 
     test(
-      'enforces current foreign keys and cascades aggregate deletion',
+      'enforces project membership foreign keys and cascades deletion',
       () async {
         final database = await _openCurrentDatabase();
         addTearDown(database.close);
@@ -58,6 +58,15 @@ void main() {
         );
         await database.insert('bots', _botRow('bot-fk'));
         await database.insert('chats', _chatRow('chat-fk', 'bot-fk'));
+        await database.insert('chat_projects', <String, Object?>{
+          'chat_id': 'chat-fk',
+          'name': 'Foreign key project',
+        });
+        await database.insert('chat_project_bots', <String, Object?>{
+          'chat_id': 'chat-fk',
+          'bot_id': 'bot-fk',
+          'position': 0,
+        });
         await database.insert(
           'messages',
           _messageRow('message-fk', 'chat-fk', 'bot-fk', 'linked'),
@@ -78,16 +87,21 @@ void main() {
           'created_at': 1,
         });
 
-        await database.delete('bots', where: 'id = ?', whereArgs: ['bot-fk']);
+        await database.delete('chats', where: 'id = ?', whereArgs: ['chat-fk']);
 
         expect(await database.query('chats'), isEmpty);
         expect(await database.query('messages'), isEmpty);
-        expect(await database.query('bot_skill_bindings'), isEmpty);
+        expect(await database.query('chat_projects'), isEmpty);
+        expect(await database.query('chat_project_bots'), isEmpty);
         expect(await database.query('conversation_skill_pins'), isEmpty);
+        expect(await database.query('bot_skill_bindings'), hasLength(1));
         expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
         expect(
-          () =>
-              database.insert('chats', _chatRow('orphan-chat', 'missing-bot')),
+          () => database.insert('chat_project_bots', <String, Object?>{
+            'chat_id': 'missing-chat',
+            'bot_id': 'missing-bot',
+            'position': 0,
+          }),
           throwsA(isA<DatabaseException>()),
         );
       },
@@ -486,6 +500,7 @@ Future<void> _expectCurrentSchema(Database database) async {
       'run_id',
       'chat_id',
       'bot_id',
+      'target_bot_ids',
       'sender_id',
       'content',
       'reasoning',
@@ -510,8 +525,23 @@ Future<void> _expectCurrentSchema(Database database) async {
     )['notnull'],
     1,
   );
+  final messageForeignKeys = await database.rawQuery(
+    'PRAGMA foreign_key_list(messages)',
+  );
+  expect(messageForeignKeys, hasLength(1));
+  expect(messageForeignKeys.single['table'], 'chats');
 
   final chatColumns = await database.rawQuery('PRAGMA table_info(chats)');
+  expect(
+    chatColumns.map((column) => column['name']),
+    orderedEquals(<String>[
+      'id',
+      'last_message',
+      'last_message_timestamp',
+      'create_timestamp',
+      'modify_timestamp',
+    ]),
+  );
   expect(
     chatColumns.singleWhere(
       (column) => column['name'] == 'create_timestamp',
@@ -584,9 +614,8 @@ Map<String, Object?> _botRow(String id) => <String, Object?>{
   'modify_timestamp': 1,
 };
 
-Map<String, Object?> _chatRow(String id, String botId) => <String, Object?>{
+Map<String, Object?> _chatRow(String id, String _) => <String, Object?>{
   'id': id,
-  'bot_id': botId,
   'last_message': '',
   'last_message_timestamp': 1,
   'create_timestamp': 1,
@@ -604,6 +633,7 @@ Map<String, Object?> _messageRow(
   'run_id': '',
   'chat_id': chatId,
   'bot_id': botId,
+  'target_bot_ids': '[]',
   'sender_id': 'assistant',
   'content': content,
   'reasoning': '',

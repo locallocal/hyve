@@ -29,13 +29,17 @@ part 'chat_session_commands.dart';
 
 class ChatPage extends StatefulWidget {
   final Bot bot;
+  final List<Bot> bots;
   final String id;
+  final String projectName;
   final bool showExecutionStatus;
 
   const ChatPage({
     super.key,
     required this.id,
     required this.bot,
+    this.bots = const <Bot>[],
+    this.projectName = '',
     this.showExecutionStatus = true,
   });
 
@@ -55,6 +59,7 @@ class ChatPageState extends State<ChatPage> {
 
   late final ChatGenerationViewModel _generationViewModel;
   late final ChatViewModel _chatViewModel;
+  late Bot _activeBot;
   bool _dependenciesInitialized = false;
   AiProvider get _provider => _generationViewModel.capabilityProvider;
   final String _currentUserId = 'me';
@@ -95,6 +100,7 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    _activeBot = widget.bot;
     _autofocusComposer = _composerFocusRequests.remove(widget.id);
     _messageController =
         TextEditingController()..addListener(_persistTextDraft);
@@ -108,7 +114,7 @@ class ChatPageState extends State<ChatPage> {
     _dependenciesInitialized = true;
     _chatViewModel = AppScope.of(
       context,
-    ).createChatViewModel(widget.id, widget.bot);
+    ).createChatViewModel(widget.id, _activeBot);
     _generationViewModel =
         _chatViewModel.generationViewModel
           ..addListener(_handleGenerationChanged);
@@ -120,9 +126,23 @@ class ChatPageState extends State<ChatPage> {
   @override
   void didUpdateWidget(covariant ChatPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_dependenciesInitialized && oldWidget.bot != widget.bot) {
-      _generationViewModel.updateBot(widget.bot);
+    if (oldWidget.bot != widget.bot) {
+      _activeBot = widget.bot;
+      if (_dependenciesInitialized) _chatViewModel.updateBot(widget.bot);
     }
+  }
+
+  List<Bot> get _projectBots {
+    final bots = <String, Bot>{};
+    for (final bot in <Bot>[_activeBot, ...widget.bots]) {
+      if (bot.id.trim().isNotEmpty) bots.putIfAbsent(bot.id, () => bot);
+    }
+    return List<Bot>.unmodifiable(bots.values);
+  }
+
+  void _showBotForRun(Bot bot) {
+    if (bot.id == _activeBot.id) return;
+    setState(() => _activeBot = bot);
   }
 
   void _handleGenerationChanged() {
@@ -416,7 +436,9 @@ class ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.bot.name,
+          widget.projectName.trim().isEmpty
+              ? _activeBot.name
+              : widget.projectName.trim(),
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -445,6 +467,7 @@ class ChatPageState extends State<ChatPage> {
               _buildGenerationAlert(isDesktop: false),
               MessageInput(
                 provider: _provider,
+                mentionBots: _projectBots,
                 controller: _messageController,
                 requestInProgress: _isTyping,
                 canCancel: _isCancellable,

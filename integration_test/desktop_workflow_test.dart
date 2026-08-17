@@ -329,15 +329,17 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
             const SizedBox(height: 20),
             Expanded(
               child: ChatListBuilder(
-                chatList: _chats.items,
-                bots: _bots.items,
+                projects: [
+                  for (final item in _chats.items)
+                    Project(chat: item, bots: _bots.items),
+                ],
                 selectedChatId: chat.id,
                 onChatDeleted:
                     (_) => setState(() {
                       _selectedChat = null;
                       _deleted = true;
                     }),
-                onChatSelected: (_, _) {},
+                onProjectSelected: (_) {},
                 onDeleteChat: _chats.deleteChat,
                 generationRegistry: _generationRegistry,
               ),

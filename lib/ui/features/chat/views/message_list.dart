@@ -27,6 +27,8 @@ part 'message_list_status.dart';
 
 class MessageList extends StatefulWidget {
   final List<Message> messages;
+  final List<Bot> bots;
+  final Bot? activeBot;
   final ScrollController scrollController;
   final bool isStreaming;
   final String streamingResponse;
@@ -43,6 +45,8 @@ class MessageList extends StatefulWidget {
   const MessageList({
     super.key,
     required this.messages,
+    this.bots = const <Bot>[],
+    this.activeBot,
     required this.scrollController,
     required this.isStreaming,
     required this.streamingResponse,
@@ -77,6 +81,13 @@ class _MessageListState extends State<MessageList> {
   String? get reasoningResponse => widget.reasoningResponse;
   bool get isDesktop => widget.isDesktop;
   bool get showExecutionStatus => widget.showExecutionStatus;
+
+  String _botName(String botId) {
+    for (final bot in widget.bots) {
+      if (bot.id == botId) return bot.name;
+    }
+    return botId;
+  }
 
   @override
   void initState() {
@@ -170,6 +181,7 @@ class _MessageListState extends State<MessageList> {
                   isCurrentUser: false,
                   isDesktop: isDesktop,
                   isStreaming: true,
+                  agentName: widget.activeBot?.name ?? '',
                   reasoning:
                       deepThinking == true ? reasoningResponse ?? '' : '',
                   processInfo: _replaceSkillActivations(
@@ -201,6 +213,7 @@ class _MessageListState extends State<MessageList> {
           final bubble = _MessageBubble(
             isCurrentUser: isMe,
             isDesktop: isDesktop,
+            agentName: isMe ? '' : _botName(message.botId),
             reasoning: message.reasoning,
             processInfo: _displayedProcessInfo[messageIndex],
             tokenUsage: message.tokenUsage,

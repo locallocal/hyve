@@ -78,8 +78,10 @@ import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:hyve/domain/repositories/skill_inventory_repository.dart';
 import 'package:hyve/domain/repositories/skill_run_repository.dart';
 import 'package:hyve/domain/use_cases/compose_chat_turn.dart';
+import 'package:hyve/domain/use_cases/resolve_project_mentions.dart';
 import 'package:hyve/domain/use_cases/chat_workflow_facade.dart';
 import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/use_cases/create_project.dart';
 import 'package:hyve/domain/use_cases/create_user_message.dart';
 import 'package:hyve/domain/use_cases/generate_media_turn.dart';
 import 'package:hyve/domain/use_cases/mcp_server_mutations.dart';
@@ -710,8 +712,10 @@ class AppDependencies {
   NewChatViewModel createNewChatViewModel() =>
       NewChatViewModel(botRepository: botRepository, createChat: createChat);
 
-  NewProjectViewModel createNewProjectViewModel() =>
-      NewProjectViewModel(botRepository: botRepository, createChat: createChat);
+  NewProjectViewModel createNewProjectViewModel() => NewProjectViewModel(
+    botRepository: botRepository,
+    createProject: CreateProject(createChat: createChat),
+  );
 
   ChatViewModel createChatViewModel(String chatId, Bot bot) {
     final workflow = ChatWorkflowFacade(
@@ -728,6 +732,7 @@ class AppDependencies {
       prepareTextGeneration: prepareTextGeneration,
     );
     return ChatViewModel(
+      resolveProjectMentions: const ResolveProjectMentions(),
       interaction: ChatInteractionFacade(
         workflow: workflow,
         messageActions: MessageActionViewModel(

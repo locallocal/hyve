@@ -174,6 +174,7 @@ final class GenerateMediaTurn {
       chatId: request.chatId,
       botId: request.bot.id,
       senderId: request.currentUserId,
+      targetBotIds: [request.bot.id],
       content: request.prompt,
       images:
           request.kind == MediaTurnKind.image ||

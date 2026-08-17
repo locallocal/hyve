@@ -97,20 +97,36 @@ void main() {
           ),
         ).values,
       );
+      await localDatabase.upsertSkill(
+        SkillRecord.fromDomain(
+          _skill(
+            id: 'user:writer',
+            name: 'Writer',
+            description: 'Write release notes.',
+          ),
+        ).values,
+      );
       await database.insert('bots', _botRow('bot-1'));
-      await localDatabase.insertChat({
-        'id': 'chat-1',
-        'bot_id': 'bot-1',
-        'last_message': '',
-        'last_message_timestamp': now.millisecondsSinceEpoch,
-        'create_timestamp': now.millisecondsSinceEpoch,
-        'modify_timestamp': now.millisecondsSinceEpoch,
-      });
+      await database.insert('bots', _botRow('bot-2'));
+      await localDatabase.insertChatProject(
+        chat: {
+          'id': 'chat-1',
+          'last_message': '',
+          'last_message_timestamp': now.millisecondsSinceEpoch,
+          'create_timestamp': now.millisecondsSinceEpoch,
+          'modify_timestamp': now.millisecondsSinceEpoch,
+        },
+        name: 'Skill project',
+        botIds: const ['bot-1', 'bot-2'],
+      );
       await localDatabase.upsertBotSkillBinding(
         _binding('bot-1', 'user:reviewer', enabled: true, priority: 7),
       );
       await localDatabase.upsertBotSkillBinding(
         _binding('bot-1', skillInstallerSkillId, enabled: false, priority: 3),
+      );
+      await localDatabase.upsertBotSkillBinding(
+        _binding('bot-2', 'user:writer', enabled: true, priority: 9),
       );
       await localDatabase.upsertConversationSkillPin({
         'chat_id': 'chat-1',
@@ -141,7 +157,7 @@ void main() {
         },
       ]);
 
-      final items = await repository.listForConversation('chat-1');
+      final items = await repository.listForConversation('chat-1', 'bot-1');
       final byId = {for (final item in items) item.id: item};
 
       expect(byId.keys, {'user:reviewer', skillInstallerSkillId});
@@ -152,7 +168,17 @@ void main() {
       expect(byId['user:reviewer']?.lastActivatedAt, now);
       expect(byId[skillInstallerSkillId]?.bundled, isTrue);
       expect(byId[skillInstallerSkillId]?.configuredEnabled, isFalse);
-      expect(await repository.listForConversation('chat-other'), isEmpty);
+      final secondAgent = await repository.listForConversation(
+        'chat-1',
+        'bot-2',
+      );
+      final secondById = {for (final item in secondAgent) item.id: item};
+      expect(secondById['user:writer']?.configuredEnabled, isTrue);
+      expect(secondById[skillInstallerSkillId], isNull);
+      expect(
+        await repository.listForConversation('chat-other', 'bot-1'),
+        isEmpty,
+      );
     },
   );
 }

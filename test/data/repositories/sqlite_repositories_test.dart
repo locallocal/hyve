@@ -96,7 +96,6 @@ void main() {
 
     final project = Chat(
       id: 'project-1',
-      botId: primary.id,
       name: 'Release planning',
       botIds: [primary.id, reviewer.id],
       lastMessageTimestamp: timestamp,
@@ -128,6 +127,92 @@ void main() {
     );
   });
 
+  test('deleting a Bot preserves a project with other members', () async {
+    final researcher = _bot(id: 'project-researcher-delete');
+    final reviewer = _bot(id: 'project-reviewer-keep');
+    final timestamp = DateTime(2026, 8, 18, 10);
+    await botRepository.addBot(researcher);
+    await botRepository.addBot(reviewer);
+    final project = Chat(
+      id: 'project-keep-after-member-delete',
+      name: 'Keep this project',
+      botIds: [researcher.id, reviewer.id],
+      lastMessageTimestamp: timestamp,
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    await localDatabase.insertChatProject(
+      chat: ChatRecord.fromDomain(project).values,
+      name: project.name,
+      botIds: project.projectBotIds,
+    );
+    await localDatabase.upsertMessage(
+      MessageRecord.fromDomain(
+        Message(
+          messageId: 'researcher-history',
+          turnId: 'researcher-turn',
+          chatId: project.id,
+          botId: researcher.id,
+          senderId: researcher.id,
+          content: 'Persisted research',
+          timestamp: timestamp,
+        ),
+      ).values,
+    );
+    await chatRepository.getChats(forceRefresh: true);
+
+    await botRepository.deleteBot(researcher.id);
+
+    final restored = await chatRepository.getChat(
+      'project-keep-after-member-delete',
+    );
+    expect(restored, isNotNull);
+    expect(restored!.projectBotIds, [reviewer.id]);
+    expect(
+      await database.query(
+        'messages',
+        where: 'message_id = ?',
+        whereArgs: ['researcher-history'],
+      ),
+      hasLength(1),
+    );
+    expect(await botRepository.getBot(reviewer.id), isNotNull);
+    expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+  });
+
+  test('deleting the final project Bot deletes the project', () async {
+    final bot = _bot(id: 'project-final-member');
+    final timestamp = DateTime(2026, 8, 18, 11);
+    await botRepository.addBot(bot);
+    final project = Chat(
+      id: 'project-delete-with-final-member',
+      name: 'Delete this project',
+      botIds: [bot.id],
+      lastMessageTimestamp: timestamp,
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    await localDatabase.insertChatProject(
+      chat: ChatRecord.fromDomain(project).values,
+      name: project.name,
+      botIds: project.botIds,
+    );
+    await chatRepository.getChats(forceRefresh: true);
+
+    await botRepository.deleteBot(bot.id);
+
+    expect(await chatRepository.getChat(project.id), isNull);
+    expect(
+      await database.query(
+        'chat_project_bots',
+        where: 'chat_id = ?',
+        whereArgs: [project.id],
+      ),
+      isEmpty,
+    );
+    expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+  });
+
   test(
     'message history cache stays coherent across writes and clears',
     () async {
@@ -139,7 +224,7 @@ void main() {
         ChatRecord.fromDomain(
           Chat(
             id: 'chat-cache',
-            botId: bot.id,
+            botIds: [bot.id],
             lastMessageTimestamp: timestamp,
             createTimestamp: timestamp,
             modifyTimestamp: timestamp,
@@ -184,7 +269,7 @@ void main() {
       ChatRecord.fromDomain(
         Chat(
           id: 'chat-paged',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,
@@ -230,7 +315,7 @@ void main() {
       ChatRecord.fromDomain(
         Chat(
           id: 'chat-growing-page',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,
@@ -376,7 +461,7 @@ void main() {
         ChatRecord.fromDomain(
           Chat(
             id: entry.key,
-            botId: entry.value,
+            botIds: [entry.value],
             lastMessageTimestamp: timestamp,
             createTimestamp: timestamp,
             modifyTimestamp: timestamp,
@@ -471,7 +556,7 @@ void main() {
       ChatRecord.fromDomain(
         Chat(
           id: 'chat-clear',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,
@@ -610,7 +695,7 @@ void main() {
       ChatRecord.fromDomain(
         Chat(
           id: 'chat-delete-rollback',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,
@@ -713,7 +798,7 @@ void main() {
       ChatRecord.fromDomain(
         Chat(
           id: 'chat-pinned',
-          botId: bot.id,
+          botIds: [bot.id],
           lastMessageTimestamp: timestamp,
           createTimestamp: timestamp,
           modifyTimestamp: timestamp,

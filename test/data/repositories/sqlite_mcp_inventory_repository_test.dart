@@ -63,17 +63,24 @@ void main() {
     await localDatabase.insertBot(
       BotRecord.fromDomain(_bot(now), storedApiKey: 'encrypted-key').values,
     );
-    await localDatabase.insertChat(
-      ChatRecord.fromDomain(
-        Chat(
-          id: 'chat-1',
-          botId: 'bot-1',
-          lastMessage: '',
-          lastMessageTimestamp: now,
-          createTimestamp: now,
-          modifyTimestamp: now,
-        ),
+    await localDatabase.insertBot(
+      BotRecord.fromDomain(
+        _bot(now, id: 'bot-2', name: 'Agent Two'),
+        storedApiKey: 'encrypted-key-2',
       ).values,
+    );
+    final chat = Chat(
+      id: 'chat-1',
+      botIds: const ['bot-1', 'bot-2'],
+      lastMessage: '',
+      lastMessageTimestamp: now,
+      createTimestamp: now,
+      modifyTimestamp: now,
+    );
+    await localDatabase.insertChatProject(
+      chat: ChatRecord.fromDomain(chat).values,
+      name: 'MCP project',
+      botIds: chat.botIds,
     );
     await localDatabase.replaceMcpCatalog(
       McpServerRecord.fromDomain(
@@ -82,7 +89,7 @@ void main() {
       [McpToolRecord.fromDomain(_tool(now)).values],
     );
 
-    final inventory = await repository.listForConversation('chat-1');
+    final inventory = await repository.listForConversation('chat-1', 'bot-1');
 
     expect(inventory.conversationFound, isTrue);
     expect(inventory.botId, 'bot-1');
@@ -101,7 +108,12 @@ void main() {
     expect(byId['missing-server']?.installed, isFalse);
     expect(byId['missing-server']?.tools.single.available, isFalse);
 
-    final missing = await repository.listForConversation('chat-other');
+    final secondAgent = await repository.listForConversation('chat-1', 'bot-2');
+    expect(secondAgent.conversationFound, isTrue);
+    expect(secondAgent.botId, 'bot-2');
+    expect(secondAgent.botName, 'Agent Two');
+
+    final missing = await repository.listForConversation('chat-other', 'bot-1');
     expect(missing.conversationFound, isFalse);
     expect(missing.servers, isEmpty);
   });
@@ -131,9 +143,9 @@ McpToolDescriptor _tool(DateTime now) => McpToolDescriptor(
   updatedAt: now,
 );
 
-Bot _bot(DateTime now) => Bot(
-  id: 'bot-1',
-  name: 'Agent One',
+Bot _bot(DateTime now, {String id = 'bot-1', String name = 'Agent One'}) => Bot(
+  id: id,
+  name: name,
   avatar: '',
   provider: 'Provider',
   baseURL: 'https://api.example.com',

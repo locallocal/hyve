@@ -593,10 +593,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryPreference": MessageLookupByLibrary.simpleMessage("Preference"),
     "memoryQuestion": MessageLookupByLibrary.simpleMessage("Open question"),
     "memoryTask": MessageLookupByLibrary.simpleMessage("Task"),
+    "mentionAgentToSend": MessageLookupByLibrary.simpleMessage(
+      "Use @ to mention at least one project agent.",
+    ),
     "messageCopied": MessageLookupByLibrary.simpleMessage(
       "Message copied to clipboard",
     ),
-    "messageHint": MessageLookupByLibrary.simpleMessage("Type a message..."),
+    "messageHint": MessageLookupByLibrary.simpleMessage(
+      "Type a message and mention agents with @...",
+    ),
     "messageSkills": MessageLookupByLibrary.simpleMessage("Skills"),
     "minutesAgo": m28,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),

@@ -10,6 +10,52 @@ import 'package:hyve/ui/features/chat/views/message_list.dart';
 import 'package:hyve/utils/theme.dart';
 
 void main() {
+  testWidgets('attributes shared project replies to each agent', (
+    tester,
+  ) async {
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    final researcher = _agent('researcher', 'Researcher');
+    final reviewer = _agent('reviewer', 'Reviewer');
+
+    await tester.pumpWidget(
+      _messageListHarness(
+        MessageList(
+          messages: [
+            Message(
+              messageId: 'research-reply',
+              chatId: 'project-1',
+              botId: researcher.id,
+              senderId: researcher.id,
+              content: 'Research result',
+              timestamp: DateTime(2026, 8, 18, 10),
+            ),
+            Message(
+              messageId: 'review-reply',
+              chatId: 'project-1',
+              botId: reviewer.id,
+              senderId: reviewer.id,
+              content: 'Review result',
+              timestamp: DateTime(2026, 8, 18, 10, 1),
+            ),
+          ],
+          bots: [researcher, reviewer],
+          activeBot: reviewer,
+          scrollController: scrollController,
+          isStreaming: false,
+          streamingResponse: '',
+          currentUserId: 'me',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Researcher'), findsOneWidget);
+    expect(find.text('Reviewer'), findsOneWidget);
+    expect(find.text('Research result'), findsOneWidget);
+    expect(find.text('Review result'), findsOneWidget);
+  });
+
   testWidgets('message list starts at the latest lazily built messages', (
     tester,
   ) async {
@@ -183,6 +229,20 @@ void main() => print('done');
     },
   );
 }
+
+Bot _agent(String id, String name) => Bot(
+  id: id,
+  name: name,
+  avatar: '',
+  provider: 'test',
+  baseURL: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'model',
+  systemPrompt: '',
+  createTimestamp: DateTime(2026),
+  modifyTimestamp: DateTime(2026),
+);
 
 Widget _messageListHarness(
   Widget child, {

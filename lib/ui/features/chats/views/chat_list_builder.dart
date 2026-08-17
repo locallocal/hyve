@@ -255,7 +255,7 @@ class ChatListBuilder extends StatelessWidget {
         if (isDesktop) {
           final contextItems = <Widget>[
             ShadContextMenuItem(
-              leading: const Icon(LucideIcons.messageCircle, size: 16),
+              leading: const Icon(desktopProjectIcon, size: 16),
               enabled: !isOrphaned,
               onPressed: openChat,
               child: Text(
@@ -397,7 +397,7 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
                     enabled: widget.canOpen,
                     onPressed: () => _invoke(widget.onOpen),
                     mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(LucideIcons.messageCircle, size: 16),
+                    leading: const Icon(desktopProjectIcon, size: 16),
                     child: Text(
                       desktopProjectText(context, S.of(context).startChatting),
                     ),

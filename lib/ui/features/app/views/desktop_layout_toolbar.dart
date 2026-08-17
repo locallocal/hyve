@@ -142,7 +142,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                               S.of(context).newChat,
                             ),
                             onPressed: onCreateChat,
-                            icon: desktopStartConversationIcon,
+                            icon: desktopProjectIcon,
                           ),
                         if (onClearChat != null)
                           HyveDesktopIconAction(

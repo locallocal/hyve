@@ -4,7 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/utils/theme.dart';
 
 // Shared desktop interaction primitives used by multiple feature views.
-const IconData desktopStartConversationIcon = LucideIcons.messageCircle;
+const IconData desktopProjectIcon = LucideIcons.folderKanban;
 const IconData desktopBotIcon = LucideIcons.bot;
 const double hyveInspectorIconLabelGap = 9;
 const double _appIconCornerRadiusRatio = 0.24;

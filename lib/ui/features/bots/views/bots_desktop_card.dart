@@ -87,7 +87,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                     size: ShadButtonSize.sm,
                     onPressed: () => _invokeMenuAction(widget.onStartChat),
                     mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(desktopStartConversationIcon, size: 16),
+                    leading: const Icon(desktopProjectIcon, size: 16),
                     child: Text(
                       desktopProjectText(context, S.of(context).startChatting),
                     ),
@@ -151,7 +151,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
         child: HyveContextMenu(
           items: [
             ShadContextMenuItem(
-              leading: const Icon(desktopStartConversationIcon, size: 16),
+              leading: const Icon(desktopProjectIcon, size: 16),
               onPressed: widget.onStartChat,
               child: Text(
                 desktopProjectText(context, S.of(context).startChatting),

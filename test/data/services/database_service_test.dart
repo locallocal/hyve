@@ -165,6 +165,87 @@ void main() {
       );
     });
 
+    test(
+      'repairs version 18 messages missing project mention targets',
+      () async {
+        final directory = await Directory.systemTemp.createTemp(
+          'hyve_message_target_schema_repair_',
+        );
+        addTearDown(() => directory.delete(recursive: true));
+        final databasePath = path.join(directory.path, 'app.db');
+        final initialDatabase = await databaseFactoryFfi.openDatabase(
+          databasePath,
+          options: OpenDatabaseOptions(
+            version: DatabaseService.databaseVersion,
+            onConfigure: DatabaseService.configure,
+            onCreate: DatabaseService.createSchema,
+          ),
+        );
+        await initialDatabase.insert('bots', _botRow('bot-preserved'));
+        await initialDatabase.insert(
+          'chats',
+          _chatRow('chat-preserved', 'bot-preserved'),
+        );
+        await initialDatabase.insert(
+          'messages',
+          _messageRow(
+            'message-preserved',
+            'chat-preserved',
+            'bot-preserved',
+            'existing message',
+          ),
+        );
+        await initialDatabase.execute(
+          'ALTER TABLE messages DROP COLUMN target_bot_ids',
+        );
+        await initialDatabase.close();
+
+        final service = DatabaseService(
+          applicationDocumentsDirectoryProvider: () async => directory,
+        );
+        final repairedDatabase = await service.initDatabase();
+        addTearDown(repairedDatabase.close);
+
+        final columns = await repairedDatabase.rawQuery(
+          'PRAGMA table_info(messages)',
+        );
+        expect(
+          columns.map((column) => column['name']),
+          contains('target_bot_ids'),
+        );
+        expect(
+          (await repairedDatabase.query(
+            'messages',
+            where: 'message_id = ?',
+            whereArgs: const <Object?>['message-preserved'],
+          )).single['target_bot_ids'],
+          '[]',
+        );
+
+        await repairedDatabase.insert('messages', <String, Object?>{
+          ..._messageRow(
+            'message-with-mention',
+            'chat-preserved',
+            '',
+            '@Current Bot hello',
+          ),
+          'target_bot_ids': '["bot-preserved"]',
+        });
+        expect(
+          (await repairedDatabase.query(
+            'messages',
+            where: 'message_id = ?',
+            whereArgs: const <Object?>['message-with-mention'],
+          )).single['target_bot_ids'],
+          '["bot-preserved"]',
+        );
+        expect(
+          await repairedDatabase.rawQuery('PRAGMA foreign_key_check'),
+          isEmpty,
+        );
+      },
+    );
+
     test('repairs the version 17 installed-Skill binding constraint', () async {
       final directory = await Directory.systemTemp.createTemp(
         'hyve_skill_binding_schema_repair_',

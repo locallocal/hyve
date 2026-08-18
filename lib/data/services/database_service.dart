@@ -64,6 +64,7 @@ class DatabaseService {
     );
     try {
       await _ensureProjectSchema(database);
+      await _ensureMessageTargetSchema(database);
       await _ensureBotSkillBindingSchema(database);
       await _verifyIntegrity(database);
       return database;
@@ -392,6 +393,23 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS chat_project_bots_bot_id_index '
       'ON chat_project_bots(bot_id)',
+    );
+  }
+
+  /// Version 18 added project mentions without changing the database version.
+  /// Repair databases created by the earlier version 18 schema in place so
+  /// their existing conversations are preserved and mentioned messages can be
+  /// persisted.
+  static Future<void> _ensureMessageTargetSchema(Database database) async {
+    final columns = await database.rawQuery('PRAGMA table_info(messages)');
+    final hasTargetBotIds = columns.any(
+      (column) => column['name'] == 'target_bot_ids',
+    );
+    if (hasTargetBotIds) return;
+
+    await database.execute(
+      "ALTER TABLE messages ADD COLUMN target_bot_ids "
+      "TEXT NOT NULL DEFAULT '[]'",
     );
   }
 

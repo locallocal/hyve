@@ -1,6 +1,8 @@
 # 项目优先的多智能体协作设计
 
-> 状态：待产品确认，尚未进入开发。
+> 状态：Phase 0 已确认（2026-08-20），可以进入 Phase 1。
+>
+> Phase 0 决策基线见第 16 节。后续若修改基线，必须同步更新对应策略默认值、数据契约和验收项。
 >
 > 本文定义下一版项目、智能体、消息路由、协作交付、项目产物存储和智能体长期记忆的目标架构。
 > 实施时直接创建新结构，不迁移、不兼容现有项目、消息和 Memory 数据。
@@ -38,7 +40,8 @@ Hyve 的核心交互从“选择一个智能体开始聊天”调整为“进入
 ### 2.1 本次调整范围
 
 - 重建 Project、Agent、ProjectMembership、ProjectTurn、ProjectEvent、AgentRun 等领域模型；
-- 重建项目和智能体相关 SQLite 表，不处理历史数据；
+- 重建项目和智能体配置/运行相关 SQLite 表，不处理历史数据；AgentMemory 正文、元数据和向量
+  只进入文件系统或外部向量库；
 - 支持项目成员添加、移除、排序、暂停和项目存储权限配置；
 - 支持明确 `@` 路由与无 `@` 广播路由；
 - 支持项目消息全局递增索引，以及每个智能体独立、持久化的顺序消费游标；
@@ -287,9 +290,20 @@ final class ParticipationDecision {
 9. 全部 Agent 选择 `pass` 是合法结果，UI 显示“本条消息没有智能体需要补充”，不伪造兜底
    回复。
 
-默认建议项目范围的判断并发上限为 4、正式回复并发上限为 2，由项目响应策略配置。同一
+默认项目范围的判断并发上限为 4、正式回复并发上限为 2，由项目响应策略配置。同一
 Project-Agent 的 decision/reply 并发恒为 1；并发上限只控制不同 Agent 之间的资源，不减少
 收到广播并进行判断的 Agent 数量。
+
+参与判断的成本边界固定如下：
+
+- 每条广播对消息创建时的每个 active Agent 恰好发起一次判断调用；判断不重试，失败、超时或
+  非法结构直接按 `pass` 收敛；
+- 每次判断的总输入上限为 4096 tokens、输出上限为 128 tokens、超时为 10 秒；组装输入时优先
+  保留当前消息和 Agent 身份，再按从近到远的顺序裁剪 Skill 摘要、ConversationSummary 和历史
+  消息；
+- 若 active Agent 数为 `N`，一条广播最多产生 `N` 次判断调用，模型计费 Token 上界为
+  `N × (4096 + 128)`；实际成本按每个 decision run 的 Provider、模型和实测 Token usage 记录；
+- targeted 消息和第一阶段媒体生成不产生参与判断调用；全部 `pass` 不触发额外兜底模型调用。
 
 ### 5.4 每个智能体按消息索引顺序追赶
 
@@ -393,6 +407,9 @@ final class AgentDeliveryRequest {
   final bool requestPublicReply;
 }
 ```
+
+`visibility` 未显式提供时固定为 `project`。`targets` 是 Agent 上下文可见范围，不是对用户隐藏
+的私密通道；两种值都会在项目时间线显示可折叠交付卡片，并能从执行详情审计完整链路。
 
 交付规则：
 
@@ -508,9 +525,8 @@ Agent 1 --- * ProjectMembership * --- 1 Project
   |                ProjectAgentCursor * -+
   |                                      +--- * ProjectTurn
   +--- * AgentSkillBinding               |       +--- * AgentRun
-  +--- * AgentMemoryItem                 |       +--- * ProjectEvent
-  |                                      |       +--- * AgentMessageReceipt
-  +--- 1 AgentMemoryState                |
+  +--- 1 AgentMemoryStore                |       +--- * ProjectEvent
+  |      (文件/外部向量库)                |       +--- * AgentMessageReceipt
   +--- 1 AgentStorageRoot                +--- * ProjectArtifact
                                          |       +--- * ProjectArtifactVersion
                                          +--- * ConversationSummarySegment
@@ -519,8 +535,9 @@ Agent 1 --- * ProjectMembership * --- 1 Project
 
 ### 7.2 核心表草案
 
-以下为逻辑结构，字段命名在开发前可按现有 SQLite 规范细化。新数据库直接创建这些表，不从旧
-表复制数据。
+以下为 SQLite 核心表及外部存储契约的逻辑结构，字段命名在开发前可按现有规范细化。新数据库
+直接创建列出的 SQLite 表，不从旧表复制数据；图中的 AgentMemoryStore 由独立 Repository 管理，
+不是 SQLite 表。
 
 #### `agents`
 
@@ -530,8 +547,36 @@ Agent 1 --- * ProjectMembership * --- 1 Project
 | `name`, `avatar` | 当前展示信息 |
 | `provider`, `base_url`, `api_key`, `api_type`, `model` | Provider 配置，凭据存储机制保持现状 |
 | `system_prompt`, `parameters_json` | 身份和能力参数 |
-| `memory_policy_json` | 自动记忆、跨项目复用和敏感信息策略 |
+| `memory_policy_json` | 自动记忆、跨项目复用、敏感信息和检索预算策略；不包含任何记忆正文、摘要或向量 |
+| `memory_backend`, `memory_backend_ref` | `file | externalVector`；默认 `file`，外部引用不包含凭据 |
 | `created_at`, `updated_at` | 生命周期 |
+
+`memory_policy_json` 是版本化、严格解码的 Agent 配置，不是记忆存储。Phase 0 固定的默认值为：
+
+```json
+{
+  "schemaVersion": 1,
+  "autoEvolutionEnabled": true,
+  "projectFactDefaultScope": "sourceProjectOnly",
+  "autoCrossProjectKinds": [
+    "userPreference",
+    "learnedPattern",
+    "capabilityNote",
+    "reflection"
+  ],
+  "privateCrossProject": "requireUserApproval",
+  "uncertainCrossProject": "requireUserApproval",
+  "secretLike": "reject",
+  "retrieval": {
+    "maxItems": 12,
+    "tokenBudget": 2048,
+    "minConfidence": 0.65
+  }
+}
+```
+
+`memory_backend_ref` 只引用应用安全配置中的外部向量库连接；端点凭据继续进入平台安全存储，
+不能写入 SQLite 或该 JSON。文件后端不需要 `memory_backend_ref`。
 
 #### `projects`
 
@@ -543,6 +588,32 @@ Agent 1 --- * ProjectMembership * --- 1 Project
 | `last_event_sequence`, `last_message_sequence` | 审计事件和可处理消息的两个最新索引 |
 | `last_message`, `last_message_at` | 列表展示 |
 | `created_at`, `updated_at` | 生命周期 |
+
+`response_policy_json` 至少固定以下 Phase 0 默认值；字段必须版本化并严格解码：
+
+```json
+{
+  "schemaVersion": 1,
+  "broadcastDecision": {
+    "concurrency": 4,
+    "maxInputTokens": 4096,
+    "maxOutputTokens": 128,
+    "timeoutMs": 10000,
+    "maxAttempts": 1,
+    "failureOutcome": "pass"
+  },
+  "replyConcurrency": 2,
+  "autonomousChain": {
+    "maxDepth": 4,
+    "maxAgentMessagesPerRoot": 16
+  },
+  "delivery": {
+    "defaultVisibility": "project",
+    "maxDepth": 4,
+    "maxDeliveriesPerTurn": 8
+  }
+}
+```
 
 #### `project_memberships`
 
@@ -745,41 +816,42 @@ ConversationSummary 必须满足：
 “保存为项目产物”，创建新的 ProjectArtifact/Version 并记录来源 summary/message range；原
 ConversationSummary 仍保持只读派生数据语义。
 
-### 7.4 智能体长期记忆表
+### 7.4 智能体长期记忆存储契约
 
-AgentMemory 是系统中唯一具有长期记忆语义的数据：
+AgentMemory 是系统中唯一具有长期记忆语义的数据，但实际记忆不属于 SQLite 数据结构。
+SQLite 不创建 `agent_memory_items`、`agent_memory_state` 或其他保存记忆正文、摘要、Embedding、
+候选内容和演化版本的等价字段。`agents.memory_policy_json` 只是配置，
+`memory_backend/memory_backend_ref` 只是存储路由。
 
-#### `agent_memory_state`
+`AgentMemoryRepository` 对上暴露统一的逻辑记录，以下字段整体保存到 Agent 私有文件空间或外部
+向量库：
 
-| 字段 | 说明 |
+| 逻辑字段 | 说明 |
 | --- | --- |
-| `agent_id` | 主键 |
-| `revision` | CAS 版本 |
-| `auto_evolution_enabled` | 是否自动提取和演化 |
-| `last_evolved_at`, `last_error`, `updated_at` | 状态 |
-
-#### `agent_memory_items`
-
-| 字段 | 说明 |
-| --- | --- |
-| `id`, `agent_id`, `memory_key` | 身份；`UNIQUE(agent_id, memory_key)` |
+| `id`, `agentId`, `memoryKey` | 身份；同一 Agent 内 `memoryKey` 唯一 |
 | `kind` | `userPreference | learnedPattern | capabilityNote | relationship | fact | reflection` |
-| `content`, `state` | 内容和 `candidate | active | superseded | forgotten` |
-| `reuse_scope` | `crossProject | sourceProjectOnly | userApproved` |
-| `sensitivity` | `normal | private | secretLike` |
+| `content`, `state` | 正文和 `candidate | active | superseded | forgotten` |
+| `reuseScope` | `crossProject | sourceProjectOnly | userApproved` |
+| `sensitivity` | `normal | private`；检测为 `secretLike` 的内容在所有写入路径持久化前拒绝 |
 | `importance`, `confidence` | 检索与演化依据 |
-| `source_project_id` | 可空溯源，项目删除时 `SET NULL`，不能级联删除记忆 |
-| `source_event_ids_json`, `source_message_sequence`, `source_digest` | 证据快照及项目内顺序；项目删除后仅保留不可解引用的审计标识 |
-| `version`, `supersedes_id` | 冲突和演化链 |
-| `created_at`, `updated_at`, `last_used_at` | 生命周期 |
+| `sourceProjectId` | 可空溯源标识，不是 SQLite 外键 |
+| `sourceEventIds`, `sourceMessageSequence`, `sourceDigest` | 证据标识、项目内顺序和摘要，不复制项目消息正文 |
+| `version`, `supersedesId` | 冲突和演化链 |
+| `createdAt`, `updatedAt`, `lastUsedAt` | 生命周期 |
 
-`sourceProjectOnly` 只是 AgentMemory 的注入范围限制，所有权仍属于 Agent；它不会创建项目记忆
-或把该条目放入 Project 聚合。
+文件后端以 `manifest.revision` 做 CAS，记忆版本写入 staging 后通过原子 rename 提交；索引可以
+重建，不能成为唯一正文来源。外部向量库后端必须使用等价的 revision/version 条件更新，并把
+正文、元数据和向量都放在外部存储中。两种后端都以 `(agentId, memoryKey)` 保证逻辑唯一，
+不得用 SQLite 事务冒充跨存储事务。
 
-#### `agent_memory_evolution_runs`
+`sourceProjectOnly` 只是注入范围限制，所有权仍属于 Agent；它不会创建项目记忆或把该记录放入
+Project 聚合。删除来源 Project 后保留不可解引用的 `sourceProjectId` 审计标识；上下文组装器
+发现来源 Project 已不存在时必须拒绝注入，而不是把它隐式提升为跨项目记忆。
 
-记录一次候选提取、合并、冲突处理和提升结果，包含 Provider、模型、提示版本、Token usage、
-输入来源摘要和错误码。它是审计事实，不混入项目群聊。
+SQLite 可以保留 `agent_memory_evolution_runs` 作为无正文的运行审计，字段只包含 run/agent/
+project/event ID、Provider、模型、提示版本、Token usage、输入 digest/数量、结果数量、状态、
+错误码和时间。它不得保存输入来源摘要、候选正文、现有记忆正文或 Embedding，也不作为记忆
+恢复来源。
 
 ### 7.5 Skill 与 MCP 表
 
@@ -801,10 +873,10 @@ AgentMemory 是系统中唯一具有长期记忆语义的数据：
 | 清空项目聊天 | 项目事件、运行、receipt 和 ConversationSummary；把消息计数及所有保留的 cursor 原子重置为 0；回收仅被已清消息引用的临时附件 | Project、membership、用户/Agent 正式产物及版本、AgentMemory |
 | 忘记一条 AgentMemory | 指定记忆或演化版本 | Agent、Project 和项目历史 |
 
-删除项目采用文件暂存、SQLite 事务、提交文件删除的现有安全思路。AgentMemory 中的
-`source_project_id` 使用 `ON DELETE SET NULL` 或无级联的弱引用，从结构上保证项目删除不能
-删除智能体记忆。若用户希望同时清除由该项目产生的跨项目记忆，应提供单独、明确的清理操作，
-不能捆绑在普通项目删除中。
+删除项目采用文件暂存、SQLite 事务、提交文件删除的现有安全思路。AgentMemory 位于独立文件
+空间或外部向量库，`sourceProjectId` 只是不可级联的稳定审计标识，从存储边界上保证项目删除
+不能删除智能体记忆。若用户希望同时清除由该项目产生的跨项目记忆，应提供单独、明确的清理
+操作，不能捆绑在普通项目删除中。
 
 ## 8. 存储空间
 
@@ -812,6 +884,7 @@ AgentMemory 是系统中唯一具有长期记忆语义的数据：
 
 ```text
 <application-support>/
+├── app.db
 ├── projects/
 │   └── <project-id>/
 │       ├── artifacts/
@@ -826,8 +899,12 @@ AgentMemory 是系统中唯一具有长期记忆语义的数据：
 ├── agents/
 │   └── <agent-id>/
 │       ├── memory/
-│       │   ├── summaries/
-│       │   └── artifacts/
+│       │   ├── manifest.json
+│       │   ├── items/
+│       │   │   └── <memory-id>/<version>.json
+│       │   ├── blobs/
+│       │   ├── index/
+│       │   └── staging/
 │       └── state/
 └── skills/
     └── bundles/
@@ -866,7 +943,7 @@ Agent 可以在权限允许时：
 - `readWrite`：可创建、导入、修改并产生新版本；删除、移动、覆盖当前版本等操作仍需
   Tool Policy 审批。
 
-建议默认新成员为 `read`，写权限由用户在项目成员设置中明确开启。权限检查同时发生在 Tool
+新成员默认权限固定为 `read`，写权限由用户在项目成员设置中明确开启。权限检查同时发生在 Tool
 暴露阶段和实际执行阶段，防止运行期间权限被收回后仍可操作。
 
 内建工具建议为：
@@ -898,8 +975,15 @@ invocation 记录。Artifact ID 和 Version ID 是模型可引用的稳定身份
 
 Agent 只通过 `agent.memory.search/read/propose/forget` 等领域工具访问自己的记忆，ToolPolicy
 从当前 `run.agentId` 注入作用域，不接受模型传入任意 agentId。一般项目成员和其他 Agent
-不能读取此空间。长期摘要文件使用不可变摘要名、内容摘要和 CAS 提交；项目会话摘要也使用
-不可变文件、来源 digest 和孤儿文件恢复，但二者属于不同 Repository，不能互相读写。
+不能读取此空间。
+
+默认使用文件后端，全部记忆正文、逻辑元数据、版本链和 CAS revision 位于
+`agents/<agent-id>/memory/`；`index/` 只是可重建索引。用户显式配置外部向量库后，正文、逻辑
+元数据和向量全部进入该后端，本地只保留不含凭据的后端引用和恢复状态。外部连接凭据使用平台
+安全存储。两种后端均不得把记忆正文或向量回写 SQLite。
+
+长期记忆文件使用不可变版本名、内容摘要和 CAS 提交；项目会话摘要也使用不可变文件、来源
+digest 和孤儿文件恢复，但二者属于不同 Repository，不能互相读写。
 
 ## 9. 会话摘要与智能体记忆
 
@@ -937,15 +1021,27 @@ Agent 只通过 `agent.memory.search/read/propose/forget` 等领域工具访问�
 - 自动记忆提取不调用工具，不生成新权限；
 - 每个 Agent 只从自己实际参与、观察或接收交付的内容中形成候选记忆，不把未向它开放的项目
   事件写入个人记忆；
-- API Key、Token、私钥和高度敏感内容不进入自动记忆；
-- 项目事实默认 `sourceProjectOnly`，不能因 Agent 参加过一个项目就在其他项目泄露内容；
-- 用户偏好、Agent 的方法反思和能力经验可标记 `crossProject`；
-- 不确定或敏感的跨项目候选标记 `userApproved`，确认前不注入其他项目；
+- `autoEvolutionEnabled=false` 时停止自动提取和提升，但不删除已有记忆，手动查看、纠正和忘记
+  仍然可用；
 - 新事实不原地覆盖旧事实，使用 version/supersedes 形成可回溯演化链；
 - 用户可以查看、纠正、忘记、冻结自动演化；
 - 删除 Project 不删除已形成的 AgentMemory，但 `sourceProjectOnly` 记忆在来源项目删除后不再
   注入任何项目，直到用户明确改为可复用；
 - 长期记忆进入模型前仍被视为不可信数据，系统规则、当前会话消息和用户明确指令优先级更高。
+
+自动演化和用户确认边界固定为：
+
+| 候选类型 | 自动持久化 | 初始状态/复用范围 | 是否需要用户确认 |
+| --- | --- | --- | --- |
+| API Key、Token、私钥、认证材料及 `secretLike` 内容 | 否，过滤后只记无正文错误码 | 不创建记录 | 所有 propose/create/import 路径都拒绝，凭据应进入平台安全存储 |
+| 来源于某个项目的事实、目标、关系或决策 | 是 | `active / sourceProjectOnly` | 仅在提升为跨项目时需要 |
+| 普通用户偏好、方法反思、已验证的能力经验 | 是 | `active / crossProject` | 否，用户可事后纠正或忘记 |
+| private 或置信度低于策略阈值的跨项目候选 | 是，存于文件/向量库 | `candidate / userApproved` | 是；批准前不得注入其他项目 |
+| 用户明确创建或纠正的记忆 | 是 | 使用用户明确选择的范围 | 用户操作本身即为确认 |
+
+记忆检索默认最多返回 12 条、使用 2048 tokens、最低置信度 0.65；三项都由
+`memory_policy_json.retrieval` 覆盖。作用域、敏感度和来源消息顺序过滤先于相关性排序和 Token
+裁剪，不能为了填满预算放宽安全边界。
 
 ### 9.3 上下文组装顺序
 
@@ -1104,7 +1200,9 @@ lib/data/
 │   ├── file_project_storage_repository.dart
 │   ├── project_artifact_repository_impl.dart
 │   ├── sqlite_conversation_summary_repository.dart
-│   └── sqlite_agent_memory_repository.dart
+│   ├── file_agent_memory_repository.dart
+│   ├── vector_agent_memory_repository.dart
+│   └── agent_memory_repository_factory.dart
 └── services/
     ├── project_storage/
     ├── artifact_import/
@@ -1114,7 +1212,8 @@ lib/data/
 ```
 
 SQLite、文件路径、Provider、MCP 和平台插件仍只位于 Data/Service。Repository 向上返回
-不可变领域对象，事件 payload 在 Data record 中严格解码。
+不可变领域对象，事件 payload 在 Data record 中严格解码。`agent_memory_records.dart` 映射文件
+或向量库记录，不对应 SQLite 表；禁止实现 `sqlite_agent_memory_repository.dart`。
 
 ### 11.3 UI
 
@@ -1215,27 +1314,42 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 
 用户已明确不处理历史数据，因此采用一次性新结构：
 
-1. 提升数据库 schema version；
-2. `createSchema` 只创建新的 `agents/projects/project_* /agent_*` 表；
-3. 不编写从 `bots/chats/messages/conversation_memory_*` 到新表的转换；
-4. 不保留当前版本 18 的项目 mention 修复逻辑作为新结构兼容路径；
-5. 发现非当前 schema 时沿用应用现有的“不兼容版本重建”策略；
-6. 项目附件、摘要和草稿目录不导入新 `projects/` 或 `agents/`；
-7. 测试 fixture 全部按新结构重新创建，不验证旧数据升级；
-8. 文案需要在发布说明中提示本次版本不会保留旧项目与消息。
+1. Phase 1 的目标 schema version 固定为 19，数据库目标位置为
+   `<application-support>/app.db`；`createSchema` 只创建新的
+   `agents/projects/project_* /agent_*` 运行与审计表，不创建任何 AgentMemory 内容表；
+2. 首次启动 version 19 时不打开或解析 version 18 业务表，不编写从
+   `bots/chats/messages/conversation_memory_*` 到新表的转换，也不保留 version 18 的项目 mention
+   修复逻辑作为兼容路径；
+3. 一次性重建明确清理旧 `<application-documents>/app.db`、`chats/`，以及目标根中不兼容的
+   `app.db`、`projects/`、`agents/`、`.pending_deletions` 和当前 schema 备份/暂存目录；不得递归
+   删除整个 Documents、Application Support、用户选择的外部目录或外部向量库；
+4. `<application-support>/skills/bundles` 不属于项目/Agent 数据，予以保留；新数据库从已验证的
+   bundle manifest 重建 Skill inventory，但不恢复旧 Agent 绑定、激活记录或组织策略；
+5. 旧 Bot/Agent、Provider 配置、MCP 配置、Profile 设置、消息、用量、附件、摘要、草稿及 Memory
+   均不迁移。旧外部向量库内容不会自动删除，但因后端引用重置而与新 Agent 断开；发布说明和
+   首次启动提示必须完整列出这一数据丢失范围，不能只提示“旧消息”；
+6. 发现低于 19 的 schema 执行上述一次性重建；发现高于 19 的 schema 继续拒绝打开且不删除；
+   version 19 数据损坏时只允许恢复通过完整性校验的 version 19 备份，不能回退解析 version 18；
+7. 重建先把精确目标 rename 到独立 reset staging，成功创建并通过 `quick_check`、
+   `foreign_key_check` 后再清理；创建失败则恢复 staging，避免数据库和目录只删除一半；
+8. 项目附件、摘要、草稿和 AgentMemory 目录不导入新 `projects/` 或 `agents/`；测试 fixture 全部
+   按 version 19 新结构创建，只验证重建、回滚和高版本拒绝，不验证旧业务数据升级。
 
 “不迁移历史数据”只取消旧数据转换，不降低新结构内部的数据完整性、事务、删除安全和崩溃
 恢复要求。
 
 ## 14. 开发阶段
 
-### Phase 0：确认设计
+### Phase 0：确认设计（已完成）
 
-- 确认广播参与判断策略和成本；
-- 确认默认项目产物权限；
-- 确认 AgentMemory 自动演化与用户确认边界；
-- 确认交付卡片的默认可见性；
-- 确认数据库和旧项目目录直接重建策略。
+- [x] 广播参与判断策略、Token/调用次数上界和失败收敛规则已在 5.3 节锁定；
+- [x] 新成员默认项目产物权限 `read`、写权限显式开启已在 8.2 节锁定；
+- [x] AgentMemory 自动演化、用户确认边界及文件/外部向量库存储约束已在 7.4、8.3 和 9.2 节
+  锁定；
+- [x] 交付默认 `project` 且所有交付对用户可审计已在 5.6 节锁定；
+- [x] version 19 数据库、旧数据精确清理、失败回滚和高版本拒绝策略已在第 13 节锁定。
+
+Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行时行为；业务代码从 Phase 1 开始。
 
 ### Phase 1：新领域和持久化骨架
 
@@ -1309,6 +1423,8 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 - 发送前成员被移除时不会产生悬空运行；
 - 多目标回复互不替换配置、取消令牌或流式文本；
 - 广播判断失败只影响对应 Agent，全部 pass 不被视为错误；
+- 广播 decision 输入/输出预算分别不超过 4096/128 tokens，10 秒超时或非法结果不重试并按
+  `pass` 收敛；targeted 和媒体定向消息不创建 decision run；
 - 同一 Agent 不会同时处理两个消息索引，不会跳过没有终态 receipt 的可见消息；
 - 回复只读取不超过 `contextThroughMessageSequence` 的历史，回复期间的新消息不会混入上下文；
 - 当前回复完成后自动处理积压消息，最终 cursor 等于项目最新消息索引；
@@ -1318,6 +1434,8 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 - 自动 Agent 消息链达到深度或数量限制后仍推进游标，但不继续回复；
 - 新加入/重新加入的 Agent 不补发加入前回复；暂停后恢复的 Agent 会从暂停位置顺序追赶；
 - 交付链不会自发循环，达到限制后有可见终态；
+- 交付请求未指定 visibility 时保存为 `project`；显式 `targets` 对非目标 Agent 不可见，但用户
+  仍能查看和审计卡片；
 - 取消整轮和取消单个运行均不留下永远 running 的记录；
 - 重启不会重复已执行的写 Tool，也不会丢失落后 Cursor 的 backlog；
 - 超过重试上限的消息形成 `failedSkipped` receipt，不会永久阻塞整个 inbox。
@@ -1328,15 +1446,21 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 - 用户添加的文档、代码、数据和多媒体产物重启后仍存在并可按元数据搜索；
 - Agent 能读取受支持类型的内容或提取文本，不能把整个项目空间自动塞入上下文；
 - 修改产物创建新版本，历史消息固定引用的旧版本不被覆盖；
+- 新成员未显式指定产物权限时持久化为 `read`；只有用户明确开启后才成为 `readWrite`；
 - `read` 成员不能执行创建版本、移动或删除；
 - 权限在运行中被收回后，执行时二次校验会拒绝操作；
 - 清空对话会删除 ConversationSummary，但保留正式 ProjectArtifact；
 - 删除摘要不影响原始消息，源消息变化后 stale 摘要不会注入模型；
-- 数据库中不存在 `project_memory_items` 或等价项目记忆事实表；
+- 数据库中不存在 `project_memory_items`、`agent_memory_items`、`agent_memory_state`，也不存在
+  保存项目/Agent 记忆正文、摘要或 Embedding 的等价字段；
+- 文件后端和外部向量库后端均通过同一 `AgentMemoryRepository` 契约，并通过 CAS 冲突、索引
+  重建、敏感过滤和 Agent 作用域隔离测试；
 - 项目删除失败可以回滚文件暂存和数据库状态；
 - 删除 Project 不级联 AgentMemory；
 - 删除 Agent 不级联 Project，历史事件仍可展示快照；
-- AgentMemory 摘要缺失或 digest 不一致时不进入模型上下文。
+- AgentMemory 文件/外部记录缺失或 digest 不一致时不进入模型上下文；
+- version 18 启动 version 19 时只清理已列明的数据库/数据根并保留 Skill bundles；创建失败能
+  恢复 reset staging，高于 19 的数据库保持原样并拒绝打开。
 
 ### 15.4 工程门禁
 
@@ -1346,26 +1470,29 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 - 定向单元、Repository、ViewModel、Widget 和 integration tests 通过；
 - `dart analyze`、`flutter test test/architecture`、`git diff --check` 通过。
 
-## 16. 实施前需要确认的产品决策
+## 16. Phase 0 已确认的产品决策
 
-本文建议的默认选择如下：
+以下选择于 2026-08-20 确认为实施基线：
 
 1. **广播判断**：每个 active Agent 执行一次低 Token、无 Tool 的模型判断；无效或超时按
-   `pass` 处理；
+   `pass` 处理且不重试；单次最多 4096 输入、128 输出 tokens，超时 10 秒；
 2. **顺序与并发**：每个 Project-Agent 严格串行处理消息；不同 Agent 可并行，项目判断最多
    并发 4 个、正式回复最多并发 2 个；用户输入不等待任何 Agent；
 3. **项目产物权限**：新成员默认 `read`，`readWrite` 由用户显式开启；
-4. **交付可见性**：默认 `project`，全部交付都可被用户审计；
+4. **交付可见性**：默认 `project`；`project/targets` 都向用户展示可折叠卡片并可审计，
+   `targets` 只限制非目标 Agent 的上下文；
 5. **AgentMemory**：普通用户偏好和方法反思可自动跨项目；来源于某个项目会话的事实默认只在
-   来源项目使用，敏感或不确定内容需用户确认；
+   来源项目使用，private 或不确定跨项目候选需用户确认，凭据和 `secretLike` 内容拒绝保存；
+   所有实际记忆只存文件系统或外部向量库，SQLite 只保存策略、后端引用和无正文运行审计；
 6. **零成员项目**：允许存在和保存用户消息，但不自动回复；
-7. **历史数据**：直接重建数据库和工作目录，不迁移旧项目、消息、摘要和 Memory；
+7. **历史数据**：目标 schema 为 version 19，直接重建数据库和精确的数据目录，不迁移旧
+   Agent/Bot、配置、项目、消息、摘要或 Memory；保留并重新校验 Skill bundle 文件；
 8. **媒体生成**：第一阶段必须明确 @ 单个 Agent，不参与广播自动判断；
 9. **新成员和失败恢复**：新 Agent 从加入时的最新索引开始；暂停后恢复会追赶 backlog；单条
    消息超过重试上限后记录 `failedSkipped` 并继续处理下一条；
 10. **自动对话链**：Agent 公开消息会被其他 Agent 按顺序处理；默认最大自动深度为 4、单个
     root 最多产生 16 条 Agent 消息，达到限制后只观察和推进游标。
 
-确认这些决策后再进入 Phase 1 开发。若任一项调整，只需修改对应策略和验收项，不需要改变
-Project 与 Agent 独立、ProjectEvent 事实流、每个 Agent 的顺序消息游标，以及
-“项目无记忆、摘要仅由消息派生、长期记忆只属于 Agent”的基础边界。
+上述决策已经满足 Phase 1 的进入条件。若任一项调整，必须先修改本节及对应策略、数据契约和
+验收项，再开始受影响的实现；不得改变 Project 与 Agent 独立、ProjectEvent 事实流、每个 Agent
+的顺序消息游标，以及“项目无记忆、摘要仅由消息派生、长期记忆只属于 Agent”的基础边界。

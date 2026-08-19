@@ -77,8 +77,8 @@ lib/
 
 有关项目的依赖规则和设计决策，请参阅[架构文档](architecture.md)。下一版以项目为中心的
 多智能体群聊、信息交付、项目产物存储和智能体长期记忆方案，请参阅
-[项目优先的多智能体协作设计](project_agent_collaboration_design.md)。该方案当前处于待确认状态，
-尚未进入开发。
+[项目优先的多智能体协作设计](project_agent_collaboration_design.md)。该方案已于 2026-08-20
+完成 Phase 0 设计确认，可以进入 Phase 1。
 
 ## 参与贡献
 

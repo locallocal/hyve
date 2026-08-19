@@ -1,37 +1,73 @@
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/project_repository.dart';
 
-/// Creates a named project whose conversation can be handled by any of its
-/// distinct agents.
+typedef ProjectClock = DateTime Function();
+
 final class CreateProject {
-  const CreateProject({required CreateChat createChat})
-    : _createChat = createChat;
+  CreateProject({
+    required ProjectRepository projectRepository,
+    required ProjectMembershipRepository membershipRepository,
+    ProjectClock? clock,
+  }) : _projectRepository = projectRepository,
+       _membershipRepository = membershipRepository,
+       _clock = clock ?? DateTime.now;
 
-  final CreateChat _createChat;
+  final ProjectRepository _projectRepository;
+  final ProjectMembershipRepository _membershipRepository;
+  final ProjectClock _clock;
+  int _sequence = 0;
 
   Future<Project> call({
     required String name,
-    required Iterable<Bot> bots,
+    Iterable<String> agentIds = const <String>[],
   }) async {
     final projectName = name.trim();
-    if (projectName.isEmpty) {
-      throw ArgumentError.value(name, 'name', 'Project name cannot be empty.');
-    }
-    final uniqueBots = <String, Bot>{};
-    for (final bot in bots) {
-      final id = bot.id.trim();
-      if (id.isNotEmpty) uniqueBots.putIfAbsent(id, () => bot);
-    }
-    if (uniqueBots.isEmpty) {
+    if (projectName.isEmpty || projectName.length > 80) {
       throw ArgumentError.value(
-        bots,
-        'bots',
-        'A project must contain at least one agent.',
+        name,
+        'name',
+        'Project name must contain between 1 and 80 characters.',
       );
     }
 
-    final members = List<Bot>.unmodifiable(uniqueBots.values);
-    final chat = await _createChat(name: projectName, bots: members);
-    return Project(chat: chat, bots: members);
+    final now = _clock();
+    _sequence = (_sequence + 1) & 0x7fffffff;
+    final project = Project(
+      id: 'project_${now.microsecondsSinceEpoch}_$_sequence',
+      name: projectName,
+      lastMessageAt: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final ids = <String>{
+      for (final id in agentIds)
+        if (id.trim().isNotEmpty) id.trim(),
+    };
+    final memberships = <ProjectMembership>[
+      for (final entry in ids.indexed)
+        ProjectMembership(
+          projectId: project.id,
+          agentId: entry.$2,
+          position: entry.$1,
+          joinedAt: now,
+          updatedAt: now,
+        ),
+    ];
+
+    final repository = _projectRepository;
+    if (repository is ProjectAggregateRepository) {
+      await repository.addProjectWithMemberships(project, memberships);
+      return project;
+    }
+
+    await repository.addProject(project);
+    try {
+      await _membershipRepository.saveAll(memberships);
+    } on Object {
+      await repository.deleteProject(project.id);
+      rethrow;
+    }
+    return project;
   }
 }

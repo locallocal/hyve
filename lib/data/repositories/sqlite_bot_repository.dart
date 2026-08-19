@@ -5,6 +5,7 @@ import 'package:hyve/data/models/local_records.dart';
 import 'package:hyve/data/models/skill_records.dart';
 import 'package:hyve/data/services/bot_api_key_cipher.dart';
 import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/data/services/project_agent_storage_service.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
 import 'package:hyve/domain/repositories/chat_repository.dart';
@@ -14,13 +15,16 @@ class SqliteBotRepository implements BotAggregateRepository {
     required LocalDatabaseService localDatabase,
     required ChatAggregateRepository chatRepository,
     required BotApiKeyCipher apiKeyCipher,
+    ProjectAgentStorageService? storage,
   }) : _localDatabase = localDatabase,
        _chatRepository = chatRepository,
-       _apiKeyCipher = apiKeyCipher;
+       _apiKeyCipher = apiKeyCipher,
+       _storage = storage;
 
   final LocalDatabaseService _localDatabase;
   final ChatAggregateRepository _chatRepository;
   final BotApiKeyCipher _apiKeyCipher;
+  final ProjectAgentStorageService? _storage;
   final StreamController<List<Bot>> _changes =
       StreamController<List<Bot>>.broadcast();
   List<Bot>? _cache;
@@ -60,16 +64,28 @@ class SqliteBotRepository implements BotAggregateRepository {
     Bot bot,
     Iterable<BotSkillBinding> bindings,
   ) async {
+    final storage = _storage;
+    var createdRoot = false;
+    if (storage != null) {
+      final root = await storage.agentRoot(bot.id);
+      createdRoot = !await root.exists();
+      await storage.ensureAgentRoot(bot.id);
+    }
     final encryptedApiKey = await _apiKeyCipher.encrypt(
       botId: bot.id,
       apiKey: bot.apiKey,
     );
-    await _localDatabase.insertBotWithSkillBindings(
-      BotRecord.fromDomain(bot, storedApiKey: encryptedApiKey).values,
-      bindings.map(
-        (binding) => BotSkillBindingRecord.fromDomain(binding).values,
-      ),
-    );
+    try {
+      await _localDatabase.insertBotWithSkillBindings(
+        BotRecord.fromDomain(bot, storedApiKey: encryptedApiKey).values,
+        bindings.map(
+          (binding) => BotSkillBindingRecord.fromDomain(binding).values,
+        ),
+      );
+    } on Object {
+      if (createdRoot) await storage?.deleteAgentRoot(bot.id);
+      rethrow;
+    }
     final cache = _cache;
     if (cache == null) {
       await _refreshCache();
@@ -104,15 +120,15 @@ class SqliteBotRepository implements BotAggregateRepository {
 
   @override
   Future<void> deleteBot(String id) async {
-    final stage = await _chatRepository.stageChatsForBotDeletion(id);
+    final stage = await _storage?.stageAgentDeletion(id);
     try {
       await _localDatabase.deleteBot(id);
-    } catch (_) {
-      await stage.rollback();
+    } on Object {
+      await stage?.rollback();
       rethrow;
     }
-    await stage.commit();
-    await _chatRepository.completeStagedBotDeletion(stage);
+    await stage?.commit();
+    _chatRepository.invalidate();
     final cache = _cache;
     if (cache == null) {
       await _refreshCache();

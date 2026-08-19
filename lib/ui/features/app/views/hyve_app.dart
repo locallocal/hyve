@@ -644,7 +644,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  void _onProjectSelected(Project project) {
+  void _onProjectSelected(ProjectWorkspace project) {
     if (!mounted) return;
     _viewModel.selectProject(project);
   }

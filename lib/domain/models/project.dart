@@ -1,57 +1,111 @@
-import 'package:hyve/domain/models/bot.dart';
-import 'package:hyve/domain/models/chat.dart';
+import 'dart:collection';
 
-/// A project together with the agents that participate in its conversation.
-final class Project {
-  Project({required this.chat, required Iterable<Bot> bots})
-    : bots = _orderedUniqueBots(chat, bots);
+final class BroadcastDecisionPolicy {
+  const BroadcastDecisionPolicy({
+    this.concurrency = 4,
+    this.maxInputTokens = 4096,
+    this.maxOutputTokens = 128,
+    this.timeout = const Duration(seconds: 10),
+    this.maxAttempts = 1,
+    this.failureOutcome = 'pass',
+  }) : assert(concurrency > 0),
+       assert(maxInputTokens > 0),
+       assert(maxOutputTokens > 0),
+       assert(maxAttempts == 1);
 
-  final Chat chat;
-  final List<Bot> bots;
-
-  String get id => chat.id;
-  String get name => chat.name;
-  List<String> get botIds => chat.projectBotIds;
-
-  Bot get firstBot => bots.first;
-
-  Bot? botById(String id) {
-    for (final bot in bots) {
-      if (bot.id == id) return bot;
-    }
-    return null;
-  }
-
-  Project replaceBot(Bot updated) => Project(
-    chat: chat,
-    bots: [
-      for (final bot in bots)
-        if (bot.id == updated.id) updated else bot,
-    ],
-  );
-
-  Project? removeBot(String id) {
-    final remaining = bots.where((bot) => bot.id != id).toList();
-    if (remaining.isEmpty) return null;
-    return Project(
-      chat: chat.copyWith(botIds: remaining.map((bot) => bot.id).toList()),
-      bots: remaining,
-    );
-  }
+  final int concurrency;
+  final int maxInputTokens;
+  final int maxOutputTokens;
+  final Duration timeout;
+  final int maxAttempts;
+  final String failureOutcome;
 }
 
-List<Bot> _orderedUniqueBots(Chat chat, Iterable<Bot> bots) {
-  final available = <String, Bot>{};
-  for (final bot in bots) {
-    final id = bot.id.trim();
-    if (id.isNotEmpty) available.putIfAbsent(id, () => bot);
+final class ProjectResponsePolicy {
+  const ProjectResponsePolicy({
+    this.schemaVersion = 1,
+    this.broadcastDecision = const BroadcastDecisionPolicy(),
+    this.replyConcurrency = 2,
+    this.autonomousChainMaxDepth = 4,
+    this.autonomousChainMaxAgentMessagesPerRoot = 16,
+    this.deliveryDefaultVisibility = 'project',
+    this.deliveryMaxDepth = 4,
+    this.deliveryMaxDeliveriesPerTurn = 8,
+  }) : assert(schemaVersion == 1),
+       assert(replyConcurrency > 0),
+       assert(autonomousChainMaxDepth >= 0),
+       assert(autonomousChainMaxAgentMessagesPerRoot >= 0),
+       assert(deliveryMaxDepth >= 0),
+       assert(deliveryMaxDeliveriesPerTurn >= 0);
+
+  static const defaults = ProjectResponsePolicy();
+
+  final int schemaVersion;
+  final BroadcastDecisionPolicy broadcastDecision;
+  final int replyConcurrency;
+  final int autonomousChainMaxDepth;
+  final int autonomousChainMaxAgentMessagesPerRoot;
+  final String deliveryDefaultVisibility;
+  final int deliveryMaxDepth;
+  final int deliveryMaxDeliveriesPerTurn;
+}
+
+final class Project {
+  Project({
+    required this.id,
+    required this.name,
+    Map<String, Object?> uiMetadata = const <String, Object?>{},
+    this.responsePolicy = ProjectResponsePolicy.defaults,
+    this.lastEventSequence = 0,
+    this.lastMessageSequence = 0,
+    this.lastMessage = '',
+    required this.lastMessageAt,
+    required this.createdAt,
+    required this.updatedAt,
+  }) : uiMetadata = UnmodifiableMapView(Map<String, Object?>.from(uiMetadata)) {
+    if (id.trim().isEmpty) {
+      throw ArgumentError.value(id, 'id', 'Project id cannot be empty.');
+    }
+    if (name.trim().isEmpty) {
+      throw ArgumentError.value(name, 'name', 'Project name cannot be empty.');
+    }
+    if (lastEventSequence < 0 || lastMessageSequence < 0) {
+      throw ArgumentError('Project sequences cannot be negative.');
+    }
   }
-  final ordered = <Bot>[
-    for (final id in chat.projectBotIds)
-      if (available[id] case final bot?) bot,
-  ];
-  if (ordered.length != chat.projectBotIds.length) {
-    throw StateError('Every project member must resolve to an agent.');
+
+  final String id;
+  final String name;
+  final Map<String, Object?> uiMetadata;
+  final ProjectResponsePolicy responsePolicy;
+  final int lastEventSequence;
+  final int lastMessageSequence;
+  final String lastMessage;
+  final DateTime lastMessageAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  Project copyWith({
+    String? name,
+    Map<String, Object?>? uiMetadata,
+    ProjectResponsePolicy? responsePolicy,
+    int? lastEventSequence,
+    int? lastMessageSequence,
+    String? lastMessage,
+    DateTime? lastMessageAt,
+    DateTime? updatedAt,
+  }) {
+    return Project(
+      id: id,
+      name: name ?? this.name,
+      uiMetadata: uiMetadata ?? this.uiMetadata,
+      responsePolicy: responsePolicy ?? this.responsePolicy,
+      lastEventSequence: lastEventSequence ?? this.lastEventSequence,
+      lastMessageSequence: lastMessageSequence ?? this.lastMessageSequence,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
-  return List<Bot>.unmodifiable(ordered);
 }

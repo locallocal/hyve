@@ -5,7 +5,7 @@ void main() {
   test('resolves distinct available bots in persisted project order', () {
     final researcher = _bot('researcher');
     final reviewer = _bot('reviewer');
-    final project = Project(
+    final project = ProjectWorkspace(
       chat: _chat([researcher.id, reviewer.id]),
       bots: [reviewer, researcher, reviewer],
     );
@@ -18,7 +18,7 @@ void main() {
   test('removes a member from both the aggregate and persisted ids', () {
     final researcher = _bot('researcher');
     final reviewer = _bot('reviewer');
-    final project = Project(
+    final project = ProjectWorkspace(
       chat: _chat([researcher.id, reviewer.id]),
       bots: [researcher, reviewer],
     );
@@ -31,7 +31,7 @@ void main() {
 
   test('rejects an incomplete project member set', () {
     expect(
-      () => Project(
+      () => ProjectWorkspace(
         chat: _chat(['researcher', 'reviewer']),
         bots: [_bot('researcher')],
       ),
@@ -56,7 +56,7 @@ Bot _bot(String id) => Bot(
 
 Chat _chat(List<String> botIds) => Chat(
   id: 'project',
-  name: 'Project',
+  name: 'ProjectWorkspace',
   botIds: botIds,
   lastMessageTimestamp: DateTime(2026),
   createTimestamp: DateTime(2026),

@@ -24,7 +24,7 @@ class ContactsPage extends StatefulWidget {
   final String? selectedBotId;
   final ValueChanged<Bot> onBotSelected;
   final ValueChanged<Bot>? onBotEditSelected;
-  final ValueChanged<Project>? onProjectCreated;
+  final ValueChanged<ProjectWorkspace>? onProjectCreated;
   final VoidCallback? onSelectionCleared;
   final BotListViewModel viewModel;
 
@@ -68,7 +68,7 @@ class ContactsPageState extends State<ContactsPage> {
     if (!mounted) return;
 
     if (isDesktopPlatform(context)) {
-      widget.onProjectCreated?.call(Project(chat: chat, bots: [bot]));
+      widget.onProjectCreated?.call(ProjectWorkspace(chat: chat, bots: [bot]));
       return;
     }
 
@@ -308,7 +308,7 @@ class ContactsPageState extends State<ContactsPage> {
                   if (!context.mounted) return;
                   if (isDesktopPlatform(context)) {
                     widget.onProjectCreated?.call(
-                      Project(chat: chat, bots: [bot]),
+                      ProjectWorkspace(chat: chat, bots: [bot]),
                     );
                     return;
                   }

@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
-import 'package:hyve/domain/repositories/chat_repository.dart';
-import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/use_cases/create_project.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/l10n/app_localizations.dart';
@@ -23,12 +23,13 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1280, 800);
     addTearDown(tester.view.reset);
-    final chatRepository = _ChatRepository();
+    final projectRepository = _ProjectRepository();
     final bots = [_bot('bot-1', 'Researcher'), _bot('bot-2', 'Writer')];
     final viewModel = NewProjectViewModel(
       botRepository: _BotRepository(bots),
       createProject: CreateProject(
-        createChat: CreateChat(chatRepository: chatRepository),
+        projectRepository: projectRepository,
+        membershipRepository: _MembershipRepository(),
       ),
     );
 
@@ -41,7 +42,7 @@ void main() {
                 body: Center(
                   child: FilledButton(
                     onPressed:
-                        () => showShadDialog<Project>(
+                        () => showShadDialog<ProjectWorkspace>(
                           context: context,
                           barrierDismissible: false,
                           builder:
@@ -99,9 +100,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(chatRepository.added, hasLength(1));
-      expect(chatRepository.added.single.name, '发布计划');
-      expect(chatRepository.added.single.projectBotIds, ['bot-1', 'bot-2']);
+      expect(projectRepository.added, hasLength(1));
+      expect(projectRepository.added.single.name, '发布计划');
+      expect(projectRepository.memberships.single.map((item) => item.agentId), [
+        'bot-1',
+        'bot-2',
+      ]);
       expect(find.text('open'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -117,7 +121,8 @@ void main() {
     final viewModel = NewProjectViewModel(
       botRepository: _BotRepository(bots),
       createProject: CreateProject(
-        createChat: CreateChat(chatRepository: _ChatRepository()),
+        projectRepository: _ProjectRepository(),
+        membershipRepository: _MembershipRepository(),
       ),
     );
 
@@ -138,7 +143,7 @@ void main() {
                   body: Center(
                     child: FilledButton(
                       onPressed:
-                          () => showDialog<Project>(
+                          () => showDialog<ProjectWorkspace>(
                             context: context,
                             builder:
                                 (context) =>
@@ -205,33 +210,30 @@ final class _BotRepository implements BotRepository {
   Future<void> deleteBot(String id) async {}
 }
 
-final class _ChatRepository implements ChatRepository {
-  final List<Chat> added = <Chat>[];
+final class _ProjectRepository implements ProjectAggregateRepository {
+  final List<Project> added = <Project>[];
+  final List<List<ProjectMembership>> memberships = <List<ProjectMembership>>[];
 
   @override
-  Stream<List<Chat>> get changes => const Stream.empty();
+  Stream<List<Project>> get changes => const Stream.empty();
 
   @override
-  Future<void> addChat(Chat chat) async => added.add(chat);
+  Future<void> addProjectWithMemberships(
+    Project project,
+    Iterable<ProjectMembership> memberships,
+  ) async {
+    added.add(project);
+    this.memberships.add(memberships.toList(growable: false));
+  }
 
   @override
-  Future<List<Chat>> getChats({bool forceRefresh = false}) async => added;
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class _MembershipRepository implements ProjectMembershipRepository {
+  @override
+  Stream<String> get changes => const Stream.empty();
 
   @override
-  Future<Chat?> getChat(String id) async => null;
-
-  @override
-  Future<void> deleteChat(String id) async {}
-
-  @override
-  Future<void> deleteChatsForBot(String botId) async {}
-
-  @override
-  Future<void> updateLastMessage(String id, String content) async {}
-
-  @override
-  Future<void> clearHistory(String id) async {}
-
-  @override
-  void invalidate() {}
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

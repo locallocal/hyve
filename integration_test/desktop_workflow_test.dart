@@ -331,7 +331,7 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
               child: ChatListBuilder(
                 projects: [
                   for (final item in _chats.items)
-                    Project(chat: item, bots: _bots.items),
+                    ProjectWorkspace(chat: item, bots: _bots.items),
                 ],
                 selectedChatId: chat.id,
                 onChatDeleted:

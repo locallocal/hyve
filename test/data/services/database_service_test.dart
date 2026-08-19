@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart' as path;
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:hyve/data/services/database_service.dart';
 import 'package:hyve/domain/models/app_failure.dart';
+import 'package:path/path.dart' as path;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(() {
@@ -12,108 +12,123 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('current database schema', () {
-    test('creates exactly the current schema', () async {
+  group('version 19 schema', () {
+    test('creates only the new Project and Agent persistence model', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
       await _expectCurrentSchema(database);
+      expect(await database.getVersion(), 19);
+      expect(await database.rawQuery('PRAGMA quick_check'), [
+        <String, Object?>{'quick_check': 'ok'},
+      ]);
+      expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
     });
 
-    test('replacing a duplicate message id leaves exactly one row', () async {
+    test('does not create a SQLite store for AgentMemory content', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
-      await database.insert('bots', _botRow('bot-1'));
-      await database.insert('chats', _chatRow('chat-1', 'bot-1'));
-      const messageId = 'assistant:stable-id';
-      await database.insert(
-        'messages',
-        _messageRow(messageId, 'chat-1', 'bot-1', 'first response'),
+      final tables = await _tableNames(database);
+      expect(
+        tables,
+        isNot(
+          containsAll(<String>[
+            'agent_memory_items',
+            'agent_memory_state',
+            'project_memory_items',
+            'conversation_memory_items',
+          ]),
+        ),
       );
-      await database.insert(
-        'messages',
-        _messageRow(messageId, 'chat-1', 'bot-1', 'updated response'),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+      final auditColumns = await database.rawQuery(
+        'PRAGMA table_info(agent_memory_evolution_runs)',
       );
-
-      final rows = await database.query(
-        'messages',
-        where: 'message_id = ?',
-        whereArgs: <Object?>[messageId],
+      expect(
+        auditColumns.map((column) => column['name']),
+        isNot(containsAll(<String>['content', 'summary', 'embedding'])),
       );
-      expect(rows, hasLength(1));
-      expect(rows.single['content'], 'updated response');
+      expect(
+        (await database.rawQuery(
+          'PRAGMA table_info(agents)',
+        )).map((column) => column['name']),
+        containsAll(<String>[
+          'memory_policy_json',
+          'memory_backend',
+          'memory_backend_ref',
+        ]),
+      );
     });
 
     test(
-      'enforces project membership foreign keys and cascades deletion',
+      'deleting a Project cascades Project data but preserves Agent data',
       () async {
         final database = await _openCurrentDatabase();
         addTearDown(database.close);
+        await _insertProjectGraph(database);
 
-        expect(
-          (await database.rawQuery('PRAGMA foreign_keys')).single.values.single,
-          1,
+        await database.delete(
+          'projects',
+          where: 'id = ?',
+          whereArgs: const ['project-1'],
         );
-        await database.insert('bots', _botRow('bot-fk'));
-        await database.insert('chats', _chatRow('chat-fk', 'bot-fk'));
-        await database.insert('chat_projects', <String, Object?>{
-          'chat_id': 'chat-fk',
-          'name': 'Foreign key project',
-        });
-        await database.insert('chat_project_bots', <String, Object?>{
-          'chat_id': 'chat-fk',
-          'bot_id': 'bot-fk',
-          'position': 0,
-        });
-        await database.insert(
-          'messages',
-          _messageRow('message-fk', 'chat-fk', 'bot-fk', 'linked'),
-        );
-        await database.insert('skills', _skillRow('skill-fk'));
-        await database.insert('bot_skill_bindings', <String, Object?>{
-          'bot_id': 'bot-fk',
-          'skill_id': 'skill-fk',
-          'enabled': 1,
-          'activation_mode': 'auto',
-          'priority': 0,
-          'created_at': 1,
-          'updated_at': 1,
-        });
-        await database.insert('conversation_skill_pins', <String, Object?>{
-          'chat_id': 'chat-fk',
-          'skill_id': 'skill-fk',
-          'created_at': 1,
-        });
 
-        await database.delete('chats', where: 'id = ?', whereArgs: ['chat-fk']);
-
-        expect(await database.query('chats'), isEmpty);
-        expect(await database.query('messages'), isEmpty);
-        expect(await database.query('chat_projects'), isEmpty);
-        expect(await database.query('chat_project_bots'), isEmpty);
-        expect(await database.query('conversation_skill_pins'), isEmpty);
-        expect(await database.query('bot_skill_bindings'), hasLength(1));
+        expect(await database.query('projects'), isEmpty);
+        expect(await database.query('project_memberships'), isEmpty);
+        expect(await database.query('project_events'), isEmpty);
+        expect(await database.query('project_event_targets'), isEmpty);
+        expect(await database.query('agents'), hasLength(1));
+        expect(await database.query('agent_skill_bindings'), hasLength(1));
         expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
-        expect(
-          () => database.insert('chat_project_bots', <String, Object?>{
-            'chat_id': 'missing-chat',
-            'bot_id': 'missing-bot',
-            'position': 0,
-          }),
-          throwsA(isA<DatabaseException>()),
-        );
       },
     );
 
-    test('allows a Bot to bind a bundled Skill', () async {
+    test(
+      'deleting an Agent preserves Project and snapshotted event history',
+      () async {
+        final database = await _openCurrentDatabase();
+        addTearDown(database.close);
+        await _insertProjectGraph(database);
+
+        await database.delete(
+          'agents',
+          where: 'id = ?',
+          whereArgs: const ['agent-1'],
+        );
+
+        expect(await database.query('agents'), isEmpty);
+        expect(await database.query('project_memberships'), isEmpty);
+        expect(await database.query('agent_skill_bindings'), isEmpty);
+        expect(await database.query('projects'), hasLength(1));
+        expect(await database.query('project_events'), hasLength(1));
+        expect(await database.query('project_event_targets'), hasLength(1));
+        expect(
+          (await database.query(
+            'project_events',
+          )).single['actor_name_snapshot'],
+          'Researcher',
+        );
+        expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+      },
+    );
+
+    test('allows a Project with no Agent membership', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
-      await database.insert('bots', _botRow('bot-bundled-skill'));
-      await database.insert('bot_skill_bindings', <String, Object?>{
-        'bot_id': 'bot-bundled-skill',
+      await database.insert('projects', _projectRow('empty-project'));
+
+      expect(await database.query('projects'), hasLength(1));
+      expect(await database.query('project_memberships'), isEmpty);
+    });
+
+    test('allows an Agent to bind a bundled Skill id', () async {
+      final database = await _openCurrentDatabase();
+      addTearDown(database.close);
+      await database.insert('agents', _agentRow('agent-bundled'));
+
+      await database.insert('agent_skill_bindings', <String, Object?>{
+        'agent_id': 'agent-bundled',
         'skill_id': 'system:conversation-history',
         'enabled': 1,
         'activation_mode': 'auto',
@@ -122,304 +137,117 @@ void main() {
         'updated_at': 1,
       });
 
-      expect(await database.query('bot_skill_bindings'), hasLength(1));
+      expect(await database.query('agent_skill_bindings'), hasLength(1));
       expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
     });
   });
 
-  group('database version reset policy', () {
-    test('reopens a database that already uses the current schema', () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'hyve_current_database_',
-      );
-      addTearDown(() => directory.delete(recursive: true));
-      final databasePath = path.join(directory.path, 'app.db');
-      final initialDatabase = await databaseFactoryFfi.openDatabase(
-        databasePath,
-        options: OpenDatabaseOptions(
-          version: DatabaseService.databaseVersion,
-          onConfigure: DatabaseService.configure,
-          onCreate: DatabaseService.createSchema,
-        ),
-      );
-      await initialDatabase.insert('bots', _botRow('current-bot'));
-      await initialDatabase.close();
+  group('version 19 reset and recovery', () {
+    test('reopens a current Application Support database intact', () async {
+      final roots = await _TemporaryRoots.create('hyve_current_');
+      addTearDown(roots.delete);
+      final initial = await _openFileDatabase(roots.databasePath, version: 19);
+      await initial.insert('agents', _agentRow('current-agent'));
+      await initial.close();
 
-      final service = DatabaseService(
-        applicationDocumentsDirectoryProvider: () async => directory,
-      );
-      final reopenedDatabase = await service.initDatabase();
-      addTearDown(reopenedDatabase.close);
+      final reopened = await roots.service().initDatabase();
+      addTearDown(reopened.close);
 
       expect(
-        await reopenedDatabase.getVersion(),
-        DatabaseService.databaseVersion,
-      );
-      expect(
-        await reopenedDatabase.query(
-          'bots',
+        await reopened.query(
+          'agents',
           where: 'id = ?',
-          whereArgs: const <Object?>['current-bot'],
+          whereArgs: const ['current-agent'],
         ),
         hasLength(1),
       );
-    });
-
-    test(
-      'repairs version 18 messages missing project mention targets',
-      () async {
-        final directory = await Directory.systemTemp.createTemp(
-          'hyve_message_target_schema_repair_',
-        );
-        addTearDown(() => directory.delete(recursive: true));
-        final databasePath = path.join(directory.path, 'app.db');
-        final initialDatabase = await databaseFactoryFfi.openDatabase(
-          databasePath,
-          options: OpenDatabaseOptions(
-            version: DatabaseService.databaseVersion,
-            onConfigure: DatabaseService.configure,
-            onCreate: DatabaseService.createSchema,
-          ),
-        );
-        await initialDatabase.insert('bots', _botRow('bot-preserved'));
-        await initialDatabase.insert(
-          'chats',
-          _chatRow('chat-preserved', 'bot-preserved'),
-        );
-        await initialDatabase.insert(
-          'messages',
-          _messageRow(
-            'message-preserved',
-            'chat-preserved',
-            'bot-preserved',
-            'existing message',
-          ),
-        );
-        await initialDatabase.execute(
-          'ALTER TABLE messages DROP COLUMN target_bot_ids',
-        );
-        await initialDatabase.close();
-
-        final service = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
-        final repairedDatabase = await service.initDatabase();
-        addTearDown(repairedDatabase.close);
-
-        final columns = await repairedDatabase.rawQuery(
-          'PRAGMA table_info(messages)',
-        );
-        expect(
-          columns.map((column) => column['name']),
-          contains('target_bot_ids'),
-        );
-        expect(
-          (await repairedDatabase.query(
-            'messages',
-            where: 'message_id = ?',
-            whereArgs: const <Object?>['message-preserved'],
-          )).single['target_bot_ids'],
-          '[]',
-        );
-
-        await repairedDatabase.insert('messages', <String, Object?>{
-          ..._messageRow(
-            'message-with-mention',
-            'chat-preserved',
-            '',
-            '@Current Bot hello',
-          ),
-          'target_bot_ids': '["bot-preserved"]',
-        });
-        expect(
-          (await repairedDatabase.query(
-            'messages',
-            where: 'message_id = ?',
-            whereArgs: const <Object?>['message-with-mention'],
-          )).single['target_bot_ids'],
-          '["bot-preserved"]',
-        );
-        expect(
-          await repairedDatabase.rawQuery('PRAGMA foreign_key_check'),
-          isEmpty,
-        );
-      },
-    );
-
-    test('repairs the version 17 installed-Skill binding constraint', () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'hyve_skill_binding_schema_repair_',
-      );
-      addTearDown(() => directory.delete(recursive: true));
-      final databasePath = path.join(directory.path, 'app.db');
-      final initialDatabase = await databaseFactoryFfi.openDatabase(
-        databasePath,
-        options: OpenDatabaseOptions(
-          version: DatabaseService.databaseVersion,
-          onConfigure: DatabaseService.configure,
-          onCreate: DatabaseService.createSchema,
-        ),
-      );
-      await initialDatabase.insert('bots', _botRow('bot-preserved'));
-      await initialDatabase.insert('skills', _skillRow('user:preserved'));
-      await initialDatabase.execute(
-        'DROP INDEX bot_skill_bindings_skill_id_index',
-      );
-      await initialDatabase.execute(
-        'ALTER TABLE bot_skill_bindings '
-        'RENAME TO bot_skill_bindings_without_skill_fk',
-      );
-      await initialDatabase.execute('''
-        CREATE TABLE bot_skill_bindings (
-          bot_id TEXT NOT NULL,
-          skill_id TEXT NOT NULL,
-          enabled INTEGER NOT NULL DEFAULT 1,
-          activation_mode TEXT NOT NULL DEFAULT 'auto',
-          priority INTEGER NOT NULL DEFAULT 0,
-          created_at INTEGER NOT NULL,
-          updated_at INTEGER NOT NULL,
-          PRIMARY KEY (bot_id, skill_id),
-          FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE,
-          FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
-        )
-      ''');
-      await initialDatabase.execute('''
-        INSERT INTO bot_skill_bindings
-        SELECT * FROM bot_skill_bindings_without_skill_fk
-      ''');
-      await initialDatabase.execute(
-        'DROP TABLE bot_skill_bindings_without_skill_fk',
-      );
-      await initialDatabase.execute(
-        'CREATE INDEX bot_skill_bindings_skill_id_index '
-        'ON bot_skill_bindings(skill_id)',
-      );
-      await initialDatabase.insert('bot_skill_bindings', <String, Object?>{
-        'bot_id': 'bot-preserved',
-        'skill_id': 'user:preserved',
-        'enabled': 1,
-        'activation_mode': 'auto',
-        'priority': 0,
-        'created_at': 1,
-        'updated_at': 1,
-      });
-      await initialDatabase.close();
-
-      final service = DatabaseService(
-        applicationDocumentsDirectoryProvider: () async => directory,
-      );
-      final repairedDatabase = await service.initDatabase();
-      addTearDown(repairedDatabase.close);
-      await repairedDatabase.insert('bot_skill_bindings', <String, Object?>{
-        'bot_id': 'bot-preserved',
-        'skill_id': 'system:conversation-history',
-        'enabled': 1,
-        'activation_mode': 'auto',
-        'priority': 0,
-        'created_at': 2,
-        'updated_at': 2,
-      });
-
-      expect(await repairedDatabase.query('bots'), hasLength(1));
-      expect(await repairedDatabase.query('bot_skill_bindings'), hasLength(2));
       expect(
-        (await repairedDatabase.rawQuery(
-          'PRAGMA foreign_key_list(bot_skill_bindings)',
-        )).map((foreignKey) => foreignKey['table']),
-        isNot(contains('skills')),
-      );
-      expect(
-        await repairedDatabase.rawQuery('PRAGMA foreign_key_check'),
-        isEmpty,
+        File(path.join(roots.legacy.path, 'app.db')).existsSync(),
+        isFalse,
       );
     });
 
     test(
-      'deletes any non-current database before creating the current schema',
+      'resets lower versions and only removes explicitly named roots',
       () async {
-        final directory = await Directory.systemTemp.createTemp(
-          'hyve_obsolete_database_',
+        final roots = await _TemporaryRoots.create('hyve_reset_');
+        addTearDown(roots.delete);
+        final obsolete = await _openFileDatabase(
+          roots.databasePath,
+          version: 18,
+          createCurrentSchema: false,
         );
-        addTearDown(() => directory.delete(recursive: true));
-        final databasePath = path.join(directory.path, 'app.db');
-        final obsoleteDatabase = await databaseFactoryFfi.openDatabase(
-          databasePath,
-          options: OpenDatabaseOptions(
-            version: DatabaseService.databaseVersion - 1,
-            onCreate: (database, _) async {
-              await database.execute('''
-                CREATE TABLE obsolete_data (
-                  id TEXT PRIMARY KEY,
-                  value TEXT NOT NULL
-                )
-              ''');
-            },
-          ),
+        await obsolete.close();
+        for (final directory in <Directory>[
+          Directory(path.join(roots.support.path, 'projects', 'old-project')),
+          Directory(path.join(roots.support.path, 'agents', 'old-agent')),
+          Directory(path.join(roots.legacy.path, 'chats', 'old-chat')),
+          Directory(path.join(roots.support.path, 'skills', 'bundles', 'kept')),
+          Directory(path.join(roots.support.path, 'unrelated')),
+        ]) {
+          await directory.create(recursive: true);
+          await File(path.join(directory.path, 'marker')).writeAsString('data');
+        }
+        final legacy = await _openFileDatabase(
+          path.join(roots.legacy.path, 'app.db'),
+          version: 18,
+          createCurrentSchema: false,
         );
-        await obsoleteDatabase.insert('obsolete_data', <String, Object?>{
-          'id': 'obsolete-1',
-          'value': 'must be deleted',
-        });
-        await obsoleteDatabase.close();
-        final obsoleteChatDirectory = Directory(
-          path.join(directory.path, 'chats', 'obsolete-chat'),
-        );
-        await obsoleteChatDirectory.create(recursive: true);
-        await File(
-          path.join(obsoleteChatDirectory.path, 'attachment.txt'),
-        ).writeAsString('must be deleted');
+        await legacy.close();
 
-        final service = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
-        final resetDatabase = await service.initDatabase();
-        addTearDown(resetDatabase.close);
+        final reset = await roots.service().initDatabase();
+        addTearDown(reset.close);
 
+        await _expectCurrentSchema(reset);
         expect(
-          await resetDatabase.getVersion(),
-          DatabaseService.databaseVersion,
-        );
-        await _expectCurrentSchema(resetDatabase);
-        expect(
-          await resetDatabase.rawQuery('''
-            SELECT name
-            FROM sqlite_master
-            WHERE type = 'table' AND name = 'obsolete_data'
-          '''),
-          isEmpty,
-        );
-        expect(await resetDatabase.query('messages'), isEmpty);
-        expect(
-          Directory(path.join(directory.path, 'chats')).existsSync(),
+          Directory(path.join(roots.support.path, 'projects')).existsSync(),
           isFalse,
         );
+        expect(
+          Directory(path.join(roots.support.path, 'agents')).existsSync(),
+          isFalse,
+        );
+        expect(
+          Directory(path.join(roots.legacy.path, 'chats')).existsSync(),
+          isFalse,
+        );
+        expect(
+          File(path.join(roots.legacy.path, 'app.db')).existsSync(),
+          isFalse,
+        );
+        expect(
+          File(
+            path.join(
+              roots.support.path,
+              'skills',
+              'bundles',
+              'kept',
+              'marker',
+            ),
+          ).existsSync(),
+          isTrue,
+        );
+        expect(
+          File(
+            path.join(roots.support.path, 'unrelated', 'marker'),
+          ).existsSync(),
+          isTrue,
+        );
       },
     );
 
-    test('rejects a database created by a newer application version', () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'hyve_newer_database_',
+    test('rejects a newer database without deleting it', () async {
+      final roots = await _TemporaryRoots.create('hyve_newer_');
+      addTearDown(roots.delete);
+      final newer = await _openFileDatabase(
+        roots.databasePath,
+        version: 20,
+        createCurrentSchema: false,
       );
-      addTearDown(() => directory.delete(recursive: true));
-      final databasePath = path.join(directory.path, 'app.db');
-      final newerDatabase = await databaseFactoryFfi.openDatabase(
-        databasePath,
-        options: OpenDatabaseOptions(
-          version: DatabaseService.databaseVersion + 1,
-          onCreate:
-              (database, _) => database.execute(
-                'CREATE TABLE newer_data (id TEXT PRIMARY KEY)',
-              ),
-        ),
-      );
-      await newerDatabase.close();
-
-      final service = DatabaseService(
-        applicationDocumentsDirectoryProvider: () async => directory,
-      );
+      await newer.close();
 
       await expectLater(
-        service.initDatabase(),
+        roots.service().initDatabase(),
         throwsA(
           isA<AppFailure>().having(
             (failure) => failure.code,
@@ -428,348 +256,295 @@ void main() {
           ),
         ),
       );
-      expect(await databaseFactoryFfi.databaseExists(databasePath), isTrue);
+      expect(File(roots.databasePath).existsSync(), isTrue);
+      expect(await _readVersion(roots.databasePath), 20);
     });
 
     test(
-      'restores current database and chat assets from a valid backup',
+      'restores v19 database plus Project and Agent roots from backup',
       () async {
-        final directory = await Directory.systemTemp.createTemp(
-          'hyve_database_recovery_',
-        );
-        addTearDown(() => directory.delete(recursive: true));
-        final databasePath = path.join(directory.path, 'app.db');
-        final asset = File(
-          path.join(directory.path, 'chats', 'chat-recovery', 'asset.txt'),
-        );
-
-        final initialService = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
-        final initialDatabase = await initialService.initDatabase();
-        await initialDatabase.insert('bots', _botRow('recovered-bot'));
-        await asset.parent.create(recursive: true);
-        await asset.writeAsString('current asset');
-        await initialDatabase.close();
-
-        final backupService = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
-        final checkedDatabase = await backupService.initDatabase();
-        await checkedDatabase.close();
-        await asset.writeAsString('uncommitted asset');
-        await File(databasePath).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
-
-        final recoveryService = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
-        final recoveredDatabase = await recoveryService.initDatabase();
-        addTearDown(recoveredDatabase.close);
-
-        expect(
-          await recoveredDatabase.query(
-            'bots',
-            where: 'id = ?',
-            whereArgs: const <Object?>['recovered-bot'],
+        final roots = await _TemporaryRoots.create('hyve_recovery_');
+        addTearDown(roots.delete);
+        final initialService = roots.service();
+        final initial = await initialService.initDatabase();
+        await initial.insert('agents', _agentRow('recovered-agent'));
+        await initial.insert('projects', _projectRow('recovered-project'));
+        final projectAsset = File(
+          path.join(
+            roots.support.path,
+            'projects',
+            'recovered-project',
+            'asset',
           ),
-          hasLength(1),
         );
-        expect(await asset.readAsString(), 'current asset');
-        expect(await recoveredDatabase.rawQuery('PRAGMA quick_check'), [
+        final agentMemory = File(
+          path.join(roots.support.path, 'agents', 'recovered-agent', 'memory'),
+        );
+        await projectAsset.parent.create(recursive: true);
+        await agentMemory.parent.create(recursive: true);
+        await projectAsset.writeAsString('saved project');
+        await agentMemory.writeAsString('saved agent');
+        await initial.close();
+
+        final checked = await roots.service().initDatabase();
+        await checked.close();
+        await projectAsset.writeAsString('uncommitted project');
+        await agentMemory.writeAsString('uncommitted agent');
+        await File(
+          roots.databasePath,
+        ).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
+
+        final recovered = await roots.service().initDatabase();
+        addTearDown(recovered.close);
+
+        expect(await recovered.query('agents'), hasLength(1));
+        expect(await recovered.query('projects'), hasLength(1));
+        expect(await projectAsset.readAsString(), 'saved project');
+        expect(await agentMemory.readAsString(), 'saved agent');
+        expect(await recovered.rawQuery('PRAGMA quick_check'), [
           <String, Object?>{'quick_check': 'ok'},
         ]);
-        expect(
-          await recoveredDatabase.rawQuery('PRAGMA foreign_key_check'),
-          isEmpty,
-        );
       },
     );
 
-    test(
-      'does not silently replace corrupt current data without a backup',
-      () async {
-        final directory = await Directory.systemTemp.createTemp(
-          'hyve_unrecoverable_database_',
-        );
-        addTearDown(() => directory.delete(recursive: true));
-        final databasePath = path.join(directory.path, 'app.db');
-        await File(databasePath).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
-        final service = DatabaseService(
-          applicationDocumentsDirectoryProvider: () async => directory,
-        );
+    test('does not replace corrupt v19 data without a valid backup', () async {
+      final roots = await _TemporaryRoots.create('hyve_corrupt_');
+      addTearDown(roots.delete);
+      await File(
+        roots.databasePath,
+      ).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
 
-        await expectLater(
-          service.initDatabase(),
-          throwsA(
-            isA<AppFailure>().having(
-              (failure) => failure.code,
-              'code',
-              'database_recovery_failed',
-            ),
+      await expectLater(
+        roots.service().initDatabase(),
+        throwsA(
+          isA<AppFailure>().having(
+            (failure) => failure.code,
+            'code',
+            'database_recovery_failed',
           ),
-        );
-        expect(await File(databasePath).readAsBytes(), <int>[0, 1, 2, 3]);
-      },
-    );
+        ),
+      );
+      expect(await File(roots.databasePath).readAsBytes(), <int>[0, 1, 2, 3]);
+    });
   });
 }
 
-Future<void> _expectCurrentSchema(Database database) async {
-  final tables = await database.rawQuery('''
-    SELECT name
-    FROM sqlite_master
-    WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
-  ''');
-  expect(
-    tables.map((table) => table['name']),
-    unorderedEquals(<String>[
-      'chats',
-      'chat_projects',
-      'chat_project_bots',
-      'messages',
-      'token_usage_records',
-      'skills',
-      'bot_skill_bindings',
-      'skill_activations',
-      'skill_publishers',
-      'skill_catalogs',
-      'skill_script_grants',
-      'skill_organization_policy',
-      'skill_compliance_events',
-      'conversation_skill_pins',
-      'mcp_servers',
-      'mcp_tools',
-      'conversation_memory_state',
-      'conversation_summary_segments',
-      'conversation_memory_items',
-      'bots',
-      'profile',
-    ]),
-  );
-
-  final indexes = await database.rawQuery('''
-    SELECT name
-    FROM sqlite_master
-    WHERE type = 'index' AND name NOT LIKE 'sqlite_autoindex_%'
-  ''');
-  expect(
-    indexes.map((index) => index['name']),
-    unorderedEquals(<String>[
-      'messages_message_id_unique',
-      'chat_project_bots_bot_id_index',
-      'messages_bot_id_index',
-      'token_usage_records_chat_id_index',
-      'token_usage_records_bot_id_index',
-      'bot_skill_bindings_skill_id_index',
-      'skill_activations_run_id_index',
-      'skill_activations_chat_id_index',
-      'skill_compliance_events_skill_id_index',
-      'conversation_skill_pins_skill_id_index',
-      'conversation_summary_chat_status_index',
-      'conversation_memory_chat_key_index',
-      'messages_chat_timestamp_message_index',
-      'mcp_tools_server_id_index',
-    ]),
-  );
-
-  final messageColumns = await database.rawQuery('PRAGMA table_info(messages)');
-  expect(
-    messageColumns.map((column) => column['name']),
-    orderedEquals(<String>[
-      'message_id',
-      'turn_id',
-      'run_id',
-      'chat_id',
-      'bot_id',
-      'target_bot_ids',
-      'sender_id',
-      'content',
-      'reasoning',
-      'process_info',
-      'images',
-      'files',
-      'audio',
-      'music',
-      'video',
-      'token_model',
-      'input_token_count',
-      'output_token_count',
-      'total_token_count',
-      'terminal_state',
-      'has_partial_content',
-      'timestamp',
-    ]),
-  );
-  expect(
-    messageColumns.singleWhere(
-      (column) => column['name'] == 'message_id',
-    )['notnull'],
-    1,
-  );
-  final messageForeignKeys = await database.rawQuery(
-    'PRAGMA foreign_key_list(messages)',
-  );
-  expect(messageForeignKeys, hasLength(1));
-  expect(messageForeignKeys.single['table'], 'chats');
-
-  final chatColumns = await database.rawQuery('PRAGMA table_info(chats)');
-  expect(
-    chatColumns.map((column) => column['name']),
-    orderedEquals(<String>[
-      'id',
-      'last_message',
-      'last_message_timestamp',
-      'create_timestamp',
-      'modify_timestamp',
-    ]),
-  );
-  expect(
-    chatColumns.singleWhere(
-      (column) => column['name'] == 'create_timestamp',
-    )['type'],
-    'INTEGER',
-  );
-  expect(
-    chatColumns.singleWhere(
-      (column) => column['name'] == 'modify_timestamp',
-    )['type'],
-    'INTEGER',
-  );
-  expect(
-    messageColumns.singleWhere(
-      (column) => column['name'] == 'turn_id',
-    )['notnull'],
-    1,
-  );
-
-  final mcpColumns = await database.rawQuery('PRAGMA table_info(mcp_servers)');
-  expect(
-    mcpColumns.map((column) => column['name']),
-    orderedEquals(<String>[
-      'id',
-      'name',
-      'transport_type',
-      'transport_config_json',
-      'remote_server_name',
-      'remote_server_version',
-      'capabilities_json',
-      'connection_status',
-      'last_error_code',
-      'last_connected_at',
-      'created_at',
-      'updated_at',
-    ]),
-  );
-
-  final tokenUsageColumns = await database.rawQuery(
-    'PRAGMA table_info(token_usage_records)',
-  );
-  expect(
-    tokenUsageColumns.map((column) => column['name']),
-    orderedEquals(<String>[
-      'message_id',
-      'chat_id',
-      'bot_id',
-      'operation_kind',
-      'token_model',
-      'input_token_count',
-      'output_token_count',
-      'total_token_count',
-      'timestamp',
-    ]),
-  );
+Future<void> _insertProjectGraph(Database database) async {
+  await database.insert('agents', _agentRow('agent-1'));
+  await database.insert('projects', _projectRow('project-1'));
+  await database.insert('project_memberships', <String, Object?>{
+    'project_id': 'project-1',
+    'agent_id': 'agent-1',
+    'status': 'active',
+    'position': 0,
+    'project_storage_access': 'read',
+    'capability_restrictions_json': '{}',
+    'membership_generation': 1,
+    'join_message_sequence': 0,
+    'joined_at': 1,
+    'removed_at': null,
+    'updated_at': 1,
+  });
+  await database.insert('agent_skill_bindings', <String, Object?>{
+    'agent_id': 'agent-1',
+    'skill_id': 'system:conversation-history',
+    'enabled': 1,
+    'activation_mode': 'auto',
+    'priority': 0,
+    'created_at': 1,
+    'updated_at': 1,
+  });
+  await database.insert('project_events', <String, Object?>{
+    'id': 'event-1',
+    'project_id': 'project-1',
+    'turn_id': '',
+    'run_id': '',
+    'sequence': 1,
+    'message_sequence': 1,
+    'event_type': 'agentMessage',
+    'actor_type': 'agent',
+    'actor_id': 'agent-1',
+    'actor_name_snapshot': 'Researcher',
+    'actor_avatar_snapshot': '',
+    'visibility': 'project',
+    'reply_to_event_id': '',
+    'reply_to_message_sequence': null,
+    'root_message_id': 'event-1',
+    'autonomous_depth': 0,
+    'content': 'snapshot survives Agent deletion',
+    'payload_json': '{"reasoning":""}',
+    'terminal_state': 'completed',
+    'has_partial_content': 0,
+    'created_at': 1,
+    'updated_at': 1,
+  });
+  await database.insert('project_event_targets', <String, Object?>{
+    'event_id': 'event-1',
+    'agent_id': 'agent-1',
+    'target_kind': 'mention',
+    'position': 0,
+  });
 }
 
-Map<String, Object?> _botRow(String id) => <String, Object?>{
+Map<String, Object?> _agentRow(String id) => <String, Object?>{
   'id': id,
-  'name': 'Current Bot',
+  'name': 'Agent',
   'avatar': '',
   'provider': 'Provider',
   'base_url': 'https://example.test',
   'api_key': '',
   'api_type': 'openai',
-  'model': 'current-model',
+  'model': 'model',
   'system_prompt': '',
-  'parameters': '{}',
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
-};
-
-Map<String, Object?> _chatRow(String id, String _) => <String, Object?>{
-  'id': id,
-  'last_message': '',
-  'last_message_timestamp': 1,
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
-};
-
-Map<String, Object?> _messageRow(
-  String id,
-  String chatId,
-  String botId,
-  String content,
-) => <String, Object?>{
-  'message_id': id,
-  'turn_id': 'turn-$id',
-  'run_id': '',
-  'chat_id': chatId,
-  'bot_id': botId,
-  'target_bot_ids': '[]',
-  'sender_id': 'assistant',
-  'content': content,
-  'reasoning': '',
-  'process_info':
-      '{"reasoning_status":"","duration_ms":null,'
-      '"tool_calls":[],"command_executions":[],"file_edits":[],'
-      '"skill_activations":[]}',
-  'images': '[]',
-  'files': '[]',
-  'audio': '',
-  'music': '',
-  'video': '',
-  'token_model': '',
-  'input_token_count': 0,
-  'output_token_count': 0,
-  'total_token_count': 0,
-  'terminal_state': '',
-  'has_partial_content': 0,
-  'timestamp': 1,
-};
-
-Map<String, Object?> _skillRow(String id) => <String, Object?>{
-  'id': id,
-  'name': 'Skill',
-  'description': '',
-  'version': '',
-  'scope': 'user',
-  'source_uri': '',
-  'root_path': '/tmp/skill',
-  'content_digest': 'digest',
-  'trust_state': 'trusted',
-  'validation_status': 'valid',
-  'compatibility': '',
-  'requested_tools_json': '[]',
-  'diagnostics_json': '[]',
-  'has_scripts': 0,
-  'has_references': 0,
-  'has_assets': 0,
-  'publisher_id': '',
-  'publisher_name': '',
-  'signature_status': 'unsigned',
-  'catalog_id': '',
-  'catalog_entry_id': '',
-  'update_policy': 'manual',
-  'installed_at': 1,
+  'parameters_json': '{}',
+  'memory_policy_json': _memoryPolicyJson,
+  'memory_backend': 'file',
+  'memory_backend_ref': '',
+  'created_at': 1,
   'updated_at': 1,
 };
+
+Map<String, Object?> _projectRow(String id) => <String, Object?>{
+  'id': id,
+  'name': 'Project',
+  'ui_metadata_json': '{}',
+  'response_policy_json': _responsePolicyJson,
+  'last_event_sequence': 0,
+  'last_message_sequence': 0,
+  'last_message': '',
+  'last_message_at': 1,
+  'created_at': 1,
+  'updated_at': 1,
+};
+
+const _memoryPolicyJson =
+    '{"schemaVersion":1,"autoEvolutionEnabled":true,'
+    '"projectFactDefaultScope":"sourceProjectOnly",'
+    '"autoCrossProjectKinds":["userPreference","learnedPattern",'
+    '"capabilityNote","reflection"],'
+    '"privateCrossProject":"requireUserApproval",'
+    '"uncertainCrossProject":"requireUserApproval","secretLike":"reject",'
+    '"retrieval":{"maxItems":12,"tokenBudget":2048,"minConfidence":0.65}}';
+
+const _responsePolicyJson =
+    '{"schemaVersion":1,"broadcastDecision":{"concurrency":4,'
+    '"maxInputTokens":4096,"maxOutputTokens":128,"timeoutMs":10000,'
+    '"maxAttempts":1,"failureOutcome":"pass"},"replyConcurrency":2,'
+    '"autonomousChain":{"maxDepth":4,"maxAgentMessagesPerRoot":16},'
+    '"delivery":{"defaultVisibility":"project","maxDepth":4,'
+    '"maxDeliveriesPerTurn":8}}';
+
+Future<void> _expectCurrentSchema(Database database) async {
+  expect(
+    await _tableNames(database),
+    unorderedEquals(const <String>{
+      'agents',
+      'projects',
+      'project_memberships',
+      'project_turns',
+      'project_events',
+      'project_event_targets',
+      'agent_runs',
+      'project_agent_cursors',
+      'agent_message_receipts',
+      'participation_decisions',
+      'agent_deliveries',
+      'project_artifacts',
+      'project_artifact_versions',
+      'project_event_artifacts',
+      'project_artifact_search_documents',
+      'conversation_summary_state',
+      'conversation_summary_segments',
+      'agent_memory_evolution_runs',
+      'token_usage_records',
+      'skills',
+      'agent_skill_bindings',
+      'skill_activations',
+      'project_skill_pins',
+      'skill_publishers',
+      'skill_catalogs',
+      'skill_script_grants',
+      'skill_organization_policy',
+      'skill_compliance_events',
+      'mcp_servers',
+      'mcp_tools',
+      'profile',
+    }),
+  );
+}
+
+Future<Set<String>> _tableNames(Database database) async {
+  final rows = await database.rawQuery('''
+    SELECT name FROM sqlite_master
+    WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+  ''');
+  return rows.map((row) => row['name']! as String).toSet();
+}
 
 Future<Database> _openCurrentDatabase() {
   return databaseFactoryFfi.openDatabase(
     inMemoryDatabasePath,
     options: OpenDatabaseOptions(
-      version: DatabaseService.databaseVersion,
+      version: 19,
       onConfigure: DatabaseService.configure,
       onCreate: DatabaseService.createSchema,
     ),
   );
+}
+
+Future<Database> _openFileDatabase(
+  String databasePath, {
+  required int version,
+  bool createCurrentSchema = true,
+}) {
+  return databaseFactoryFfi.openDatabase(
+    databasePath,
+    options: OpenDatabaseOptions(
+      version: version,
+      onConfigure: DatabaseService.configure,
+      onCreate:
+          createCurrentSchema
+              ? DatabaseService.createSchema
+              : (database, _) => database.execute(
+                'CREATE TABLE obsolete_data (id TEXT PRIMARY KEY)',
+              ),
+    ),
+  );
+}
+
+Future<int> _readVersion(String databasePath) async {
+  final database = await databaseFactoryFfi.openDatabase(
+    databasePath,
+    options: OpenDatabaseOptions(readOnly: true, singleInstance: false),
+  );
+  try {
+    return database.getVersion();
+  } finally {
+    await database.close();
+  }
+}
+
+final class _TemporaryRoots {
+  const _TemporaryRoots({required this.support, required this.legacy});
+
+  static Future<_TemporaryRoots> create(String prefix) async {
+    final root = await Directory.systemTemp.createTemp(prefix);
+    final support = Directory(path.join(root.path, 'support'));
+    final legacy = Directory(path.join(root.path, 'documents'));
+    await support.create(recursive: true);
+    await legacy.create(recursive: true);
+    return _TemporaryRoots(support: support, legacy: legacy);
+  }
+
+  final Directory support;
+  final Directory legacy;
+
+  String get databasePath => path.join(support.path, 'app.db');
+
+  DatabaseService service() => DatabaseService(
+    applicationSupportDirectoryProvider: () async => support,
+    legacyDocumentsDirectoryProvider: () async => legacy,
+  );
+
+  Future<void> delete() => support.parent.delete(recursive: true);
 }

@@ -53,7 +53,7 @@ final class AgentRunRequest {
   final AgentCancellationToken cancellationToken;
 }
 
-enum AgentRunStatus { completed, cancelled, failed, timedOut, limitExceeded }
+enum RunResultStatus { completed, cancelled, failed, timedOut, limitExceeded }
 
 final class AgentRunResult {
   AgentRunResult({
@@ -67,7 +67,7 @@ final class AgentRunResult {
          toolInvocations,
        );
 
-  final AgentRunStatus status;
+  final RunResultStatus status;
   final String text;
   final String reasoning;
   final ModelTokenUsage tokenUsage;
@@ -198,7 +198,7 @@ final class AgentRunCoordinator {
 
         if (calls.isEmpty) {
           return AgentRunResult(
-            status: AgentRunStatus.completed,
+            status: RunResultStatus.completed,
             text: text,
             reasoning: reasoning,
             tokenUsage: usage,
@@ -209,7 +209,7 @@ final class AgentRunCoordinator {
           (call) => call.callId.trim().isEmpty || call.name.trim().isEmpty,
         )) {
           return AgentRunResult(
-            status: AgentRunStatus.failed,
+            status: RunResultStatus.failed,
             text: text,
             reasoning: reasoning,
             tokenUsage: usage,
@@ -219,7 +219,7 @@ final class AgentRunCoordinator {
         }
         if (modelTurn + 1 >= _limits.maxModelTurns) {
           return AgentRunResult(
-            status: AgentRunStatus.limitExceeded,
+            status: RunResultStatus.limitExceeded,
             text: text,
             reasoning: reasoning,
             tokenUsage: usage,
@@ -230,7 +230,7 @@ final class AgentRunCoordinator {
 
         if (toolCallCount + calls.length > _limits.maxToolCalls) {
           return AgentRunResult(
-            status: AgentRunStatus.limitExceeded,
+            status: RunResultStatus.limitExceeded,
             text: text,
             reasoning: reasoning,
             tokenUsage: usage,
@@ -276,7 +276,7 @@ final class AgentRunCoordinator {
       }
 
       return AgentRunResult(
-        status: AgentRunStatus.limitExceeded,
+        status: RunResultStatus.limitExceeded,
         text: text,
         reasoning: reasoning,
         tokenUsage: usage,
@@ -285,7 +285,7 @@ final class AgentRunCoordinator {
       );
     } on AgentRunCancelledException {
       return AgentRunResult(
-        status: timedOut ? AgentRunStatus.timedOut : AgentRunStatus.cancelled,
+        status: timedOut ? RunResultStatus.timedOut : RunResultStatus.cancelled,
         text: text,
         reasoning: reasoning,
         tokenUsage: usage,
@@ -294,7 +294,7 @@ final class AgentRunCoordinator {
       );
     } on _AgentModelFailure catch (error) {
       return AgentRunResult(
-        status: AgentRunStatus.failed,
+        status: RunResultStatus.failed,
         text: text,
         reasoning: reasoning,
         tokenUsage: usage,
@@ -309,7 +309,7 @@ final class AgentRunCoordinator {
       );
     } catch (error) {
       return AgentRunResult(
-        status: AgentRunStatus.failed,
+        status: RunResultStatus.failed,
         text: text,
         reasoning: reasoning,
         tokenUsage: usage,

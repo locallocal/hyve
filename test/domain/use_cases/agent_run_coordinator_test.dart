@@ -56,7 +56,7 @@ void main() {
         onToolInvocation: records.add,
       );
 
-      expect(result.status, AgentRunStatus.completed);
+      expect(result.status, RunResultStatus.completed);
       expect(result.text, 'Checking. The answer is 4.');
       expect(result.tokenUsage.inputTokens, 25);
       expect(result.tokenUsage.outputTokens, 7);
@@ -97,7 +97,7 @@ void main() {
         request: _request(toolNames: {'calculate'}),
       );
 
-      expect(result.status, AgentRunStatus.completed);
+      expect(result.status, RunResultStatus.completed);
       expect(tool.executions, 0);
       final returned = session.continuations.single.single;
       expect(returned.isError, isTrue);
@@ -125,7 +125,7 @@ void main() {
           request: _request(toolNames: const {}),
         );
 
-        expect(result.status, AgentRunStatus.completed);
+        expect(result.status, RunResultStatus.completed);
         expect(provider.lastRequest?.tools, isEmpty);
       },
     );
@@ -155,7 +155,7 @@ void main() {
         request: _request(toolNames: {'calculate'}),
       );
 
-      expect(result.status, AgentRunStatus.completed);
+      expect(result.status, RunResultStatus.completed);
       expect(tool.executions, 1);
       expect(session.continuations.single, hasLength(2));
       expect(
@@ -196,7 +196,7 @@ void main() {
         request: _request(toolNames: {'parallel_compute'}),
       );
 
-      expect(result.status, AgentRunStatus.completed);
+      expect(result.status, RunResultStatus.completed);
       expect(tool.executions, 2);
       expect(session.continuations.single.map((item) => item.content), [
         '1',
@@ -284,7 +284,7 @@ void main() {
         ),
       );
 
-      expect(result.status, AgentRunStatus.completed);
+      expect(result.status, RunResultStatus.completed);
       expect(tool.executions, 1);
       expect(result.toolInvocations.single.approvalDecision, isEmpty);
       expect(result.toolInvocations.single.title, 'Save note');
@@ -319,7 +319,7 @@ void main() {
       token.cancel();
       final result = await run;
 
-      expect(result.status, AgentRunStatus.cancelled);
+      expect(result.status, RunResultStatus.cancelled);
       expect(tool.executions, 0);
       expect(session.cancelled, isTrue);
       expect(
@@ -356,7 +356,7 @@ void main() {
         request: _request(toolNames: {'calculate'}),
       );
 
-      expect(result.status, AgentRunStatus.limitExceeded);
+      expect(result.status, RunResultStatus.limitExceeded);
       expect(result.error, 'tool_call_limit_reached');
       expect(tool.executions, 0);
       expect(session.continuations, isEmpty);
@@ -375,7 +375,7 @@ void main() {
         request: _request(toolNames: const {}),
       );
 
-      expect(result.status, AgentRunStatus.timedOut);
+      expect(result.status, RunResultStatus.timedOut);
       expect(result.error, 'agent_run_timeout');
       expect(session.cancelled, isTrue);
     });

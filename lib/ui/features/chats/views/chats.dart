@@ -15,7 +15,7 @@ import 'package:hyve/utils/utils.dart';
 
 class ChatListPage extends StatefulWidget {
   final String? selectedChatId;
-  final ValueChanged<Project> onProjectSelected;
+  final ValueChanged<ProjectWorkspace> onProjectSelected;
   final VoidCallback? onSelectionCleared;
   final bool sidebarMode;
   final bool selectionVisible;
@@ -42,8 +42,9 @@ class ChatListPageState extends State<ChatListPage> {
 
   List<Chat> get chatList => widget.viewModel.chats;
   List<Chat> get filteredChatList => widget.viewModel.filteredChats;
-  List<Project> get projects => widget.viewModel.projects;
-  List<Project> get filteredProjects => widget.viewModel.filteredProjects;
+  List<ProjectWorkspace> get projects => widget.viewModel.projects;
+  List<ProjectWorkspace> get filteredProjects =>
+      widget.viewModel.filteredProjects;
   List<Bot> get bots => widget.viewModel.bots;
   bool get isLoading => widget.viewModel.isLoading;
   String? get loadError =>
@@ -228,10 +229,12 @@ class ChatListPageState extends State<ChatListPage> {
               final adjacentIndex =
                   deletedIndex.clamp(0, remainingChats.length - 1).toInt();
               final adjacentChat = remainingChats[adjacentIndex];
-              final adjacentProject = projects.cast<Project?>().firstWhere(
-                (project) => project?.id == adjacentChat.id,
-                orElse: () => null,
-              );
+              final adjacentProject = projects
+                  .cast<ProjectWorkspace?>()
+                  .firstWhere(
+                    (project) => project?.id == adjacentChat.id,
+                    orElse: () => null,
+                  );
               if (adjacentProject == null) {
                 widget.onSelectionCleared?.call();
               } else {
@@ -347,12 +350,12 @@ class ChatListPageState extends State<ChatListPage> {
     final viewModel = AppScope.of(context).createNewProjectViewModel();
     final result =
         desktop
-            ? await showShadDialog<Project>(
+            ? await showShadDialog<ProjectWorkspace>(
               context: context,
               barrierDismissible: false,
               builder: (context) => NewProjectPage(viewModel: viewModel),
             )
-            : await showDialog<Project>(
+            : await showDialog<ProjectWorkspace>(
               context: context,
               builder: (context) => NewProjectPage(viewModel: viewModel),
             );

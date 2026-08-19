@@ -9,14 +9,14 @@ class MainShellViewModel extends DisposableChangeNotifier {
   final BotRepository _botRepository;
 
   int _currentIndex = 0;
-  Project? _selectedProject;
+  ProjectWorkspace? _selectedProject;
   Bot? _selectedChatBot;
   Bot? _selectedBot;
   bool _isEditingSelectedBot = false;
   int _selectedProfileSection = 0;
 
   int get currentIndex => _currentIndex;
-  Project? get selectedProject => _selectedProject;
+  ProjectWorkspace? get selectedProject => _selectedProject;
   String? get selectedChatId => _selectedProject?.id;
   Bot? get selectedChatBot => _selectedChatBot;
   List<Bot> get selectedChatBots => _selectedProject?.bots ?? const <Bot>[];
@@ -25,7 +25,7 @@ class MainShellViewModel extends DisposableChangeNotifier {
   int get selectedProfileSection => _selectedProfileSection;
   bool get isChatSelectionVisible => _currentIndex == 0;
 
-  void selectProject(Project project) {
+  void selectProject(ProjectWorkspace project) {
     final activeBot = project.firstBot;
     _selectedProject = project;
     _selectedChatBot = activeBot;

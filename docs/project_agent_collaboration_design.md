@@ -1,6 +1,6 @@
 # 项目优先的多智能体协作设计
 
-> 状态：Phase 0 已确认（2026-08-20），可以进入 Phase 1。
+> 状态：Phase 1 已完成（2026-08-20），可以进入 Phase 2。
 >
 > Phase 0 决策基线见第 16 节。后续若修改基线，必须同步更新对应策略默认值、数据契约和验收项。
 >
@@ -1351,13 +1351,13 @@ AgentInboxCoordinator、ProjectTurnCoordinator、Tool Registry 和项目 ViewMod
 
 Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行时行为；业务代码从 Phase 1 开始。
 
-### Phase 1：新领域和持久化骨架
+### Phase 1：新领域和持久化骨架（已完成）
 
-- 创建 Agent、Project、Membership、Event、Turn、Run 模型和 Repository；
-- 创建新 SQLite schema 和文件目录服务；
-- 实现项目/智能体独立删除语义；
-- 保持智能体、Skill 和 MCP 管理页面功能不变；
-- 补齐 Repository、事务、级联和架构门禁测试。
+- [x] 创建 Agent、Project、Membership、Event、Turn、Run 模型和 Repository；
+- [x] 创建新 SQLite schema 和文件目录服务；
+- [x] 实现项目/智能体独立删除语义；
+- [x] 保持智能体、Skill 和 MCP 管理页面功能不变；
+- [x] 补齐 Repository、事务、级联和架构门禁测试。
 
 ### Phase 2：明确 @ 与广播
 

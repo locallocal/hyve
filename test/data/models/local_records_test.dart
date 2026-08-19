@@ -188,7 +188,7 @@ void main() {
     );
     final corrupt = BotRecord(<String, Object?>{
       ...record.values,
-      'parameters': '{not-json',
+      'parameters_json': '{not-json',
     });
 
     expect(() => corrupt.toDomain(apiKey: ''), throwsFormatException);

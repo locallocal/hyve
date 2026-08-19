@@ -2,82 +2,88 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/domain/repositories/chat_repository.dart';
-import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/use_cases/create_project.dart';
 
 void main() {
-  test('creates a project with distinct ordered agents', () async {
-    final repository = _ChatRepository();
+  test('creates a project with distinct ordered Agent memberships', () async {
+    final repository = _ProjectRepository();
     final createProject = CreateProject(
-      createChat: CreateChat(
-        chatRepository: repository,
-        clock: () => DateTime(2026, 8, 18),
-      ),
+      projectRepository: repository,
+      membershipRepository: _MembershipRepository(),
+      clock: () => DateTime(2026, 8, 18),
     );
-    final researcher = _bot('researcher');
-    final writer = _bot('writer');
 
     final project = await createProject(
       name: '  Launch plan  ',
-      bots: [researcher, writer, researcher],
+      agentIds: const ['researcher', 'writer', 'researcher'],
     );
 
     expect(project.name, 'Launch plan');
-    expect(project.bots.map((bot) => bot.id), ['researcher', 'writer']);
-    expect(project.botIds, ['researcher', 'writer']);
-    expect(repository.added, [project.chat]);
+    expect(repository.added, [project]);
+    expect(repository.memberships.single.map((item) => item.agentId), [
+      'researcher',
+      'writer',
+    ]);
+    expect(repository.memberships.single.map((item) => item.position), [0, 1]);
+    expect(
+      repository.memberships.single.map((item) => item.projectStorageAccess),
+      everyElement(ProjectStorageAccess.read),
+    );
   });
 
-  test('rejects a project without an agent before persistence', () async {
-    final repository = _ChatRepository();
+  test('allows a project without an Agent', () async {
+    final repository = _ProjectRepository();
     final createProject = CreateProject(
-      createChat: CreateChat(chatRepository: repository),
+      projectRepository: repository,
+      membershipRepository: _MembershipRepository(),
     );
 
-    await expectLater(
-      createProject(name: 'Empty', bots: const <Bot>[]),
-      throwsArgumentError,
-    );
-    expect(repository.added, isEmpty);
+    final project = await createProject(name: 'Empty');
+
+    expect(repository.added, [project]);
+    expect(repository.memberships.single, isEmpty);
   });
 
   test('rejects an empty project name before persistence', () async {
-    final repository = _ChatRepository();
+    final repository = _ProjectRepository();
     final createProject = CreateProject(
-      createChat: CreateChat(chatRepository: repository),
+      projectRepository: repository,
+      membershipRepository: _MembershipRepository(),
     );
 
     await expectLater(
-      createProject(name: '   ', bots: [_bot('researcher')]),
+      createProject(name: '   ', agentIds: const ['researcher']),
       throwsArgumentError,
     );
     expect(repository.added, isEmpty);
   });
 }
 
-Bot _bot(String id) => Bot(
-  id: id,
-  name: id,
-  avatar: '',
-  provider: 'test',
-  baseURL: '',
-  apiKey: '',
-  apiType: Bot.apiTypeOpenAI,
-  model: 'model',
-  systemPrompt: '',
-  createTimestamp: DateTime(2026),
-  modifyTimestamp: DateTime(2026),
-);
-
-final class _ChatRepository implements ChatRepository {
-  final List<Chat> added = <Chat>[];
+final class _ProjectRepository implements ProjectAggregateRepository {
+  final List<Project> added = <Project>[];
+  final List<List<ProjectMembership>> memberships = <List<ProjectMembership>>[];
 
   @override
-  Stream<List<Chat>> get changes => const Stream<List<Chat>>.empty();
+  Stream<List<Project>> get changes => const Stream<List<Project>>.empty();
 
   @override
-  Future<void> addChat(Chat chat) async => added.add(chat);
+  Future<void> addProjectWithMemberships(
+    Project project,
+    Iterable<ProjectMembership> memberships,
+  ) async {
+    added.add(project);
+    this.memberships.add(memberships.toList(growable: false));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class _MembershipRepository implements ProjectMembershipRepository {
+  @override
+  Stream<String> get changes => const Stream<String>.empty();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

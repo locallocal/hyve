@@ -96,11 +96,11 @@ extension _ChatGenerationEvents on ChatGenerationViewModel {
               return;
             }
             final terminal = switch (result.status) {
-              AgentRunStatus.completed => ProviderTerminalType.completed,
-              AgentRunStatus.cancelled => ProviderTerminalType.cancelled,
-              AgentRunStatus.failed ||
-              AgentRunStatus.timedOut ||
-              AgentRunStatus.limitExceeded => ProviderTerminalType.failed,
+              RunResultStatus.completed => ProviderTerminalType.completed,
+              RunResultStatus.cancelled => ProviderTerminalType.cancelled,
+              RunResultStatus.failed ||
+              RunResultStatus.timedOut ||
+              RunResultStatus.limitExceeded => ProviderTerminalType.failed,
             };
             unawaited(
               _finalizeRun(

@@ -44,13 +44,14 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
     return database.rawQuery(
       '''
       SELECT
-        member.chat_id,
+        member.project_id AS chat_id,
         b.id AS bot_id,
         b.name AS bot_name,
-        b.parameters AS bot_parameters
-      FROM chat_project_bots AS member
-      JOIN bots AS b ON b.id = member.bot_id
-      WHERE member.chat_id = ? AND member.bot_id = ?
+        b.parameters_json AS bot_parameters
+      FROM project_memberships AS member
+      JOIN agents AS b ON b.id = member.agent_id
+      WHERE member.project_id = ? AND member.agent_id = ?
+        AND member.status != 'removed'
       LIMIT 1
     ''',
       [chatId, botId],
@@ -155,8 +156,8 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
   Future<List<Map<String, Object?>>> loadBotSkillBindings(String botId) async {
     final database = await _databaseProvider();
     return database.query(
-      'bot_skill_bindings',
-      where: 'bot_id = ?',
+      'agent_skill_bindings',
+      where: 'agent_id = ?',
       whereArgs: [botId],
       orderBy: 'priority DESC, skill_id ASC',
     );
@@ -170,18 +171,22 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
     final database = await _databaseProvider();
     final placeholders = List.filled(ids.length, '?').join(',');
     return database.rawQuery('''
-      SELECT bot_id, COUNT(*) AS binding_count
-      FROM bot_skill_bindings
-      WHERE bot_id IN ($placeholders)
-      GROUP BY bot_id
+      SELECT agent_id AS bot_id, COUNT(*) AS binding_count
+      FROM agent_skill_bindings
+      WHERE agent_id IN ($placeholders)
+      GROUP BY agent_id
       ''', ids);
   }
 
   Future<void> upsertBotSkillBinding(Map<String, Object?> values) async {
     final database = await _databaseProvider();
+    final normalized = <String, Object?>{
+      ...values,
+      'agent_id': values['agent_id'] ?? values['bot_id'],
+    }..remove('bot_id');
     await database.insert(
-      'bot_skill_bindings',
-      values,
+      'agent_skill_bindings',
+      normalized,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -189,8 +194,8 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
   Future<void> deleteBotSkillBinding(String botId, String skillId) async {
     final database = await _databaseProvider();
     await database.delete(
-      'bot_skill_bindings',
-      where: 'bot_id = ? AND skill_id = ?',
+      'agent_skill_bindings',
+      where: 'agent_id = ? AND skill_id = ?',
       whereArgs: [botId, skillId],
     );
   }
@@ -200,8 +205,8 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
   ) async {
     final database = await _databaseProvider();
     return database.query(
-      'conversation_skill_pins',
-      where: 'chat_id = ?',
+      'project_skill_pins',
+      where: 'project_id = ?',
       whereArgs: [chatId],
       orderBy: 'created_at ASC, skill_id ASC',
     );
@@ -209,9 +214,13 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
 
   Future<void> upsertConversationSkillPin(Map<String, Object?> values) async {
     final database = await _databaseProvider();
+    final normalized = <String, Object?>{
+      ...values,
+      'project_id': values['project_id'] ?? values['chat_id'],
+    }..remove('chat_id');
     await database.insert(
-      'conversation_skill_pins',
-      values,
+      'project_skill_pins',
+      normalized,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -219,8 +228,8 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
   Future<void> deleteConversationSkillPin(String chatId, String skillId) async {
     final database = await _databaseProvider();
     await database.delete(
-      'conversation_skill_pins',
-      where: 'chat_id = ? AND skill_id = ?',
+      'project_skill_pins',
+      where: 'project_id = ? AND skill_id = ?',
       whereArgs: [chatId, skillId],
     );
   }
@@ -228,8 +237,8 @@ extension LocalDatabaseMcpSkills on LocalDatabaseService {
   Future<void> clearConversationSkillPins(String chatId) async {
     final database = await _databaseProvider();
     await database.delete(
-      'conversation_skill_pins',
-      where: 'chat_id = ?',
+      'project_skill_pins',
+      where: 'project_id = ?',
       whereArgs: [chatId],
     );
   }

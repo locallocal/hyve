@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hyve/data/models/project_agent_records.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:hyve/data/repositories/sqlite_conversation_history_repository.dart';
 import 'package:hyve/data/repositories/sqlite_message_repository.dart';
@@ -26,9 +27,52 @@ void main() {
         databaseProvider: () async => database,
       ),
     );
-    await database.insert('bots', _botRow('bot_1'));
-    await database.insert('chats', _chatRow('chat_1', 'bot_1'));
-    await database.insert('chats', _chatRow('chat_2', 'bot_1'));
+    final now = DateTime(2026, 8, 1);
+    await database.insert(
+      'agents',
+      AgentRecord.fromDomain(
+        Agent(
+          id: 'bot_1',
+          name: 'Bot',
+          avatar: '',
+          provider: 'Provider',
+          baseUrl: '',
+          apiKey: '',
+          apiType: 'openai',
+          model: 'model',
+          systemPrompt: '',
+          createdAt: now,
+          updatedAt: now,
+        ),
+        storedApiKey: '',
+      ).values,
+    );
+    for (final projectId in const ['chat_1', 'chat_2']) {
+      await database.insert(
+        'projects',
+        ProjectRecord.fromDomain(
+          Project(
+            id: projectId,
+            name: projectId,
+            lastMessageAt: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ).values,
+      );
+      await database.insert(
+        'project_memberships',
+        ProjectMembershipRecord.fromDomain(
+          ProjectMembership(
+            projectId: projectId,
+            agentId: 'bot_1',
+            position: 0,
+            joinedAt: now,
+            updatedAt: now,
+          ),
+        ).values,
+      );
+    }
     await messages.upsertMessages([
       _message(
         id: 'message_1',
@@ -243,29 +287,6 @@ void main() {
     },
   );
 }
-
-Map<String, Object?> _botRow(String id) => <String, Object?>{
-  'id': id,
-  'name': 'Bot',
-  'avatar': '',
-  'provider': 'Provider',
-  'base_url': '',
-  'api_key': '',
-  'api_type': 'openai',
-  'model': 'model',
-  'system_prompt': '',
-  'parameters': '{}',
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
-};
-
-Map<String, Object?> _chatRow(String id, String _) => <String, Object?>{
-  'id': id,
-  'last_message': '',
-  'last_message_timestamp': 1,
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
-};
 
 Message _message({
   required String id,

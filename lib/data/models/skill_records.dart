@@ -100,7 +100,7 @@ final class BotSkillBindingRecord {
 
   factory BotSkillBindingRecord.fromDomain(BotSkillBinding binding) {
     return BotSkillBindingRecord({
-      'bot_id': binding.botId,
+      'agent_id': binding.botId,
       'skill_id': binding.skillId,
       'enabled': binding.enabled ? 1 : 0,
       'activation_mode': binding.activationMode.name,
@@ -114,7 +114,7 @@ final class BotSkillBindingRecord {
 
   BotSkillBinding toDomain() {
     return BotSkillBinding(
-      botId: _requiredText(values['bot_id'], 'bot_id'),
+      botId: _requiredText(values['agent_id'], 'agent_id'),
       skillId: _requiredText(values['skill_id'], 'skill_id'),
       enabled: _bool(values['enabled'], 'enabled'),
       activationMode: _enumValue(
@@ -140,8 +140,10 @@ final class SkillActivationDbRecord {
     return SkillActivationDbRecord({
       'id': record.id,
       'run_id': record.runId,
-      'chat_id': record.chatId,
-      'message_id': record.messageId,
+      'turn_id': '',
+      'project_id': record.chatId,
+      'agent_id': '',
+      'message_event_id': record.messageId,
       'skill_id': record.skillId,
       'skill_name': record.skillName,
       'content_digest': record.contentDigest,
@@ -164,8 +166,8 @@ final class SkillActivationDbRecord {
     return SkillActivationRecord(
       id: _requiredText(values['id'], 'id'),
       runId: _requiredText(values['run_id'], 'run_id'),
-      chatId: _requiredText(values['chat_id'], 'chat_id'),
-      messageId: _requiredText(values['message_id'], 'message_id'),
+      chatId: _requiredText(values['project_id'], 'project_id'),
+      messageId: _requiredText(values['message_event_id'], 'message_event_id'),
       skillId: _requiredText(values['skill_id'], 'skill_id'),
       skillName: _requiredText(values['skill_name'], 'skill_name'),
       contentDigest: _requiredText(values['content_digest'], 'content_digest'),
@@ -197,7 +199,7 @@ final class ConversationSkillPinRecord {
 
   factory ConversationSkillPinRecord.fromDomain(ConversationSkillPin pin) {
     return ConversationSkillPinRecord({
-      'chat_id': pin.chatId,
+      'project_id': pin.chatId,
       'skill_id': pin.skillId,
       'created_at': pin.createdAt.millisecondsSinceEpoch,
     });
@@ -207,7 +209,7 @@ final class ConversationSkillPinRecord {
 
   ConversationSkillPin toDomain() {
     return ConversationSkillPin(
-      chatId: _requiredText(values['chat_id'], 'chat_id'),
+      chatId: _requiredText(values['project_id'], 'project_id'),
       skillId: _requiredText(values['skill_id'], 'skill_id'),
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         _requiredInteger(values['created_at'], 'created_at'),

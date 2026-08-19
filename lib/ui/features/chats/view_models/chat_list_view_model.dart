@@ -22,9 +22,9 @@ class ChatListViewModel extends DisposableChangeNotifier {
 
   List<Chat> _chats = const [];
   List<Bot> _bots = const [];
-  List<Project> _projects = const [];
+  List<ProjectWorkspace> _projects = const [];
   List<Chat> _filteredChats = const [];
-  List<Project> _filteredProjects = const [];
+  List<ProjectWorkspace> _filteredProjects = const [];
   String _query = '';
   AppFailure? _error;
   bool _isLoading = false;
@@ -32,9 +32,9 @@ class ChatListViewModel extends DisposableChangeNotifier {
 
   List<Chat> get chats => _chats;
   List<Bot> get bots => _bots;
-  List<Project> get projects => _projects;
+  List<ProjectWorkspace> get projects => _projects;
   List<Chat> get filteredChats => _filteredChats;
-  List<Project> get filteredProjects => _filteredProjects;
+  List<ProjectWorkspace> get filteredProjects => _filteredProjects;
   String get query => _query;
   AppFailure? get error => _error;
   bool get isLoading => _isLoading;
@@ -53,8 +53,8 @@ class ChatListViewModel extends DisposableChangeNotifier {
       if (isDisposed || generation != _loadGeneration) return;
       _chats = List<Chat>.unmodifiable(results[0] as List<Chat>);
       _bots = List<Bot>.unmodifiable(results[1] as List<Bot>);
-      _projects = List<Project>.unmodifiable(
-        _chats.map((chat) => Project(chat: chat, bots: _bots)),
+      _projects = List<ProjectWorkspace>.unmodifiable(
+        _chats.map((chat) => ProjectWorkspace(chat: chat, bots: _bots)),
       );
       _applyFilter();
     } catch (error) {
@@ -97,7 +97,7 @@ class ChatListViewModel extends DisposableChangeNotifier {
       ),
     );
     final matchingChatIds = _filteredChats.map((chat) => chat.id).toSet();
-    _filteredProjects = List<Project>.unmodifiable(
+    _filteredProjects = List<ProjectWorkspace>.unmodifiable(
       _projects.where((project) => matchingChatIds.contains(project.id)),
     );
   }

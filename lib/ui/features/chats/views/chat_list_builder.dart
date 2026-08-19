@@ -14,12 +14,12 @@ import 'package:hyve/utils/theme.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatListBuilder extends StatelessWidget {
-  final List<Project> projects;
+  final List<ProjectWorkspace> projects;
   final String? selectedChatId;
   final bool selectionVisible;
   final bool showExecutionStatus;
   final ValueChanged<String> onChatDeleted;
-  final ValueChanged<Project> onProjectSelected;
+  final ValueChanged<ProjectWorkspace> onProjectSelected;
   final Future<void> Function(String chatId) onDeleteChat;
   final ChatGenerationRegistry generationRegistry;
 

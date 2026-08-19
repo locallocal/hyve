@@ -50,8 +50,8 @@ void main() {
           ),
         ).values,
       );
-      await database.insert('bots', _botRow('bot-1'));
-      await database.insert('bots', _botRow('bot-2'));
+      await database.insert('agents', _botRow('bot-1'));
+      await database.insert('agents', _botRow('bot-2'));
       await localDatabase.upsertBotSkillBinding(
         _binding('bot-1', 'user:reviewer', enabled: true),
       );
@@ -106,8 +106,8 @@ void main() {
           ),
         ).values,
       );
-      await database.insert('bots', _botRow('bot-1'));
-      await database.insert('bots', _botRow('bot-2'));
+      await database.insert('agents', _botRow('bot-1'));
+      await database.insert('agents', _botRow('bot-2'));
       await localDatabase.insertChatProject(
         chat: {
           'id': 'chat-1',
@@ -145,8 +145,10 @@ void main() {
         {
           'id': 'activation-1',
           'run_id': 'run-1',
-          'chat_id': 'chat-1',
-          'message_id': 'message-1',
+          'turn_id': '',
+          'project_id': 'chat-1',
+          'agent_id': 'bot-1',
+          'message_event_id': 'message-1',
           'skill_id': 'user:reviewer',
           'skill_name': 'Reviewer',
           'content_digest': 'digest',
@@ -193,9 +195,12 @@ Map<String, Object?> _botRow(String id) => <String, Object?>{
   'api_type': 'openai',
   'model': 'model',
   'system_prompt': '',
-  'parameters': '{}',
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
+  'parameters_json': '{}',
+  'memory_policy_json': _memoryPolicyJson,
+  'memory_backend': 'file',
+  'memory_backend_ref': '',
+  'created_at': 1,
+  'updated_at': 1,
 };
 
 SkillDescriptor _skill({
@@ -229,7 +234,7 @@ Map<String, Object?> _binding(
 }) {
   final now = DateTime(2026, 8, 9).millisecondsSinceEpoch;
   return {
-    'bot_id': botId,
+    'agent_id': botId,
     'skill_id': skillId,
     'enabled': enabled ? 1 : 0,
     'activation_mode': 'auto',
@@ -238,3 +243,12 @@ Map<String, Object?> _binding(
     'updated_at': now,
   };
 }
+
+const _memoryPolicyJson =
+    '{"schemaVersion":1,"autoEvolutionEnabled":true,'
+    '"projectFactDefaultScope":"sourceProjectOnly",'
+    '"autoCrossProjectKinds":["userPreference","learnedPattern",'
+    '"capabilityNote","reflection"],'
+    '"privateCrossProject":"requireUserApproval",'
+    '"uncertainCrossProject":"requireUserApproval","secretLike":"reject",'
+    '"retrieval":{"maxItems":12,"tokenBudget":2048,"minConfidence":0.65}}';

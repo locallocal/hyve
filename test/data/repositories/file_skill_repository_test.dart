@@ -122,7 +122,7 @@ void main() {
       );
 
       final timestamp = DateTime(2026, 7, 26);
-      await database.insert('bots', _botRow('bot-1'));
+      await database.insert('agents', _botRow('bot-1'));
       await bindingRepository.save(
         BotSkillBinding(
           botId: 'bot-1',
@@ -209,10 +209,22 @@ Map<String, Object?> _botRow(String id) => <String, Object?>{
   'api_type': 'openai',
   'model': 'model',
   'system_prompt': '',
-  'parameters': '{}',
-  'create_timestamp': 1,
-  'modify_timestamp': 1,
+  'parameters_json': '{}',
+  'memory_policy_json': _memoryPolicyJson,
+  'memory_backend': 'file',
+  'memory_backend_ref': '',
+  'created_at': 1,
+  'updated_at': 1,
 };
+
+const _memoryPolicyJson =
+    '{"schemaVersion":1,"autoEvolutionEnabled":true,'
+    '"projectFactDefaultScope":"sourceProjectOnly",'
+    '"autoCrossProjectKinds":["userPreference","learnedPattern",'
+    '"capabilityNote","reflection"],'
+    '"privateCrossProject":"requireUserApproval",'
+    '"uncertainCrossProject":"requireUserApproval","secretLike":"reject",'
+    '"retrieval":{"maxItems":12,"tokenBudget":2048,"minConfidence":0.65}}';
 
 String _skillSource(String instructions) => '''
 ---

@@ -9,6 +9,8 @@ import 'package:hyve/data/repositories/sqlite_mcp_server_repository.dart';
 import 'package:hyve/data/repositories/sqlite_mcp_inventory_repository.dart';
 import 'package:hyve/data/repositories/skill_picker_repository_impl.dart';
 import 'package:hyve/data/repositories/sqlite_bot_repository.dart';
+import 'package:hyve/data/repositories/sqlite_agent_repository.dart';
+import 'package:hyve/data/repositories/sqlite_agent_run_repository.dart';
 import 'package:hyve/data/repositories/sqlite_bot_skill_binding_repository.dart';
 import 'package:hyve/data/repositories/sqlite_chat_repository.dart';
 import 'package:hyve/data/repositories/sqlite_conversation_skill_pin_repository.dart';
@@ -17,6 +19,10 @@ import 'package:hyve/data/repositories/sqlite_conversation_history_repository.da
 import 'package:hyve/data/repositories/sqlite_message_repository.dart';
 import 'package:hyve/data/repositories/sqlite_model_usage_repository.dart';
 import 'package:hyve/data/repositories/sqlite_profile_repository.dart';
+import 'package:hyve/data/repositories/sqlite_project_event_repository.dart';
+import 'package:hyve/data/repositories/sqlite_project_membership_repository.dart';
+import 'package:hyve/data/repositories/sqlite_project_repository.dart';
+import 'package:hyve/data/repositories/sqlite_project_turn_repository.dart';
 import 'package:hyve/data/repositories/sqlite_skill_run_repository.dart';
 import 'package:hyve/data/repositories/sqlite_skill_ecosystem_repository.dart';
 import 'package:hyve/data/repositories/sqlite_skill_inventory_repository.dart';
@@ -34,6 +40,7 @@ import 'package:hyve/data/services/mcp/mcp_endpoint_policy.dart';
 import 'package:hyve/data/services/mcp/mcp_http_transport.dart';
 import 'package:hyve/data/services/mcp/mcp_stdio_transport.dart';
 import 'package:hyve/data/services/mcp/secure_mcp_credential_store.dart';
+import 'package:hyve/data/services/project_agent_storage_service.dart';
 import 'package:hyve/data/services/skills/skill_package_storage_service.dart';
 import 'package:hyve/data/services/skills/skill_parser.dart';
 import 'package:hyve/data/services/skills/skill_picker_service.dart';
@@ -56,6 +63,8 @@ import 'package:hyve/data/services/tools/system_mcp_installer_skill.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/models/legal_document.dart';
 import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+import 'package:hyve/domain/repositories/agent_repository.dart';
+import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/attachment_repository.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
 import 'package:hyve/domain/repositories/bot_skill_binding_repository.dart';
@@ -73,6 +82,10 @@ import 'package:hyve/domain/repositories/mcp_credential_store.dart';
 import 'package:hyve/domain/repositories/mcp_inventory_repository.dart';
 import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 import 'package:hyve/domain/repositories/profile_repository.dart';
+import 'package:hyve/domain/repositories/project_event_repository.dart';
+import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/project_repository.dart';
+import 'package:hyve/domain/repositories/project_turn_repository.dart';
 import 'package:hyve/domain/repositories/skill_repository.dart';
 import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:hyve/domain/repositories/skill_inventory_repository.dart';
@@ -112,10 +125,11 @@ import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.dart';
 import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
 
-/// Application composition root. Production implementations are assembled in
-/// one place; views only receive repositories through their ViewModels.
+part 'project_agent_persistence.dart';
+
 class AppDependencies {
   AppDependencies({
+    required this.projectAgents,
     required this.botRepository,
     required this.chatRepository,
     required this.messageRepository,
@@ -151,6 +165,7 @@ class AppDependencies {
     required this.systemSkillInstallerSkill,
     required this.bundledSkillLoader,
     required this.createChat,
+    required this.createProject,
     required this.generationRegistry,
     ConversationDraftRepository? conversationDraftRepository,
     MessageActionRepository? messageActionRepository,
@@ -169,6 +184,7 @@ class AppDependencies {
       databaseProvider: () => databaseService.database,
     );
     final conversationSummaryStorage = ConversationSummaryStorage();
+    final projectAgentStorage = ProjectAgentStorageService();
     conversationSummaryStorage.recoverPendingDeletions().ignore();
     final conversationMemoryRepository = SqliteConversationMemoryRepository(
       localDatabase: localDatabase,
@@ -191,10 +207,16 @@ class AppDependencies {
       localDatabase: localDatabase,
     );
     final botApiKeyCipher = SecureBotApiKeyCipher();
+    final projectAgentPersistence = ProjectAgentPersistence.create(
+      localDatabase: localDatabase,
+      apiKeyCipher: botApiKeyCipher,
+      storage: projectAgentStorage,
+    );
     final botRepository = SqliteBotRepository(
       localDatabase: localDatabase,
       chatRepository: chatRepository,
       apiKeyCipher: botApiKeyCipher,
+      storage: projectAgentStorage,
     );
     final profileRepository = SqliteProfileRepository(
       localDatabase: localDatabase,
@@ -387,6 +409,7 @@ class AppDependencies {
       allowProcessExecution: true,
     );
     return AppDependencies(
+      projectAgents: projectAgentPersistence,
       botRepository: botRepository,
       chatRepository: chatRepository,
       messageRepository: messageRepository,
@@ -422,6 +445,7 @@ class AppDependencies {
       systemSkillInstallerSkill: systemSkillInstallerSkill,
       bundledSkillLoader: loadBundledSkills,
       createChat: CreateChat(chatRepository: chatRepository),
+      createProject: projectAgentPersistence.createProject,
       generationRegistry: ChatGenerationRegistry(
         messagePersister: messageRepository.upsertMessage,
         lastMessageUpdater: chatRepository.updateLastMessage,
@@ -475,6 +499,16 @@ class AppDependencies {
     );
   }
 
+  final ProjectAgentPersistence projectAgents;
+  AgentRepository get agentRepository => projectAgents.agentRepository;
+  ProjectRepository get projectRepository => projectAgents.projectRepository;
+  ProjectMembershipRepository get projectMembershipRepository =>
+      projectAgents.membershipRepository;
+  ProjectEventRepository get projectEventRepository =>
+      projectAgents.eventRepository;
+  ProjectTurnRepository get projectTurnRepository =>
+      projectAgents.turnRepository;
+  AgentRunRepository get agentRunRepository => projectAgents.runRepository;
   final BotRepository botRepository;
   final ChatRepository chatRepository;
   final MessageRepository messageRepository;
@@ -510,6 +544,7 @@ class AppDependencies {
   final SystemSkillInstallerSkill systemSkillInstallerSkill;
   final BundledSkillLoader bundledSkillLoader;
   final CreateChat createChat;
+  final CreateProject createProject;
   final ChatGenerationRegistry generationRegistry;
   final ConversationDraftRepository conversationDraftRepository;
   final MessageActionRepository messageActionRepository;
@@ -714,7 +749,7 @@ class AppDependencies {
 
   NewProjectViewModel createNewProjectViewModel() => NewProjectViewModel(
     botRepository: botRepository,
-    createProject: CreateProject(createChat: createChat),
+    createProject: createProject,
   );
 
   ChatViewModel createChatViewModel(String chatId, Bot bot) {

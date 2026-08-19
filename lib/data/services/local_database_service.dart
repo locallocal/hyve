@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 part 'local_database_mcp_skills.dart';
 part 'local_database_conversations.dart';
+part 'local_database_project_agents.dart';
 part 'local_database_usage.dart';
 
 typedef DatabaseProvider = Future<Database> Function();
@@ -25,17 +26,17 @@ class LocalDatabaseService {
 
   Future<List<Map<String, Object?>>> loadBots() async {
     final database = await _databaseProvider();
-    return database.query('bots', orderBy: 'create_timestamp ASC');
+    return database.query('agents', orderBy: 'created_at ASC');
   }
 
   Future<List<Map<String, Object?>>> loadBot(String id) async {
     final database = await _databaseProvider();
-    return database.query('bots', where: 'id = ?', whereArgs: [id], limit: 1);
+    return database.query('agents', where: 'id = ?', whereArgs: [id], limit: 1);
   }
 
   Future<void> insertBot(Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await _upsertByPrimaryKey(database, 'bots', values, 'id');
+    await _upsertByPrimaryKey(database, 'agents', values, 'id');
   }
 
   Future<void> insertBotWithSkillBindings(
@@ -44,10 +45,10 @@ class LocalDatabaseService {
   ) async {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
-      await _upsertByPrimaryKey(transaction, 'bots', bot, 'id');
+      await _upsertByPrimaryKey(transaction, 'agents', bot, 'id');
       for (final binding in bindings) {
         await transaction.insert(
-          'bot_skill_bindings',
+          'agent_skill_bindings',
           binding,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -57,70 +58,11 @@ class LocalDatabaseService {
 
   Future<void> updateBot(String id, Map<String, Object?> values) async {
     final database = await _databaseProvider();
-    await database.update('bots', values, where: 'id = ?', whereArgs: [id]);
+    await database.update('agents', values, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteBot(String id) async {
-    final database = await _databaseProvider();
-    final deletedChatIds = <String>[];
-    await database.transaction((transaction) async {
-      final soleMemberships = await transaction.rawQuery(
-        '''
-        SELECT member.chat_id
-        FROM chat_project_bots AS member
-        WHERE member.bot_id = ?
-          AND NOT EXISTS (
-            SELECT 1
-            FROM chat_project_bots AS peer
-            WHERE peer.chat_id = member.chat_id AND peer.bot_id != ?
-          )
-        ''',
-        [id, id],
-      );
-      deletedChatIds.addAll(
-        soleMemberships
-            .map((record) => record['chat_id']?.toString() ?? '')
-            .where((chatId) => chatId.isNotEmpty),
-      );
-
-      if (deletedChatIds.isNotEmpty) {
-        final placeholders = List.filled(deletedChatIds.length, '?').join(',');
-        final where = 'chat_id IN ($placeholders)';
-        for (final table in const <String>[
-          'skill_activations',
-          'messages',
-          'conversation_skill_pins',
-          'conversation_summary_segments',
-          'conversation_memory_items',
-          'conversation_memory_state',
-        ]) {
-          await transaction.delete(
-            table,
-            where: where,
-            whereArgs: deletedChatIds,
-          );
-        }
-        await transaction.delete(
-          'chats',
-          where: 'id IN ($placeholders)',
-          whereArgs: deletedChatIds,
-        );
-      }
-      await transaction.delete(
-        'bot_skill_bindings',
-        where: 'bot_id = ?',
-        whereArgs: [id],
-      );
-      await transaction.delete(
-        'token_usage_records',
-        where: 'bot_id = ?',
-        whereArgs: [id],
-      );
-      await transaction.delete('bots', where: 'id = ?', whereArgs: [id]);
-    });
-    for (final chatId in deletedChatIds) {
-      _advanceMessageRevision(chatId);
-    }
+    await deleteAgent(id);
   }
 
   Future<List<Map<String, Object?>>> loadSkills() async {
@@ -164,11 +106,11 @@ class LocalDatabaseService {
         s.signature_status,
         s.installed_at,
         s.updated_at,
-        COUNT(DISTINCT b.bot_id) AS bound_bot_count,
-        COUNT(DISTINCT CASE WHEN b.enabled = 1 THEN b.bot_id END)
+        COUNT(DISTINCT b.agent_id) AS bound_bot_count,
+        COUNT(DISTINCT CASE WHEN b.enabled = 1 THEN b.agent_id END)
           AS enabled_bot_count
       FROM skills AS s
-      LEFT JOIN bot_skill_bindings AS b ON b.skill_id = s.id
+      LEFT JOIN agent_skill_bindings AS b ON b.skill_id = s.id
       WHERE ? = ''
         OR instr(lower(s.name), ?) > 0
         OR instr(lower(s.description), ?) > 0
@@ -188,23 +130,23 @@ class LocalDatabaseService {
     return database.rawQuery(
       '''
       WITH current_chat AS (
-        SELECT chat_id, bot_id
-        FROM chat_project_bots
-        WHERE chat_id = ? AND bot_id = ?
+        SELECT project_id AS chat_id, agent_id AS bot_id
+        FROM project_memberships
+        WHERE project_id = ? AND agent_id = ? AND status != 'removed'
         LIMIT 1
       ),
       agent_bindings AS (
         SELECT b.*
-        FROM bot_skill_bindings AS b
-        JOIN current_chat AS c ON c.bot_id = b.bot_id
+        FROM agent_skill_bindings AS b
+        JOIN current_chat AS c ON c.bot_id = b.agent_id
       ),
       skill_ids AS (
         SELECT b.skill_id
         FROM agent_bindings AS b
         UNION
         SELECT p.skill_id
-        FROM conversation_skill_pins AS p
-        JOIN current_chat AS c ON c.chat_id = p.chat_id
+        FROM project_skill_pins AS p
+        JOIN current_chat AS c ON c.chat_id = p.project_id
       )
       SELECT
         ids.skill_id AS id,
@@ -235,14 +177,14 @@ class LocalDatabaseService {
         COALESCE((
           SELECT a.status
           FROM skill_activations AS a
-          WHERE a.chat_id = c.chat_id AND a.skill_id = ids.skill_id
+          WHERE a.project_id = c.chat_id AND a.skill_id = ids.skill_id
           ORDER BY a.started_at DESC, a.id DESC
           LIMIT 1
         ), '') AS last_activation_status,
         (
           SELECT a.started_at
           FROM skill_activations AS a
-          WHERE a.chat_id = c.chat_id AND a.skill_id = ids.skill_id
+          WHERE a.project_id = c.chat_id AND a.skill_id = ids.skill_id
           ORDER BY a.started_at DESC, a.id DESC
           LIMIT 1
         ) AS last_activated_at
@@ -250,8 +192,8 @@ class LocalDatabaseService {
       CROSS JOIN current_chat AS c
       LEFT JOIN skills AS s ON s.id = ids.skill_id
       LEFT JOIN agent_bindings AS b ON b.skill_id = ids.skill_id
-      LEFT JOIN conversation_skill_pins AS p
-        ON p.chat_id = c.chat_id AND p.skill_id = ids.skill_id
+      LEFT JOIN project_skill_pins AS p
+        ON p.project_id = c.chat_id AND p.skill_id = ids.skill_id
       ORDER BY configured_enabled DESC, priority DESC, lower(name) ASC, id ASC
     ''',
       [chatId, botId],
@@ -267,12 +209,12 @@ class LocalDatabaseService {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
       await transaction.delete(
-        'bot_skill_bindings',
+        'agent_skill_bindings',
         where: 'skill_id = ?',
         whereArgs: [id],
       );
       await transaction.delete(
-        'conversation_skill_pins',
+        'project_skill_pins',
         where: 'skill_id = ?',
         whereArgs: [id],
       );

@@ -73,7 +73,7 @@ void main() {
     expect(await botRepository.getBots(), isEmpty);
     final bot = _bot();
     await database.insert(
-      'bots',
+      'agents',
       BotRecord.fromDomain(
         bot,
         storedApiKey: await apiKeyCipher.encrypt(
@@ -119,8 +119,8 @@ void main() {
     expect(restored.projectBotIds, ['project-primary', 'project-reviewer']);
     expect(
       await database.query(
-        'chat_project_bots',
-        where: 'chat_id = ?',
+        'project_memberships',
+        where: 'project_id = ?',
         whereArgs: ['project-1'],
       ),
       hasLength(2),
@@ -170,8 +170,8 @@ void main() {
     expect(restored!.projectBotIds, [reviewer.id]);
     expect(
       await database.query(
-        'messages',
-        where: 'message_id = ?',
+        'project_events',
+        where: 'id = ?',
         whereArgs: ['researcher-history'],
       ),
       hasLength(1),
@@ -180,38 +180,48 @@ void main() {
     expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
   });
 
-  test('deleting the final project Bot deletes the project', () async {
-    final bot = _bot(id: 'project-final-member');
-    final timestamp = DateTime(2026, 8, 18, 11);
-    await botRepository.addBot(bot);
-    final project = Chat(
-      id: 'project-delete-with-final-member',
-      name: 'Delete this project',
-      botIds: [bot.id],
-      lastMessageTimestamp: timestamp,
-      createTimestamp: timestamp,
-      modifyTimestamp: timestamp,
-    );
-    await localDatabase.insertChatProject(
-      chat: ChatRecord.fromDomain(project).values,
-      name: project.name,
-      botIds: project.botIds,
-    );
-    await chatRepository.getChats(forceRefresh: true);
+  test(
+    'deleting the final project Agent preserves the empty project',
+    () async {
+      final bot = _bot(id: 'project-final-member');
+      final timestamp = DateTime(2026, 8, 18, 11);
+      await botRepository.addBot(bot);
+      final project = Chat(
+        id: 'project-delete-with-final-member',
+        name: 'Delete this project',
+        botIds: [bot.id],
+        lastMessageTimestamp: timestamp,
+        createTimestamp: timestamp,
+        modifyTimestamp: timestamp,
+      );
+      await localDatabase.insertChatProject(
+        chat: ChatRecord.fromDomain(project).values,
+        name: project.name,
+        botIds: project.botIds,
+      );
+      await chatRepository.getChats(forceRefresh: true);
 
-    await botRepository.deleteBot(bot.id);
+      await botRepository.deleteBot(bot.id);
 
-    expect(await chatRepository.getChat(project.id), isNull);
-    expect(
-      await database.query(
-        'chat_project_bots',
-        where: 'chat_id = ?',
-        whereArgs: [project.id],
-      ),
-      isEmpty,
-    );
-    expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
-  });
+      expect(
+        await database.query(
+          'projects',
+          where: 'id = ?',
+          whereArgs: [project.id],
+        ),
+        hasLength(1),
+      );
+      expect(
+        await database.query(
+          'project_memberships',
+          where: 'project_id = ?',
+          whereArgs: [project.id],
+        ),
+        isEmpty,
+      );
+      expect(await database.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+    },
+  );
 
   test(
     'message history cache stays coherent across writes and clears',
@@ -381,7 +391,7 @@ void main() {
     await botRepository.updateBot(updated);
 
     final rows = await database.query(
-      'bots',
+      'agents',
       where: 'id = ?',
       whereArgs: [original.id],
     );
@@ -402,7 +412,7 @@ void main() {
   test('plaintext Bot API keys are rejected as non-current data', () async {
     final bot = _bot();
     await database.insert(
-      'bots',
+      'agents',
       BotRecord.fromDomain(bot, storedApiKey: bot.apiKey).values,
     );
 
@@ -410,7 +420,7 @@ void main() {
       botRepository.getBot(bot.id),
       throwsA(isA<FormatException>()),
     );
-    final rows = await database.query('bots', columns: ['api_key']);
+    final rows = await database.query('agents', columns: ['api_key']);
     expect(rows.single['api_key'], bot.apiKey);
   });
 
@@ -518,7 +528,7 @@ void main() {
     await database.update(
       'token_usage_records',
       {'total_token_count': 0},
-      where: 'message_id = ?',
+      where: 'operation_id = ?',
       whereArgs: ['assistant-1'],
     );
 
@@ -665,7 +675,7 @@ void main() {
     final bot = _bot();
     await database.execute('''
       CREATE TRIGGER fail_binding_insert
-      BEFORE INSERT ON bot_skill_bindings
+      BEFORE INSERT ON agent_skill_bindings
       BEGIN
         SELECT RAISE(ABORT, 'injected binding failure');
       END
@@ -691,16 +701,17 @@ void main() {
     final bot = _bot();
     final timestamp = DateTime(2026, 8, 10);
     await botRepository.addBot(bot);
-    await localDatabase.insertChat(
-      ChatRecord.fromDomain(
-        Chat(
-          id: 'chat-delete-rollback',
-          botIds: [bot.id],
-          lastMessageTimestamp: timestamp,
-          createTimestamp: timestamp,
-          modifyTimestamp: timestamp,
-        ),
-      ).values,
+    final rollbackChat = Chat(
+      id: 'chat-delete-rollback',
+      botIds: [bot.id],
+      lastMessageTimestamp: timestamp,
+      createTimestamp: timestamp,
+      modifyTimestamp: timestamp,
+    );
+    await localDatabase.insertChatProject(
+      chat: ChatRecord.fromDomain(rollbackChat).values,
+      name: 'Rollback project',
+      botIds: rollbackChat.botIds,
     );
     final messages = SqliteMessageRepository(localDatabase: localDatabase);
     addTearDown(messages.dispose);
@@ -739,7 +750,7 @@ void main() {
     addTearDown(stagedChatRepository.dispose);
     await database.execute('''
       CREATE TRIGGER fail_bot_delete
-      BEFORE DELETE ON bots
+      BEFORE DELETE ON agents
       BEGIN
         SELECT RAISE(ABORT, 'injected bot delete failure');
       END

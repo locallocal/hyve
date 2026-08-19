@@ -96,7 +96,7 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
     notifyListeners();
   }
 
-  Future<Project?> submit() async {
+  Future<ProjectWorkspace?> submit() async {
     if (isDisposed || _isSaving) return null;
     final errors = <NewProjectValidationError>{};
     if (_name.trim().isEmpty) {
@@ -126,7 +126,22 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      return await _createProject(name: _name, bots: selectedBots);
+      final project = await _createProject(
+        name: _name,
+        agentIds: selectedBots.map((bot) => bot.id),
+      );
+      return ProjectWorkspace(
+        chat: Chat(
+          id: project.id,
+          name: project.name,
+          botIds: selectedBots.map((bot) => bot.id),
+          lastMessage: project.lastMessage,
+          lastMessageTimestamp: project.lastMessageAt,
+          createTimestamp: project.createdAt,
+          modifyTimestamp: project.updatedAt,
+        ),
+        bots: selectedBots,
+      );
     } on Object catch (error) {
       _error = AppFailure.from(error, code: 'project_create_failed');
       return null;

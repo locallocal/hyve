@@ -1,5 +1,7 @@
 // Public domain model surface.
 export 'bot.dart';
+export 'agent.dart';
+export 'agent_run.dart';
 export 'app_failure.dart';
 export 'ai_model_info.dart';
 export 'chat.dart';
@@ -15,6 +17,10 @@ export 'mcp_installer.dart';
 export 'modalities.dart';
 export 'profile.dart';
 export 'project.dart';
+export 'project_event.dart';
+export 'project_membership.dart';
+export 'project_turn.dart';
+export 'project_workspace.dart';
 export 'shell_command.dart';
 export 'skill.dart';
 export 'skill_ecosystem.dart';

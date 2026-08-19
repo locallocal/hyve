@@ -1,40 +1,49 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hyve/data/services/database_schema_v19.dart';
+import 'package:hyve/domain/models/app_failure.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:hyve/domain/models/app_failure.dart';
 
+typedef ApplicationSupportDirectoryProvider = Future<Directory> Function();
 typedef ApplicationDocumentsDirectoryProvider = Future<Directory> Function();
 
 class DatabaseService {
   DatabaseService({
+    ApplicationSupportDirectoryProvider? applicationSupportDirectoryProvider,
     ApplicationDocumentsDirectoryProvider?
     applicationDocumentsDirectoryProvider,
-  }) : _applicationDocumentsDirectoryProvider =
+    ApplicationDocumentsDirectoryProvider? legacyDocumentsDirectoryProvider,
+  }) : _applicationSupportDirectoryProvider =
+           applicationSupportDirectoryProvider ??
+           applicationDocumentsDirectoryProvider ??
+           getApplicationSupportDirectory,
+       _legacyDocumentsDirectoryProvider =
+           legacyDocumentsDirectoryProvider ??
            applicationDocumentsDirectoryProvider ??
            getApplicationDocumentsDirectory;
 
-  final ApplicationDocumentsDirectoryProvider
-  _applicationDocumentsDirectoryProvider;
+  final ApplicationSupportDirectoryProvider
+  _applicationSupportDirectoryProvider;
+  final ApplicationDocumentsDirectoryProvider _legacyDocumentsDirectoryProvider;
   Database? _database;
   Future<Database>? _openingDatabase;
-  // This is the only supported schema generation. Every other version is
-  // deleted before the database is opened.
-  static const int databaseVersion = 18;
+
+  static const int databaseVersion = 19;
   static const String _databaseFileName = 'app.db';
   static const String _currentBackupName = '.hyve_backup_current';
   static const String _previousBackupName = '.hyve_backup_previous';
   static const String _backupManifestName = 'manifest.json';
+  static const String _resetStagingPrefix = '.hyve_reset_staging_';
+  static const String _backupStagingPrefix = '.hyve_backup_staging_';
 
-  // 获取数据库实例
   Future<Database> get database async {
     if (_database != null) return _database!;
     return initDatabase();
   }
 
-  // 初始化数据库
   Future<Database> initDatabase() async {
     if (_database != null) return _database!;
     final opening = _openingDatabase;
@@ -51,25 +60,36 @@ class DatabaseService {
   }
 
   Future<Database> _openDatabase() async {
-    final Directory appDocDir = await _applicationDocumentsDirectoryProvider();
-    await appDocDir.create(recursive: true);
-    final path = join(appDocDir.path, _databaseFileName);
+    final support = await _applicationSupportDirectoryProvider();
+    final legacyDocuments = await _legacyDocumentsDirectoryProvider();
+    await support.create(recursive: true);
+    await _recoverInterruptedReset(support);
+    if (normalize(legacyDocuments.path) != normalize(support.path)) {
+      await _recoverInterruptedReset(legacyDocuments);
+    }
 
-    await _prepareCurrentDatabase(appDocDir, path);
-    final database = await openDatabase(
-      path,
-      version: databaseVersion,
-      onConfigure: configure,
-      onCreate: createSchema,
+    final databasePath = join(support.path, _databaseFileName);
+    final preparation = await _prepareDatabase(
+      support: support,
+      legacyDocuments: legacyDocuments,
+      databasePath: databasePath,
     );
+    final createsDatabase = !await databaseExists(databasePath);
+    Database? database;
     try {
-      await _ensureProjectSchema(database);
-      await _ensureMessageTargetSchema(database);
-      await _ensureBotSkillBindingSchema(database);
+      database = await openDatabase(
+        databasePath,
+        version: databaseVersion,
+        onConfigure: configure,
+        onCreate: createSchema,
+      );
       await _verifyIntegrity(database);
+      await preparation?.commit();
       return database;
     } on Object {
-      await database.close();
+      await database?.close();
+      if (createsDatabase) await deleteDatabase(databasePath);
+      await preparation?.rollback();
       rethrow;
     }
   }
@@ -78,16 +98,46 @@ class DatabaseService {
     await database.execute('PRAGMA foreign_keys = ON');
   }
 
-  static Future<void> _prepareCurrentDatabase(
-    Directory root,
-    String databasePath,
-  ) async {
-    if (!await databaseExists(databasePath)) return;
+  static Future<void> createSchema(Database db, int version) async {
+    if (version != databaseVersion) {
+      throw ArgumentError.value(
+        version,
+        'version',
+        'Only schema version $databaseVersion can be created.',
+      );
+    }
+    await DatabaseSchemaV19.create(db);
+  }
 
-    final version = await _readVersion(databasePath);
+  static Future<_ResetStage?> _prepareDatabase({
+    required Directory support,
+    required Directory legacyDocuments,
+    required String databasePath,
+  }) async {
+    if (!await databaseExists(databasePath)) {
+      return _stageObsoleteData(
+        support: support,
+        legacyDocuments: legacyDocuments,
+        includeSupportData: false,
+      );
+    }
+
+    int version;
+    try {
+      version = await _readVersion(databasePath);
+    } on Object catch (error) {
+      final restored = await _restoreLatestCurrentBackup(support, databasePath);
+      if (!restored) {
+        throw AppFailure.storage('database_recovery_failed', cause: error);
+      }
+      version = await _readVersion(databasePath);
+    }
     if (version < databaseVersion) {
-      await _deleteCurrentData(root, databasePath);
-      return;
+      return _stageObsoleteData(
+        support: support,
+        legacyDocuments: legacyDocuments,
+        includeSupportData: true,
+      );
     }
     if (version > databaseVersion) {
       throw AppFailure(
@@ -103,13 +153,18 @@ class DatabaseService {
 
     try {
       await _verifyDatabaseFile(databasePath);
-      await _writeRollingBackup(root, databasePath);
+      await _writeRollingBackup(support, databasePath);
     } on Object catch (error) {
-      final restored = await _restoreLatestCurrentBackup(root, databasePath);
+      final restored = await _restoreLatestCurrentBackup(support, databasePath);
       if (!restored) {
         throw AppFailure.storage('database_recovery_failed', cause: error);
       }
     }
+    return _stageObsoleteData(
+      support: support,
+      legacyDocuments: legacyDocuments,
+      includeSupportData: false,
+    );
   }
 
   static Future<int> _readVersion(String databasePath) async {
@@ -122,11 +177,6 @@ class DatabaseService {
       );
       return await database.getVersion();
     } on Object catch (error) {
-      await database?.close();
-      database = null;
-      final root = Directory(dirname(databasePath));
-      final restored = await _restoreLatestCurrentBackup(root, databasePath);
-      if (restored) return databaseVersion;
       throw AppFailure.storage('database_recovery_failed', cause: error);
     } finally {
       await database?.close();
@@ -163,26 +213,148 @@ class DatabaseService {
     }
   }
 
-  static Future<void> _deleteCurrentData(
-    Directory root,
-    String databasePath,
-  ) async {
-    await deleteDatabase(databasePath);
-    final chats = Directory(join(root.path, 'chats'));
-    if (await chats.exists()) await chats.delete(recursive: true);
-    final pendingDeletions = Directory(join(root.path, '.pending_deletions'));
-    if (await pendingDeletions.exists()) {
-      await pendingDeletions.delete(recursive: true);
+  static Future<_ResetStage?> _stageObsoleteData({
+    required Directory support,
+    required Directory legacyDocuments,
+    required bool includeSupportData,
+  }) async {
+    final namesByRoot = <String, Set<String>>{};
+    void add(Directory root, Iterable<String> names) {
+      (namesByRoot[normalize(root.path)] ??= <String>{}).addAll(names);
     }
-    for (final name in <String>[_currentBackupName, _previousBackupName]) {
-      final backup = Directory(join(root.path, name));
-      if (await backup.exists()) await backup.delete(recursive: true);
+
+    final supportPath = normalize(support.path);
+    final legacyPath = normalize(legacyDocuments.path);
+    if (includeSupportData) {
+      add(support, <String>{
+        _databaseFileName,
+        '$_databaseFileName-wal',
+        '$_databaseFileName-shm',
+        'projects',
+        'agents',
+        '.pending_deletions',
+        _currentBackupName,
+        _previousBackupName,
+      });
+    }
+    if (legacyPath != supportPath) {
+      add(legacyDocuments, <String>{
+        _databaseFileName,
+        '$_databaseFileName-wal',
+        '$_databaseFileName-shm',
+        'chats',
+        '.pending_deletions',
+        _currentBackupName,
+        _previousBackupName,
+      });
+    } else if (!includeSupportData) {
+      // Compatibility for tests and custom providers that use one root: clean
+      // the obsolete conversation directory without ever staging the live v19
+      // database or its project/agent data.
+      add(support, const <String>{'chats'});
+    } else {
+      add(support, const <String>{'chats'});
+    }
+
+    final stages = <_ResetRootStage>[];
+    try {
+      for (final entry in namesByRoot.entries) {
+        final root = Directory(entry.key);
+        if (!await root.exists()) continue;
+        final stage = await _stageResetRoot(root, entry.value);
+        if (stage != null) stages.add(stage);
+      }
+    } on Object {
+      for (final stage in stages.reversed) {
+        await stage.rollback();
+      }
+      rethrow;
+    }
+    return stages.isEmpty ? null : _ResetStage(stages);
+  }
+
+  static Future<_ResetRootStage?> _stageResetRoot(
+    Directory root,
+    Set<String> names,
+  ) async {
+    final candidates = <FileSystemEntity>[];
+    for (final name in names) {
+      final type = await FileSystemEntity.type(
+        join(root.path, name),
+        followLinks: false,
+      );
+      if (type == FileSystemEntityType.file) {
+        candidates.add(File(join(root.path, name)));
+      } else if (type == FileSystemEntityType.directory) {
+        candidates.add(Directory(join(root.path, name)));
+      }
     }
     await for (final entity in root.list(followLinks: false)) {
-      if (entity is Directory &&
-          basename(entity.path).startsWith('.hyve_backup_staging_')) {
-        await entity.delete(recursive: true);
+      final name = basename(entity.path);
+      if (name.startsWith(_backupStagingPrefix)) candidates.add(entity);
+    }
+    if (candidates.isEmpty) return null;
+
+    final staging = Directory(
+      join(
+        root.path,
+        '$_resetStagingPrefix${DateTime.now().microsecondsSinceEpoch}',
+      ),
+    );
+    await staging.create(recursive: true);
+    final moved = <String>[];
+    try {
+      for (final entity in candidates) {
+        final name = basename(entity.path);
+        await entity.rename(join(staging.path, name));
+        moved.add(name);
       }
+      return _ResetRootStage(root: root, staging: staging, names: moved);
+    } on Object {
+      final partial = _ResetRootStage(
+        root: root,
+        staging: staging,
+        names: moved,
+      );
+      await partial.rollback();
+      rethrow;
+    }
+  }
+
+  static Future<void> _recoverInterruptedReset(Directory root) async {
+    if (!await root.exists()) return;
+    final stages = <Directory>[];
+    await for (final entity in root.list(followLinks: false)) {
+      if (entity is Directory &&
+          basename(entity.path).startsWith(_resetStagingPrefix)) {
+        stages.add(entity);
+      }
+    }
+    stages.sort((left, right) => right.path.compareTo(left.path));
+    for (final staging in stages) {
+      final databasePath = join(root.path, _databaseFileName);
+      var currentIsValid = false;
+      if (await databaseExists(databasePath)) {
+        try {
+          await _verifyDatabaseFile(databasePath);
+          currentIsValid = true;
+        } on Object {
+          currentIsValid = false;
+        }
+      }
+      if (currentIsValid) {
+        await staging.delete(recursive: true);
+        continue;
+      }
+      final names = <String>[];
+      await for (final entity in staging.list(followLinks: false)) {
+        names.add(basename(entity.path));
+      }
+      await _ResetRootStage(
+        root: root,
+        staging: staging,
+        names: names,
+      ).rollback();
     }
   }
 
@@ -193,7 +365,7 @@ class DatabaseService {
     final staging = Directory(
       join(
         root.path,
-        '.hyve_backup_staging_${DateTime.now().microsecondsSinceEpoch}',
+        '$_backupStagingPrefix${DateTime.now().microsecondsSinceEpoch}',
       ),
     );
     final current = Directory(join(root.path, _currentBackupName));
@@ -201,15 +373,17 @@ class DatabaseService {
     try {
       await staging.create(recursive: true);
       await File(databasePath).copy(join(staging.path, _databaseFileName));
-      final chats = Directory(join(root.path, 'chats'));
-      if (await chats.exists()) {
-        await _copyDirectory(chats, Directory(join(staging.path, 'chats')));
+      for (final name in const <String>['projects', 'agents']) {
+        final directory = Directory(join(root.path, name));
+        if (await directory.exists()) {
+          await _copyDirectory(directory, Directory(join(staging.path, name)));
+        }
       }
       await File(join(staging.path, _backupManifestName)).writeAsString(
         jsonEncode(<String, Object?>{
           'schema_version': databaseVersion,
           'created_at': DateTime.now().toUtc().toIso8601String(),
-          'includes': <String>[_databaseFileName, 'chats'],
+          'includes': <String>[_databaseFileName, 'projects', 'agents'],
         }),
         flush: true,
       );
@@ -232,17 +406,16 @@ class DatabaseService {
       try {
         await deleteDatabase(databasePath);
         await File(join(backup.path, _databaseFileName)).copy(databasePath);
-        final chats = Directory(join(root.path, 'chats'));
-        if (await chats.exists()) await chats.delete(recursive: true);
-        final backupChats = Directory(join(backup.path, 'chats'));
-        if (await backupChats.exists()) {
-          await _copyDirectory(backupChats, chats);
+        for (final dataRoot in const <String>['projects', 'agents']) {
+          final current = Directory(join(root.path, dataRoot));
+          if (await current.exists()) await current.delete(recursive: true);
+          final saved = Directory(join(backup.path, dataRoot));
+          if (await saved.exists()) await _copyDirectory(saved, current);
         }
         await _verifyDatabaseFile(databasePath);
         return true;
       } on Object {
-        // Try the previous current-schema snapshot. Historical versions are
-        // never parsed or restored.
+        // Try the previous version 19 snapshot.
       }
     }
     return false;
@@ -279,492 +452,62 @@ class DatabaseService {
       }
     }
   }
+}
 
-  static Future<void> createSchema(Database db, int version) async {
-    if (version != databaseVersion) {
-      throw ArgumentError.value(
-        version,
-        'version',
-        'Only schema version $databaseVersion can be created.',
-      );
+final class _ResetStage {
+  const _ResetStage(this.stages);
+
+  final List<_ResetRootStage> stages;
+
+  Future<void> rollback() async {
+    for (final stage in stages.reversed) {
+      await stage.rollback();
     }
-    await db.execute('''
-      CREATE TABLE bots (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        avatar TEXT NOT NULL,
-        provider TEXT NOT NULL,
-        base_url TEXT NOT NULL,
-        api_key TEXT NOT NULL,
-        api_type TEXT NOT NULL,
-        model TEXT NOT NULL,
-        system_prompt TEXT NOT NULL,
-        parameters TEXT NOT NULL,
-        create_timestamp INTEGER NOT NULL,
-        modify_timestamp INTEGER NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE chats (
-        id TEXT PRIMARY KEY,
-        last_message TEXT NOT NULL,
-        last_message_timestamp INTEGER NOT NULL,
-        create_timestamp INTEGER NOT NULL,
-        modify_timestamp INTEGER NOT NULL
-      )
-    ''');
-    await _ensureProjectSchema(db);
-
-    await db.execute('''
-      CREATE TABLE messages (
-        message_id TEXT NOT NULL UNIQUE,
-        turn_id TEXT NOT NULL,
-        run_id TEXT NOT NULL,
-        chat_id TEXT NOT NULL,
-        bot_id TEXT NOT NULL,
-        target_bot_ids TEXT NOT NULL,
-        sender_id TEXT NOT NULL,
-        content TEXT NOT NULL,
-        reasoning TEXT NOT NULL,
-        process_info TEXT NOT NULL,
-        images TEXT NOT NULL,
-        files TEXT NOT NULL,
-        audio TEXT NOT NULL,
-        music TEXT NOT NULL,
-        video TEXT NOT NULL,
-        token_model TEXT NOT NULL,
-        input_token_count INTEGER NOT NULL,
-        output_token_count INTEGER NOT NULL,
-        total_token_count INTEGER NOT NULL,
-        terminal_state TEXT NOT NULL,
-        has_partial_content INTEGER NOT NULL
-          CHECK (has_partial_content IN (0, 1)),
-        timestamp INTEGER NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE UNIQUE INDEX messages_message_id_unique '
-      'ON messages(message_id)',
-    );
-    await db.execute('CREATE INDEX messages_bot_id_index ON messages(bot_id)');
-    await _createTokenUsageSchema(db);
-    await _createSkillSchema(db);
-    await _createSkillEcosystemSchema(db);
-    await _createConversationSkillPinSchema(db);
-    await _createMcpSchema(db);
-    await _createConversationMemorySchema(db);
-
-    await db.execute('''
-      CREATE TABLE profile (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        avatar TEXT NOT NULL,
-        font_size REAL NOT NULL,
-        theme_mode INTEGER NOT NULL,
-        language TEXT NOT NULL,
-        show_execution_status INTEGER NOT NULL
-          CHECK (show_execution_status IN (0, 1)),
-        create_timestamp INTEGER NOT NULL,
-        modify_timestamp INTEGER NOT NULL
-      )
-    ''');
   }
 
-  static Future<void> _ensureProjectSchema(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS chat_projects (
-        chat_id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS chat_project_bots (
-        chat_id TEXT NOT NULL,
-        bot_id TEXT NOT NULL,
-        position INTEGER NOT NULL,
-        PRIMARY KEY (chat_id, bot_id),
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX IF NOT EXISTS chat_project_bots_bot_id_index '
-      'ON chat_project_bots(bot_id)',
-    );
+  Future<void> commit() async {
+    for (final stage in stages) {
+      await stage.commit();
+    }
   }
+}
 
-  /// Version 18 added project mentions without changing the database version.
-  /// Repair databases created by the earlier version 18 schema in place so
-  /// their existing conversations are preserved and mentioned messages can be
-  /// persisted.
-  static Future<void> _ensureMessageTargetSchema(Database database) async {
-    final columns = await database.rawQuery('PRAGMA table_info(messages)');
-    final hasTargetBotIds = columns.any(
-      (column) => column['name'] == 'target_bot_ids',
-    );
-    if (hasTargetBotIds) return;
+final class _ResetRootStage {
+  const _ResetRootStage({
+    required this.root,
+    required this.staging,
+    required this.names,
+  });
 
-    await database.execute(
-      "ALTER TABLE messages ADD COLUMN target_bot_ids "
-      "TEXT NOT NULL DEFAULT '[]'",
-    );
-  }
+  final Directory root;
+  final Directory staging;
+  final List<String> names;
 
-  static Future<void> _createTokenUsageSchema(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE token_usage_records (
-        message_id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL DEFAULT '',
-        bot_id TEXT NOT NULL DEFAULT '',
-        operation_kind TEXT NOT NULL DEFAULT 'chat_reply',
-        token_model TEXT NOT NULL DEFAULT '',
-        input_token_count INTEGER NOT NULL DEFAULT 0,
-        output_token_count INTEGER NOT NULL DEFAULT 0,
-        total_token_count INTEGER NOT NULL DEFAULT 0,
-        timestamp INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX token_usage_records_chat_id_index '
-      'ON token_usage_records(chat_id)',
-    );
-    await db.execute(
-      'CREATE INDEX token_usage_records_bot_id_index '
-      'ON token_usage_records(bot_id)',
-    );
-  }
-
-  static Future<void> _createSkillSchema(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE skills (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-        version TEXT NOT NULL DEFAULT '',
-        scope TEXT NOT NULL,
-        source_uri TEXT NOT NULL DEFAULT '',
-        root_path TEXT NOT NULL,
-        content_digest TEXT NOT NULL,
-        trust_state TEXT NOT NULL,
-        validation_status TEXT NOT NULL,
-        compatibility TEXT NOT NULL DEFAULT '',
-        requested_tools_json TEXT NOT NULL DEFAULT '[]',
-        diagnostics_json TEXT NOT NULL DEFAULT '[]',
-        has_scripts INTEGER NOT NULL DEFAULT 0,
-        has_references INTEGER NOT NULL DEFAULT 0,
-        has_assets INTEGER NOT NULL DEFAULT 0,
-        publisher_id TEXT NOT NULL DEFAULT '',
-        publisher_name TEXT NOT NULL DEFAULT '',
-        signature_status TEXT NOT NULL DEFAULT 'unsigned',
-        catalog_id TEXT NOT NULL DEFAULT '',
-        catalog_entry_id TEXT NOT NULL DEFAULT '',
-        update_policy TEXT NOT NULL DEFAULT 'manual',
-        installed_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        UNIQUE(scope, name)
-      )
-    ''');
-    await _createBotSkillBindingsTable(db);
-    await db.execute(
-      'CREATE INDEX bot_skill_bindings_skill_id_index '
-      'ON bot_skill_bindings(skill_id)',
-    );
-    await db.execute('''
-      CREATE TABLE skill_activations (
-        id TEXT PRIMARY KEY,
-        run_id TEXT NOT NULL,
-        chat_id TEXT NOT NULL,
-        message_id TEXT NOT NULL DEFAULT '',
-        skill_id TEXT NOT NULL,
-        skill_name TEXT NOT NULL,
-        content_digest TEXT NOT NULL,
-        trigger_type TEXT NOT NULL,
-        status TEXT NOT NULL,
-        duration_ms INTEGER,
-        error_code TEXT NOT NULL DEFAULT '',
-        started_at INTEGER NOT NULL,
-        completed_at INTEGER
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX skill_activations_run_id_index '
-      'ON skill_activations(run_id)',
-    );
-    await db.execute(
-      'CREATE INDEX skill_activations_chat_id_index '
-      'ON skill_activations(chat_id)',
-    );
-  }
-
-  static Future<void> _createBotSkillBindingsTable(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE bot_skill_bindings (
-        bot_id TEXT NOT NULL,
-        skill_id TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        activation_mode TEXT NOT NULL DEFAULT 'auto',
-        priority INTEGER NOT NULL DEFAULT 0,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        PRIMARY KEY (bot_id, skill_id),
-        FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE
-      )
-    ''');
-  }
-
-  /// Bundled Skills are runtime assets and intentionally have no row in the
-  /// installed `skills` table. Version 17 originally added a foreign key that
-  /// made those valid bindings impossible to persist. Repair that constraint
-  /// in place so current-version databases keep their Bots and bindings.
-  static Future<void> _ensureBotSkillBindingSchema(Database database) async {
-    final foreignKeys = await database.rawQuery(
-      'PRAGMA foreign_key_list(bot_skill_bindings)',
-    );
-    final referencesInstalledSkills = foreignKeys.any(
-      (foreignKey) => foreignKey['table'] == 'skills',
-    );
-    if (!referencesInstalledSkills) return;
-
-    await database.transaction((transaction) async {
-      await transaction.execute(
-        'ALTER TABLE bot_skill_bindings '
-        'RENAME TO bot_skill_bindings_with_installed_skill_fk',
+  Future<void> rollback() async {
+    for (final name in names.reversed) {
+      final stagedPath = join(staging.path, name);
+      final type = await FileSystemEntity.type(stagedPath, followLinks: false);
+      if (type == FileSystemEntityType.notFound) continue;
+      final targetPath = join(root.path, name);
+      final targetType = await FileSystemEntity.type(
+        targetPath,
+        followLinks: false,
       );
-      await _createBotSkillBindingsTable(transaction);
-      await transaction.execute('''
-        INSERT INTO bot_skill_bindings (
-          bot_id,
-          skill_id,
-          enabled,
-          activation_mode,
-          priority,
-          created_at,
-          updated_at
-        )
-        SELECT
-          bot_id,
-          skill_id,
-          enabled,
-          activation_mode,
-          priority,
-          created_at,
-          updated_at
-        FROM bot_skill_bindings_with_installed_skill_fk
-      ''');
-      await transaction.execute(
-        'DROP TABLE bot_skill_bindings_with_installed_skill_fk',
-      );
-      await transaction.execute(
-        'CREATE INDEX bot_skill_bindings_skill_id_index '
-        'ON bot_skill_bindings(skill_id)',
-      );
-    });
+      if (targetType == FileSystemEntityType.file) {
+        await File(targetPath).delete();
+      } else if (targetType == FileSystemEntityType.directory) {
+        await Directory(targetPath).delete(recursive: true);
+      }
+      if (type == FileSystemEntityType.file) {
+        await File(stagedPath).rename(targetPath);
+      } else if (type == FileSystemEntityType.directory) {
+        await Directory(stagedPath).rename(targetPath);
+      }
+    }
+    if (await staging.exists()) await staging.delete(recursive: true);
   }
 
-  static Future<void> _createSkillEcosystemSchema(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE skill_publishers (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        key_id TEXT NOT NULL,
-        public_key TEXT NOT NULL,
-        organization TEXT NOT NULL DEFAULT '',
-        trusted INTEGER NOT NULL DEFAULT 1,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE skill_catalogs (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        index_uri TEXT NOT NULL,
-        publisher_id TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        last_error TEXT NOT NULL DEFAULT '',
-        last_fetched_at INTEGER
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE skill_script_grants (
-        skill_id TEXT PRIMARY KEY,
-        content_digest TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 0,
-        approved_at INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE skill_organization_policy (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        allow_unsigned_skills INTEGER NOT NULL DEFAULT 1,
-        allow_unknown_publishers INTEGER NOT NULL DEFAULT 0,
-        allow_script_execution INTEGER NOT NULL DEFAULT 1,
-        allow_automatic_updates INTEGER NOT NULL DEFAULT 0,
-        allowed_publishers_json TEXT NOT NULL DEFAULT '[]',
-        updated_at INTEGER
-      )
-    ''');
-    await db.execute('''
-      INSERT INTO skill_organization_policy (id) VALUES (1)
-    ''');
-    await db.execute('''
-      CREATE TABLE skill_compliance_events (
-        id TEXT PRIMARY KEY,
-        event_type TEXT NOT NULL,
-        skill_id TEXT NOT NULL DEFAULT '',
-        content_digest TEXT NOT NULL DEFAULT '',
-        publisher_id TEXT NOT NULL DEFAULT '',
-        decision TEXT NOT NULL DEFAULT '',
-        reason TEXT NOT NULL DEFAULT '',
-        metadata_json TEXT NOT NULL DEFAULT '{}',
-        timestamp INTEGER NOT NULL
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX skill_compliance_events_skill_id_index '
-      'ON skill_compliance_events(skill_id, timestamp DESC)',
-    );
-  }
-
-  static Future<void> _createConversationSkillPinSchema(
-    DatabaseExecutor db,
-  ) async {
-    await db.execute('''
-      CREATE TABLE conversation_skill_pins (
-        chat_id TEXT NOT NULL,
-        skill_id TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
-        PRIMARY KEY (chat_id, skill_id),
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-        FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX conversation_skill_pins_skill_id_index '
-      'ON conversation_skill_pins(skill_id)',
-    );
-  }
-
-  static Future<void> _createConversationMemorySchema(
-    DatabaseExecutor db,
-  ) async {
-    await db.execute('''
-      CREATE TABLE conversation_memory_state (
-        chat_id TEXT PRIMARY KEY,
-        revision INTEGER NOT NULL DEFAULT 0,
-        active_summary_id TEXT NOT NULL DEFAULT '',
-        covered_through_message_id TEXT NOT NULL DEFAULT '',
-        auto_memory_enabled INTEGER NOT NULL DEFAULT 1,
-        compaction_status TEXT NOT NULL DEFAULT 'idle',
-        last_error TEXT NOT NULL DEFAULT '',
-        last_compacted_at INTEGER,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE conversation_summary_segments (
-        id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL,
-        status TEXT NOT NULL,
-        file_name TEXT NOT NULL,
-        markdown_schema_version INTEGER NOT NULL DEFAULT 1,
-        content_digest TEXT NOT NULL,
-        content_bytes INTEGER NOT NULL DEFAULT 0,
-        source_start_message_id TEXT NOT NULL,
-        source_end_message_id TEXT NOT NULL,
-        source_message_ids TEXT NOT NULL,
-        source_digest TEXT NOT NULL,
-        estimated_token_count INTEGER NOT NULL DEFAULT 0,
-        provider TEXT NOT NULL DEFAULT '',
-        model TEXT NOT NULL DEFAULT '',
-        prompt_version INTEGER NOT NULL DEFAULT 1,
-        base_revision INTEGER NOT NULL,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX conversation_summary_chat_status_index '
-      'ON conversation_summary_segments(chat_id, status)',
-    );
-    await db.execute('''
-      CREATE TABLE conversation_memory_items (
-        id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL,
-        memory_key TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        content TEXT NOT NULL,
-        state TEXT NOT NULL,
-        origin TEXT NOT NULL,
-        importance REAL NOT NULL DEFAULT 0.5,
-        confidence REAL NOT NULL DEFAULT 0.5,
-        source_message_ids TEXT NOT NULL DEFAULT '[]',
-        source_digest TEXT NOT NULL DEFAULT '',
-        expires_at INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE UNIQUE INDEX conversation_memory_chat_key_index '
-      'ON conversation_memory_items(chat_id, memory_key)',
-    );
-    await db.execute(
-      'CREATE INDEX messages_chat_timestamp_message_index '
-      'ON messages(chat_id, timestamp, message_id)',
-    );
-  }
-
-  static Future<void> _createMcpSchema(DatabaseExecutor db) async {
-    await db.execute('''
-      CREATE TABLE mcp_servers (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        transport_type TEXT NOT NULL
-          CHECK (transport_type IN ('streamableHttp', 'stdio')),
-        transport_config_json TEXT NOT NULL,
-        remote_server_name TEXT NOT NULL DEFAULT '',
-        remote_server_version TEXT NOT NULL DEFAULT '',
-        capabilities_json TEXT NOT NULL DEFAULT '{}',
-        connection_status TEXT NOT NULL DEFAULT 'disconnected'
-          CHECK (connection_status IN (
-            'disconnected',
-            'connecting',
-            'connected',
-            'authorizationRequired',
-            'error'
-          )),
-        last_error_code TEXT NOT NULL DEFAULT '',
-        last_connected_at INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('''
-      CREATE TABLE mcp_tools (
-        server_id TEXT NOT NULL,
-        remote_name TEXT NOT NULL,
-        title TEXT NOT NULL DEFAULT '',
-        description TEXT NOT NULL DEFAULT '',
-        input_schema_json TEXT NOT NULL,
-        output_schema_json TEXT,
-        annotations_json TEXT NOT NULL DEFAULT '{}',
-        task_support TEXT NOT NULL
-          CHECK (task_support IN ('forbidden', 'optional', 'required')),
-        updated_at INTEGER NOT NULL,
-        PRIMARY KEY (server_id, remote_name),
-        FOREIGN KEY (server_id) REFERENCES mcp_servers(id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute(
-      'CREATE INDEX mcp_tools_server_id_index '
-      'ON mcp_tools(server_id)',
-    );
+  Future<void> commit() async {
+    if (await staging.exists()) await staging.delete(recursive: true);
   }
 }

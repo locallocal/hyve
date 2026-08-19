@@ -751,7 +751,7 @@ void main() {
                   height: 240,
                   child: ChatListBuilder(
                     projects: [
-                      Project(chat: chat, bots: [bot]),
+                      ProjectWorkspace(chat: chat, bots: [bot]),
                     ],
                     selectedChatId: chat.id,
                     generationRegistry: registry,
@@ -868,7 +868,7 @@ void main() {
         );
         final shell = MainShellViewModel(
           botRepository: BotCardTestBotRepository([bot]),
-        )..selectProject(Project(chat: chat, bots: [bot]));
+        )..selectProject(ProjectWorkspace(chat: chat, bots: [bot]));
         addTearDown(shell.dispose);
 
         await tester.pumpWidget(
@@ -885,7 +885,7 @@ void main() {
                           pages: [
                             ChatListBuilder(
                               projects: [
-                                Project(chat: chat, bots: [bot]),
+                                ProjectWorkspace(chat: chat, bots: [bot]),
                               ],
                               selectedChatId: shell.selectedChatId,
                               selectionVisible: shell.isChatSelectionVisible,
@@ -988,7 +988,7 @@ void main() {
                   height: 240,
                   child: ChatListBuilder(
                     projects: [
-                      Project(chat: chat, bots: [bot]),
+                      ProjectWorkspace(chat: chat, bots: [bot]),
                     ],
                     generationRegistry: registry,
                     onChatDeleted: (_) {},

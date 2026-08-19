@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:hyve/data/models/project_agent_records.dart';
 import 'package:hyve/domain/models/models.dart';
 
 /// SQLite representation of a [Bot].
@@ -7,20 +8,25 @@ final class BotRecord {
   const BotRecord(this.values);
 
   factory BotRecord.fromDomain(Bot bot, {required String storedApiKey}) {
-    return BotRecord({
-      'id': bot.id,
-      'name': bot.name,
-      'avatar': bot.avatar,
-      'provider': bot.provider,
-      'base_url': bot.baseURL,
-      'api_key': storedApiKey,
-      'api_type': bot.apiType,
-      'model': bot.model,
-      'system_prompt': bot.systemPrompt,
-      'parameters': jsonEncode(bot.parameters ?? const <String, Object?>{}),
-      'create_timestamp': bot.createTimestamp.millisecondsSinceEpoch,
-      'modify_timestamp': bot.modifyTimestamp.millisecondsSinceEpoch,
-    });
+    return BotRecord(
+      AgentRecord.fromDomain(
+        Agent(
+          id: bot.id,
+          name: bot.name,
+          avatar: bot.avatar,
+          provider: bot.provider,
+          baseUrl: bot.baseURL,
+          apiKey: bot.apiKey,
+          apiType: bot.apiType,
+          model: bot.model,
+          systemPrompt: bot.systemPrompt,
+          parameters: bot.parameters ?? const <String, Object?>{},
+          createdAt: bot.createTimestamp,
+          updatedAt: bot.modifyTimestamp,
+        ),
+        storedApiKey: storedApiKey,
+      ).values,
+    );
   }
 
   final Map<String, Object?> values;
@@ -30,19 +36,20 @@ final class BotRecord {
   String get storedApiKey => _string(values['api_key']);
 
   Bot toDomain({required String apiKey}) {
+    final agent = AgentRecord(values).toDomain(apiKey: apiKey);
     return Bot(
-      id: id,
-      name: _string(values['name']),
-      avatar: _string(values['avatar']),
-      provider: _string(values['provider']),
-      baseURL: _string(values['base_url']),
+      id: agent.id,
+      name: agent.name,
+      avatar: agent.avatar,
+      provider: agent.provider,
+      baseURL: agent.baseUrl,
       apiKey: apiKey,
-      apiType: _string(values['api_type']),
-      model: _string(values['model']),
-      systemPrompt: _string(values['system_prompt']),
-      parameters: _parameters(values['parameters']),
-      createTimestamp: _timestamp(values['create_timestamp']),
-      modifyTimestamp: _timestamp(values['modify_timestamp']),
+      apiType: agent.apiType,
+      model: agent.model,
+      systemPrompt: agent.systemPrompt,
+      parameters: Map<String, dynamic>.from(agent.parameters),
+      createTimestamp: agent.createdAt,
+      modifyTimestamp: agent.updatedAt,
     );
   }
 }
@@ -251,16 +258,6 @@ final class ProfileRecord {
       modifyTimestamp: _timestamp(values['modify_timestamp']),
     );
   }
-}
-
-Map<String, dynamic> _parameters(Object? raw) {
-  if (raw is! String) {
-    throw const FormatException('Bot parameters must be stored as JSON text.');
-  }
-  final decoded = jsonDecode(raw);
-  return Map<String, dynamic>.from(
-    _requiredStringMap(decoded, 'Bot parameters'),
-  );
 }
 
 Map<String, Object?> _requiredStringMap(Object? raw, String field) {

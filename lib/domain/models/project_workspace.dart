@@ -1,20 +1,25 @@
 import 'package:hyve/domain/models/bot.dart';
 import 'package:hyve/domain/models/chat.dart';
 
-/// Presentation aggregate retained until Phase 2 migrates the workspace to
-/// Project and ProjectMembership directly.
+/// Read-only presentation summary for the project list and app shell.
+///
+/// Project execution uses Project, Agent and ProjectMembership directly.
 final class ProjectWorkspace {
-  ProjectWorkspace({required this.chat, required Iterable<Bot> bots})
-    : bots = _orderedUniqueBots(chat, bots);
+  ProjectWorkspace({
+    required this.chat,
+    required Iterable<Bot> bots,
+    this.usesProjectAgentRuntime = false,
+  }) : bots = _orderedUniqueBots(chat, bots);
 
   final Chat chat;
   final List<Bot> bots;
+  final bool usesProjectAgentRuntime;
 
   String get id => chat.id;
   String get name => chat.name;
   List<String> get botIds => chat.projectBotIds;
 
-  Bot get firstBot => bots.first;
+  Bot? get firstBot => bots.isEmpty ? null : bots.first;
 
   Bot? botById(String id) {
     for (final bot in bots) {
@@ -25,18 +30,19 @@ final class ProjectWorkspace {
 
   ProjectWorkspace replaceBot(Bot updated) => ProjectWorkspace(
     chat: chat,
+    usesProjectAgentRuntime: usesProjectAgentRuntime,
     bots: [
       for (final bot in bots)
         if (bot.id == updated.id) updated else bot,
     ],
   );
 
-  ProjectWorkspace? removeBot(String id) {
+  ProjectWorkspace removeBot(String id) {
     final remaining = bots.where((bot) => bot.id != id).toList();
-    if (remaining.isEmpty) return null;
     return ProjectWorkspace(
       chat: chat.copyWith(botIds: remaining.map((bot) => bot.id).toList()),
       bots: remaining,
+      usesProjectAgentRuntime: usesProjectAgentRuntime,
     );
   }
 }

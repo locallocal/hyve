@@ -58,4 +58,27 @@ final class ProjectTurn {
     ProjectTurnStatus.cancelled => true,
     _ => false,
   };
+
+  ProjectTurn copyWith({
+    ProjectTurnStatus? status,
+    bool? noParticipant,
+    DateTime? completedAt,
+    bool clearCompletedAt = false,
+  }) => ProjectTurn(
+    id: id,
+    projectId: projectId,
+    rootEventId: rootEventId,
+    initiatorType: initiatorType,
+    initiatorId: initiatorId,
+    routingMode: routingMode,
+    sourceMessageId: sourceMessageId,
+    sourceMessageSequence: sourceMessageSequence,
+    recipientCount: recipientCount,
+    rootTurnId: rootTurnId,
+    autonomousDepth: autonomousDepth,
+    status: status ?? this.status,
+    noParticipant: noParticipant ?? this.noParticipant,
+    createdAt: createdAt,
+    completedAt: clearCompletedAt ? null : completedAt ?? this.completedAt,
+  );
 }

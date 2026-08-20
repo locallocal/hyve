@@ -44,6 +44,55 @@ final class SqliteProjectEventRepository implements ProjectEventRepository {
   }
 
   @override
+  Future<ProjectEvent?> getMessageAt(
+    String projectId,
+    int messageSequence,
+  ) async {
+    if (messageSequence <= 0) {
+      throw ArgumentError.value(messageSequence, 'messageSequence');
+    }
+    final records = await _localDatabase.loadProjectMessageAt(
+      projectId,
+      messageSequence,
+    );
+    return records.isEmpty ? null : _restore(records.single);
+  }
+
+  @override
+  Future<ProjectEvent?> getAgentReplyForRun(String runId) async {
+    final records = await _localDatabase.loadAgentReplyForRun(runId);
+    return records.isEmpty ? null : _restore(records.single);
+  }
+
+  @override
+  Future<int> countAgentMessagesForRoot(
+    String projectId,
+    String rootMessageId,
+  ) => _localDatabase.countAgentMessagesForRoot(projectId, rootMessageId);
+
+  @override
+  Future<List<ProjectEvent>> getVisibleMessagesThrough(
+    String projectId,
+    String agentId,
+    int throughMessageSequence, {
+    int limit = 200,
+  }) async {
+    if (throughMessageSequence <= 0 || limit <= 0) {
+      throw ArgumentError('Message sequence and limit must be positive.');
+    }
+    final events = <ProjectEvent>[];
+    for (final record in await _localDatabase.loadVisibleProjectMessages(
+      projectId,
+      agentId,
+      throughMessageSequence,
+      limit: limit,
+    )) {
+      events.add(await _restore(record));
+    }
+    return List<ProjectEvent>.unmodifiable(events);
+  }
+
+  @override
   Future<void> save(ProjectEvent event) async {
     await _localDatabase.saveProjectEvent(
       ProjectEventRecord.fromDomain(event).values,

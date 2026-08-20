@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 part 'local_database_mcp_skills.dart';
 part 'local_database_conversations.dart';
 part 'local_database_project_agents.dart';
+part 'local_database_project_routing.dart';
 part 'local_database_usage.dart';
 
 typedef DatabaseProvider = Future<Database> Function();

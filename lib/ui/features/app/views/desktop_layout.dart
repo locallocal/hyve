@@ -16,6 +16,7 @@ import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:hyve/ui/features/chat/views/conversation_model_controls.dart';
 import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
+import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -40,6 +41,7 @@ class DesktopLayout extends StatefulWidget {
   final String? selectedChatId;
   final Bot? selectedChatBot;
   final List<Bot> selectedChatBots;
+  final bool selectedProjectUsesAgentRuntime;
   final String selectedProjectName;
   final Bot? selectedBot;
   final bool isEditingBot;
@@ -61,6 +63,7 @@ class DesktopLayout extends StatefulWidget {
     this.selectedChatId,
     this.selectedChatBot,
     this.selectedChatBots = const <Bot>[],
+    this.selectedProjectUsesAgentRuntime = false,
     this.selectedProjectName = '',
     this.selectedBot,
     this.isEditingBot = false,
@@ -98,7 +101,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   bool _preserveChatOverlayIntent = false;
   bool _chatOverlayDismissScheduled = false;
 
-  String? _chatPageKeyId;
   GlobalKey<ChatPageState>? _chatPageKey;
   AppDependencies? _dependencies;
   ChatTokenUsageViewModel? _tokenUsageViewModel;
@@ -128,7 +130,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   void didUpdateWidget(covariant DesktopLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedChatId != widget.selectedChatId) {
-      _chatPageKeyId = null;
       _chatPageKey = null;
       _replaceTokenUsageViewModel();
       _replaceMemoryViewModel();

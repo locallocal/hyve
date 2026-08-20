@@ -20,6 +20,8 @@ class MainShellViewModel extends DisposableChangeNotifier {
   String? get selectedChatId => _selectedProject?.id;
   Bot? get selectedChatBot => _selectedChatBot;
   List<Bot> get selectedChatBots => _selectedProject?.bots ?? const <Bot>[];
+  bool get selectedProjectUsesAgentRuntime =>
+      _selectedProject?.usesProjectAgentRuntime ?? false;
   Bot? get selectedBot => _selectedBot;
   bool get isEditingSelectedBot => _isEditingSelectedBot;
   int get selectedProfileSection => _selectedProfileSection;
@@ -100,13 +102,8 @@ class MainShellViewModel extends DisposableChangeNotifier {
     final project = _selectedProject;
     if (project?.botById(botId) != null) {
       final updatedProject = project!.removeBot(botId);
-      if (updatedProject != null) {
-        _selectedProject = updatedProject;
-        _selectedChatBot = updatedProject.firstBot;
-      } else {
-        _selectedProject = null;
-        _selectedChatBot = null;
-      }
+      _selectedProject = updatedProject;
+      _selectedChatBot = updatedProject.firstBot;
     }
     _selectedBot = null;
     _isEditingSelectedBot = false;

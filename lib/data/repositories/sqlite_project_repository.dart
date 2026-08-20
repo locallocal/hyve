@@ -31,6 +31,7 @@ final class SqliteProjectRepository implements ProjectAggregateRepository {
         (await _localDatabase.loadProjects())
             .map((record) => ProjectRecord(record).toDomain())
             .toList();
+    if (forceRefresh) _emit();
     return _snapshot;
   }
 

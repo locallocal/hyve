@@ -167,13 +167,18 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
   }
 
   Widget _buildChatDetail(BuildContext context) {
+    if (widget.selectedChatId != null &&
+        widget.selectedProjectUsesAgentRuntime) {
+      return ProjectWorkspacePage(
+        key: ValueKey<String>('project-workspace-${widget.selectedChatId}'),
+        projectId: widget.selectedChatId!,
+        projectName: widget.selectedProjectName,
+      );
+    }
     if (widget.selectedChatId != null && widget.selectedChatBot != null) {
-      if (_chatPageKeyId != widget.selectedChatId) {
-        _chatPageKeyId = widget.selectedChatId;
-        _chatPageKey = GlobalKey<ChatPageState>(
-          debugLabel: 'chat-${widget.selectedChatId}',
-        );
-      }
+      _chatPageKey ??= GlobalKey<ChatPageState>(
+        debugLabel: 'chat-${widget.selectedChatId}',
+      );
       return ChatPage(
         key: _chatPageKey,
         id: widget.selectedChatId!,

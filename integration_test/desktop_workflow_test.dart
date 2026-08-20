@@ -15,7 +15,6 @@ import 'package:hyve/domain/use_cases/create_chat.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/l10n/app_localizations.dart';
 import 'package:hyve/ui/features/bots/views/add_bot.dart';
-import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/views/message_input.dart';
 import 'package:hyve/ui/features/chats/view_models/new_chat_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
@@ -174,7 +173,6 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
   late final _MemoryBotRepository _bots;
   late final _MemoryChatRepository _chats;
   late final CreateChat _createChat;
-  late final ChatGenerationRegistry _generationRegistry;
   late final TextEditingController _composer;
   Bot? _selectedBot;
   Chat? _selectedChat;
@@ -193,16 +191,10 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
       clock: () => DateTime(2026, 8, 12, 9, 42),
     );
     _composer = TextEditingController();
-    _generationRegistry = ChatGenerationRegistry(
-      messagePersister: (message) async => message,
-      lastMessageUpdater: (_, _) async {},
-      providerFactory: _WorkflowProvider.new,
-    );
   }
 
   @override
   void dispose() {
-    _generationRegistry.clear();
     _composer.dispose();
     _bots.dispose();
     _chats.dispose();
@@ -341,7 +333,6 @@ class _DesktopWorkflowHarnessState extends State<_DesktopWorkflowHarness> {
                     }),
                 onProjectSelected: (_) {},
                 onDeleteChat: _chats.deleteChat,
-                generationRegistry: _generationRegistry,
               ),
             ),
           ] else

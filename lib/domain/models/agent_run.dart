@@ -82,4 +82,31 @@ final class AgentRun {
     AgentRunStatus.interrupted => true,
     _ => false,
   };
+
+  AgentRun copyWith({
+    AgentRunStatus? status,
+    DateTime? startedAt,
+    DateTime? completedAt,
+    String? errorCode,
+    bool clearStartedAt = false,
+    bool clearCompletedAt = false,
+  }) => AgentRun(
+    id: id,
+    projectId: projectId,
+    turnId: turnId,
+    agentId: agentId,
+    sourceMessageEventId: sourceMessageEventId,
+    sourceMessageSequence: sourceMessageSequence,
+    contextThroughMessageSequence: contextThroughMessageSequence,
+    parentRunId: parentRunId,
+    rootRunId: rootRunId,
+    deliveryDepth: deliveryDepth,
+    phase: phase,
+    status: status ?? this.status,
+    agentSnapshot: agentSnapshot,
+    startedAt: clearStartedAt ? null : startedAt ?? this.startedAt,
+    completedAt: clearCompletedAt ? null : completedAt ?? this.completedAt,
+    errorCode: errorCode ?? this.errorCode,
+    createdAt: createdAt,
+  );
 }

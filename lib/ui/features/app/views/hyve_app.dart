@@ -554,6 +554,8 @@ class _MainPageState extends State<MainPage> {
               selectedChatId: _viewModel.selectedChatId,
               selectedChatBot: _viewModel.selectedChatBot,
               selectedChatBots: _viewModel.selectedChatBots,
+              selectedProjectUsesAgentRuntime:
+                  _viewModel.selectedProjectUsesAgentRuntime,
               selectedProjectName: _viewModel.selectedProject?.name ?? '',
               selectedBot: _viewModel.selectedBot,
               isEditingBot: _viewModel.isEditingSelectedBot,

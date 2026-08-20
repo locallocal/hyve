@@ -6,7 +6,6 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:hyve/ui/features/app/views/desktop_layout.dart';
-import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/views/message_list.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chats.dart';
@@ -712,12 +711,6 @@ void main() {
   ) async {
     await withDesktopPlatform(() async {
       var openCount = 0;
-      final registry = ChatGenerationRegistry(
-        messagePersister: (message) async => message,
-        lastMessageUpdater: (_, _) async {},
-        providerFactory: (_) => throw StateError('Provider is not expected'),
-      );
-      addTearDown(registry.clear);
       final timestamp = DateTime(2026);
       final bot = Bot(
         id: 'bot-1',
@@ -754,7 +747,6 @@ void main() {
                       ProjectWorkspace(chat: chat, bots: [bot]),
                     ],
                     selectedChatId: chat.id,
-                    generationRegistry: registry,
                     onChatDeleted: (_) {},
                     onDeleteChat: (_) async {},
                     onProjectSelected: (_) => openCount += 1,
@@ -838,12 +830,6 @@ void main() {
         tester.view.physicalSize = const Size(1440, 900);
         addTearDown(tester.view.reset);
 
-        final registry = ChatGenerationRegistry(
-          messagePersister: (message) async => message,
-          lastMessageUpdater: (_, _) async {},
-          providerFactory: (_) => throw StateError('Provider is not expected'),
-        );
-        addTearDown(registry.clear);
         final timestamp = DateTime(2026);
         final bot = Bot(
           id: 'bot-navigation',
@@ -889,7 +875,6 @@ void main() {
                               ],
                               selectedChatId: shell.selectedChatId,
                               selectionVisible: shell.isChatSelectionVisible,
-                              generationRegistry: registry,
                               onChatDeleted: (_) {},
                               onDeleteChat: (_) async {},
                               onProjectSelected: shell.selectProject,
@@ -949,12 +934,6 @@ void main() {
   ) async {
     await withDesktopPlatform(() async {
       var deleteCount = 0;
-      final registry = ChatGenerationRegistry(
-        messagePersister: (message) async => message,
-        lastMessageUpdater: (_, _) async {},
-        providerFactory: (_) => throw StateError('Provider is not expected'),
-      );
-      addTearDown(registry.clear);
       final timestamp = DateTime(2026);
       final bot = Bot(
         id: 'bot-delete',
@@ -990,7 +969,6 @@ void main() {
                     projects: [
                       ProjectWorkspace(chat: chat, bots: [bot]),
                     ],
-                    generationRegistry: registry,
                     onChatDeleted: (_) {},
                     onDeleteChat: (_) async => deleteCount += 1,
                     onProjectSelected: (_) {},

@@ -141,6 +141,7 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
           modifyTimestamp: project.updatedAt,
         ),
         bots: selectedBots,
+        usesProjectAgentRuntime: true,
       );
     } on Object catch (error) {
       _error = AppFailure.from(error, code: 'project_create_failed');

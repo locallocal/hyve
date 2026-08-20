@@ -1,6 +1,6 @@
 # 项目优先的多智能体协作设计
 
-> 状态：Phase 1 已完成（2026-08-20），可以进入 Phase 2。
+> 状态：Phase 2 已完成（2026-08-21），可以进入 Phase 3。
 >
 > Phase 0 决策基线见第 16 节。后续若修改基线，必须同步更新对应策略默认值、数据契约和验收项。
 >
@@ -1359,15 +1359,15 @@ Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行�
 - [x] 保持智能体、Skill 和 MCP 管理页面功能不变；
 - [x] 补齐 Repository、事务、级联和架构门禁测试。
 
-### Phase 2：明确 @ 与广播
+### Phase 2：明确 @ 与广播（已完成）
 
-- 实现结构化 mention composer；
-- 实现 RouteProjectMessage 和 ProjectTurnCoordinator；
-- 实现项目消息索引、Project-Agent Cursor、逐消息 Receipt 和 AgentInboxCoordinator；
-- 实现同 Agent 串行、不同 Agent 并行，以及启动/运行结束时的 backlog 恢复扫描；
-- 实现广播 ParticipationDecision；
-- 替换共享可变 Bot 和单 chatId generation registry；
-- 实现多运行状态、取消、失败隔离和 Token 记录。
+- [x] 实现结构化 mention composer；
+- [x] 实现 RouteProjectMessage 和 ProjectTurnCoordinator；
+- [x] 实现项目消息索引、Project-Agent Cursor、逐消息 Receipt 和 AgentInboxCoordinator；
+- [x] 实现同 Agent 串行、不同 Agent 并行，以及启动/运行结束时的 backlog 恢复扫描；
+- [x] 实现广播 ParticipationDecision；
+- [x] 替换共享可变 Bot 和单 chatId generation registry；
+- [x] 实现多运行状态、取消、失败隔离和 Token 记录。
 
 ### Phase 3：智能体交付
 

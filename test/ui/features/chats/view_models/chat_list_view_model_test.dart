@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/bot_repository.dart';
 import 'package:hyve/domain/repositories/chat_repository.dart';
+import 'package:hyve/domain/repositories/agent_repository.dart';
+import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 
 void main() {
@@ -89,7 +92,66 @@ void main() {
       );
     },
   );
+
+  test(
+    'production path lists persisted Projects including zero members',
+    () async {
+      final projectRepository = _FakeProjectRepository([
+        _project('project-1', 'With agent'),
+        _project('project-2', 'Empty project'),
+      ]);
+      final viewModel = ChatListViewModel(
+        chatRepository: _FakeChatRepository(const []),
+        botRepository: _FakeBotRepository(const []),
+        projectRepository: projectRepository,
+        membershipRepository: _FakeMembershipRepository({
+          'project-1': <ProjectMembership>[
+            ProjectMembership(
+              projectId: 'project-1',
+              agentId: 'agent-1',
+              position: 0,
+              joinedAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          ],
+        }),
+        agentRepository: _FakeAgentRepository([_agent('agent-1', 'Planner')]),
+      );
+      addTearDown(viewModel.dispose);
+
+      await viewModel.load();
+
+      expect(viewModel.projects, hasLength(2));
+      expect(viewModel.projects.first.usesProjectAgentRuntime, isTrue);
+      expect(viewModel.projects.first.firstBot?.id, 'agent-1');
+      expect(viewModel.projects.last.firstBot, isNull);
+      await viewModel.deleteChat('project-2');
+      expect(projectRepository.deletedId, 'project-2');
+    },
+  );
 }
+
+Project _project(String id, String name) => Project(
+  id: id,
+  name: name,
+  lastMessageAt: DateTime(2026),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
+Agent _agent(String id, String name) => Agent(
+  id: id,
+  name: name,
+  avatar: '',
+  provider: 'Test',
+  baseUrl: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'model',
+  systemPrompt: '',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 Bot _bot(String id, String name) => Bot(
   id: id,
@@ -183,4 +245,54 @@ class _FakeBotRepository implements BotRepository {
 
   @override
   Future<void> updateBot(Bot bot) async {}
+}
+
+class _FakeProjectRepository implements ProjectRepository {
+  _FakeProjectRepository(this.items);
+
+  final List<Project> items;
+  String? deletedId;
+
+  @override
+  Stream<List<Project>> get changes => const Stream<List<Project>>.empty();
+
+  @override
+  Future<List<Project>> getProjects({bool forceRefresh = false}) async => items;
+
+  @override
+  Future<void> deleteProject(String id) async => deletedId = id;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeMembershipRepository implements ProjectMembershipRepository {
+  const _FakeMembershipRepository(this.byProject);
+
+  final Map<String, List<ProjectMembership>> byProject;
+
+  @override
+  Stream<String> get changes => const Stream<String>.empty();
+
+  @override
+  Future<List<ProjectMembership>> getForProject(String projectId) async =>
+      byProject[projectId] ?? const <ProjectMembership>[];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeAgentRepository implements AgentRepository {
+  const _FakeAgentRepository(this.items);
+
+  final List<Agent> items;
+
+  @override
+  Stream<List<Agent>> get changes => const Stream<List<Agent>>.empty();
+
+  @override
+  Future<List<Agent>> getAgents({bool forceRefresh = false}) async => items;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

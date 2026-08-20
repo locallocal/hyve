@@ -3,10 +3,9 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/widgets/common.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
-import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:hyve/ui/features/chats/views/chat_item.dart';
+import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/utils/utils.dart';
 import 'package:hyve/utils/time.dart';
@@ -21,7 +20,6 @@ class ChatListBuilder extends StatelessWidget {
   final ValueChanged<String> onChatDeleted;
   final ValueChanged<ProjectWorkspace> onProjectSelected;
   final Future<void> Function(String chatId) onDeleteChat;
-  final ChatGenerationRegistry generationRegistry;
 
   const ChatListBuilder({
     super.key,
@@ -32,7 +30,6 @@ class ChatListBuilder extends StatelessWidget {
     required this.onChatDeleted,
     required this.onProjectSelected,
     required this.onDeleteChat,
-    required this.generationRegistry,
   });
 
   @override
@@ -56,13 +53,19 @@ class ChatListBuilder extends StatelessWidget {
             context,
             MaterialPageRoute<void>(
               builder:
-                  (context) => ChatPage(
-                    id: chat.id,
-                    bot: bot,
-                    bots: project.bots,
-                    projectName: project.name,
-                    showExecutionStatus: showExecutionStatus,
-                  ),
+                  (context) =>
+                      project.usesProjectAgentRuntime
+                          ? ProjectWorkspacePage(
+                            projectId: project.id,
+                            projectName: project.name,
+                          )
+                          : ChatPage(
+                            id: chat.id,
+                            bot: bot!,
+                            bots: project.bots,
+                            projectName: project.name,
+                            showExecutionStatus: showExecutionStatus,
+                          ),
             ),
           );
           if (refreshAfterClose) {
@@ -71,7 +74,6 @@ class ChatListBuilder extends StatelessWidget {
         }
 
         Future<void> deleteChat() async {
-          final registry = generationRegistry;
           final confirm =
               isDesktop
                   ? await showChatShadDialog<bool>(
@@ -88,7 +90,9 @@ class ChatListBuilder extends StatelessWidget {
                           description: Text(
                             desktopProjectText(
                               dialogContext,
-                              S.of(dialogContext).confirmDeleteChat(bot.name),
+                              S
+                                  .of(dialogContext)
+                                  .confirmDeleteChat(project.name),
                             ),
                           ),
                           actions: [
@@ -122,7 +126,7 @@ class ChatListBuilder extends StatelessWidget {
                             ),
                           ),
                           content: Text(
-                            S.of(dialogContext).confirmDeleteChat(bot.name),
+                            S.of(dialogContext).confirmDeleteChat(project.name),
                           ),
                           actions: [
                             TextButton(
@@ -147,48 +151,7 @@ class ChatListBuilder extends StatelessWidget {
                   );
 
           if (confirm != true || !context.mounted) return;
-          if (isDesktop && registry.hasBlockingRun(chat.id)) {
-            if (!registry.supportsCancellationForRun(chat.id)) {
-              showHyveNotice(
-                context,
-                S.of(context).activeRequestCannotStop,
-                description: S.of(context).waitForGenerationToFinish,
-                tone: HyveNoticeTone.error,
-              );
-              return;
-            }
-            final shouldStop = await showStopGenerationBeforeLeavingDialog(
-              context,
-            );
-            if (!shouldStop || !context.mounted) return;
-            final stopped = await registry.stopForNavigation(chat.id);
-            if (!stopped || !context.mounted) {
-              if (context.mounted) {
-                showHyveNotice(
-                  context,
-                  S.of(context).activeRequestCannotStop,
-                  description: S.of(context).waitForGenerationToFinish,
-                  tone: HyveNoticeTone.error,
-                );
-              }
-              return;
-            }
-          }
-
           try {
-            final canDelete = await registry.stopForNavigation(chat.id);
-            if (!canDelete || !context.mounted) {
-              if (context.mounted) {
-                showHyveNotice(
-                  context,
-                  S.of(context).activeRequestCannotStop,
-                  description: S.of(context).waitForGenerationToFinish,
-                  tone: HyveNoticeTone.error,
-                );
-              }
-              return;
-            }
-
             await onDeleteChat(chat.id);
           } catch (error) {
             if (!context.mounted) return;
@@ -206,7 +169,6 @@ class ChatListBuilder extends StatelessWidget {
           }
 
           if (!context.mounted) return;
-          generationRegistry.remove(chat.id);
           onChatDeleted(chat.id);
         }
 

@@ -24,9 +24,23 @@ void main() {
     );
     final updated = project.removeBot(researcher.id);
 
-    expect(updated?.botIds, [reviewer.id]);
-    expect(updated?.bots, [reviewer]);
-    expect(updated?.firstBot, same(reviewer));
+    expect(updated.botIds, [reviewer.id]);
+    expect(updated.bots, [reviewer]);
+    expect(updated.firstBot, same(reviewer));
+  });
+
+  test('keeps a project summary when its final member is removed', () {
+    final researcher = _bot('researcher');
+    final project = ProjectWorkspace(
+      chat: _chat([researcher.id]),
+      bots: [researcher],
+    );
+
+    final updated = project.removeBot(researcher.id);
+
+    expect(updated.botIds, isEmpty);
+    expect(updated.bots, isEmpty);
+    expect(updated.firstBot, isNull);
   });
 
   test('rejects an incomplete project member set', () {

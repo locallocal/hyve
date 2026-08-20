@@ -9,15 +9,7 @@ class Chat {
     required this.modifyTimestamp,
   }) : botIds = List<String>.unmodifiable(
          <String>{...botIds.map((id) => id.trim())}..remove(''),
-       ) {
-    if (this.botIds.isEmpty) {
-      throw ArgumentError.value(
-        botIds,
-        'botIds',
-        'A project must contain at least one agent.',
-      );
-    }
-  }
+       );
 
   final String id;
   final String name;

@@ -16,6 +16,7 @@ final class SqliteModelUsageRepository implements ModelUsageRepository {
         'chat_id': record.chatId,
         'bot_id': record.botId,
         'operation_kind': record.operationKind,
+        'run_id': record.runId,
         'token_model': record.usage.model,
         'input_token_count': record.usage.inputTokens,
         'output_token_count': record.usage.outputTokens,

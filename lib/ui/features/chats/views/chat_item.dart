@@ -6,7 +6,7 @@ import 'package:hyve/ui/core/widgets/logo.dart';
 import 'package:hyve/utils/theme.dart';
 
 class ChatListItem extends StatefulWidget {
-  final Bot bot;
+  final Bot? bot;
   final List<Bot> bots;
   final String? title;
   final String lastMessage;
@@ -17,7 +17,7 @@ class ChatListItem extends StatefulWidget {
 
   const ChatListItem({
     super.key,
-    required this.bot,
+    this.bot,
     this.bots = const <Bot>[],
     this.title,
     required this.lastMessage,
@@ -55,10 +55,11 @@ class _ChatListItemState extends State<ChatListItem> {
       fontSize: (fontSize - 3).clamp(12, 13),
       color: selectedTextColor,
     );
+    final provider = widget.bot?.provider ?? '';
     final subtitle =
-        widget.bot.provider.isEmpty
+        provider.isEmpty
             ? widget.lastMessage
-            : '${widget.bot.provider} · ${widget.lastMessage}';
+            : '$provider · ${widget.lastMessage}';
     final timestamp = Text(widget.timestamp, style: metaStyle);
     final timestampWithTooltip =
         ShadTheme.maybeOf(context) == null
@@ -76,7 +77,10 @@ class _ChatListItemState extends State<ChatListItem> {
       child: Row(
         children: [
           _ProjectBotAvatars(
-            bots: widget.bots.isEmpty ? [widget.bot] : widget.bots,
+            bots:
+                widget.bots.isEmpty && widget.bot != null
+                    ? <Bot>[widget.bot!]
+                    : widget.bots,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -90,7 +94,7 @@ class _ChatListItemState extends State<ChatListItem> {
                       child: Text(
                         widget.title?.trim().isNotEmpty == true
                             ? widget.title!.trim()
-                            : widget.bot.name,
+                            : widget.bot?.name ?? '',
                         textAlign: TextAlign.left,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -139,6 +143,18 @@ class _ProjectBotAvatars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (bots.isEmpty) {
+      return SizedBox.square(
+        dimension: 32,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.folder_outlined, size: 17),
+        ),
+      );
+    }
     final visible = bots.take(3).toList(growable: false);
     final avatarSize = visible.length == 1 ? 32.0 : 26.0;
     final overlapOffset = visible.length == 1 ? 0.0 : 12.0;

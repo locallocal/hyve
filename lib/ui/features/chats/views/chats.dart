@@ -8,8 +8,8 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/core/widgets/common.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chat_list_builder.dart';
-import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/chats/views/new_project_page.dart';
+import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 
@@ -213,7 +213,6 @@ class ChatListPageState extends State<ChatListPage> {
       selectedChatId: widget.selectedChatId,
       selectionVisible: widget.selectionVisible,
       showExecutionStatus: widget.showExecutionStatus,
-      generationRegistry: AppScope.of(context).generationRegistry,
       onDeleteChat: widget.viewModel.deleteChat,
       onChatDeleted: (String id) {
         if (id.isNotEmpty) {
@@ -363,17 +362,13 @@ class ChatListPageState extends State<ChatListPage> {
     await _loadChatList();
     if (!mounted) return;
     widget.onProjectSelected(result);
-    ChatPageState.requestComposerFocus(result.id);
     if (isDesktopPlatform(context)) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder:
-            (context) => ChatPage(
-              id: result.id,
-              bot: result.firstBot,
-              bots: result.bots,
+            (context) => ProjectWorkspacePage(
+              projectId: result.id,
               projectName: result.name,
-              showExecutionStatus: widget.showExecutionStatus,
             ),
       ),
     );

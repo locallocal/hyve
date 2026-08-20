@@ -8,6 +8,12 @@ final class ProjectAgentPersistence {
     required this.eventRepository,
     required this.turnRepository,
     required this.runRepository,
+    required this.cursorRepository,
+    required this.receiptRepository,
+    required this.decisionRepository,
+    required this.routeRepository,
+    required this.routeProjectMessage,
+    required this.inboxCoordinator,
     required this.createProject,
   });
 
@@ -15,6 +21,8 @@ final class ProjectAgentPersistence {
     required LocalDatabaseService localDatabase,
     required BotApiKeyCipher apiKeyCipher,
     required ProjectAgentStorageService storage,
+    required AiProviderRepository providers,
+    required ModelUsageRepository modelUsageRepository,
   }) {
     final agentRepository = SqliteAgentRepository(
       localDatabase: localDatabase,
@@ -28,15 +36,79 @@ final class ProjectAgentPersistence {
     final membershipRepository = SqliteProjectMembershipRepository(
       localDatabase: localDatabase,
     );
+    final eventRepository = SqliteProjectEventRepository(
+      localDatabase: localDatabase,
+    );
+    final turnRepository = SqliteProjectTurnRepository(
+      localDatabase: localDatabase,
+    );
+    final runRepository = SqliteAgentRunRepository(
+      localDatabase: localDatabase,
+    );
+    final cursorRepository = SqliteProjectAgentCursorRepository(
+      localDatabase: localDatabase,
+    );
+    final receiptRepository = SqliteAgentMessageReceiptRepository(
+      localDatabase: localDatabase,
+    );
+    final decisionRepository = SqliteParticipationDecisionRepository(
+      localDatabase: localDatabase,
+    );
+    final routeRepository = SqliteProjectMessageRouteRepository(
+      localDatabase: localDatabase,
+      projectRepository: projectRepository,
+    );
+    final gateway = ProviderProjectAgentExecutionGateway(providers: providers);
+    late final AgentInboxCoordinator inboxCoordinator;
+    final routeProjectMessage = RouteProjectMessage(
+      repository: routeRepository,
+      wakeup:
+          (projectId, agentIds) =>
+              inboxCoordinator.wakeProject(projectId, agentIds).ignore(),
+    );
+    final turnCoordinator = ProjectTurnCoordinator(
+      turnRepository: turnRepository,
+      eventRepository: eventRepository,
+      receiptRepository: receiptRepository,
+      runRepository: runRepository,
+    );
+    inboxCoordinator = AgentInboxCoordinator(
+      cursorRepository: cursorRepository,
+      projectRepository: projectRepository,
+      membershipRepository: membershipRepository,
+      eventRepository: eventRepository,
+      turnRepository: turnRepository,
+      runRepository: runRepository,
+      decisionRepository: decisionRepository,
+      agentRepository: agentRepository,
+      runBroadcastParticipation: RunBroadcastParticipation(
+        runRepository: runRepository,
+        decisionRepository: decisionRepository,
+        gateway: gateway,
+        modelUsageRepository: modelUsageRepository,
+      ),
+      executeReply: ExecuteProjectAgentReply(
+        runRepository: runRepository,
+        gateway: gateway,
+        routeProjectMessage: routeProjectMessage,
+        modelUsageRepository: modelUsageRepository,
+      ),
+      turnCoordinator: turnCoordinator,
+    );
+    inboxCoordinator.start().ignore();
     return ProjectAgentPersistence(
       agentRepository: agentRepository,
       projectRepository: projectRepository,
       membershipRepository: membershipRepository,
-      eventRepository: SqliteProjectEventRepository(
-        localDatabase: localDatabase,
-      ),
-      turnRepository: SqliteProjectTurnRepository(localDatabase: localDatabase),
-      runRepository: SqliteAgentRunRepository(localDatabase: localDatabase),
+      eventRepository: eventRepository,
+      turnRepository: turnRepository,
+      runRepository: runRepository,
+      cursorRepository: cursorRepository,
+      receiptRepository: receiptRepository,
+      decisionRepository: decisionRepository,
+      routeRepository: routeRepository,
+      routeProjectMessage: routeProjectMessage,
+      inboxCoordinator: inboxCoordinator,
       createProject: CreateProject(
         projectRepository: projectRepository,
         membershipRepository: membershipRepository,
@@ -50,5 +122,35 @@ final class ProjectAgentPersistence {
   final ProjectEventRepository eventRepository;
   final ProjectTurnRepository turnRepository;
   final AgentRunRepository runRepository;
+  final ProjectAgentCursorRepository cursorRepository;
+  final AgentMessageReceiptRepository receiptRepository;
+  final ParticipationDecisionRepository decisionRepository;
+  final ProjectMessageRouteRepository routeRepository;
+  final RouteProjectMessage routeProjectMessage;
+  final AgentInboxCoordinator inboxCoordinator;
   final CreateProject createProject;
+
+  ProjectWorkspaceViewModel createWorkspaceViewModel(String projectId) =>
+      ProjectWorkspaceViewModel(
+        projectId: projectId,
+        routeProjectMessage: routeProjectMessage,
+        projectRepository: projectRepository,
+        membershipRepository: membershipRepository,
+        eventRepository: eventRepository,
+        turnRepository: turnRepository,
+        agentRepository: agentRepository,
+        cursorRepository: cursorRepository,
+        runRepository: runRepository,
+        inboxCoordinator: inboxCoordinator,
+      );
+}
+
+extension ProjectAgentAppDependencyFactories on AppDependencies {
+  ChatListViewModel createChatListViewModel() => ChatListViewModel(
+    chatRepository: chatRepository,
+    botRepository: botRepository,
+    projectRepository: projectRepository,
+    membershipRepository: projectMembershipRepository,
+    agentRepository: agentRepository,
+  );
 }

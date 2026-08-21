@@ -59,6 +59,11 @@ final class RunBroadcastParticipation {
   }) async {
     final now = _clock();
     final runId = _idFactory('decision-run');
+    final deliveryParent =
+        sourceEvent.eventType == ProjectEventType.agentDelivery &&
+                sourceEvent.runId.isNotEmpty
+            ? await _runRepository.getRun(sourceEvent.runId)
+            : null;
     var run = AgentRun(
       id: runId,
       projectId: project.id,
@@ -67,7 +72,9 @@ final class RunBroadcastParticipation {
       sourceMessageEventId: sourceEvent.id,
       sourceMessageSequence: sourceEvent.messageSequence!,
       contextThroughMessageSequence: sourceEvent.messageSequence!,
-      rootRunId: runId,
+      parentRunId: deliveryParent?.id ?? '',
+      rootRunId: deliveryParent?.rootRunId ?? runId,
+      deliveryDepth: deliveryParent?.deliveryDepth ?? 0,
       phase: AgentRunPhase.decision,
       status: AgentRunStatus.queued,
       agentSnapshot: _snapshot(agent),
@@ -227,7 +234,10 @@ _BoundedDecisionHistory _boundDecisionHistory({
   for (final event in <ProjectEvent>[sourceEvent, ...older]) {
     final remaining = maxInputTokens - used - 8;
     if (remaining <= 0) break;
-    final content = _truncateToEstimatedTokens(event.content, remaining);
+    final content = _truncateToEstimatedTokens(
+      _decisionEventContent(event),
+      remaining,
+    );
     if (content.isEmpty) continue;
     final bounded = _eventWithContent(event, content);
     used += _estimateTokens(content) + 8;
@@ -241,6 +251,14 @@ _BoundedDecisionHistory _boundDecisionHistory({
     List<ProjectEvent>.unmodifiable(selected),
     used.clamp(0, maxInputTokens),
   );
+}
+
+String _decisionEventContent(ProjectEvent event) {
+  final payload = event.payload;
+  if (payload is AgentDeliveryPayload) {
+    return '${payload.summary}\n${payload.payload}';
+  }
+  return event.content;
 }
 
 int _estimateTokens(String text) => (utf8.encode(text).length + 2) ~/ 3;

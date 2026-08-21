@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:hyve/domain/models/agent_delivery.dart';
 import 'package:hyve/domain/models/agent_run.dart';
 import 'package:hyve/domain/models/project_event.dart';
 import 'package:hyve/domain/models/project_turn.dart';
@@ -257,6 +258,62 @@ final class AgentRunRecord {
   }
 }
 
+final class AgentDeliveryRecord {
+  const AgentDeliveryRecord(this.values);
+
+  factory AgentDeliveryRecord.fromDomain(AgentDelivery delivery) {
+    return AgentDeliveryRecord(<String, Object?>{
+      'event_id': delivery.eventId,
+      'source_run_id': delivery.sourceRunId,
+      'source_agent_id': delivery.sourceAgentId,
+      'kind': delivery.kind.name,
+      'summary': delivery.summary,
+      'payload': delivery.payload,
+      'visibility': delivery.visibility.name,
+      'request_public_reply': delivery.requestPublicReply ? 1 : 0,
+      'root_turn_id': delivery.rootTurnId,
+      'depth': delivery.depth,
+      'payload_digest': delivery.payloadDigest,
+    });
+  }
+
+  final Map<String, Object?> values;
+
+  AgentDelivery toDomain({
+    required String deliveryRunId,
+    Iterable<String> targetAgentIds = const <String>[],
+    Iterable<String> projectArtifactVersionIds = const <String>[],
+  }) {
+    return AgentDelivery(
+      eventId: _text(values['event_id'], 'event_id'),
+      deliveryRunId: deliveryRunId,
+      sourceRunId: _text(values['source_run_id'], 'source_run_id'),
+      sourceAgentId: _text(values['source_agent_id'], 'source_agent_id'),
+      kind: _enumByName(
+        AgentDeliveryKind.values,
+        _text(values['kind'], 'kind'),
+        'kind',
+      ),
+      summary: _text(values['summary'], 'summary'),
+      payload: _text(values['payload'], 'payload'),
+      visibility: _enumByName(
+        AgentDeliveryVisibility.values,
+        _text(values['visibility'], 'visibility'),
+        'visibility',
+      ),
+      requestPublicReply: _storageBool(
+        values['request_public_reply'],
+        'request_public_reply',
+      ),
+      rootTurnId: _text(values['root_turn_id'], 'root_turn_id'),
+      depth: _integer(values['depth'], 'depth'),
+      payloadDigest: _text(values['payload_digest'], 'payload_digest'),
+      targetAgentIds: targetAgentIds,
+      projectArtifactVersionIds: projectArtifactVersionIds,
+    );
+  }
+}
+
 Map<String, Object?> _payloadToJson(ProjectEventPayload payload) {
   return switch (payload) {
     ProjectMessagePayload(
@@ -291,12 +348,14 @@ Map<String, Object?> _payloadToJson(ProjectEventPayload payload) {
       :final kind,
       :final summary,
       :final payload,
+      :final projectArtifactVersionIds,
       :final requestPublicReply,
     ) =>
       <String, Object?>{
         'kind': kind.name,
         'summary': summary,
         'payload': payload,
+        'projectArtifactVersionIds': projectArtifactVersionIds,
         'requestPublicReply': requestPublicReply,
       },
     MembershipChangedPayload(
@@ -387,6 +446,7 @@ ProjectEventPayload _payloadFromJson(
         'kind',
         'summary',
         'payload',
+        'projectArtifactVersionIds',
         'requestPublicReply',
       }, 'delivery payload');
       return AgentDeliveryPayload(
@@ -397,6 +457,10 @@ ProjectEventPayload _payloadFromJson(
         ),
         summary: _text(values['summary'], 'summary'),
         payload: _text(values['payload'], 'payload'),
+        projectArtifactVersionIds: _stringList(
+          values['projectArtifactVersionIds'],
+          'projectArtifactVersionIds',
+        ),
         requestPublicReply: _boolean(
           values['requestPublicReply'],
           'requestPublicReply',

@@ -5,14 +5,19 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/models/ai_models.dart';
 import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
+import 'package:hyve/domain/use_cases/agent_run_coordinator.dart';
+import 'package:hyve/data/services/tools/project_deliver_to_agent_tool.dart';
 
 final class ProviderProjectAgentExecutionGateway
     implements ProjectAgentExecutionGateway {
   const ProviderProjectAgentExecutionGateway({
     required AiProviderRepository providers,
-  }) : _providers = providers;
+    AgentRunLimits agentRunLimits = const AgentRunLimits(),
+  }) : _providers = providers,
+       _agentRunLimits = agentRunLimits;
 
   final AiProviderRepository _providers;
+  final AgentRunLimits _agentRunLimits;
 
   @override
   Future<BroadcastParticipationResult> decide(
@@ -77,6 +82,15 @@ final class ProviderProjectAgentExecutionGateway
     ProjectAgentReplyRequest request,
   ) async {
     request.cancellationToken.throwIfCancelled();
+    final provider = _providers.create(_botFromAgent(request.agent));
+    final deliveryExecutor = request.deliveryExecutor;
+    if (deliveryExecutor != null && provider.capabilities.supportsAgentLoop) {
+      return _replyWithDeliveryTool(
+        request: request,
+        provider: provider,
+        deliveryExecutor: deliveryExecutor,
+      );
+    }
     final generated = await _generate(
       agent: request.agent,
       messages: <ChatMessage>[
@@ -110,6 +124,84 @@ final class ProviderProjectAgentExecutionGateway
     );
   }
 
+  Future<ProjectAgentReplyResult> _replyWithDeliveryTool({
+    required ProjectAgentReplyRequest request,
+    required AiProvider provider,
+    required ProjectAgentDeliveryExecutor deliveryExecutor,
+  }) async {
+    var deliveryCount = 0;
+    final deliveryTool = ProjectDeliverToAgentTool(
+      deliver: (deliveryRequest) async {
+        final result = await deliveryExecutor(deliveryRequest);
+        deliveryCount++;
+        return result;
+      },
+    );
+    final cancellationToken = AgentCancellationToken();
+    unawaited(
+      request.cancellationToken.whenCancelled.then((_) {
+        cancellationToken.cancel();
+      }),
+    );
+    final coordinator = AgentRunCoordinator(
+      toolRegistry: StaticToolRegistry(<ExecutableTool>[deliveryTool]),
+      toolPolicy: const _ProjectDeliveryToolPolicy(),
+      limits: _agentRunLimits,
+    );
+    final result = await coordinator.run(
+      provider: provider,
+      request: AgentRunRequest(
+        runId: request.runId,
+        chatId: request.projectId,
+        botId: request.agent.id,
+        messages: <ChatMessage>[
+          ChatMessage(
+            role: 'system',
+            content:
+                '${request.agent.systemPrompt}\n\n'
+                'Use ${ProjectDeliverToAgentTool.name} for every structured '
+                'handoff to another project Agent. Do not simulate a handoff '
+                'with a plain-text @mention.',
+          ),
+          for (final event in request.visibleHistory)
+            ChatMessage(
+              role:
+                  event.actorType == ProjectEventActorType.user
+                      ? 'user'
+                      : event.actorId == request.agent.id
+                      ? 'assistant'
+                      : 'user',
+              content: _projectEventContent(event),
+              images:
+                  event.payload is ProjectMessagePayload
+                      ? (event.payload as ProjectMessagePayload).images
+                      : const <String>[],
+              files:
+                  event.payload is ProjectMessagePayload
+                      ? (event.payload as ProjectMessagePayload).files
+                      : const <String>[],
+            ),
+        ],
+        requestedToolNames: const <String>{ProjectDeliverToAgentTool.name},
+        cancellationToken: cancellationToken,
+      ),
+    );
+    return ProjectAgentReplyResult(
+      status: switch (result.status) {
+        RunResultStatus.completed => ProjectAgentReplyStatus.completed,
+        RunResultStatus.cancelled => ProjectAgentReplyStatus.cancelled,
+        RunResultStatus.failed => ProjectAgentReplyStatus.failed,
+        RunResultStatus.timedOut => ProjectAgentReplyStatus.timedOut,
+        RunResultStatus.limitExceeded => ProjectAgentReplyStatus.limitExceeded,
+      },
+      text: result.text,
+      reasoning: result.reasoning,
+      tokenUsage: result.tokenUsage,
+      errorCode: result.error,
+      deliveryCount: deliveryCount,
+    );
+  }
+
   Future<_GeneratedText> _generate({
     required Agent agent,
     required List<ChatMessage> messages,
@@ -138,6 +230,36 @@ final class ProviderProjectAgentExecutionGateway
     }
     if (error != null) throw StateError(error!);
     return _GeneratedText(text: text, reasoning: reasoning, usage: usage);
+  }
+}
+
+String _projectEventContent(ProjectEvent event) {
+  final payload = event.payload;
+  if (payload is AgentDeliveryPayload) {
+    return '[Agent delivery: ${payload.kind.name}; '
+        'visibility=${event.visibility.name}; '
+        'targets=${event.targetAgentIds.join(',')}]\n'
+        '${payload.summary}\n${payload.payload}';
+  }
+  return event.content;
+}
+
+final class _ProjectDeliveryToolPolicy implements ToolPolicy {
+  const _ProjectDeliveryToolPolicy();
+
+  @override
+  ToolPolicyDecision evaluate(
+    ToolDefinition definition,
+    ToolCallRequest call,
+    ToolPolicyContext context,
+  ) {
+    if (definition.name == ProjectDeliverToAgentTool.name &&
+        context.requestedToolNames.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'trusted_project_delivery_context',
+      );
+    }
+    return const ToolPolicyDecision.deny(reason: 'project_tool_not_allowed');
   }
 }
 

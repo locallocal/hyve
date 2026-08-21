@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:hyve/domain/models/agent.dart';
+import 'package:hyve/domain/models/agent_delivery.dart';
 import 'package:hyve/domain/models/message.dart';
 import 'package:hyve/domain/models/project_event.dart';
+
+typedef ProjectAgentDeliveryExecutor =
+    Future<AgentDeliveryExecutionResult> Function(AgentDeliveryRequest request);
 
 final class ProjectRunCancellationToken {
   final Completer<void> _cancelled = Completer<void>();
@@ -76,6 +80,7 @@ final class ProjectAgentReplyRequest {
     required this.contextThroughMessageSequence,
     required Iterable<ProjectEvent> visibleHistory,
     required this.cancellationToken,
+    this.deliveryExecutor,
   }) : visibleHistory = List<ProjectEvent>.unmodifiable(visibleHistory);
 
   final String runId;
@@ -85,6 +90,7 @@ final class ProjectAgentReplyRequest {
   final int contextThroughMessageSequence;
   final List<ProjectEvent> visibleHistory;
   final ProjectRunCancellationToken cancellationToken;
+  final ProjectAgentDeliveryExecutor? deliveryExecutor;
 }
 
 enum ProjectAgentReplyStatus {
@@ -102,6 +108,7 @@ final class ProjectAgentReplyResult {
     this.reasoning = '',
     this.tokenUsage = ModelTokenUsage.empty,
     this.errorCode = '',
+    this.deliveryCount = 0,
   });
 
   final ProjectAgentReplyStatus status;
@@ -109,4 +116,5 @@ final class ProjectAgentReplyResult {
   final String reasoning;
   final ModelTokenUsage tokenUsage;
   final String errorCode;
+  final int deliveryCount;
 }

@@ -67,16 +67,20 @@ final class ParticipationDecisionPayload extends ProjectEventPayload {
 enum AgentDeliveryKind { information, task, question, result }
 
 final class AgentDeliveryPayload extends ProjectEventPayload {
-  const AgentDeliveryPayload({
+  AgentDeliveryPayload({
     required this.kind,
     required this.summary,
     required this.payload,
+    Iterable<String> projectArtifactVersionIds = const <String>[],
     this.requestPublicReply = false,
-  });
+  }) : projectArtifactVersionIds = List<String>.unmodifiable(
+         projectArtifactVersionIds,
+       );
 
   final AgentDeliveryKind kind;
   final String summary;
   final String payload;
+  final List<String> projectArtifactVersionIds;
   final bool requestPublicReply;
 }
 

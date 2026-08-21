@@ -8,6 +8,7 @@ enum ToolRiskLevel { readOnly, write, destructive }
 
 enum ToolCapability {
   compute,
+  projectRouting,
   localRead,
   network,
   externalRead,

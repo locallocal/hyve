@@ -5,6 +5,7 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/model_usage_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
+import 'package:hyve/domain/use_cases/deliver_to_project_agent.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
 
 typedef ReplyRunIdFactory = String Function(String prefix);
@@ -32,12 +33,14 @@ final class ExecuteProjectAgentReply {
     required AgentRunRepository runRepository,
     required ProjectAgentExecutionGateway gateway,
     required RouteProjectMessage routeProjectMessage,
+    DeliverToProjectAgent? deliverToProjectAgent,
     ModelUsageRepository? modelUsageRepository,
     ReplyRunIdFactory? idFactory,
     ReplyRunClock? clock,
   }) : _runRepository = runRepository,
        _gateway = gateway,
        _routeProjectMessage = routeProjectMessage,
+       _deliverToProjectAgent = deliverToProjectAgent,
        _modelUsageRepository = modelUsageRepository,
        _idFactory = idFactory ?? _defaultReplyRunIdFactory,
        _clock = clock ?? DateTime.now;
@@ -45,6 +48,7 @@ final class ExecuteProjectAgentReply {
   final AgentRunRepository _runRepository;
   final ProjectAgentExecutionGateway _gateway;
   final RouteProjectMessage _routeProjectMessage;
+  final DeliverToProjectAgent? _deliverToProjectAgent;
   final ModelUsageRepository? _modelUsageRepository;
   final ReplyRunIdFactory _idFactory;
   final ReplyRunClock _clock;
@@ -59,6 +63,11 @@ final class ExecuteProjectAgentReply {
   }) async {
     final now = _clock();
     final runId = _idFactory('reply-run');
+    final deliveryParent =
+        sourceEvent.eventType == ProjectEventType.agentDelivery &&
+                sourceEvent.runId.isNotEmpty
+            ? await _runRepository.getRun(sourceEvent.runId)
+            : null;
     var run = AgentRun(
       id: runId,
       projectId: project.id,
@@ -67,7 +76,9 @@ final class ExecuteProjectAgentReply {
       sourceMessageEventId: sourceEvent.id,
       sourceMessageSequence: sourceEvent.messageSequence!,
       contextThroughMessageSequence: sourceEvent.messageSequence!,
-      rootRunId: runId,
+      parentRunId: deliveryParent?.id ?? '',
+      rootRunId: deliveryParent?.rootRunId ?? runId,
+      deliveryDepth: deliveryParent?.deliveryDepth ?? 0,
       phase: AgentRunPhase.reply,
       status: AgentRunStatus.queued,
       agentSnapshot: _replySnapshot(agent),
@@ -92,10 +103,23 @@ final class ExecuteProjectAgentReply {
           contextThroughMessageSequence: sourceEvent.messageSequence!,
           visibleHistory: visibleHistory,
           cancellationToken: cancellationToken,
+          deliveryExecutor:
+              _deliverToProjectAgent == null
+                  ? null
+                  : (request) => _deliverToProjectAgent(
+                    project: project,
+                    sourceAgent: agent,
+                    sourceRun: run,
+                    sourceTurn: turn,
+                    sourceEvent: sourceEvent,
+                    request: request,
+                    cancellationToken: cancellationToken,
+                  ),
         ),
       );
       if (result.status == ProjectAgentReplyStatus.completed &&
-          result.text.trim().isEmpty) {
+          result.text.trim().isEmpty &&
+          result.deliveryCount == 0) {
         result = ProjectAgentReplyResult(
           status: ProjectAgentReplyStatus.failed,
           reasoning: result.reasoning,
@@ -103,7 +127,8 @@ final class ExecuteProjectAgentReply {
           errorCode: 'empty_agent_reply',
         );
       }
-      if (result.status == ProjectAgentReplyStatus.completed) {
+      if (result.status == ProjectAgentReplyStatus.completed &&
+          result.text.trim().isNotEmpty) {
         cancellationToken.throwIfCancelled();
         replyEvent =
             (await _routeProjectMessage.appendAgentReply(

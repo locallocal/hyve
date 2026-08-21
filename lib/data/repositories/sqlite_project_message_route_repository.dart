@@ -66,6 +66,7 @@ final class SqliteProjectMessageRouteRepository
       ProjectEventRecord.fromDomain(provisionalEvent).values,
       ProjectTurnRecord.fromDomain(provisionalTurn).values,
       request.targetAgentIds,
+      request.payload.projectArtifactVersionIds,
       request.routingMode.name,
     );
     final routed = RoutedProjectMessage(

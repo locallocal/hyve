@@ -46,16 +46,24 @@ final class ProjectMessageDraft {
     required this.text,
     Iterable<MentionSpan> mentions = const <MentionSpan>[],
     Iterable<PendingAttachment> attachments = const <PendingAttachment>[],
+    Iterable<String> projectArtifactVersionIds = const <String>[],
   }) : mentions = List<MentionSpan>.unmodifiable(mentions),
-       attachments = List<PendingAttachment>.unmodifiable(attachments) {
+       attachments = List<PendingAttachment>.unmodifiable(attachments),
+       projectArtifactVersionIds = List<String>.unmodifiable(
+         projectArtifactVersionIds,
+       ) {
     _validateMentions();
   }
 
   final String text;
   final List<MentionSpan> mentions;
   final List<PendingAttachment> attachments;
+  final List<String> projectArtifactVersionIds;
 
-  bool get isEmpty => text.trim().isEmpty && attachments.isEmpty;
+  bool get isEmpty =>
+      text.trim().isEmpty &&
+      attachments.isEmpty &&
+      projectArtifactVersionIds.isEmpty;
 
   List<String> get mentionedAgentIds => List<String>.unmodifiable(
     LinkedHashSet<String>.from(mentions.map((mention) => mention.agentId)),

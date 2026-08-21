@@ -12,6 +12,8 @@ final class ProjectAgentPersistence {
     required this.receiptRepository,
     required this.decisionRepository,
     required this.deliveryRepository,
+    required this.artifactRepository,
+    required this.attachmentRepository,
     required this.routeRepository,
     required this.routeProjectMessage,
     required this.inboxCoordinator,
@@ -22,6 +24,7 @@ final class ProjectAgentPersistence {
     required LocalDatabaseService localDatabase,
     required BotApiKeyCipher apiKeyCipher,
     required ProjectAgentStorageService storage,
+    required AttachmentRepository attachmentRepository,
     required AiProviderRepository providers,
     required ModelUsageRepository modelUsageRepository,
   }) {
@@ -36,6 +39,10 @@ final class ProjectAgentPersistence {
     );
     final membershipRepository = SqliteProjectMembershipRepository(
       localDatabase: localDatabase,
+    );
+    final artifactRepository = SqliteProjectArtifactRepository(
+      localDatabase: localDatabase,
+      storage: FileProjectStorageRepository(storage: storage),
     );
     final eventRepository = SqliteProjectEventRepository(
       localDatabase: localDatabase,
@@ -103,6 +110,32 @@ final class ProjectAgentPersistence {
         gateway: gateway,
         routeProjectMessage: routeProjectMessage,
         deliverToProjectAgent: deliverToProjectAgent,
+        scopedToolProvider: ({
+          required project,
+          required agent,
+          required run,
+        }) async {
+          final membership = await membershipRepository.getMembership(
+            project.id,
+            agent.id,
+          );
+          if (membership == null ||
+              membership.status != ProjectMembershipStatus.active) {
+            return const <ExecutableTool>[];
+          }
+          return ProjectArtifactToolSet(
+            repository: artifactRepository,
+            projectId: project.id,
+            actor: ProjectArtifactActor(
+              type: ProjectArtifactActorType.agent,
+              id: agent.id,
+              name: agent.name,
+              avatar: agent.avatar,
+              sourceRunId: run.id,
+            ),
+            access: membership.projectStorageAccess,
+          ).tools;
+        },
         modelUsageRepository: modelUsageRepository,
       ),
       turnCoordinator: turnCoordinator,
@@ -119,6 +152,8 @@ final class ProjectAgentPersistence {
       receiptRepository: receiptRepository,
       decisionRepository: decisionRepository,
       deliveryRepository: deliveryRepository,
+      artifactRepository: artifactRepository,
+      attachmentRepository: attachmentRepository,
       routeRepository: routeRepository,
       routeProjectMessage: routeProjectMessage,
       inboxCoordinator: inboxCoordinator,
@@ -139,6 +174,8 @@ final class ProjectAgentPersistence {
   final AgentMessageReceiptRepository receiptRepository;
   final ParticipationDecisionRepository decisionRepository;
   final AgentDeliveryRepository deliveryRepository;
+  final ProjectArtifactRepository artifactRepository;
+  final AttachmentRepository attachmentRepository;
   final ProjectMessageRouteRepository routeRepository;
   final RouteProjectMessage routeProjectMessage;
   final AgentInboxCoordinator inboxCoordinator;
@@ -157,6 +194,8 @@ final class ProjectAgentPersistence {
         runRepository: runRepository,
         deliveryRepository: deliveryRepository,
         inboxCoordinator: inboxCoordinator,
+        artifactRepository: artifactRepository,
+        attachmentRepository: attachmentRepository,
       );
 }
 

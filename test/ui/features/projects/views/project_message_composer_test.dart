@@ -102,6 +102,47 @@ void main() {
     expect(sent?.mentionedAgentIds, <String>['agent-2']);
   });
 
+  testWidgets('composer sends selected project attachments', (tester) async {
+    final controller = StructuredProjectMessageController();
+    addTearDown(controller.dispose);
+    ProjectMessageDraft? sent;
+    var pickCalls = 0;
+    int? removedIndex;
+    const attachment = PendingAttachment(
+      sourcePath: '/picker/report.md',
+      kind: PendingAttachmentKind.file,
+      displayName: 'report.md',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ProjectMessageComposer(
+            controller: controller,
+            activeAgents: const <Agent>[],
+            attachments: const <PendingAttachment>[attachment],
+            onPickAttachment: () => pickCalls++,
+            onRemoveAttachment: (index) => removedIndex = index,
+            onSend: (draft) => sent = draft,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('report.md'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-pick-attachment')),
+    );
+    expect(pickCalls, 1);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-send-message')),
+    );
+    expect(sent?.attachments, const <PendingAttachment>[attachment]);
+
+    final chip = tester.widget<InputChip>(find.byType(InputChip));
+    chip.onDeleted?.call();
+    expect(removedIndex, 0);
+  });
+
   test('ambiguous pasted names are not guessed', () {
     final controller = StructuredProjectMessageController(text: '@同名 处理');
     addTearDown(controller.dispose);

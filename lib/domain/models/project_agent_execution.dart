@@ -4,6 +4,7 @@ import 'package:hyve/domain/models/agent.dart';
 import 'package:hyve/domain/models/agent_delivery.dart';
 import 'package:hyve/domain/models/message.dart';
 import 'package:hyve/domain/models/project_event.dart';
+import 'package:hyve/domain/models/tool.dart';
 
 typedef ProjectAgentDeliveryExecutor =
     Future<AgentDeliveryExecutionResult> Function(AgentDeliveryRequest request);
@@ -81,7 +82,9 @@ final class ProjectAgentReplyRequest {
     required Iterable<ProjectEvent> visibleHistory,
     required this.cancellationToken,
     this.deliveryExecutor,
-  }) : visibleHistory = List<ProjectEvent>.unmodifiable(visibleHistory);
+    Iterable<ExecutableTool> projectTools = const <ExecutableTool>[],
+  }) : visibleHistory = List<ProjectEvent>.unmodifiable(visibleHistory),
+       projectTools = List<ExecutableTool>.unmodifiable(projectTools);
 
   final String runId;
   final String projectId;
@@ -91,6 +94,7 @@ final class ProjectAgentReplyRequest {
   final List<ProjectEvent> visibleHistory;
   final ProjectRunCancellationToken cancellationToken;
   final ProjectAgentDeliveryExecutor? deliveryExecutor;
+  final List<ExecutableTool> projectTools;
 }
 
 enum ProjectAgentReplyStatus {
@@ -109,6 +113,7 @@ final class ProjectAgentReplyResult {
     this.tokenUsage = ModelTokenUsage.empty,
     this.errorCode = '',
     this.deliveryCount = 0,
+    this.toolInvocations = const <ToolInvocationRecord>[],
   });
 
   final ProjectAgentReplyStatus status;
@@ -117,4 +122,5 @@ final class ProjectAgentReplyResult {
   final ModelTokenUsage tokenUsage;
   final String errorCode;
   final int deliveryCount;
+  final List<ToolInvocationRecord> toolInvocations;
 }

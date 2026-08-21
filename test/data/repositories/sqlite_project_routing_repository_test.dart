@@ -309,6 +309,91 @@ void main() {
     expect(reclaimed?.event.id, routed.event.id);
   });
 
+  test(
+    'stores only valid fixed artifact version references atomically',
+    () async {
+      final now = DateTime(2026, 8, 21).millisecondsSinceEpoch;
+      await database.insert('project_artifacts', <String, Object?>{
+        'id': 'artifact-1',
+        'project_id': 'project-1',
+        'name': 'brief.md',
+        'relative_path': 'docs/brief.md',
+        'kind': 'document',
+        'mime_type': 'text/markdown',
+        'current_version_id': 'version-1',
+        'search_status': 'indexed',
+        'metadata_json': '{}',
+        'created_by_type': 'user',
+        'created_by_id': 'me',
+        'source_run_id': '',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('project_artifact_versions', <String, Object?>{
+        'id': 'version-1',
+        'artifact_id': 'artifact-1',
+        'version_number': 1,
+        'relative_blob_path': 'artifacts/blobs/artifact-1/version-1/content',
+        'content_digest':
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        'byte_length': 5,
+        'mime_type': 'text/markdown',
+        'created_by_type': 'user',
+        'created_by_id': 'me',
+        'source_run_id': '',
+        'created_at': now,
+      });
+
+      final routed = await route(
+        projectId: 'project-1',
+        draft: ProjectMessageDraft(
+          text: 'review the brief',
+          projectArtifactVersionIds: const <String>['version-1'],
+        ),
+      );
+
+      expect(
+        (routed.event.payload as ProjectMessagePayload)
+            .projectArtifactVersionIds,
+        <String>['version-1'],
+      );
+      expect(await database.query('project_event_artifacts'), [
+        <String, Object?>{
+          'event_id': routed.event.id,
+          'artifact_id': 'artifact-1',
+          'artifact_version_id': 'version-1',
+          'relation': 'attachment',
+          'position': 0,
+        },
+      ]);
+
+      await expectLater(
+        route(
+          projectId: 'project-1',
+          draft: ProjectMessageDraft(
+            text: 'invalid reference',
+            projectArtifactVersionIds: const <String>['missing-version'],
+          ),
+        ),
+        throwsA(
+          isA<ProjectMessageRouteFailure>().having(
+            (failure) => failure.code,
+            'code',
+            'project_message_artifact_version_not_found',
+          ),
+        ),
+      );
+      expect(await database.query('project_events'), hasLength(1));
+      expect(
+        (await database.query(
+          'projects',
+          columns: const <String>['last_message_sequence'],
+        )).single['last_message_sequence'],
+        1,
+      );
+    },
+  );
+
   test('broadcast in a zero-member Project completes without a run', () async {
     final removedAt = DateTime(2026, 8, 21, 2);
     await memberships.remove('project-1', 'agent-1', removedAt);

@@ -6,6 +6,7 @@ import 'package:hyve/domain/models/ai_models.dart';
 import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
 import 'package:hyve/domain/use_cases/agent_run_coordinator.dart';
+import 'package:hyve/data/services/tools/project_artifact_tools.dart';
 import 'package:hyve/data/services/tools/project_deliver_to_agent_tool.dart';
 
 final class ProviderProjectAgentExecutionGateway
@@ -13,11 +14,14 @@ final class ProviderProjectAgentExecutionGateway
   const ProviderProjectAgentExecutionGateway({
     required AiProviderRepository providers,
     AgentRunLimits agentRunLimits = const AgentRunLimits(),
+    ToolApprovalHandler approvalHandler = const DenyToolApprovalHandler(),
   }) : _providers = providers,
-       _agentRunLimits = agentRunLimits;
+       _agentRunLimits = agentRunLimits,
+       _approvalHandler = approvalHandler;
 
   final AiProviderRepository _providers;
   final AgentRunLimits _agentRunLimits;
+  final ToolApprovalHandler _approvalHandler;
 
   @override
   Future<BroadcastParticipationResult> decide(
@@ -84,7 +88,8 @@ final class ProviderProjectAgentExecutionGateway
     request.cancellationToken.throwIfCancelled();
     final provider = _providers.create(_botFromAgent(request.agent));
     final deliveryExecutor = request.deliveryExecutor;
-    if (deliveryExecutor != null && provider.capabilities.supportsAgentLoop) {
+    if ((deliveryExecutor != null || request.projectTools.isNotEmpty) &&
+        provider.capabilities.supportsAgentLoop) {
       return _replyWithDeliveryTool(
         request: request,
         provider: provider,
@@ -127,16 +132,20 @@ final class ProviderProjectAgentExecutionGateway
   Future<ProjectAgentReplyResult> _replyWithDeliveryTool({
     required ProjectAgentReplyRequest request,
     required AiProvider provider,
-    required ProjectAgentDeliveryExecutor deliveryExecutor,
+    required ProjectAgentDeliveryExecutor? deliveryExecutor,
   }) async {
     var deliveryCount = 0;
-    final deliveryTool = ProjectDeliverToAgentTool(
-      deliver: (deliveryRequest) async {
-        final result = await deliveryExecutor(deliveryRequest);
-        deliveryCount++;
-        return result;
-      },
-    );
+    final tools = <ExecutableTool>[
+      ...request.projectTools,
+      if (deliveryExecutor != null)
+        ProjectDeliverToAgentTool(
+          deliver: (deliveryRequest) async {
+            final result = await deliveryExecutor(deliveryRequest);
+            deliveryCount++;
+            return result;
+          },
+        ),
+    ];
     final cancellationToken = AgentCancellationToken();
     unawaited(
       request.cancellationToken.whenCancelled.then((_) {
@@ -144,8 +153,9 @@ final class ProviderProjectAgentExecutionGateway
       }),
     );
     final coordinator = AgentRunCoordinator(
-      toolRegistry: StaticToolRegistry(<ExecutableTool>[deliveryTool]),
-      toolPolicy: const _ProjectDeliveryToolPolicy(),
+      toolRegistry: StaticToolRegistry(tools),
+      toolPolicy: const _ProjectAgentToolPolicy(),
+      approvalHandler: _approvalHandler,
       limits: _agentRunLimits,
     );
     final result = await coordinator.run(
@@ -159,7 +169,10 @@ final class ProviderProjectAgentExecutionGateway
             role: 'system',
             content:
                 '${request.agent.systemPrompt}\n\n'
-                'Use ${ProjectDeliverToAgentTool.name} for every structured '
+                'Project artifact tools are scoped to this project and your '
+                'live membership permission. Read only the bounded content '
+                'you need. Use ${ProjectDeliverToAgentTool.name} for every '
+                'structured '
                 'handoff to another project Agent. Do not simulate a handoff '
                 'with a plain-text @mention.',
           ),
@@ -182,7 +195,7 @@ final class ProviderProjectAgentExecutionGateway
                       : const <String>[],
             ),
         ],
-        requestedToolNames: const <String>{ProjectDeliverToAgentTool.name},
+        requestedToolNames: tools.map((tool) => tool.definition.name).toSet(),
         cancellationToken: cancellationToken,
       ),
     );
@@ -199,6 +212,7 @@ final class ProviderProjectAgentExecutionGateway
       tokenUsage: result.tokenUsage,
       errorCode: result.error,
       deliveryCount: deliveryCount,
+      toolInvocations: result.toolInvocations,
     );
   }
 
@@ -244,8 +258,8 @@ String _projectEventContent(ProjectEvent event) {
   return event.content;
 }
 
-final class _ProjectDeliveryToolPolicy implements ToolPolicy {
-  const _ProjectDeliveryToolPolicy();
+final class _ProjectAgentToolPolicy implements ToolPolicy {
+  const _ProjectAgentToolPolicy();
 
   @override
   ToolPolicyDecision evaluate(
@@ -253,10 +267,27 @@ final class _ProjectDeliveryToolPolicy implements ToolPolicy {
     ToolCallRequest call,
     ToolPolicyContext context,
   ) {
-    if (definition.name == ProjectDeliverToAgentTool.name &&
-        context.requestedToolNames.contains(definition.name)) {
+    if (!context.requestedToolNames.contains(definition.name)) {
+      return const ToolPolicyDecision.deny(reason: 'project_tool_not_exposed');
+    }
+    if (definition.name == ProjectDeliverToAgentTool.name) {
       return const ToolPolicyDecision.allow(
         reason: 'trusted_project_delivery_context',
+      );
+    }
+    if (ProjectArtifactToolNames.readOnly.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'scoped_project_artifact_read',
+      );
+    }
+    if (ProjectArtifactToolNames.write.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'immutable_project_artifact_write',
+      );
+    }
+    if (ProjectArtifactToolNames.destructive.contains(definition.name)) {
+      return const ToolPolicyDecision.requireApproval(
+        reason: 'project_artifact_destructive_approval',
       );
     }
     return const ToolPolicyDecision.deny(reason: 'project_tool_not_allowed');

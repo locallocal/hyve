@@ -48,6 +48,7 @@ import 'package:hyve/data/services/skills/skill_script_catalog_service.dart';
 import 'package:hyve/data/services/skills/skill_script_manifest_parser.dart';
 import 'package:hyve/data/services/skills/skill_signature_service.dart';
 import 'package:hyve/data/services/tools/built_in_tools.dart';
+import 'package:hyve/data/services/tools/project_artifact_tools.dart';
 import 'package:hyve/data/services/tools/add_mcp_server_tool.dart';
 import 'package:hyve/data/services/tools/shell_command_tool.dart';
 import 'package:hyve/data/services/tools/skill_installer_tool.dart';
@@ -174,6 +175,9 @@ class AppDependencies {
     );
     final conversationSummaryStorage = ConversationSummaryStorage();
     final projectAgentStorage = ProjectAgentStorageService();
+    final attachmentRepository = AttachmentRepositoryImpl(
+      service: AttachmentPickerService(),
+    );
     conversationSummaryStorage.recoverPendingDeletions().ignore();
     final conversationMemoryRepository = SqliteConversationMemoryRepository(
       localDatabase: localDatabase,
@@ -201,6 +205,7 @@ class AppDependencies {
       localDatabase: localDatabase,
       apiKeyCipher: botApiKeyCipher,
       storage: projectAgentStorage,
+      attachmentRepository: attachmentRepository,
       providers: aiProviderRepository,
       modelUsageRepository: modelUsageRepository,
     );
@@ -269,9 +274,6 @@ class AppDependencies {
               operationKind: 'context_compaction',
             ),
           ),
-    );
-    final attachmentRepository = AttachmentRepositoryImpl(
-      service: AttachmentPickerService(),
     );
     final persistConversationAssets = PersistConversationAssets(
       repository: attachmentRepository,

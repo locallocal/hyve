@@ -20,6 +20,7 @@ export 'mcp_installer.dart';
 export 'modalities.dart';
 export 'profile.dart';
 export 'project.dart';
+export 'project_artifact.dart';
 export 'project_event.dart';
 export 'project_agent_execution.dart';
 export 'project_message_draft.dart';

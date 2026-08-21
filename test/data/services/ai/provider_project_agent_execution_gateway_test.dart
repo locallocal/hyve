@@ -1,0 +1,195 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hyve/data/services/ai/provider_project_agent_execution_gateway.dart';
+import 'package:hyve/data/services/tools/project_artifact_tools.dart';
+import 'package:hyve/domain/models/ai_models.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
+
+void main() {
+  test('exposes and audits scoped project artifact tools', () async {
+    final session = _ModelSession(<List<ModelEvent>>[
+      <ModelEvent>[
+        ToolCallRequested(
+          callId: 'artifact-call',
+          name: ProjectArtifactToolNames.list,
+          arguments: const <String, Object?>{},
+        ),
+        const ModelTurnCompleted(stopReason: 'tool_calls'),
+      ],
+      const <ModelEvent>[
+        TextDelta('Artifact inspected.'),
+        ModelTurnCompleted(stopReason: 'stop'),
+      ],
+    ]);
+    final provider = _Provider(session);
+    final tool = _ArtifactListTool();
+    final gateway = ProviderProjectAgentExecutionGateway(
+      providers: _Providers(provider),
+    );
+
+    final result = await gateway.reply(
+      ProjectAgentReplyRequest(
+        runId: 'run-1',
+        projectId: 'project-1',
+        agent: _agent(),
+        sourceEvent: _event(),
+        contextThroughMessageSequence: 1,
+        visibleHistory: <ProjectEvent>[_event()],
+        cancellationToken: ProjectRunCancellationToken(),
+        projectTools: <ExecutableTool>[tool],
+      ),
+    );
+
+    expect(result.status, ProjectAgentReplyStatus.completed);
+    expect(result.text, 'Artifact inspected.');
+    expect(tool.executions, 1);
+    expect(
+      provider.lastRequest?.tools.map((definition) => definition.name),
+      <String>[ProjectArtifactToolNames.list],
+    );
+    expect(session.continuations.single.single.content, contains('"count":0'));
+    expect(result.toolInvocations, hasLength(1));
+    expect(
+      result.toolInvocations.single.status,
+      ToolInvocationStatus.succeeded,
+    );
+    expect(result.toolInvocations.single.name, ProjectArtifactToolNames.list);
+  });
+}
+
+final class _ArtifactListTool implements ExecutableTool {
+  var executions = 0;
+
+  @override
+  final ToolDefinition definition = ToolDefinition(
+    name: ProjectArtifactToolNames.list,
+    title: 'List artifacts',
+    description: 'List current project artifacts.',
+    inputSchema: const <String, Object?>{
+      'type': 'object',
+      'properties': <String, Object?>{},
+      'additionalProperties': false,
+    },
+    outputSchema: const <String, Object?>{'type': 'object'},
+    source: ToolSource.builtIn,
+    riskLevel: ToolRiskLevel.readOnly,
+    capabilities: const <ToolCapability>{ToolCapability.localRead},
+  );
+
+  @override
+  Future<ToolResult> execute(
+    ToolCallRequest call,
+    AgentCancellationToken cancellationToken,
+  ) async {
+    executions++;
+    return ToolResult(
+      callId: call.callId,
+      name: call.name,
+      content: '{"count":0,"artifacts":[]}',
+      structuredContent: const <String, Object?>{
+        'count': 0,
+        'artifacts': <Object?>[],
+      },
+    );
+  }
+}
+
+final class _ModelSession implements AgentModelSession {
+  _ModelSession(this.turns);
+
+  final List<List<ModelEvent>> turns;
+  final List<List<ToolResult>> continuations = <List<ToolResult>>[];
+  var _turn = 0;
+
+  @override
+  Stream<ModelEvent> start() => Stream<ModelEvent>.fromIterable(turns[_turn++]);
+
+  @override
+  Stream<ModelEvent> continueWith(List<ToolResult> results) {
+    continuations.add(List<ToolResult>.of(results));
+    return Stream<ModelEvent>.fromIterable(turns[_turn++]);
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  void close() {}
+}
+
+final class _Provider extends AiProvider {
+  _Provider(this.session) : super(_bot());
+
+  final AgentModelSession session;
+  ModelRequest? lastRequest;
+
+  @override
+  AiProviderCapabilities get capabilities => const AiProviderCapabilities(
+    supportsStructuredToolCalls: true,
+    supportsToolResults: true,
+  );
+
+  @override
+  AgentModelSession openModelSession(ModelRequest request) {
+    lastRequest = request;
+    return session;
+  }
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {}
+}
+
+final class _Providers implements AiProviderRepository {
+  const _Providers(this.provider);
+
+  final AiProvider provider;
+
+  @override
+  AiProvider create(Bot bot) => provider;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Agent _agent() => Agent(
+  id: 'agent-1',
+  name: 'Researcher',
+  avatar: '',
+  provider: 'test',
+  baseUrl: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'model',
+  systemPrompt: 'Work carefully.',
+  createdAt: DateTime(2026, 8, 22),
+  updatedAt: DateTime(2026, 8, 22),
+);
+
+Bot _bot() => Bot(
+  id: 'agent-1',
+  name: 'Researcher',
+  avatar: '',
+  provider: 'test',
+  baseURL: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'model',
+  systemPrompt: '',
+  createTimestamp: DateTime(2026, 8, 22),
+  modifyTimestamp: DateTime(2026, 8, 22),
+);
+
+ProjectEvent _event() => ProjectEvent(
+  id: 'event-1',
+  projectId: 'project-1',
+  turnId: 'turn-1',
+  sequence: 1,
+  messageSequence: 1,
+  eventType: ProjectEventType.userMessage,
+  actorType: ProjectEventActorType.user,
+  actorId: 'me',
+  content: 'Inspect project artifacts.',
+  payload: ProjectMessagePayload(),
+  createdAt: DateTime(2026, 8, 22),
+  updatedAt: DateTime(2026, 8, 22),
+);

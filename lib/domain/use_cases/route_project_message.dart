@@ -71,7 +71,11 @@ final class RouteProjectMessage {
         eventType: ProjectEventType.userMessage,
         routingMode: routingMode,
         content: draft.text,
-        payload: ProjectMessagePayload(images: images, files: files),
+        payload: ProjectMessagePayload(
+          images: images,
+          files: files,
+          projectArtifactVersionIds: draft.projectArtifactVersionIds,
+        ),
         targetAgentIds: targetAgentIds,
         createdAt: _clock(),
       ),
@@ -83,11 +87,19 @@ final class RouteProjectMessage {
     required Agent agent,
     required String content,
     String reasoning = '',
+    String processInfoJson = '',
     required String runId,
     required ProjectEvent sourceEvent,
     required ProjectTurn sourceTurn,
   }) {
     final now = _clock();
+    final payload =
+        processInfoJson.isEmpty
+            ? ProjectMessagePayload(reasoning: reasoning)
+            : ProjectMessagePayload(
+              reasoning: reasoning,
+              processInfoJson: processInfoJson,
+            );
     return _appendAndWake(
       ProjectMessageAppendRequest(
         eventId: _idFactory('event'),
@@ -103,7 +115,7 @@ final class RouteProjectMessage {
         eventType: ProjectEventType.agentMessage,
         routingMode: ProjectTurnRoutingMode.broadcast,
         content: content,
-        payload: ProjectMessagePayload(reasoning: reasoning),
+        payload: payload,
         replyToEventId: sourceEvent.id,
         replyToMessageSequence: sourceEvent.messageSequence,
         rootMessageId:

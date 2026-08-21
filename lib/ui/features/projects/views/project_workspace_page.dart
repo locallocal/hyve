@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
+import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
 import 'package:hyve/ui/features/projects/views/project_message_composer.dart';
 
 final class ProjectWorkspacePage extends StatefulWidget {
@@ -24,6 +25,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   final StructuredProjectMessageController _composer =
       StructuredProjectMessageController();
   ProjectWorkspaceViewModel? _viewModel;
+  final List<PendingAttachment> _attachments = <PendingAttachment>[];
 
   @override
   void didChangeDependencies() {
@@ -44,7 +46,16 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
 
   Future<void> _submit(ProjectMessageDraft draft) async {
     final routed = await _viewModel!.submit(draft);
-    if (routed != null && mounted) _composer.clear();
+    if (routed != null && mounted) {
+      _composer.clear();
+      setState(_attachments.clear);
+    }
+  }
+
+  Future<void> _pickAttachment() async {
+    final attachment = await _viewModel!.pickMessageAttachment();
+    if (attachment == null || !mounted) return;
+    setState(() => _attachments.add(attachment));
   }
 
   @override
@@ -65,6 +76,19 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             title: Text(title),
             centerTitle: true,
             scrolledUnderElevation: 0,
+            actions: [
+              IconButton(
+                key: const ValueKey<String>('project-artifacts-button'),
+                tooltip: '项目产物',
+                onPressed:
+                    () => showDialog<void>(
+                      context: context,
+                      builder:
+                          (_) => ProjectArtifactsDialog(viewModel: viewModel),
+                    ),
+                icon: const Icon(Icons.folder_open_outlined),
+              ),
+            ],
           ),
           body: SafeArea(
             top: false,
@@ -99,6 +123,10 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   child: ProjectMessageComposer(
                     controller: _composer,
                     activeAgents: viewModel.activeAgents,
+                    attachments: _attachments,
+                    onPickAttachment: () => unawaited(_pickAttachment()),
+                    onRemoveAttachment:
+                        (index) => setState(() => _attachments.removeAt(index)),
                     activeRunCount:
                         viewModel.agentStatuses
                             .where((status) => status.activeRunId.isNotEmpty)

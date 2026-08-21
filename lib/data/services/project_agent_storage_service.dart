@@ -70,6 +70,40 @@ final class ProjectAgentStorageService {
     return _stage(kind: 'agent', id: agentId, root: agentRoot(agentId));
   }
 
+  /// Finishes or rolls back project deletions interrupted by a process crash.
+  ///
+  /// A staged directory with a live database record is restored. When the
+  /// record is gone, the database transaction committed and the staged files
+  /// can be removed.
+  Future<void> recoverPendingProjectDeletions(
+    Set<String> activeProjectIds,
+  ) async {
+    final support = await _supportDirectoryProvider();
+    final pending = Directory(join(support.path, '.pending_deletions'));
+    if (!await pending.exists()) return;
+    await for (final entity in pending.list(followLinks: false)) {
+      if (entity is! Directory) continue;
+      final name = basename(entity.path);
+      final match = RegExp(r'^project-(.+)-(\d+)$').firstMatch(name);
+      if (match == null) continue;
+      final projectId = match.group(1)!;
+      if (!activeProjectIds.contains(projectId)) {
+        await entity.delete(recursive: true);
+        continue;
+      }
+      final original = await projectRoot(projectId);
+      if (await original.exists()) {
+        // A canonical directory already exists, so this is an obsolete staged
+        // copy from an older interrupted cleanup.
+        await entity.delete(recursive: true);
+        continue;
+      }
+      await original.parent.create(recursive: true);
+      await entity.rename(original.path);
+    }
+    await StagedEntityDeletion._deletePendingParentIfEmpty(pending);
+  }
+
   Future<void> deleteProjectRoot(String projectId) async {
     final root = await projectRoot(projectId);
     if (await root.exists()) await root.delete(recursive: true);

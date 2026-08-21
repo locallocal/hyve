@@ -35,16 +35,21 @@ final class ProjectMessagePayload extends ProjectEventPayload {
             '"skill_activations":[]}',
     Iterable<String> images = const <String>[],
     Iterable<String> files = const <String>[],
+    Iterable<String> projectArtifactVersionIds = const <String>[],
     this.audio = '',
     this.music = '',
     this.video = '',
   }) : images = List<String>.unmodifiable(images),
-       files = List<String>.unmodifiable(files);
+       files = List<String>.unmodifiable(files),
+       projectArtifactVersionIds = List<String>.unmodifiable(
+         projectArtifactVersionIds,
+       );
 
   final String reasoning;
   final String processInfoJson;
   final List<String> images;
   final List<String> files;
+  final List<String> projectArtifactVersionIds;
   final String audio;
   final String music;
   final String video;

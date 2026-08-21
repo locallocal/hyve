@@ -1,3 +1,5 @@
+export 'repositories/file_project_storage_repository.dart';
+export 'repositories/sqlite_project_artifact_repository.dart';
 export 'repositories/sqlite_agent_message_receipt_repository.dart';
 export 'repositories/sqlite_agent_delivery_repository.dart';
 export 'repositories/sqlite_agent_repository.dart';
@@ -16,10 +18,12 @@ export 'package:hyve/domain/repositories/agent_repository.dart';
 export 'package:hyve/domain/repositories/agent_run_repository.dart';
 export 'package:hyve/domain/repositories/participation_decision_repository.dart';
 export 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
+export 'package:hyve/domain/repositories/project_artifact_repository.dart';
 export 'package:hyve/domain/repositories/project_event_repository.dart';
 export 'package:hyve/domain/repositories/project_membership_repository.dart';
 export 'package:hyve/domain/repositories/project_message_route_repository.dart';
 export 'package:hyve/domain/repositories/project_repository.dart';
+export 'package:hyve/domain/repositories/project_storage_repository.dart';
 export 'package:hyve/domain/repositories/project_turn_repository.dart';
 export 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 export 'package:hyve/domain/use_cases/create_project.dart';

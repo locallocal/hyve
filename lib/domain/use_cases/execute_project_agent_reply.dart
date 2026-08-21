@@ -15,6 +15,12 @@ typedef ReplyRunStarted =
       AgentRun run,
       ProjectRunCancellationToken cancellationToken,
     );
+typedef ProjectAgentScopedToolProvider =
+    Future<List<ExecutableTool>> Function({
+      required Project project,
+      required Agent agent,
+      required AgentRun run,
+    });
 
 final class ProjectAgentReplyExecution {
   const ProjectAgentReplyExecution({
@@ -34,6 +40,7 @@ final class ExecuteProjectAgentReply {
     required ProjectAgentExecutionGateway gateway,
     required RouteProjectMessage routeProjectMessage,
     DeliverToProjectAgent? deliverToProjectAgent,
+    ProjectAgentScopedToolProvider? scopedToolProvider,
     ModelUsageRepository? modelUsageRepository,
     ReplyRunIdFactory? idFactory,
     ReplyRunClock? clock,
@@ -41,6 +48,7 @@ final class ExecuteProjectAgentReply {
        _gateway = gateway,
        _routeProjectMessage = routeProjectMessage,
        _deliverToProjectAgent = deliverToProjectAgent,
+       _scopedToolProvider = scopedToolProvider,
        _modelUsageRepository = modelUsageRepository,
        _idFactory = idFactory ?? _defaultReplyRunIdFactory,
        _clock = clock ?? DateTime.now;
@@ -49,6 +57,7 @@ final class ExecuteProjectAgentReply {
   final ProjectAgentExecutionGateway _gateway;
   final RouteProjectMessage _routeProjectMessage;
   final DeliverToProjectAgent? _deliverToProjectAgent;
+  final ProjectAgentScopedToolProvider? _scopedToolProvider;
   final ModelUsageRepository? _modelUsageRepository;
   final ReplyRunIdFactory _idFactory;
   final ReplyRunClock _clock;
@@ -94,6 +103,13 @@ final class ExecuteProjectAgentReply {
     ProjectEvent? replyEvent;
     try {
       cancellationToken.throwIfCancelled();
+      final projectTools =
+          await _scopedToolProvider?.call(
+            project: project,
+            agent: agent,
+            run: run,
+          ) ??
+          const <ExecutableTool>[];
       result = await _gateway.reply(
         ProjectAgentReplyRequest(
           runId: runId,
@@ -115,16 +131,23 @@ final class ExecuteProjectAgentReply {
                     request: request,
                     cancellationToken: cancellationToken,
                   ),
+          projectTools: projectTools,
         ),
       );
       if (result.status == ProjectAgentReplyStatus.completed &&
           result.text.trim().isEmpty &&
-          result.deliveryCount == 0) {
+          result.deliveryCount == 0 &&
+          !result.toolInvocations.any(
+            (invocation) =>
+                invocation.status == ToolInvocationStatus.succeeded &&
+                invocation.riskLevel != ToolRiskLevel.readOnly,
+          )) {
         result = ProjectAgentReplyResult(
           status: ProjectAgentReplyStatus.failed,
           reasoning: result.reasoning,
           tokenUsage: result.tokenUsage,
           errorCode: 'empty_agent_reply',
+          toolInvocations: result.toolInvocations,
         );
       }
       if (result.status == ProjectAgentReplyStatus.completed &&
@@ -136,6 +159,7 @@ final class ExecuteProjectAgentReply {
               agent: agent,
               content: result.text,
               reasoning: result.reasoning,
+              processInfoJson: _toolInvocationsJson(result.toolInvocations),
               runId: runId,
               sourceEvent: sourceEvent,
               sourceTurn: turn,
@@ -178,6 +202,61 @@ final class ExecuteProjectAgentReply {
       result: result,
     );
   }
+}
+
+String _toolInvocationsJson(List<ToolInvocationRecord> invocations) {
+  return jsonEncode(<String, Object?>{
+    'reasoning_status': '',
+    'duration_ms': null,
+    'tool_calls': <Map<String, Object?>>[
+      for (final invocation in invocations)
+        <String, Object?>{
+          'call_id': invocation.callId,
+          'name': invocation.name,
+          'title': invocation.title,
+          'mcp_server_name': invocation.mcpServerName,
+          'status': invocation.status.name,
+          'detail': '',
+          'source': invocation.source.name,
+          'risk_level': invocation.riskLevel.name,
+          'arguments_summary': _artifactToolArgumentsSummary(invocation),
+          'result_summary': _artifactToolResultSummary(invocation),
+          'approval_status': invocation.approvalDecision,
+          'error_code': invocation.errorCode,
+          'duration_ms': invocation.durationMs,
+        },
+    ],
+    'command_executions': const <Object?>[],
+    'file_edits': const <Object?>[],
+    'skill_activations': const <Object?>[],
+  });
+}
+
+String _artifactToolArgumentsSummary(ToolInvocationRecord invocation) {
+  final arguments = Map<String, Object?>.from(invocation.arguments);
+  if (const <String>{
+    'project.artifacts.create',
+    'project.artifacts.write_version',
+  }.contains(invocation.name)) {
+    final content = arguments['content'];
+    arguments['content'] =
+        content is String
+            ? '<artifact content omitted: ${content.length} characters>'
+            : '<artifact content omitted>';
+  }
+  return _boundedAuditText(jsonEncode(arguments));
+}
+
+String _artifactToolResultSummary(ToolInvocationRecord invocation) {
+  if (invocation.name == 'project.artifacts.read') {
+    return '<artifact content omitted>';
+  }
+  return _boundedAuditText(invocation.resultSummary);
+}
+
+String _boundedAuditText(String value) {
+  const limit = 1024;
+  return value.length <= limit ? value : '${value.substring(0, limit)}…';
 }
 
 AgentRunStatus _replyRunStatus(ProjectAgentReplyStatus status) =>

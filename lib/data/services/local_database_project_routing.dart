@@ -54,6 +54,7 @@ extension LocalDatabaseProjectRouting on LocalDatabaseService {
     Map<String, Object?> eventValues,
     Map<String, Object?> turnValues,
     Iterable<String> requestedTargetAgentIds,
+    Iterable<String> requestedArtifactVersionIds,
     String routingMode,
   ) async {
     final database = await _databaseProvider();
@@ -90,6 +91,26 @@ extension LocalDatabaseProjectRouting on LocalDatabaseService {
         throw StateError('project_message_target_not_active');
       }
       final targets = routingMode == 'broadcast' ? activeAgentIds : requested;
+      final artifactVersionIds = requestedArtifactVersionIds.toSet().toList(
+        growable: false,
+      );
+      final artifactIds = <String>[];
+      for (final versionId in artifactVersionIds) {
+        final rows = await transaction.rawQuery(
+          '''
+          SELECT version.artifact_id
+          FROM project_artifact_versions AS version
+          JOIN project_artifacts AS artifact ON artifact.id = version.artifact_id
+          WHERE version.id = ? AND artifact.project_id = ?
+          LIMIT 1
+          ''',
+          <Object?>[versionId, projectId],
+        );
+        if (rows.isEmpty) {
+          throw StateError('project_message_artifact_version_not_found');
+        }
+        artifactIds.add(rows.single['artifact_id']! as String);
+      }
       final project = projects.single;
       final eventSequence = (project['last_event_sequence']! as int) + 1;
       final messageSequence = (project['last_message_sequence']! as int) + 1;
@@ -109,6 +130,15 @@ extension LocalDatabaseProjectRouting on LocalDatabaseService {
       }
 
       await transaction.insert('project_events', event);
+      for (var index = 0; index < artifactVersionIds.length; index++) {
+        await transaction.insert('project_event_artifacts', <String, Object?>{
+          'event_id': event['id'],
+          'artifact_id': artifactIds[index],
+          'artifact_version_id': artifactVersionIds[index],
+          'relation': 'attachment',
+          'position': index,
+        });
+      }
       var position = 0;
       for (final agentId in targets) {
         await transaction.insert('project_event_targets', <String, Object?>{

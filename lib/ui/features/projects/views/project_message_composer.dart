@@ -195,6 +195,8 @@ final class ProjectMessageComposer extends StatefulWidget {
     this.attachments = const <PendingAttachment>[],
     this.activeRunCount = 0,
     this.onCancelRuns,
+    this.onPickAttachment,
+    this.onRemoveAttachment,
     this.hintText = '输入消息；不选择 @ 时将广播给全部智能体',
   });
 
@@ -204,6 +206,8 @@ final class ProjectMessageComposer extends StatefulWidget {
   final ValueChanged<ProjectMessageDraft> onSend;
   final int activeRunCount;
   final VoidCallback? onCancelRuns;
+  final VoidCallback? onPickAttachment;
+  final ValueChanged<int>? onRemoveAttachment;
   final String hintText;
 
   @override
@@ -308,6 +312,28 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
               ],
             ),
           ),
+        if (widget.attachments.isNotEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              key: const ValueKey<String>('project-message-attachments'),
+              spacing: 8,
+              children: [
+                for (var index = 0; index < widget.attachments.length; index++)
+                  InputChip(
+                    label: Text(
+                      widget.attachments[index].displayName.isEmpty
+                          ? '附件 ${index + 1}'
+                          : widget.attachments[index].displayName,
+                    ),
+                    onDeleted:
+                        widget.onRemoveAttachment == null
+                            ? null
+                            : () => widget.onRemoveAttachment!(index),
+                  ),
+              ],
+            ),
+          ),
         TextField(
           key: const ValueKey<String>('project-message-field'),
           controller: widget.controller,
@@ -319,6 +345,13 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (widget.onPickAttachment != null)
+                  IconButton(
+                    key: const ValueKey<String>('project-pick-attachment'),
+                    tooltip: '添加附件',
+                    onPressed: widget.onPickAttachment,
+                    icon: const Icon(Icons.attach_file_rounded),
+                  ),
                 if (widget.activeRunCount > 0 && widget.onCancelRuns != null)
                   IconButton(
                     key: const ValueKey<String>('project-cancel-runs'),

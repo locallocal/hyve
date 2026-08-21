@@ -506,6 +506,8 @@ class AppDependencies {
       projectAgents.receiptRepository;
   ParticipationDecisionRepository get participationDecisionRepository =>
       projectAgents.decisionRepository;
+  AgentDeliveryRepository get agentDeliveryRepository =>
+      projectAgents.deliveryRepository;
   RouteProjectMessage get routeProjectMessage =>
       projectAgents.routeProjectMessage;
   AgentInboxCoordinator get agentInboxCoordinator =>

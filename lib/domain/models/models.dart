@@ -1,6 +1,7 @@
 // Public domain model surface.
 export 'bot.dart';
 export 'agent.dart';
+export 'agent_delivery.dart';
 export 'agent_run.dart';
 export 'agent_message_cursor.dart';
 export 'agent_message_receipt.dart';

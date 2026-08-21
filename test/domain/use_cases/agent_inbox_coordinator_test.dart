@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/data/repositories/sqlite_agent_message_receipt_repository.dart';
+import 'package:hyve/data/repositories/sqlite_agent_delivery_repository.dart';
 import 'package:hyve/data/repositories/sqlite_agent_repository.dart';
 import 'package:hyve/data/repositories/sqlite_agent_run_repository.dart';
 import 'package:hyve/data/repositories/sqlite_model_usage_repository.dart';
@@ -19,6 +20,7 @@ import 'package:hyve/data/services/project_agent_storage_service.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
+import 'package:hyve/domain/use_cases/deliver_to_project_agent.dart';
 import 'package:hyve/domain/use_cases/execute_project_agent_reply.dart';
 import 'package:hyve/domain/use_cases/project_turn_coordinator.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
@@ -37,6 +39,7 @@ void main() {
   late SqliteProjectAgentCursorRepository cursors;
   late SqliteAgentMessageReceiptRepository receipts;
   late SqliteParticipationDecisionRepository decisions;
+  late SqliteAgentDeliveryRepository deliveries;
   late _ExecutionGateway gateway;
   late RouteProjectMessage route;
   late AgentInboxCoordinator inbox;
@@ -85,6 +88,10 @@ void main() {
     decisions = SqliteParticipationDecisionRepository(
       localDatabase: localDatabase,
     );
+    deliveries = SqliteAgentDeliveryRepository(
+      localDatabase: localDatabase,
+      projectRepository: projects,
+    );
     final modelUsage = SqliteModelUsageRepository(localDatabase: localDatabase);
     gateway = _ExecutionGateway();
     final routeRepository = SqliteProjectMessageRouteRepository(
@@ -96,6 +103,12 @@ void main() {
       repository: routeRepository,
       clock: DateTime.now,
       idFactory: (prefix) => '$prefix-${idSequence++}',
+      wakeup:
+          (projectId, agentIds) =>
+              coordinator.wakeProject(projectId, agentIds).ignore(),
+    );
+    final deliverToProjectAgent = DeliverToProjectAgent(
+      repository: deliveries,
       wakeup:
           (projectId, agentIds) =>
               coordinator.wakeProject(projectId, agentIds).ignore(),
@@ -125,6 +138,7 @@ void main() {
         runRepository: runs,
         gateway: gateway,
         routeProjectMessage: route,
+        deliverToProjectAgent: deliverToProjectAgent,
         modelUsageRepository: modelUsage,
       ),
       turnCoordinator: turnCoordinator,
@@ -154,6 +168,7 @@ void main() {
 
   tearDown(() async {
     await inbox.dispose();
+    await deliveries.dispose();
     await agents.dispose();
     await projects.dispose();
     await memberships.dispose();
@@ -577,6 +592,266 @@ void main() {
       ProjectTurnStatus.partial,
     );
   });
+
+  test(
+    'targets delivery is invisible to observers and chains target reply',
+    () async {
+      await agents.addAgent(_agent('agent-3'));
+      final now = DateTime.now();
+      await memberships.save(
+        ProjectMembership(
+          projectId: 'project-1',
+          agentId: 'agent-3',
+          position: 2,
+          joinedAt: now,
+          updatedAt: now,
+        ),
+      );
+      gateway.nextDelivery = AgentDeliveryRequest(
+        targetAgentIds: const <String>['agent-2'],
+        kind: AgentDeliveryKind.task,
+        summary: 'Review privately',
+        payload: 'Inspect the source response.',
+        visibility: AgentDeliveryVisibility.targets,
+        requestPublicReply: true,
+      );
+
+      final source = await route(
+        projectId: 'project-1',
+        draft: ProjectMessageDraft(
+          text: '@Agent 1 delegate',
+          mentions: const <MentionSpan>[
+            MentionSpan(
+              agentId: 'agent-1',
+              start: 0,
+              length: 8,
+              displayTextSnapshot: '@Agent 1',
+            ),
+          ],
+        ),
+      );
+      await inbox.wakeProject('project-1');
+      await inbox.waitForIdle(projectId: 'project-1');
+
+      final deliveryEvent = (await events.getEvents('project-1')).singleWhere(
+        (event) => event.eventType == ProjectEventType.agentDelivery,
+      );
+      expect(deliveryEvent.visibility, ProjectEventVisibility.targets);
+      expect(
+        (await receipts.getReceipt(
+          'project-1',
+          'agent-3',
+          deliveryEvent.messageSequence!,
+        ))?.outcome,
+        AgentMessageReceiptOutcome.invisible,
+      );
+      expect(
+        (await receipts.getReceipt(
+          'project-1',
+          'agent-2',
+          deliveryEvent.messageSequence!,
+        ))?.outcome,
+        AgentMessageReceiptOutcome.replied,
+      );
+
+      final sourceReplyRun = (await runs.getForTurn(
+        source.turn.id,
+      )).singleWhere(
+        (run) => run.phase == AgentRunPhase.reply && run.agentId == 'agent-1',
+      );
+      final deliveryRun = (await runs.getRun(deliveryEvent.runId))!;
+      final targetReplyRun = (await runs.getForTurn(
+        deliveryEvent.turnId,
+      )).singleWhere(
+        (run) => run.phase == AgentRunPhase.reply && run.agentId == 'agent-2',
+      );
+      expect(deliveryRun.parentRunId, sourceReplyRun.id);
+      expect(targetReplyRun.parentRunId, deliveryRun.id);
+      expect(targetReplyRun.rootRunId, sourceReplyRun.rootRunId);
+      expect(targetReplyRun.deliveryDepth, 1);
+    },
+  );
+
+  test(
+    'project delivery is observed by non-targets and target may pass',
+    () async {
+      await agents.addAgent(_agent('agent-3'));
+      final now = DateTime.now();
+      await memberships.save(
+        ProjectMembership(
+          projectId: 'project-1',
+          agentId: 'agent-3',
+          position: 2,
+          joinedAt: now,
+          updatedAt: now,
+        ),
+      );
+      gateway.nextDelivery = AgentDeliveryRequest(
+        targetAgentIds: const <String>['agent-2'],
+        kind: AgentDeliveryKind.information,
+        summary: 'Context only',
+        payload: 'No public response is required.',
+      );
+
+      await route(
+        projectId: 'project-1',
+        draft: ProjectMessageDraft(
+          text: '@Agent 1 share context',
+          mentions: const <MentionSpan>[
+            MentionSpan(
+              agentId: 'agent-1',
+              start: 0,
+              length: 8,
+              displayTextSnapshot: '@Agent 1',
+            ),
+          ],
+        ),
+      );
+      await inbox.wakeProject('project-1');
+      await inbox.waitForIdle(projectId: 'project-1');
+
+      final deliveryEvent = (await events.getEvents('project-1')).singleWhere(
+        (event) => event.eventType == ProjectEventType.agentDelivery,
+      );
+      expect(deliveryEvent.visibility, ProjectEventVisibility.project);
+      expect(
+        (await receipts.getReceipt(
+          'project-1',
+          'agent-3',
+          deliveryEvent.messageSequence!,
+        ))?.outcome,
+        AgentMessageReceiptOutcome.observed,
+      );
+      expect(
+        (await receipts.getReceipt(
+          'project-1',
+          'agent-2',
+          deliveryEvent.messageSequence!,
+        ))?.outcome,
+        AgentMessageReceiptOutcome.passed,
+      );
+      final targetRuns = await runs.getForTurn(deliveryEvent.turnId);
+      expect(
+        targetRuns.singleWhere((run) => run.agentId == 'agent-2').phase,
+        AgentRunPhase.decision,
+      );
+      expect(
+        targetRuns.singleWhere((run) => run.agentId == 'agent-2').parentRunId,
+        deliveryEvent.runId,
+      );
+    },
+  );
+
+  test('cancelling a root Turn cancels delivery descendants', () async {
+    gateway.nextDelivery = AgentDeliveryRequest(
+      targetAgentIds: const <String>['agent-2'],
+      kind: AgentDeliveryKind.task,
+      summary: 'Long review',
+      payload: 'This review should be cancelled with the root Turn.',
+      requestPublicReply: true,
+    );
+    gateway.replyDelay = const Duration(milliseconds: 100);
+    final source = await route(
+      projectId: 'project-1',
+      draft: ProjectMessageDraft(
+        text: '@Agent 1 start cancellable delivery',
+        mentions: const <MentionSpan>[
+          MentionSpan(
+            agentId: 'agent-1',
+            start: 0,
+            length: 8,
+            displayTextSnapshot: '@Agent 1',
+          ),
+        ],
+      ),
+    );
+    await inbox.wakeProject('project-1');
+
+    ProjectEvent? deliveryEvent;
+    for (var attempt = 0; attempt < 20 && deliveryEvent == null; attempt++) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      for (final event in await events.getEvents('project-1')) {
+        if (event.eventType == ProjectEventType.agentDelivery) {
+          deliveryEvent = event;
+          break;
+        }
+      }
+    }
+    expect(deliveryEvent, isNotNull);
+
+    await inbox.cancelTurn(source.turn.id);
+    await inbox.waitForIdle(projectId: 'project-1');
+
+    expect(
+      (await turns.getTurn(source.turn.id))?.status,
+      ProjectTurnStatus.cancelled,
+    );
+    expect(
+      (await turns.getTurn(deliveryEvent!.turnId))?.status,
+      ProjectTurnStatus.cancelled,
+    );
+    expect(
+      (await receipts.getReceipt(
+        'project-1',
+        'agent-2',
+        deliveryEvent.messageSequence!,
+      ))?.outcome,
+      AgentMessageReceiptOutcome.cancelled,
+    );
+    expect(
+      (await runs.getForTurn(
+        deliveryEvent.turnId,
+      )).every((run) => run.isTerminal),
+      isTrue,
+    );
+  });
+
+  test('a target reply timeout terminates its delivery Turn', () async {
+    gateway.timeoutReplyAgentId = 'agent-2';
+    gateway.nextDelivery = AgentDeliveryRequest(
+      targetAgentIds: const <String>['agent-2'],
+      kind: AgentDeliveryKind.question,
+      summary: 'Timed question',
+      payload: 'This target will time out.',
+      requestPublicReply: true,
+    );
+    await route(
+      projectId: 'project-1',
+      draft: ProjectMessageDraft(
+        text: '@Agent 1 ask reviewer',
+        mentions: const <MentionSpan>[
+          MentionSpan(
+            agentId: 'agent-1',
+            start: 0,
+            length: 8,
+            displayTextSnapshot: '@Agent 1',
+          ),
+        ],
+      ),
+    );
+    await inbox.wakeProject('project-1');
+    await inbox.waitForIdle(projectId: 'project-1');
+
+    final deliveryEvent = (await events.getEvents('project-1')).singleWhere(
+      (event) => event.eventType == ProjectEventType.agentDelivery,
+    );
+    final targetRun = (await runs.getForTurn(deliveryEvent.turnId)).singleWhere(
+      (run) => run.agentId == 'agent-2' && run.phase == AgentRunPhase.reply,
+    );
+    expect(targetRun.status, AgentRunStatus.timedOut);
+    expect(
+      (await receipts.getReceipt(
+        'project-1',
+        'agent-2',
+        deliveryEvent.messageSequence!,
+      ))?.outcome,
+      AgentMessageReceiptOutcome.failedSkipped,
+    );
+    expect(
+      (await turns.getTurn(deliveryEvent.turnId))?.status,
+      ProjectTurnStatus.failed,
+    );
+  });
 }
 
 final class _ExecutionGateway implements ProjectAgentExecutionGateway {
@@ -584,7 +859,9 @@ final class _ExecutionGateway implements ProjectAgentExecutionGateway {
       (_, _) => ParticipationChoice.pass;
   String failDecisionAgentId = '';
   String failReplyAgentId = '';
+  String timeoutReplyAgentId = '';
   Duration replyDelay = Duration.zero;
+  AgentDeliveryRequest? nextDelivery;
   final List<BroadcastParticipationRequest> decisionRequests = [];
   final List<ProjectAgentReplyRequest> replyRequests = [];
   final Map<String, int> _activeReplies = {};
@@ -638,14 +915,25 @@ final class _ExecutionGateway implements ProjectAgentExecutionGateway {
       maxGlobalReplyConcurrency = _globalActiveReplies;
     }
     try {
+      request.cancellationToken.throwIfCancelled();
+      final delivery = nextDelivery;
+      if (delivery != null && request.deliveryExecutor != null) {
+        nextDelivery = null;
+        await request.deliveryExecutor!(delivery);
+      }
       if (replyDelay > Duration.zero) {
         await Future<void>.delayed(replyDelay);
       }
-      request.cancellationToken.throwIfCancelled();
       if (agentId == failReplyAgentId) {
         return const ProjectAgentReplyResult(
           status: ProjectAgentReplyStatus.failed,
           errorCode: 'simulated_reply_failure',
+        );
+      }
+      if (agentId == timeoutReplyAgentId) {
+        return const ProjectAgentReplyResult(
+          status: ProjectAgentReplyStatus.timedOut,
+          errorCode: 'simulated_reply_timeout',
         );
       }
       return ProjectAgentReplyResult(

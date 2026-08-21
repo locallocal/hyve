@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/agent_delivery_repository.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
 import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
@@ -50,6 +51,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     required AgentRepository agentRepository,
     required ProjectAgentCursorRepository cursorRepository,
     required AgentRunRepository runRepository,
+    required AgentDeliveryRepository deliveryRepository,
     required AgentInboxCoordinator inboxCoordinator,
   }) : _routeProjectMessage = routeProjectMessage,
        _projectRepository = projectRepository,
@@ -59,6 +61,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
        _agentRepository = agentRepository,
        _cursorRepository = cursorRepository,
        _runRepository = runRepository,
+       _deliveryRepository = deliveryRepository,
        _inboxCoordinator = inboxCoordinator {
     _cursorSubscription = _cursorRepository.changes.listen((key) {
       if (key.projectId == projectId) unawaited(refresh());
@@ -77,6 +80,9 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
         unawaited(refresh());
       }
     });
+    _deliverySubscription = _deliveryRepository.changes.listen((id) {
+      if (id == projectId) unawaited(refresh());
+    });
   }
 
   final String projectId;
@@ -88,18 +94,23 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   final AgentRepository _agentRepository;
   final ProjectAgentCursorRepository _cursorRepository;
   final AgentRunRepository _runRepository;
+  final AgentDeliveryRepository _deliveryRepository;
   final AgentInboxCoordinator _inboxCoordinator;
   late final StreamSubscription<ProjectAgentInboxKey> _cursorSubscription;
   late final StreamSubscription<String> _membershipSubscription;
   late final StreamSubscription<String> _eventSubscription;
   late final StreamSubscription<List<Agent>> _agentSubscription;
   late final StreamSubscription<List<Project>> _projectSubscription;
+  late final StreamSubscription<String> _deliverySubscription;
 
   List<ProjectAgentStatusSnapshot> _agentStatuses = const [];
   Project? _project;
   List<Agent> _activeAgents = const [];
   List<ProjectEvent> _events = const [];
   Map<String, ProjectTurn> _turns = const {};
+  Map<String, AgentDelivery> _deliveries = const {};
+  Map<String, AgentRun> _runs = const {};
+  Map<String, String> _agentNames = const {};
   bool _submitting = false;
   String _errorCode = '';
 
@@ -108,6 +119,9 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   List<Agent> get activeAgents => _activeAgents;
   List<ProjectEvent> get events => _events;
   Map<String, ProjectTurn> get turns => _turns;
+  Map<String, AgentDelivery> get deliveries => _deliveries;
+  Map<String, AgentRun> get runs => _runs;
+  Map<String, String> get agentNames => _agentNames;
   bool get submitting => _submitting;
   String get errorCode => _errorCode;
 
@@ -125,6 +139,14 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     };
     final events = await _eventRepository.getEvents(projectId, limit: 200);
     final turns = await _turnRepository.getForProject(projectId, limit: 200);
+    final deliveryRecords = await Future.wait(<Future<AgentDelivery?>>[
+      for (final event in events)
+        if (event.eventType == ProjectEventType.agentDelivery)
+          _deliveryRepository.getForEvent(event.id),
+    ]);
+    final turnRuns = await Future.wait(<Future<List<AgentRun>>>[
+      for (final turn in turns) _runRepository.getForTurn(turn.id),
+    ]);
     final cursors = await _cursorRepository.getForProject(projectId);
     final byAgent = <String, AgentMessageCursor>{
       for (final cursor in cursors) cursor.agentId: cursor,
@@ -164,6 +186,17 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     _events = List<ProjectEvent>.unmodifiable(events);
     _turns = Map<String, ProjectTurn>.unmodifiable({
       for (final turn in turns) turn.id: turn,
+    });
+    _deliveries = Map<String, AgentDelivery>.unmodifiable({
+      for (final delivery in deliveryRecords)
+        if (delivery != null) delivery.eventId: delivery,
+    });
+    _runs = Map<String, AgentRun>.unmodifiable({
+      for (final values in turnRuns)
+        for (final run in values) run.id: run,
+    });
+    _agentNames = Map<String, String>.unmodifiable({
+      for (final entry in agentsById.entries) entry.key: entry.value.name,
     });
     _agentStatuses = List<ProjectAgentStatusSnapshot>.unmodifiable(statuses);
     notifyListeners();
@@ -237,6 +270,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     _eventSubscription.cancel();
     _agentSubscription.cancel();
     _projectSubscription.cancel();
+    _deliverySubscription.cancel();
     super.dispose();
   }
 }

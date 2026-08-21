@@ -277,7 +277,7 @@ void main() {
       actorNameSnapshot: 'Researcher',
       visibility: ProjectEventVisibility.targets,
       content: 'delivery',
-      payload: const AgentDeliveryPayload(
+      payload: AgentDeliveryPayload(
         kind: AgentDeliveryKind.information,
         summary: 'summary',
         payload: 'payload',

@@ -130,21 +130,32 @@ final class AgentInboxCoordinator {
   }
 
   Future<int> cancelTurn(String turnId) async {
-    _cancelledTurnIds.add(turnId);
+    final requested = await _turnRepository.getTurn(turnId);
+    if (requested == null) return 0;
+    final turns = <ProjectTurn>[
+      for (final turn in await _turnRepository.getForProject(
+        requested.projectId,
+        limit: 1000,
+      ))
+        if (turn.rootTurnId == requested.rootTurnId) turn,
+    ];
+    if (turns.every((turn) => turn.id != requested.id)) turns.add(requested);
+    _cancelledTurnIds.addAll(turns.map((turn) => turn.id));
+    final now = _clock();
+    for (final turn in turns) {
+      if (!turn.isTerminal) {
+        await _turnRepository.save(
+          turn.copyWith(status: ProjectTurnStatus.cancelled, completedAt: now),
+        );
+      }
+    }
     var cancelled = 0;
-    for (final run in await _runRepository.getForTurn(turnId)) {
-      if (!run.isTerminal && cancelRun(run.id)) cancelled++;
+    for (final turn in turns) {
+      for (final run in await _runRepository.getForTurn(turn.id)) {
+        if (!run.isTerminal && cancelRun(run.id)) cancelled++;
+      }
     }
-    final turn = await _turnRepository.getTurn(turnId);
-    if (turn != null && !turn.isTerminal) {
-      await _turnRepository.save(
-        turn.copyWith(
-          status: ProjectTurnStatus.cancelled,
-          completedAt: _clock(),
-        ),
-      );
-      await wakeProject(turn.projectId);
-    }
+    await wakeProject(requested.projectId);
     return cancelled;
   }
 
@@ -214,6 +225,15 @@ final class AgentInboxCoordinator {
       );
       return;
     }
+    if (turn.routingMode == ProjectTurnRoutingMode.delivery &&
+        !event.targetAgentIds.contains(agent.id)) {
+      await _complete(
+        claim,
+        leaseOwner,
+        outcome: AgentMessageReceiptOutcome.observed,
+      );
+      return;
+    }
     if ((turn.routingMode == ProjectTurnRoutingMode.targeted ||
             turn.routingMode == ProjectTurnRoutingMode.broadcast) &&
         !event.targetAgentIds.contains(agent.id)) {
@@ -239,7 +259,15 @@ final class AgentInboxCoordinator {
       messageSequence,
     );
     var decisionRunId = '';
-    if (turn.routingMode == ProjectTurnRoutingMode.broadcast) {
+    final deliveryPayload =
+        event.payload is AgentDeliveryPayload
+            ? event.payload as AgentDeliveryPayload
+            : null;
+    final needsDecision =
+        turn.routingMode == ProjectTurnRoutingMode.broadcast ||
+        (turn.routingMode == ProjectTurnRoutingMode.delivery &&
+            deliveryPayload?.requestPublicReply != true);
+    if (needsDecision) {
       final existingDecisions = await _decisionRepository.getForTurn(turn.id);
       ParticipationDecision? decision;
       for (final item in existingDecisions) {
@@ -323,7 +351,7 @@ final class AgentInboxCoordinator {
         outcome: AgentMessageReceiptOutcome.replied,
         decisionRunId: decisionRunId,
         replyRunId: existingReply.$1.id,
-        replyEventId: existingReply.$2.id,
+        replyEventId: existingReply.$2?.id ?? '',
       );
       return;
     }
@@ -391,7 +419,7 @@ final class AgentInboxCoordinator {
       (await _turnRepository.getTurn(turnId))?.status ==
           ProjectTurnStatus.cancelled;
 
-  Future<(AgentRun, ProjectEvent)?> _existingReply({
+  Future<(AgentRun, ProjectEvent?)?> _existingReply({
     required ProjectTurn turn,
     required String agentId,
     required int messageSequence,
@@ -402,7 +430,7 @@ final class AgentInboxCoordinator {
           run.sourceMessageSequence == messageSequence &&
           run.status == AgentRunStatus.completed) {
         final event = await _eventRepository.getAgentReplyForRun(run.id);
-        if (event != null) return (run, event);
+        return (run, event);
       }
     }
     return null;

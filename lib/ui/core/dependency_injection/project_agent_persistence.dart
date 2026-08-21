@@ -11,6 +11,7 @@ final class ProjectAgentPersistence {
     required this.cursorRepository,
     required this.receiptRepository,
     required this.decisionRepository,
+    required this.deliveryRepository,
     required this.routeRepository,
     required this.routeProjectMessage,
     required this.inboxCoordinator,
@@ -54,6 +55,10 @@ final class ProjectAgentPersistence {
     final decisionRepository = SqliteParticipationDecisionRepository(
       localDatabase: localDatabase,
     );
+    final deliveryRepository = SqliteAgentDeliveryRepository(
+      localDatabase: localDatabase,
+      projectRepository: projectRepository,
+    );
     final routeRepository = SqliteProjectMessageRouteRepository(
       localDatabase: localDatabase,
       projectRepository: projectRepository,
@@ -71,6 +76,12 @@ final class ProjectAgentPersistence {
       eventRepository: eventRepository,
       receiptRepository: receiptRepository,
       runRepository: runRepository,
+    );
+    final deliverToProjectAgent = DeliverToProjectAgent(
+      repository: deliveryRepository,
+      wakeup:
+          (projectId, agentIds) =>
+              inboxCoordinator.wakeProject(projectId, agentIds).ignore(),
     );
     inboxCoordinator = AgentInboxCoordinator(
       cursorRepository: cursorRepository,
@@ -91,6 +102,7 @@ final class ProjectAgentPersistence {
         runRepository: runRepository,
         gateway: gateway,
         routeProjectMessage: routeProjectMessage,
+        deliverToProjectAgent: deliverToProjectAgent,
         modelUsageRepository: modelUsageRepository,
       ),
       turnCoordinator: turnCoordinator,
@@ -106,6 +118,7 @@ final class ProjectAgentPersistence {
       cursorRepository: cursorRepository,
       receiptRepository: receiptRepository,
       decisionRepository: decisionRepository,
+      deliveryRepository: deliveryRepository,
       routeRepository: routeRepository,
       routeProjectMessage: routeProjectMessage,
       inboxCoordinator: inboxCoordinator,
@@ -125,6 +138,7 @@ final class ProjectAgentPersistence {
   final ProjectAgentCursorRepository cursorRepository;
   final AgentMessageReceiptRepository receiptRepository;
   final ParticipationDecisionRepository decisionRepository;
+  final AgentDeliveryRepository deliveryRepository;
   final ProjectMessageRouteRepository routeRepository;
   final RouteProjectMessage routeProjectMessage;
   final AgentInboxCoordinator inboxCoordinator;
@@ -141,6 +155,7 @@ final class ProjectAgentPersistence {
         agentRepository: agentRepository,
         cursorRepository: cursorRepository,
         runRepository: runRepository,
+        deliveryRepository: deliveryRepository,
         inboxCoordinator: inboxCoordinator,
       );
 }

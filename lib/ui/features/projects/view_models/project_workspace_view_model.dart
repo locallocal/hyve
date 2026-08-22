@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/attachment_repository.dart';
 import 'package:hyve/domain/repositories/agent_delivery_repository.dart';
+import 'package:hyve/domain/repositories/agent_message_receipt_repository.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
 import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
@@ -16,6 +17,7 @@ import 'package:hyve/domain/repositories/model_usage_repository.dart';
 import 'package:hyve/domain/repositories/participation_decision_repository.dart';
 import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/repositories/project_turn_repository.dart';
+import 'package:hyve/domain/repositories/project_temporary_attachment_repository.dart';
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
@@ -23,6 +25,8 @@ import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 enum ProjectAgentActivity {
   idle,
   deciding,
+  willReply,
+  skipped,
   replying,
   catchingUp,
   paused,
@@ -59,11 +63,13 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     required ProjectAgentCursorRepository cursorRepository,
     required AgentRunRepository runRepository,
     required AgentDeliveryRepository deliveryRepository,
+    required AgentMessageReceiptRepository receiptRepository,
     required ParticipationDecisionRepository decisionRepository,
     required ModelUsageRepository modelUsageRepository,
     required AgentInboxCoordinator inboxCoordinator,
     required ProjectArtifactRepository artifactRepository,
     required AttachmentRepository attachmentRepository,
+    required ProjectTemporaryAttachmentRepository temporaryAttachmentRepository,
   }) : _routeProjectMessage = routeProjectMessage,
        _projectRepository = projectRepository,
        _membershipRepository = membershipRepository,
@@ -73,10 +79,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
        _cursorRepository = cursorRepository,
        _runRepository = runRepository,
        _deliveryRepository = deliveryRepository,
+       _receiptRepository = receiptRepository,
        _decisionRepository = decisionRepository,
        _modelUsageRepository = modelUsageRepository,
        _artifactRepository = artifactRepository,
        _attachmentRepository = attachmentRepository,
+       _temporaryAttachmentRepository = temporaryAttachmentRepository,
        _inboxCoordinator = inboxCoordinator {
     _cursorSubscription = _cursorRepository.changes.listen((key) {
       if (key.projectId == projectId) unawaited(refresh());
@@ -113,10 +121,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   final ProjectAgentCursorRepository _cursorRepository;
   final AgentRunRepository _runRepository;
   final AgentDeliveryRepository _deliveryRepository;
+  final AgentMessageReceiptRepository _receiptRepository;
   final ParticipationDecisionRepository _decisionRepository;
   final ModelUsageRepository _modelUsageRepository;
   final ProjectArtifactRepository _artifactRepository;
   final AttachmentRepository _attachmentRepository;
+  final ProjectTemporaryAttachmentRepository _temporaryAttachmentRepository;
   final AgentInboxCoordinator _inboxCoordinator;
   late final StreamSubscription<ProjectAgentInboxKey> _cursorSubscription;
   late final StreamSubscription<String> _membershipSubscription;
@@ -203,6 +213,33 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
         for (final turn in turns) _decisionRepository.getForTurn(turn.id),
       ],
     );
+    final turnReceipts = await Future.wait(<Future<List<AgentMessageReceipt>>>[
+      for (final turn in turns) _receiptRepository.getForTurn(turn.id),
+    ]);
+    final latestDecisionByAgent = <String, ParticipationDecision>{};
+    for (final values in turnDecisions) {
+      for (final decision in values) {
+        final current = latestDecisionByAgent[decision.agentId];
+        if (current == null ||
+            decision.messageSequence > current.messageSequence ||
+            (decision.messageSequence == current.messageSequence &&
+                decision.createdAt.isAfter(current.createdAt))) {
+          latestDecisionByAgent[decision.agentId] = decision;
+        }
+      }
+    }
+    final latestReceiptByAgent = <String, AgentMessageReceipt>{};
+    for (final values in turnReceipts) {
+      for (final receipt in values) {
+        final current = latestReceiptByAgent[receipt.agentId];
+        if (current == null ||
+            receipt.messageSequence > current.messageSequence ||
+            (receipt.messageSequence == current.messageSequence &&
+                receipt.completedAt.isAfter(current.completedAt))) {
+          latestReceiptByAgent[receipt.agentId] = receipt;
+        }
+      }
+    }
     final usageRecords = await _modelUsageRepository.getForProject(projectId);
     final cursors = await _cursorRepository.getForProject(projectId);
     final byAgent = <String, AgentMessageCursor>{
@@ -223,7 +260,14 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
       statuses.add(
         ProjectAgentStatusSnapshot(
           agentId: membership.agentId,
-          activity: _activity(membership, cursor, run, project),
+          activity: resolveProjectAgentActivity(
+            membership,
+            cursor,
+            run,
+            latestDecisionByAgent[membership.agentId],
+            latestReceiptByAgent[membership.agentId],
+            project,
+          ),
           lastProcessedMessageSequence: last,
           latestMessageSequence: project.lastMessageSequence,
           backlog:
@@ -418,6 +462,16 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  Future<List<ProjectArtifactMessageReference>> artifactMessageReferences(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) => _artifactRepository.messageReferences(
+    projectId: projectId,
+    artifactId: entry.artifact.id,
+    versionId: versionId,
+    actor: _userArtifactActor,
+  );
+
   Future<ProjectArtifactEntry?> writeTextArtifactVersion({
     required ProjectArtifactEntry entry,
     required String content,
@@ -544,7 +598,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     notifyListeners();
     try {
       final versionIds = <String>[...draft.projectArtifactVersionIds];
+      final transientAttachments = <PendingAttachment>[];
       for (final attachment in draft.attachments) {
+        if (!attachment.promoteToProjectArtifact) {
+          transientAttachments.add(attachment);
+          continue;
+        }
         final imported = await _importSource(
           attachment.sourcePath,
           folder: 'attachments',
@@ -553,16 +612,35 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
         if (imported == null) return null;
         versionIds.add(imported.currentVersion.id);
       }
+      var messageAttachments = transientAttachments;
+      if (transientAttachments.isNotEmpty) {
+        final persistedPaths = await _temporaryAttachmentRepository.persist(
+          projectId: projectId,
+          sourcePaths: transientAttachments.map((item) => item.sourcePath),
+        );
+        messageAttachments = <PendingAttachment>[
+          for (var index = 0; index < persistedPaths.length; index++)
+            PendingAttachment(
+              sourcePath: persistedPaths[index],
+              kind: transientAttachments[index].kind,
+              displayName: transientAttachments[index].displayName,
+            ),
+        ];
+      }
       return await _routeProjectMessage(
         projectId: projectId,
         draft: ProjectMessageDraft(
           text: draft.text,
           mentions: draft.mentions,
+          attachments: messageAttachments,
           projectArtifactVersionIds: versionIds,
         ),
       );
     } on ProjectMessageRouteFailure catch (failure) {
       _errorCode = failure.code;
+      return null;
+    } on Object {
+      _errorCode = 'attachment_persist_failed';
       return null;
     } finally {
       if (!isDisposed) {
@@ -598,33 +676,6 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     return cancelled;
   }
 
-  ProjectAgentActivity _activity(
-    ProjectMembership membership,
-    AgentMessageCursor? cursor,
-    AgentRun? run,
-    Project project,
-  ) {
-    if (membership.status != ProjectMembershipStatus.active ||
-        cursor?.workerState == AgentInboxWorkerState.paused) {
-      return ProjectAgentActivity.paused;
-    }
-    if (cursor?.workerState == AgentInboxWorkerState.error) {
-      return ProjectAgentActivity.failed;
-    }
-    if (run?.phase == AgentRunPhase.decision && !run!.isTerminal) {
-      return ProjectAgentActivity.deciding;
-    }
-    if (run?.phase == AgentRunPhase.reply && !run!.isTerminal) {
-      return ProjectAgentActivity.replying;
-    }
-    if ((cursor?.lastProcessedMessageSequence ??
-            membership.joinMessageSequence) <
-        project.lastMessageSequence) {
-      return ProjectAgentActivity.catchingUp;
-    }
-    return ProjectAgentActivity.idle;
-  }
-
   @override
   void dispose() {
     _cursorSubscription.cancel();
@@ -636,6 +687,49 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     _artifactSubscription.cancel();
     super.dispose();
   }
+}
+
+ProjectAgentActivity resolveProjectAgentActivity(
+  ProjectMembership membership,
+  AgentMessageCursor? cursor,
+  AgentRun? run,
+  ParticipationDecision? latestDecision,
+  AgentMessageReceipt? latestReceipt,
+  Project project,
+) {
+  if (membership.status != ProjectMembershipStatus.active ||
+      cursor?.workerState == AgentInboxWorkerState.paused) {
+    return ProjectAgentActivity.paused;
+  }
+  if (cursor?.workerState == AgentInboxWorkerState.error) {
+    return ProjectAgentActivity.failed;
+  }
+  if (run?.phase == AgentRunPhase.decision && !run!.isTerminal) {
+    return ProjectAgentActivity.deciding;
+  }
+  if (run?.phase == AgentRunPhase.reply &&
+      (run?.status == AgentRunStatus.queued ||
+          run?.status == AgentRunStatus.preparing)) {
+    return ProjectAgentActivity.willReply;
+  }
+  if (run?.phase == AgentRunPhase.reply && !run!.isTerminal) {
+    return ProjectAgentActivity.replying;
+  }
+  final processing = cursor?.processingMessageSequence;
+  if (processing != null && latestDecision?.messageSequence == processing) {
+    return latestDecision?.choice == ParticipationChoice.reply
+        ? ProjectAgentActivity.willReply
+        : ProjectAgentActivity.skipped;
+  }
+  if ((cursor?.lastProcessedMessageSequence ?? membership.joinMessageSequence) <
+      project.lastMessageSequence) {
+    return ProjectAgentActivity.catchingUp;
+  }
+  if (latestReceipt?.messageSequence == project.lastMessageSequence &&
+      latestReceipt?.outcome == AgentMessageReceiptOutcome.passed) {
+    return ProjectAgentActivity.skipped;
+  }
+  return ProjectAgentActivity.idle;
 }
 
 PendingAttachmentKind _pendingAttachmentKind(String filePath) {

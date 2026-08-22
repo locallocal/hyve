@@ -198,6 +198,14 @@ final class _FakeArtifactRepository implements ProjectArtifactRepository {
   Stream<String> get changes => const Stream<String>.empty();
 
   @override
+  Future<List<ProjectArtifactMessageReference>> messageReferences({
+    required String projectId,
+    required String artifactId,
+    String versionId = '',
+    required ProjectArtifactActor actor,
+  }) async => const <ProjectArtifactMessageReference>[];
+
+  @override
   Future<ProjectArtifactMutationResult> create({
     required String projectId,
     required String relativePath,

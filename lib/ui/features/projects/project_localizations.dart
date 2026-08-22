@@ -49,11 +49,28 @@ final class ProjectLocalizations {
   );
   String attachment(int index) => _text('Attachment $index', '附件 $index');
   String get addAttachment => _text('Add attachment', '添加附件');
+  String get saveAsProjectArtifact =>
+      _text('Save as a Project artifact', '保存为项目正式产物');
+  String get savedAsProjectArtifact =>
+      _text('Will be saved as a Project artifact', '将保存为项目正式产物');
+  String get dropFilesToImport =>
+      _text('Drop files here to import', '拖放文件到此处导入');
+  String get releaseToImport => _text('Release to import', '松开即可导入');
+  String versionProvenance(int version, String actorId, String runId) => _text(
+    'Version $version · agent ${actorId.isEmpty ? 'system' : actorId}'
+        '${runId.isEmpty ? '' : ' · run $runId'}',
+    '版本 $version · 智能体 ${actorId.isEmpty ? '系统' : actorId}'
+        '${runId.isEmpty ? '' : ' · 运行 $runId'}',
+  );
+  String referencingMessages(int count) =>
+      _text('$count referencing messages', '$count 条引用消息');
   String get stopRuns => _text('Stop active runs', '停止运行');
   String get send => _text('Send', '发送');
   String activity(ProjectAgentActivity activity) => switch (activity) {
     ProjectAgentActivity.idle => _text('Caught up', '已跟上'),
     ProjectAgentActivity.deciding => _text('Deciding', '判断中'),
+    ProjectAgentActivity.willReply => _text('Will reply', '将回复'),
+    ProjectAgentActivity.skipped => _text('Skipped', '已跳过'),
     ProjectAgentActivity.replying => _text('Replying', '回复中'),
     ProjectAgentActivity.catchingUp => _text('Catching up', '追赶中'),
     ProjectAgentActivity.paused => _text('Paused', '已暂停'),

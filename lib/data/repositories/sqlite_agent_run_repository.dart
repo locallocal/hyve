@@ -31,6 +31,8 @@ final class SqliteAgentRunRepository implements AgentRunRepository {
 
   @override
   Future<void> save(AgentRun run) {
-    return _localDatabase.saveAgentRun(AgentRunRecord.fromDomain(run).values);
+    return _localDatabase.saveAgentRunWithAudit(
+      AgentRunRecord.fromDomain(run).values,
+    );
   }
 }

@@ -698,49 +698,6 @@ extension LocalDatabaseProjectAgents on LocalDatabaseService {
     );
   }
 
-  Future<void> recoverInterruptedProjectAgentClaims(int now) async {
-    final database = await _databaseProvider();
-    await database.transaction((transaction) async {
-      await transaction.rawUpdate(
-        '''
-        UPDATE project_agent_cursors
-        SET processing_message_sequence = NULL,
-            worker_state = CASE
-              WHEN EXISTS (
-                SELECT 1 FROM project_memberships AS membership
-                WHERE membership.project_id = project_agent_cursors.project_id
-                  AND membership.agent_id = project_agent_cursors.agent_id
-                  AND membership.status = 'active'
-              ) THEN 'scheduled'
-              ELSE 'paused'
-            END,
-            active_run_id = NULL,
-            lease_owner = '',
-            lease_expires_at = NULL,
-            last_error = 'interrupted',
-            updated_at = ?
-        WHERE processing_message_sequence IS NOT NULL
-        ''',
-        <Object?>[now],
-      );
-      await transaction.rawUpdate(
-        '''
-        UPDATE agent_runs
-        SET status = 'interrupted', completed_at = ?, error_code = 'interrupted'
-        WHERE status NOT IN (
-          'passed', 'completed', 'failed', 'cancelled',
-          'timedOut', 'limitExceeded', 'interrupted'
-        )
-          AND id NOT IN (
-            SELECT active_run_id FROM project_agent_cursors
-            WHERE active_run_id IS NOT NULL
-          )
-        ''',
-        <Object?>[now],
-      );
-    });
-  }
-
   Future<List<Map<String, Object?>>> loadAgentMessageReceipt(
     String projectId,
     String agentId,

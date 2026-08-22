@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 final class ProjectEventList extends StatefulWidget {
   const ProjectEventList({
@@ -69,7 +71,12 @@ final class _ProjectEventListState extends State<ProjectEventList> {
   Widget build(BuildContext context) {
     final messages = _messages;
     final copy = ProjectLocalizations.of(context);
-    if (messages.isEmpty) return Center(child: Text(copy.emptyTimeline));
+    if (messages.isEmpty) {
+      return ProjectEmptyState(
+        icon: LucideIcons.sparkles,
+        title: copy.emptyTimeline,
+      );
+    }
     return ListView.builder(
       key: const ValueKey<String>('project-event-timeline'),
       controller: _scrollController,
@@ -78,17 +85,18 @@ final class _ProjectEventListState extends State<ProjectEventList> {
       itemBuilder: (context, index) {
         if (widget.hasEarlier && index == 0) {
           return Center(
-            child: TextButton.icon(
+            child: ProjectActionButton(
               key: const ValueKey<String>('project-load-earlier-events'),
               onPressed: widget.loadingEarlier ? null : widget.onLoadEarlier,
-              icon:
+              leading:
                   widget.loadingEarlier
                       ? const SizedBox.square(
                         dimension: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                      : const Icon(Icons.history),
-              label: Text(copy.loadEarlierEvents),
+                      : const Icon(LucideIcons.history, size: 16),
+              label: copy.loadEarlierEvents,
+              variant: ProjectActionVariant.ghost,
             ),
           );
         }
@@ -97,26 +105,40 @@ final class _ProjectEventListState extends State<ProjectEventList> {
         final turn = widget.turns[event.turnId];
         if (event.eventType == ProjectEventType.systemNotice) {
           final notice = event.payload as SystemNoticePayload;
+          final message =
+              '${notice.code}${notice.detail.isEmpty ? '' : ' · ${notice.detail}'}';
           return Align(
             key: ValueKey<String>('project-event-${event.id}'),
             alignment: Alignment.center,
             child: Semantics(
               liveRegion: true,
-              child: Container(
-                key: ValueKey<String>('project-system-notice-${event.id}'),
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${notice.code}${notice.detail.isEmpty ? '' : ' · ${notice.detail}'}',
-                ),
-              ),
+              child:
+                  hasShadProjectTheme(context)
+                      ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: ShadAlert.destructive(
+                          key: ValueKey<String>(
+                            'project-system-notice-${event.id}',
+                          ),
+                          icon: const Icon(LucideIcons.circleAlert),
+                          description: Text(message),
+                        ),
+                      )
+                      : Container(
+                        key: ValueKey<String>(
+                          'project-system-notice-${event.id}',
+                        ),
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(message),
+                      ),
             ),
           );
         }
@@ -146,17 +168,10 @@ final class _ProjectEventListState extends State<ProjectEventList> {
           child: Semantics(
             container: true,
             label: '${fromUser ? copy.user : actorName}: ${event.content}',
-            child: Container(
+            child: _ProjectMessageBubble(
+              fromUser: fromUser,
               constraints: const BoxConstraints(maxWidth: 680),
               margin: const EdgeInsets.symmetric(vertical: 5),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color:
-                    fromUser
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(14),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -167,12 +182,10 @@ final class _ProjectEventListState extends State<ProjectEventList> {
                     ),
                   if (event.replyToEventId.isNotEmpty ||
                       event.replyToMessageSequence != null)
-                    ActionChip(
+                    ProjectBadge(
                       key: ValueKey<String>('project-reply-link-${event.id}'),
-                      avatar: const Icon(Icons.reply, size: 16),
-                      label: Text(
-                        copy.replyingTo(event.replyToMessageSequence ?? 0),
-                      ),
+                      icon: LucideIcons.reply,
+                      label: copy.replyingTo(event.replyToMessageSequence ?? 0),
                       onPressed: () => _scrollTo(event),
                     ),
                   SelectableText(event.content),
@@ -235,13 +248,13 @@ final class ProjectDeliveryCard extends StatelessWidget {
         .where((run) => run.parentRunId == event.runId)
         .toList(growable: false)
       ..sort((left, right) => left.createdAt.compareTo(right.createdAt));
-    return Card(
+    return ProjectSurfaceCard(
       key: ValueKey<String>('project-delivery-card-${event.id}'),
       margin: const EdgeInsets.symmetric(vertical: 5),
-      clipBehavior: Clip.antiAlias,
+      padding: EdgeInsets.zero,
       child: ExpansionTile(
         key: ValueKey<String>('project-delivery-expansion-${event.id}'),
-        leading: const Icon(Icons.forward_to_inbox_outlined),
+        leading: const Icon(LucideIcons.send),
         title: Text(payload.summary),
         subtitle: Text(
           '${event.actorNameSnapshot} → $targets · ${payload.kind.name}',
@@ -252,10 +265,13 @@ final class ProjectDeliveryCard extends StatelessWidget {
           Wrap(
             spacing: 8,
             children: <Widget>[
-              Chip(label: Text(payload.kind.name)),
-              Chip(label: Text(event.visibility.name)),
+              ProjectBadge(label: payload.kind.name),
+              ProjectBadge(label: event.visibility.name),
               if (payload.requestPublicReply)
-                Chip(label: Text(copy.requestedPublicReply)),
+                ProjectBadge(
+                  label: copy.requestedPublicReply,
+                  variant: ProjectBadgeVariant.secondary,
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -267,7 +283,12 @@ final class ProjectDeliveryCard extends StatelessWidget {
             key: ValueKey<String>('project-delivery-audit-${event.id}'),
             width: double.infinity,
             padding: const EdgeInsets.all(12),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            decoration: BoxDecoration(
+              color:
+                  ShadTheme.maybeOf(context)?.colorScheme.muted ??
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -304,6 +325,57 @@ final class ProjectDeliveryCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+final class _ProjectMessageBubble extends StatelessWidget {
+  const _ProjectMessageBubble({
+    required this.fromUser,
+    required this.constraints,
+    required this.margin,
+    required this.child,
+  });
+
+  final bool fromUser;
+  final BoxConstraints constraints;
+  final EdgeInsetsGeometry margin;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final color =
+        shadTheme == null
+            ? fromUser
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Theme.of(context).colorScheme.surfaceContainerHighest
+            : fromUser
+            ? shadTheme.colorScheme.primary
+            : shadTheme.colorScheme.muted;
+    final foreground =
+        shadTheme != null && fromUser
+            ? shadTheme.colorScheme.primaryForeground
+            : null;
+    return Container(
+      constraints: constraints,
+      margin: margin,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: shadTheme?.radius ?? BorderRadius.circular(14),
+        border:
+            shadTheme == null
+                ? null
+                : Border.all(color: shadTheme.colorScheme.border),
+      ),
+      child: DefaultTextStyle.merge(
+        style: foreground == null ? null : TextStyle(color: foreground),
+        child: IconTheme.merge(
+          data: IconThemeData(color: foreground),
+          child: child,
+        ),
       ),
     );
   }

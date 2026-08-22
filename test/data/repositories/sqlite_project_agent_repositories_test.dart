@@ -311,7 +311,7 @@ void main() {
       projectId: 'project-1',
       turnId: 'turn-1',
       runId: 'run-1',
-      sequence: 1,
+      sequence: 2,
       messageSequence: 1,
       eventType: ProjectEventType.agentDelivery,
       actorType: ProjectEventActorType.agent,
@@ -379,6 +379,23 @@ void main() {
       'Researcher',
     );
     expect(await runRepository.getActiveForProject('project-1'), hasLength(1));
+    final events = await eventRepository.getEvents('project-1');
+    expect(events, hasLength(2));
+    final runAudit = events.first;
+    expect(runAudit.eventType, ProjectEventType.runStatusChanged);
+    expect(runAudit.visibility, ProjectEventVisibility.audit);
+    expect((runAudit.payload as RunStatusChangedPayload).status, 'running');
+    await runRepository.save(run);
+    expect(await eventRepository.getEvents('project-1'), hasLength(2));
+    await runRepository.save(
+      run.copyWith(status: AgentRunStatus.completed, completedAt: now),
+    );
+    final transitioned = await eventRepository.getEvents('project-1');
+    expect(transitioned, hasLength(3));
+    expect(
+      (transitioned.last.payload as RunStatusChangedPayload).status,
+      'completed',
+    );
   });
 
   test('strict JSON records reject missing or extra policy fields', () {

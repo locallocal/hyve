@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
+import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 final class ProjectMembersSheet extends StatefulWidget {
   const ProjectMembersSheet({
@@ -41,41 +43,30 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
   Future<void> _confirmRemove(ProjectMemberSnapshot member) async {
     final copy = ProjectLocalizations.of(context);
     final name = member.agent?.name ?? copy.deletedAgent;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showProjectConfirmation(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(copy.removeMemberTitle(name)),
-            content: Text(copy.removeMemberDescription(member.hasActiveRun)),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text(copy.cancel),
-              ),
-              FilledButton(
-                key: const ValueKey<String>('confirm-remove-project-member'),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text(copy.remove),
-              ),
-            ],
-          ),
+      title: copy.removeMemberTitle(name),
+      description: copy.removeMemberDescription(member.hasActiveRun),
+      cancelLabel: copy.cancel,
+      confirmLabel: copy.remove,
+      destructive: true,
+      confirmKey: const ValueKey<String>('confirm-remove-project-member'),
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await widget.viewModel.remove(member.membership.agentId);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final content = ConstrainedBox(
+    return ProjectDialogSurface(
+      embedded: widget.embedded,
       constraints: BoxConstraints(
         maxWidth: widget.embedded ? double.infinity : 760,
         maxHeight: widget.embedded ? double.infinity : 720,
       ),
       child: _buildContent(context),
     );
-    if (widget.embedded) return content;
-    return Dialog(child: content);
   }
 
   Widget _buildContent(BuildContext context) {
@@ -109,7 +100,7 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Icon(Icons.group_outlined, semanticLabel: copy.members),
+                    Icon(LucideIcons.bot, semanticLabel: copy.members),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -118,67 +109,56 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                       ),
                     ),
                     if (!widget.embedded)
-                      IconButton(
-                        tooltip: copy.close,
+                      ProjectIconAction(
+                        label: copy.close,
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
+                        icon: LucideIcons.x,
                       ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                ProjectTextInput(
                   key: const ValueKey<String>('project-member-search'),
                   controller: _search,
-                  decoration: InputDecoration(
-                    labelText: copy.searchAgents,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon:
-                        _query.isEmpty
-                            ? null
-                            : IconButton(
-                              tooltip: copy.close,
-                              onPressed: () {
-                                _search.clear();
-                                setState(() => _query = '');
-                              },
-                              icon: const Icon(Icons.clear),
-                            ),
-                  ),
+                  label: copy.searchAgents,
+                  leading: const Icon(LucideIcons.search, size: 16),
+                  trailing:
+                      _query.isEmpty
+                          ? null
+                          : ProjectIconAction(
+                            label: copy.close,
+                            onPressed: () {
+                              _search.clear();
+                              setState(() => _query = '');
+                            },
+                            icon: LucideIcons.x,
+                          ),
                   onChanged: (value) => setState(() => _query = value),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
                   key: const ValueKey<String>('project-member-add'),
-                  child: DropdownButtonFormField<String>(
+                  child: ProjectSelect<String>(
                     key: ValueKey<String>(
                       'project-member-add-options-${available.map((item) => item.id).join('-')}',
                     ),
-                    isExpanded: true,
-                    decoration: InputDecoration(labelText: copy.addAgent),
-                    items: <DropdownMenuItem<String>>[
+                    placeholder:
+                        available.isEmpty
+                            ? copy.noAvailableAgents
+                            : copy.addAgent,
+                    options: <ProjectSelectOption<String>>[
                       for (final agent in available)
-                        DropdownMenuItem<String>(
+                        ProjectSelectOption<String>(
                           value: agent.id,
-                          child: Text(
-                            agent.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          label: agent.name,
                         ),
                     ],
-                    hint: Text(
-                      available.isEmpty
-                          ? copy.noAvailableAgents
-                          : copy.addAgent,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onChanged:
-                        widget.viewModel.mutating || available.isEmpty
-                            ? null
-                            : (agentId) {
-                              if (agentId != null) {
-                                unawaited(widget.viewModel.add(agentId));
-                              }
-                            },
+                    enabled: !widget.viewModel.mutating && available.isNotEmpty,
+                    onChanged: (agentId) {
+                      if (agentId != null) {
+                        unawaited(widget.viewModel.add(agentId));
+                      }
+                    },
                   ),
                 ),
                 if (widget.viewModel.errorCode.isNotEmpty)
@@ -202,7 +182,10 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                 Expanded(
                   child:
                       members.isEmpty
-                          ? Center(child: Text(copy.noMembers))
+                          ? ProjectEmptyState(
+                            icon: LucideIcons.bot,
+                            title: copy.noMembers,
+                          )
                           : ReorderableListView.builder(
                             key: const ValueKey<String>('project-member-list'),
                             buildDefaultDragHandles: false,
@@ -281,31 +264,36 @@ final class _MemberCard extends StatelessWidget {
     final paused = membership.status == ProjectMembershipStatus.paused;
     final name = member.agent?.name ?? copy.deletedAgent;
     final controls = <Widget>[
-      DropdownButton<ProjectStorageAccess>(
+      SizedBox(
+        width: 180,
         key: ValueKey<String>('member-access-${membership.agentId}'),
-        value: membership.projectStorageAccess,
-        items: <DropdownMenuItem<ProjectStorageAccess>>[
-          for (final access in ProjectStorageAccess.values)
-            DropdownMenuItem<ProjectStorageAccess>(
-              value: access,
-              child: Text(copy.storageAccessName(access)),
-            ),
-        ],
-        onChanged: (value) {
-          if (value != null) onAccessChanged(value);
-        },
+        child: ProjectSelect<ProjectStorageAccess>(
+          initialValue: membership.projectStorageAccess,
+          placeholder: copy.storageAccess,
+          options: <ProjectSelectOption<ProjectStorageAccess>>[
+            for (final access in ProjectStorageAccess.values)
+              ProjectSelectOption<ProjectStorageAccess>(
+                value: access,
+                label: copy.storageAccessName(access),
+              ),
+          ],
+          onChanged: (value) {
+            if (value != null) onAccessChanged(value);
+          },
+        ),
       ),
-      IconButton(
+      ProjectIconAction(
         key: ValueKey<String>('member-pause-${membership.agentId}'),
-        tooltip: paused ? copy.resume : copy.pause,
+        label: paused ? copy.resume : copy.pause,
         onPressed: () => onPauseChanged(!paused),
-        icon: Icon(paused ? Icons.play_arrow : Icons.pause_outlined),
+        icon: paused ? LucideIcons.play : LucideIcons.pause,
       ),
-      IconButton(
+      ProjectIconAction(
         key: ValueKey<String>('member-remove-${membership.agentId}'),
-        tooltip: copy.remove,
+        label: copy.remove,
         onPressed: onRemove,
-        icon: const Icon(Icons.person_remove_outlined),
+        icon: LucideIcons.trash2,
+        destructive: true,
       ),
     ];
     return Semantics(
@@ -313,13 +301,13 @@ final class _MemberCard extends StatelessWidget {
       label:
           '$name, ${paused ? copy.pausedStatus : copy.active}, '
           '${copy.storageAccess}: ${copy.storageAccessName(membership.projectStorageAccess)}',
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
+      child: ProjectSurfaceCard(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: EdgeInsets.zero,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final compact = constraints.maxWidth < 560;
+              final compact = constraints.maxWidth < projectCompactWidth;
               final identity = Row(
                 children: <Widget>[
                   ReorderableDragStartListener(
@@ -327,15 +315,25 @@ final class _MemberCard extends StatelessWidget {
                     enabled: dragEnabled,
                     child: const SizedBox.square(
                       dimension: 48,
-                      child: Icon(Icons.drag_handle),
+                      child: Icon(LucideIcons.ellipsis),
                     ),
                   ),
-                  CircleAvatar(
-                    child:
-                        member.agent == null
-                            ? const Icon(Icons.person_off_outlined)
-                            : Text(name.characters.first.toUpperCase()),
-                  ),
+                  if (hasShadProjectTheme(context))
+                    ShadAvatar(
+                      null,
+                      size: const Size.square(40),
+                      placeholder:
+                          member.agent == null
+                              ? const Icon(LucideIcons.circleSlash, size: 18)
+                              : Text(name.characters.first.toUpperCase()),
+                    )
+                  else
+                    CircleAvatar(
+                      child:
+                          member.agent == null
+                              ? const Icon(Icons.person_off_outlined)
+                              : Text(name.characters.first.toUpperCase()),
+                    ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

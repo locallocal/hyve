@@ -1470,6 +1470,22 @@ Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行�
 - 定向单元、Repository、ViewModel、Widget 和 integration tests 通过；
 - `dart analyze`、`flutter test test/architecture`、`git diff --check` 通过。
 
+### 15.5 整体验证记录（2026-08-22）
+
+- 清空对话以单事务删除 Event、Turn、Run、Receipt、Decision、Skill activation 和 Summary，
+  重置 Cursor/序号并回收临时消息附件，同时保留 Membership、正式 ProjectArtifact、AgentMemory
+  和用量审计；
+- AgentRun 新建、状态迁移、投递拒绝和重启中断恢复都会生成连续的 `runStatusChanged` 审计事件；
+  事件序号以项目计数器和事件表实际最大值共同校准，旧快照更新不会覆盖已有审计；
+- 文件和外部向量库 AgentMemory 后端通过同一不可变版本、CAS、敏感过滤、作用域隔离、未来证据
+  过滤和索引重建契约；
+- 项目界面覆盖成员运行状态、产物拖放、临时附件显式提升为正式产物、版本来源和消息反向引用，
+  并通过中英文、窄/宽布局及交互 Widget 测试；
+- 真实 SQLite 端到端测试覆盖完整路由、广播判断、回复、Receipt、Cursor、运行审计，以及同一
+  Agent 跨 Project 复用 Skill/MCP 配置；事件分页以 5000 条记录验证稳定游标和查询时限；
+- `dart analyze --fatal-infos` 无问题，`flutter test test/architecture` 21 项通过，完整
+  `flutter test` 680 项通过，`git diff --check` 通过。
+
 ## 16. Phase 0 已确认的产品决策
 
 以下选择于 2026-08-20 确认为实施基线：

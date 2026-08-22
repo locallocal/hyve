@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/views/project_execution_panel.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   testWidgets('shows run chain, usage, errors, context IDs, and cancellation', (
@@ -117,6 +120,62 @@ void main() {
 
     expect(find.text('执行详情'), findsOneWidget);
     expect(find.text('暂无执行记录'), findsOneWidget);
+  });
+
+  testWidgets('renders execution details without a Material ancestor', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 23);
+    final turn = _turn(now);
+    final run = _run(now);
+    final audit = ProjectEvent(
+      id: 'audit-1',
+      projectId: 'project-1',
+      sequence: 1,
+      eventType: ProjectEventType.systemNotice,
+      actorType: ProjectEventActorType.system,
+      actorNameSnapshot: 'System',
+      payload: const SystemNoticePayload(code: 'run_started'),
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => SizedBox(
+              width: 900,
+              height: 700,
+              child: ProjectExecutionPanel(
+                embedded: true,
+                turns: <String, ProjectTurn>{turn.id: turn},
+                runs: <String, AgentRun>{run.id: run},
+                decisions: const <String, ParticipationDecision>{},
+                usageRecords: const <ModelTokenUsageRecord>[],
+                events: <ProjectEvent>[audit],
+                agentNames: const <String, String>{'agent-1': 'Researcher'},
+                onCancelRun: _ignore,
+                onCancelTurn: _ignore,
+                onCancelRootChain: _ignore,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ShadAccordion<String>), findsWidgets);
+    expect(find.byType(ExpansionTile), findsNothing);
+    expect(find.byType(ListTile), findsNothing);
+    expect(find.text('systemNotice'), findsOneWidget);
+
+    await tester.tap(find.byKey(ValueKey<String>('project-turn-${turn.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(ValueKey<String>('project-run-${run.id}')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('summary-1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
 

@@ -41,11 +41,11 @@
         "description": "New chat"
     },
     "newProject": "New Project",
-    "newProjectDescription": "Name the project and add one or more bots.",
+    "newProjectDescription": "Name the project and optionally add agents.",
     "projectName": "Project name",
     "projectNameHint": "Enter a project name",
     "projectNameRequired": "Enter a project name.",
-    "selectProjectBots": "Add bots",
+    "selectProjectBots": "Add agents (optional)",
     "selectAtLeastOneBot": "Select at least one bot.",
     "mentionAgentToSend": "Use @ to mention at least one project agent.",
     "selectedBotCount": "{count} selected",

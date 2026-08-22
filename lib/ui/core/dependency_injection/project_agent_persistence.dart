@@ -17,6 +17,8 @@ final class ProjectAgentPersistence {
     required this.agentMemoryRepository,
     required this.agentMemoryEvolutionRepository,
     required this.compactConversationMessages,
+    required this.modelUsageRepository,
+    required this.manageProjectMembers,
     required this.attachmentRepository,
     required this.routeRepository,
     required this.routeProjectMessage,
@@ -227,6 +229,16 @@ final class ProjectAgentPersistence {
       turnCoordinator: turnCoordinator,
     );
     inboxCoordinator.start().ignore();
+    final manageProjectMembers = ManageProjectMembers(
+      projectRepository: projectRepository,
+      agentRepository: agentRepository,
+      membershipRepository: membershipRepository,
+      cursorRepository: cursorRepository,
+      wakeup:
+          (projectId, agentIds) =>
+              inboxCoordinator.wakeProject(projectId, agentIds),
+      cancelRun: inboxCoordinator.cancelRun,
+    );
     return ProjectAgentPersistence(
       agentRepository: agentRepository,
       projectRepository: projectRepository,
@@ -243,6 +255,8 @@ final class ProjectAgentPersistence {
       agentMemoryRepository: agentMemoryRepository,
       agentMemoryEvolutionRepository: agentMemoryEvolutionRepository,
       compactConversationMessages: compactConversationMessages,
+      modelUsageRepository: modelUsageRepository,
+      manageProjectMembers: manageProjectMembers,
       attachmentRepository: attachmentRepository,
       routeRepository: routeRepository,
       routeProjectMessage: routeProjectMessage,
@@ -269,6 +283,8 @@ final class ProjectAgentPersistence {
   final AgentMemoryRepository agentMemoryRepository;
   final AgentMemoryEvolutionRepository agentMemoryEvolutionRepository;
   final CompactConversationMessages compactConversationMessages;
+  final ModelUsageRepository modelUsageRepository;
+  final ManageProjectMembers manageProjectMembers;
   final AttachmentRepository attachmentRepository;
   final ProjectMessageRouteRepository routeRepository;
   final RouteProjectMessage routeProjectMessage;
@@ -287,9 +303,20 @@ final class ProjectAgentPersistence {
         cursorRepository: cursorRepository,
         runRepository: runRepository,
         deliveryRepository: deliveryRepository,
+        decisionRepository: decisionRepository,
+        modelUsageRepository: modelUsageRepository,
         inboxCoordinator: inboxCoordinator,
         artifactRepository: artifactRepository,
         attachmentRepository: attachmentRepository,
+      );
+
+  ProjectMembersViewModel createMembersViewModel(String projectId) =>
+      ProjectMembersViewModel(
+        projectId: projectId,
+        agentRepository: agentRepository,
+        membershipRepository: membershipRepository,
+        cursorRepository: cursorRepository,
+        manageMembers: manageProjectMembers,
       );
 }
 

@@ -135,7 +135,7 @@ class ChatListViewModel extends DisposableChangeNotifier {
       final memberIds = memberships[entry.$1]
           .where(
             (membership) =>
-                membership.status != ProjectMembershipStatus.removed &&
+                membership.status == ProjectMembershipStatus.active &&
                 agentById.containsKey(membership.agentId),
           )
           .map((membership) => membership.agentId)

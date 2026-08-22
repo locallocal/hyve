@@ -30,8 +30,7 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
   bool get isSaving => _isSaving;
   AppFailure? get error => _error;
   Set<NewProjectValidationError> get validationErrors => _validationErrors;
-  bool get canSubmit =>
-      _name.trim().isNotEmpty && _selectedBotIds.isNotEmpty && !_isSaving;
+  bool get canSubmit => _name.trim().isNotEmpty && !_isSaving;
 
   Future<void> load() async {
     if (isDisposed || _isLoading) return;
@@ -102,9 +101,6 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
     if (_name.trim().isEmpty) {
       errors.add(NewProjectValidationError.nameRequired);
     }
-    if (_selectedBotIds.isEmpty) {
-      errors.add(NewProjectValidationError.botRequired);
-    }
     _validationErrors = Set<NewProjectValidationError>.unmodifiable(errors);
     if (errors.isNotEmpty) {
       notifyListeners();
@@ -116,12 +112,6 @@ final class NewProjectViewModel extends DisposableChangeNotifier {
       for (final id in _selectedBotIds)
         if (selectedById[id] case final bot?) bot,
     ];
-    if (selectedBots.isEmpty) {
-      _validationErrors = const {NewProjectValidationError.botRequired};
-      notifyListeners();
-      return null;
-    }
-
     _isSaving = true;
     _error = null;
     notifyListeners();

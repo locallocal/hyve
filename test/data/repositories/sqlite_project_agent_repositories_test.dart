@@ -261,6 +261,48 @@ void main() {
     },
   );
 
+  test('membership lifecycle appends ordered audit events', () async {
+    await createMembershipGraph();
+    final original =
+        (await membershipRepository.getForProject('project-1')).single;
+    final pausedAt = DateTime(2026, 8, 20, 1);
+    final resumedAt = DateTime(2026, 8, 20, 2);
+    final removedAt = DateTime(2026, 8, 20, 3);
+
+    await membershipRepository.save(
+      original.copyWith(
+        status: ProjectMembershipStatus.paused,
+        updatedAt: pausedAt,
+      ),
+    );
+    await membershipRepository.save(
+      original.copyWith(
+        status: ProjectMembershipStatus.active,
+        updatedAt: resumedAt,
+      ),
+    );
+    await membershipRepository.remove('project-1', 'agent-1', removedAt);
+
+    final events = await eventRepository.getEvents('project-1');
+    expect(events.map((event) => event.sequence), <int>[1, 2, 3]);
+    expect(
+      events.map(
+        (event) => (event.payload as MembershipChangedPayload).currentStatus,
+      ),
+      <String>['paused', 'active', 'removed'],
+    );
+    expect(
+      events.map(
+        (event) => (event.payload as MembershipChangedPayload).previousStatus,
+      ),
+      <String>['active', 'paused', 'active'],
+    );
+    expect(
+      events.map((event) => event.visibility),
+      everyElement(ProjectEventVisibility.audit),
+    );
+  });
+
   test('round-trips typed Event, Turn, and Run records', () async {
     await createMembershipGraph();
     final now = DateTime(2026, 8, 20);

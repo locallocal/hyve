@@ -183,22 +183,28 @@ extension LocalDatabaseProjectAgents on LocalDatabaseService {
   Future<List<Map<String, Object?>>> loadProjectEvents(
     String projectId, {
     int? afterSequence,
+    int? beforeSequence,
     required int limit,
   }) async {
     final database = await _databaseProvider();
-    return database.query(
+    final rows = await database.query(
       'project_events',
       where:
-          afterSequence == null
-              ? 'project_id = ?'
-              : 'project_id = ? AND sequence > ?',
+          afterSequence != null
+              ? 'project_id = ? AND sequence > ?'
+              : beforeSequence != null
+              ? 'project_id = ? AND sequence < ?'
+              : 'project_id = ?',
       whereArgs:
-          afterSequence == null
-              ? <Object?>[projectId]
-              : <Object?>[projectId, afterSequence],
-      orderBy: 'sequence ASC',
+          afterSequence != null
+              ? <Object?>[projectId, afterSequence]
+              : beforeSequence != null
+              ? <Object?>[projectId, beforeSequence]
+              : <Object?>[projectId],
+      orderBy: afterSequence != null ? 'sequence ASC' : 'sequence DESC',
       limit: limit,
     );
+    return afterSequence != null ? rows : rows.reversed.toList(growable: false);
   }
 
   Future<List<Map<String, Object?>>> loadProjectMessageAt(

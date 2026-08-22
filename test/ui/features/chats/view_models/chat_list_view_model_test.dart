@@ -113,9 +113,20 @@ void main() {
               joinedAt: DateTime(2026),
               updatedAt: DateTime(2026),
             ),
+            ProjectMembership(
+              projectId: 'project-1',
+              agentId: 'agent-2',
+              status: ProjectMembershipStatus.paused,
+              position: 1,
+              joinedAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
           ],
         }),
-        agentRepository: _FakeAgentRepository([_agent('agent-1', 'Planner')]),
+        agentRepository: _FakeAgentRepository([
+          _agent('agent-1', 'Planner'),
+          _agent('agent-2', 'Paused reviewer'),
+        ]),
       );
       addTearDown(viewModel.dispose);
 
@@ -124,6 +135,7 @@ void main() {
       expect(viewModel.projects, hasLength(2));
       expect(viewModel.projects.first.usesProjectAgentRuntime, isTrue);
       expect(viewModel.projects.first.firstBot?.id, 'agent-1');
+      expect(viewModel.projects.first.bots, hasLength(1));
       expect(viewModel.projects.last.firstBot, isNull);
       await viewModel.deleteChat('project-2');
       expect(projectRepository.deletedId, 'project-2');

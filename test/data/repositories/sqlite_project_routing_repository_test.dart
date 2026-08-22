@@ -183,7 +183,10 @@ void main() {
       );
 
       expect((await projects.getProject('project-1'))?.lastMessageSequence, 0);
-      expect(await database.query('project_events'), isEmpty);
+      final events = await database.query('project_events');
+      expect(events, hasLength(1));
+      expect(events.single['event_type'], 'membershipChanged');
+      expect(events.single['message_sequence'], isNull);
       expect(await database.query('project_turns'), isEmpty);
     },
   );

@@ -4,6 +4,8 @@ abstract interface class AttachmentRepository {
   Future<String?> selectImage();
 
   Future<String?> selectFile();
+
+  Future<List<String>> selectFiles();
 }
 
 /// Persists picker results into a conversation-owned directory. The operation

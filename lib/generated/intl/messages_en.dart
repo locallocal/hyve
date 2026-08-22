@@ -639,7 +639,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "newProject": MessageLookupByLibrary.simpleMessage("New Project"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
-      "Name the project and add one or more bots.",
+      "Name the project and optionally add agents.",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "No connected MCP Tools are available.",
@@ -811,7 +811,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectBot": MessageLookupByLibrary.simpleMessage("Select Bot"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("Select Language"),
     "selectModel": MessageLookupByLibrary.simpleMessage("Select Model:"),
-    "selectProjectBots": MessageLookupByLibrary.simpleMessage("Add bots"),
+    "selectProjectBots": MessageLookupByLibrary.simpleMessage(
+      "Add agents (optional)",
+    ),
     "selectProvider": MessageLookupByLibrary.simpleMessage("Select Provider"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("Select Theme"),
     "selectedBotCount": m36,

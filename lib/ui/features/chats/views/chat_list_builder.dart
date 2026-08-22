@@ -6,6 +6,7 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/chats/views/chat_item.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
+import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/utils/utils.dart';
 import 'package:hyve/utils/time.dart';
@@ -74,6 +75,11 @@ class ChatListBuilder extends StatelessWidget {
         }
 
         Future<void> deleteChat() async {
+          final baseDescription = S.of(context).confirmDeleteChat(project.name);
+          final deleteDescription =
+              project.usesProjectAgentRuntime
+                  ? '$baseDescription\n\n${ProjectLocalizations.of(context).isChinese ? '不会删除智能体、技能、配置或长期记忆。' : 'Agents, skills, configuration, and long-term memory are not deleted.'}'
+                  : baseDescription;
           final confirm =
               isDesktop
                   ? await showChatShadDialog<bool>(
@@ -90,9 +96,7 @@ class ChatListBuilder extends StatelessWidget {
                           description: Text(
                             desktopProjectText(
                               dialogContext,
-                              S
-                                  .of(dialogContext)
-                                  .confirmDeleteChat(project.name),
+                              deleteDescription,
                             ),
                           ),
                           actions: [
@@ -125,9 +129,7 @@ class ChatListBuilder extends StatelessWidget {
                               ),
                             ),
                           ),
-                          content: Text(
-                            S.of(dialogContext).confirmDeleteChat(project.name),
-                          ),
+                          content: Text(deleteDescription),
                           actions: [
                             TextButton(
                               onPressed:

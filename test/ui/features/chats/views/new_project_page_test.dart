@@ -84,7 +84,7 @@ void main() {
       );
       await tester.pump();
       expect(find.text('请输入项目名称。'), findsOneWidget);
-      expect(find.text('请至少选择一个智能体。'), findsOneWidget);
+      expect(find.text('请至少选择一个智能体。'), findsNothing);
 
       await tester.enterText(
         find.byKey(const ValueKey<String>('project-name-input')),
@@ -108,6 +108,59 @@ void main() {
       ]);
       expect(find.text('open'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('creates a project without selecting an Agent', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
+    final repository = _ProjectRepository();
+    final viewModel = NewProjectViewModel(
+      botRepository: _BotRepository(const <Bot>[]),
+      createProject: CreateProject(
+        projectRepository: repository,
+        membershipRepository: _MembershipRepository(),
+      ),
+    );
+
+    await withMobilePlatform(() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('zh', 'CN'),
+          supportedLocales: supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            S.delegate,
+          ],
+          home: Builder(
+            builder:
+                (context) => FilledButton(
+                  onPressed:
+                      () => showDialog<ProjectWorkspace>(
+                        context: context,
+                        builder: (_) => NewProjectPage(viewModel: viewModel),
+                      ),
+                  child: const Text('open'),
+                ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('project-name-input')),
+        'Solo notes',
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('create-project-submit')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(repository.added.single.name, 'Solo notes');
+      expect(repository.memberships.single, isEmpty);
     });
   });
 

@@ -6,6 +6,7 @@ part 'local_database_mcp_skills.dart';
 part 'local_database_conversations.dart';
 part 'local_database_conversation_summaries.dart';
 part 'local_database_project_agents.dart';
+part 'local_database_project_membership_audits.dart';
 part 'local_database_agent_deliveries.dart';
 part 'local_database_project_artifacts.dart';
 part 'local_database_project_routing.dart';

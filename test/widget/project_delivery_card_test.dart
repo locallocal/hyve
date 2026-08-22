@@ -152,9 +152,9 @@ void main() {
       find.text('Audit the evidence and report any unsupported claims.'),
       findsOneWidget,
     );
-    expect(find.text('请求公开回复'), findsOneWidget);
-    expect(find.textContaining('来源运行：reply-run-1'), findsOneWidget);
-    expect(find.textContaining('交付深度：1'), findsOneWidget);
+    expect(find.text('Public reply requested'), findsOneWidget);
+    expect(find.textContaining('Source run: reply-run-1'), findsOneWidget);
+    expect(find.textContaining('Delivery depth: 1'), findsOneWidget);
     expect(find.textContaining('Reviewer:running'), findsOneWidget);
   });
 }

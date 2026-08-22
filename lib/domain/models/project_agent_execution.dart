@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:hyve/domain/models/agent.dart';
 import 'package:hyve/domain/models/agent_delivery.dart';
+import 'package:hyve/domain/models/ai_models.dart';
 import 'package:hyve/domain/models/message.dart';
 import 'package:hyve/domain/models/project_event.dart';
 import 'package:hyve/domain/models/tool.dart';
@@ -80,10 +81,12 @@ final class ProjectAgentReplyRequest {
     required this.sourceEvent,
     required this.contextThroughMessageSequence,
     required Iterable<ProjectEvent> visibleHistory,
+    Iterable<ChatMessage> contextMessages = const <ChatMessage>[],
     required this.cancellationToken,
     this.deliveryExecutor,
     Iterable<ExecutableTool> projectTools = const <ExecutableTool>[],
   }) : visibleHistory = List<ProjectEvent>.unmodifiable(visibleHistory),
+       contextMessages = List<ChatMessage>.unmodifiable(contextMessages),
        projectTools = List<ExecutableTool>.unmodifiable(projectTools);
 
   final String runId;
@@ -92,6 +95,7 @@ final class ProjectAgentReplyRequest {
   final ProjectEvent sourceEvent;
   final int contextThroughMessageSequence;
   final List<ProjectEvent> visibleHistory;
+  final List<ChatMessage> contextMessages;
   final ProjectRunCancellationToken cancellationToken;
   final ProjectAgentDeliveryExecutor? deliveryExecutor;
   final List<ExecutableTool> projectTools;

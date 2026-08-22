@@ -13,6 +13,10 @@ final class ProjectAgentPersistence {
     required this.decisionRepository,
     required this.deliveryRepository,
     required this.artifactRepository,
+    required this.conversationSummaryRepository,
+    required this.agentMemoryRepository,
+    required this.agentMemoryEvolutionRepository,
+    required this.compactConversationMessages,
     required this.attachmentRepository,
     required this.routeRepository,
     required this.routeProjectMessage,
@@ -46,6 +50,49 @@ final class ProjectAgentPersistence {
     );
     final eventRepository = SqliteProjectEventRepository(
       localDatabase: localDatabase,
+    );
+    final fileAgentMemoryRepository = FileAgentMemoryRepository(
+      storage: storage,
+    );
+    final agentMemoryRepository = AgentMemoryRepositoryRouter(
+      agentRepository: agentRepository,
+      factory: AgentMemoryRepositoryFactory(
+        fileRepository: fileAgentMemoryRepository,
+      ),
+    );
+    final agentMemoryEvolutionRepository = SqliteAgentMemoryEvolutionRepository(
+      localDatabase: localDatabase,
+    );
+    final conversationSummaryRepository = SqliteConversationSummaryRepository(
+      localDatabase: localDatabase,
+      storage: ProjectConversationSummaryStorage(storage: storage),
+      eventRepository: eventRepository,
+    );
+    final compactConversationMessages = CompactConversationMessages(
+      projectRepository: projectRepository,
+      eventRepository: eventRepository,
+      summaryRepository: conversationSummaryRepository,
+      summarizerFactory:
+          (agent) => ProviderProjectContextSummarizer(
+            agent: agent,
+            providers: providers,
+          ),
+      usagePersister:
+          (operationId, projectId, agent, usage) => modelUsageRepository.upsert(
+            ModelTokenUsageRecord(
+              messageId: operationId,
+              chatId: projectId,
+              botId: agent.id,
+              timestamp: DateTime.now(),
+              usage: usage,
+              operationKind: 'conversation_summary',
+            ),
+          ),
+    );
+    final evolveAgentMemory = EvolveAgentMemory(
+      memoryRepository: agentMemoryRepository,
+      extractor: ProviderAgentMemoryCandidateExtractor(providers: providers),
+      evolutionRepository: agentMemoryEvolutionRepository,
     );
     final turnRepository = SqliteProjectTurnRepository(
       localDatabase: localDatabase,
@@ -110,6 +157,26 @@ final class ProjectAgentPersistence {
         gateway: gateway,
         routeProjectMessage: routeProjectMessage,
         deliverToProjectAgent: deliverToProjectAgent,
+        contextAssembler: AssembleAgentRunContext(
+          summaryRepository: conversationSummaryRepository,
+          memoryRepository: agentMemoryRepository,
+          projectRepository: projectRepository,
+        ),
+        evolveAgentMemory: ({
+          required agent,
+          required projectId,
+          required observedEvents,
+          required contextThroughMessageSequence,
+          required agentResponse,
+        }) async {
+          await evolveAgentMemory(
+            agent: agent,
+            projectId: projectId,
+            observedEvents: observedEvents,
+            contextThroughMessageSequence: contextThroughMessageSequence,
+            agentResponse: agentResponse,
+          );
+        },
         scopedToolProvider: ({
           required project,
           required agent,
@@ -123,18 +190,37 @@ final class ProjectAgentPersistence {
               membership.status != ProjectMembershipStatus.active) {
             return const <ExecutableTool>[];
           }
-          return ProjectArtifactToolSet(
-            repository: artifactRepository,
-            projectId: project.id,
-            actor: ProjectArtifactActor(
-              type: ProjectArtifactActorType.agent,
-              id: agent.id,
-              name: agent.name,
-              avatar: agent.avatar,
-              sourceRunId: run.id,
-            ),
-            access: membership.projectStorageAccess,
-          ).tools;
+          final artifactTools =
+              ProjectArtifactToolSet(
+                repository: artifactRepository,
+                projectId: project.id,
+                actor: ProjectArtifactActor(
+                  type: ProjectArtifactActorType.agent,
+                  id: agent.id,
+                  name: agent.name,
+                  avatar: agent.avatar,
+                  sourceRunId: run.id,
+                ),
+                access: membership.projectStorageAccess,
+              ).tools;
+          final sourceEvent = await eventRepository.getEvent(
+            run.sourceMessageEventId,
+          );
+          final memoryTools =
+              AgentMemoryToolSet(
+                repository: agentMemoryRepository,
+                agent: agent,
+                projectId: project.id,
+                sourceEventId: run.sourceMessageEventId,
+                sourceMessageSequence: run.sourceMessageSequence,
+                sourceDigest:
+                    sourceEvent == null
+                        ? ''
+                        : const ConversationSummarySourceDigest()(
+                          <ProjectEvent>[sourceEvent],
+                        ),
+              ).tools;
+          return <ExecutableTool>[...artifactTools, ...memoryTools];
         },
         modelUsageRepository: modelUsageRepository,
       ),
@@ -153,6 +239,10 @@ final class ProjectAgentPersistence {
       decisionRepository: decisionRepository,
       deliveryRepository: deliveryRepository,
       artifactRepository: artifactRepository,
+      conversationSummaryRepository: conversationSummaryRepository,
+      agentMemoryRepository: agentMemoryRepository,
+      agentMemoryEvolutionRepository: agentMemoryEvolutionRepository,
+      compactConversationMessages: compactConversationMessages,
       attachmentRepository: attachmentRepository,
       routeRepository: routeRepository,
       routeProjectMessage: routeProjectMessage,
@@ -175,6 +265,10 @@ final class ProjectAgentPersistence {
   final ParticipationDecisionRepository decisionRepository;
   final AgentDeliveryRepository deliveryRepository;
   final ProjectArtifactRepository artifactRepository;
+  final ConversationSummaryRepository conversationSummaryRepository;
+  final AgentMemoryRepository agentMemoryRepository;
+  final AgentMemoryEvolutionRepository agentMemoryEvolutionRepository;
+  final CompactConversationMessages compactConversationMessages;
   final AttachmentRepository attachmentRepository;
   final ProjectMessageRouteRepository routeRepository;
   final RouteProjectMessage routeProjectMessage;
@@ -200,6 +294,23 @@ final class ProjectAgentPersistence {
 }
 
 extension ProjectAgentAppDependencyFactories on AppDependencies {
+  AgentMemoryRepository get agentMemoryRepository =>
+      projectAgents.agentMemoryRepository;
+  ConversationSummaryRepository get projectConversationSummaryRepository =>
+      projectAgents.conversationSummaryRepository;
+  AgentMemoryEvolutionRepository get agentMemoryEvolutionRepository =>
+      projectAgents.agentMemoryEvolutionRepository;
+  CompactConversationMessages get compactProjectConversationMessages =>
+      projectAgents.compactConversationMessages;
+
+  AgentMemoryViewModel createAgentMemoryViewModel(String agentId) =>
+      AgentMemoryViewModel(
+        agentId: agentId,
+        agentRepository: agentRepository,
+        memoryRepository: agentMemoryRepository,
+        evolutionRepository: agentMemoryEvolutionRepository,
+      );
+
   ChatListViewModel createChatListViewModel() => ChatListViewModel(
     chatRepository: chatRepository,
     botRepository: botRepository,

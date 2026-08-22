@@ -186,6 +186,18 @@ final class AgentRunRecord {
         'systemPromptDigest': run.agentSnapshot.systemPromptDigest,
         'capabilityDigest': run.agentSnapshot.capabilityDigest,
       }),
+      'context_report_json': jsonEncode(<String, Object?>{
+        'conversationSummarySegmentIds':
+            run.contextReport.conversationSummarySegmentIds,
+        'agentMemoryIds': run.contextReport.agentMemoryIds,
+        'projectArtifactVersionIds':
+            run.contextReport.projectArtifactVersionIds,
+        'skillDigests': run.contextReport.skillDigests,
+        'toolNames': run.contextReport.toolNames,
+        'agentMemoryRevision': run.contextReport.agentMemoryRevision,
+        'coveredThroughMessageSequence':
+            run.contextReport.coveredThroughMessageSequence,
+      }),
       'started_at': run.startedAt?.millisecondsSinceEpoch,
       'completed_at': run.completedAt?.millisecondsSinceEpoch,
       'error_code': run.errorCode,
@@ -207,6 +219,19 @@ final class AgentRunRecord {
       'systemPromptDigest',
       'capabilityDigest',
     }, 'agent_snapshot_json');
+    final contextReport = _jsonObject(
+      values['context_report_json'],
+      'context_report_json',
+    );
+    _requireExactKeys(contextReport, const <String>{
+      'conversationSummarySegmentIds',
+      'agentMemoryIds',
+      'projectArtifactVersionIds',
+      'skillDigests',
+      'toolNames',
+      'agentMemoryRevision',
+      'coveredThroughMessageSequence',
+    }, 'context_report_json');
     return AgentRun(
       id: _text(values['id'], 'id'),
       projectId: _text(values['project_id'], 'project_id'),
@@ -253,6 +278,33 @@ final class AgentRunRecord {
       startedAt: _nullableDate(values['started_at'], 'started_at'),
       completedAt: _nullableDate(values['completed_at'], 'completed_at'),
       errorCode: _text(values['error_code'], 'error_code'),
+      contextReport: AgentRunContextReport(
+        conversationSummarySegmentIds: _stringList(
+          contextReport['conversationSummarySegmentIds'],
+          'conversationSummarySegmentIds',
+        ),
+        agentMemoryIds: _stringList(
+          contextReport['agentMemoryIds'],
+          'agentMemoryIds',
+        ),
+        projectArtifactVersionIds: _stringList(
+          contextReport['projectArtifactVersionIds'],
+          'projectArtifactVersionIds',
+        ),
+        skillDigests: _stringList(
+          contextReport['skillDigests'],
+          'skillDigests',
+        ),
+        toolNames: _stringList(contextReport['toolNames'], 'toolNames'),
+        agentMemoryRevision: _integer(
+          contextReport['agentMemoryRevision'],
+          'agentMemoryRevision',
+        ),
+        coveredThroughMessageSequence: _integer(
+          contextReport['coveredThroughMessageSequence'],
+          'coveredThroughMessageSequence',
+        ),
+      ),
       createdAt: _date(values['created_at'], 'created_at'),
     );
   }

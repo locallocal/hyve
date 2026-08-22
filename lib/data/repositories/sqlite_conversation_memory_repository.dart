@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:hyve/data/services/conversation_summary_storage.dart';
 import 'package:hyve/data/services/local_database_service.dart';
@@ -23,39 +22,50 @@ final class SqliteConversationMemoryRepository
 
   @override
   Future<ConversationMemoryState> getState(String chatId) async {
-    final rows = await _localDatabase.loadConversationMemoryState(chatId);
+    final rows = await _localDatabase.loadConversationSummaryStateV19(chatId);
     if (rows.isEmpty) {
-      return ConversationMemoryState(chatId: chatId, updatedAt: DateTime.now());
+      return ConversationMemoryState(
+        chatId: chatId,
+        autoMemoryEnabled: false,
+        updatedAt: DateTime.now(),
+      );
     }
-    return _stateFromRow(rows.first);
+    final row = rows.single;
+    final lastCompactedAt = _nullableInt(row['last_compacted_at']);
+    return ConversationMemoryState(
+      chatId: chatId,
+      revision: _int(row['revision']),
+      activeSummaryId: _text(
+        row['active_summary_set_id'],
+        'active_summary_set_id',
+      ),
+      coveredThroughMessageId:
+          _int(row['covered_through_message_sequence']).toString(),
+      autoMemoryEnabled: false,
+      compactionStatus: _enumByName(
+        ConversationCompactionStatus.values,
+        _text(row['compaction_status'], 'compaction_status'),
+        'compaction_status',
+      ),
+      lastError: _text(row['last_error'], 'last_error'),
+      lastCompactedAt:
+          lastCompactedAt == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(lastCompactedAt),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(_int(row['updated_at'])),
+    );
   }
 
   @override
   Future<ConversationSummaryDocument?> getActiveSummary(String chatId) async {
-    final rows = await _localDatabase.loadActiveConversationSummary(chatId);
-    if (rows.isEmpty) return null;
-    final metadata = _summaryFromRow(rows.first);
-    try {
-      final markdown = await _storage.read(metadata);
-      return ConversationSummaryDocument(
-        metadata: metadata,
-        markdown: markdown,
-      );
-    } on ConversationSummaryStorageException catch (error) {
-      await _localDatabase.invalidateConversationSummary(
-        chatId,
-        metadata.id,
-        error.message,
-      );
-      _emit(chatId);
-      return null;
-    }
+    // Project summaries are read through ConversationSummaryRepository. This
+    // compatibility adapter deliberately exposes no Project Memory body.
+    return null;
   }
 
   @override
   Future<List<ConversationMemoryItem>> getItems(String chatId) async {
-    final rows = await _localDatabase.loadConversationMemoryItems(chatId);
-    return List.unmodifiable(rows.map(_itemFromRow));
+    return const <ConversationMemoryItem>[];
   }
 
   @override
@@ -65,74 +75,32 @@ final class SqliteConversationMemoryRepository
     required ConversationSummaryDocument summary,
     required List<ConversationMemoryItem> items,
   }) async {
-    if (summary.metadata.chatId != chatId ||
-        summary.metadata.baseRevision != expectedRevision) {
-      throw ArgumentError('Summary metadata does not match the CAS request.');
-    }
-    final stored = await _storage.write(
-      chatId: chatId,
-      summaryId: summary.metadata.id,
-      markdown: summary.markdown,
-    );
-    final metadata = summary.metadata.copyWith(
-      contentDigest: stored.contentDigest,
-      contentBytes: stored.contentBytes,
-    );
-    try {
-      final committed = await _localDatabase.commitConversationCompaction(
-        chatId: chatId,
-        expectedRevision: expectedRevision,
-        summary: _summaryToRow(metadata),
-        items: items.map(_itemToRow),
-      );
-      if (!committed) {
-        await _storage.deleteSummary(chatId, summary.metadata.id);
-        return false;
-      }
-      _emit(chatId);
-      return true;
-    } catch (_) {
-      await _storage.deleteSummary(chatId, summary.metadata.id);
-      rethrow;
-    }
+    // Legacy chat compaction cannot write the Project summary schema because
+    // it has no stable messageSequence. The Project use case owns this path.
+    return false;
   }
 
   @override
   Future<void> saveUserItem(ConversationMemoryItem item) async {
-    await _localDatabase.upsertConversationMemoryItem(
-      _itemToRow(
-        item.copyWith(
-          origin: ConversationMemoryOrigin.user,
-          updatedAt: DateTime.now(),
-        ),
-      ),
+    throw UnsupportedError(
+      'Project Memory items do not exist. Save AgentMemory or an Artifact.',
     );
-    _emit(item.chatId);
   }
 
   @override
   Future<void> forgetItem(String chatId, String itemId) async {
-    await _localDatabase.updateConversationMemoryItemState(
-      chatId,
-      itemId,
-      ConversationMemoryItemState.forgotten.name,
+    throw UnsupportedError(
+      'Project Memory items do not exist. Forget through AgentMemory.',
     );
-    _emit(chatId);
   }
 
   @override
   Future<void> restoreItem(String chatId, String itemId) async {
-    await _localDatabase.updateConversationMemoryItemState(
-      chatId,
-      itemId,
-      ConversationMemoryItemState.active.name,
-    );
-    _emit(chatId);
+    throw UnsupportedError('Project Memory items cannot be restored.');
   }
 
   @override
   Future<void> setAutoMemoryEnabled(String chatId, bool enabled) async {
-    await _localDatabase.setConversationAutoMemoryEnabled(chatId, enabled);
     _emit(chatId);
   }
 
@@ -142,7 +110,7 @@ final class SqliteConversationMemoryRepository
     ConversationCompactionStatus status, {
     String lastError = '',
   }) async {
-    await _localDatabase.setConversationCompactionStatus(
+    await _localDatabase.setConversationSummaryCompactionStatusV19(
       chatId,
       status.name,
       lastError,
@@ -153,21 +121,21 @@ final class SqliteConversationMemoryRepository
   @override
   Future<void> clearAutomaticMemory(String chatId) async {
     await _storage.clearSummaries(chatId);
-    await _localDatabase.clearAutomaticConversationMemory(chatId);
+    await _localDatabase.deleteConversationSummariesV19(chatId);
     _emit(chatId);
   }
 
   @override
   Future<void> clearForChat(String chatId) async {
     await _storage.clearSummaries(chatId);
-    await _localDatabase.deleteConversationMemory(chatId);
+    await _localDatabase.deleteConversationSummariesV19(chatId);
     _emit(chatId);
   }
 
   @override
   Future<void> deleteForChat(String chatId) async {
     await _storage.deleteChatDirectory(chatId);
-    await _localDatabase.deleteConversationMemory(chatId);
+    await _localDatabase.deleteConversationSummariesV19(chatId);
     _emit(chatId);
   }
 
@@ -176,159 +144,12 @@ final class SqliteConversationMemoryRepository
   }
 }
 
-ConversationMemoryState _stateFromRow(Map<String, Object?> row) {
-  final lastCompactedAt = _nullableInt(row['last_compacted_at']);
-  return ConversationMemoryState(
-    chatId: _text(row['chat_id'], 'chat_id'),
-    revision: _int(row['revision']),
-    activeSummaryId: _text(row['active_summary_id'], 'active_summary_id'),
-    coveredThroughMessageId: _text(
-      row['covered_through_message_id'],
-      'covered_through_message_id',
-    ),
-    autoMemoryEnabled: _bool(row['auto_memory_enabled']),
-    compactionStatus: _enumByName(
-      ConversationCompactionStatus.values,
-      _text(row['compaction_status'], 'compaction_status'),
-      'compaction_status',
-    ),
-    lastError: _text(row['last_error'], 'last_error'),
-    lastCompactedAt:
-        lastCompactedAt == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(lastCompactedAt),
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(_int(row['updated_at'])),
-  );
-}
-
-ConversationSummaryMetadata _summaryFromRow(Map<String, Object?> row) {
-  return ConversationSummaryMetadata(
-    id: _text(row['id'], 'id'),
-    chatId: _text(row['chat_id'], 'chat_id'),
-    status: _enumByName(
-      ConversationSummaryStatus.values,
-      _text(row['status'], 'status'),
-      'status',
-    ),
-    fileName: _text(row['file_name'], 'file_name'),
-    markdownSchemaVersion: _int(row['markdown_schema_version']),
-    contentDigest: _text(row['content_digest'], 'content_digest'),
-    contentBytes: _int(row['content_bytes']),
-    sourceStartMessageId: _text(
-      row['source_start_message_id'],
-      'source_start_message_id',
-    ),
-    sourceEndMessageId: _text(
-      row['source_end_message_id'],
-      'source_end_message_id',
-    ),
-    sourceMessageIds: _stringList(row['source_message_ids']),
-    sourceDigest: _text(row['source_digest'], 'source_digest'),
-    estimatedTokenCount: _int(row['estimated_token_count']),
-    provider: _text(row['provider'], 'provider'),
-    model: _text(row['model'], 'model'),
-    promptVersion: _int(row['prompt_version']),
-    baseRevision: _int(row['base_revision']),
-    createdAt: DateTime.fromMillisecondsSinceEpoch(_int(row['created_at'])),
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(_int(row['updated_at'])),
-  );
-}
-
-Map<String, Object?> _summaryToRow(ConversationSummaryMetadata metadata) => {
-  'id': metadata.id,
-  'chat_id': metadata.chatId,
-  'status': metadata.status.name,
-  'file_name': metadata.fileName,
-  'markdown_schema_version': metadata.markdownSchemaVersion,
-  'content_digest': metadata.contentDigest,
-  'content_bytes': metadata.contentBytes,
-  'source_start_message_id': metadata.sourceStartMessageId,
-  'source_end_message_id': metadata.sourceEndMessageId,
-  'source_message_ids': jsonEncode(metadata.sourceMessageIds),
-  'source_digest': metadata.sourceDigest,
-  'estimated_token_count': metadata.estimatedTokenCount,
-  'provider': metadata.provider,
-  'model': metadata.model,
-  'prompt_version': metadata.promptVersion,
-  'base_revision': metadata.baseRevision,
-  'created_at': metadata.createdAt.millisecondsSinceEpoch,
-  'updated_at': metadata.updatedAt.millisecondsSinceEpoch,
-};
-
-ConversationMemoryItem _itemFromRow(Map<String, Object?> row) {
-  final expiresAt = _nullableInt(row['expires_at']);
-  return ConversationMemoryItem(
-    id: _text(row['id'], 'id'),
-    chatId: _text(row['chat_id'], 'chat_id'),
-    memoryKey: _text(row['memory_key'], 'memory_key'),
-    kind: _enumByName(
-      ConversationMemoryKind.values,
-      _text(row['kind'], 'kind'),
-      'kind',
-    ),
-    content: _text(row['content'], 'content'),
-    state: _enumByName(
-      ConversationMemoryItemState.values,
-      _text(row['state'], 'state'),
-      'state',
-    ),
-    origin: _enumByName(
-      ConversationMemoryOrigin.values,
-      _text(row['origin'], 'origin'),
-      'origin',
-    ),
-    importance: _double(row['importance']),
-    confidence: _double(row['confidence']),
-    sourceMessageIds: _stringList(row['source_message_ids']),
-    sourceDigest: _text(row['source_digest'], 'source_digest'),
-    expiresAt:
-        expiresAt == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(expiresAt),
-    createdAt: DateTime.fromMillisecondsSinceEpoch(_int(row['created_at'])),
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(_int(row['updated_at'])),
-  );
-}
-
-Map<String, Object?> _itemToRow(ConversationMemoryItem item) => {
-  'id': item.id,
-  'chat_id': item.chatId,
-  'memory_key': item.memoryKey,
-  'kind': item.kind.name,
-  'content': item.content,
-  'state': item.state.name,
-  'origin': item.origin.name,
-  'importance': item.importance,
-  'confidence': item.confidence,
-  'source_message_ids': jsonEncode(item.sourceMessageIds),
-  'source_digest': item.sourceDigest,
-  'expires_at': item.expiresAt?.millisecondsSinceEpoch,
-  'created_at': item.createdAt.millisecondsSinceEpoch,
-  'updated_at': item.updatedAt.millisecondsSinceEpoch,
-};
-
 int _int(Object? value) => switch (value) {
   final int number => number,
   _ => throw const FormatException('Memory record integer is invalid.'),
 };
 
 int? _nullableInt(Object? value) => value == null ? null : _int(value);
-
-double _double(Object? value) => switch (value) {
-  final num number => number.toDouble(),
-  _ => throw const FormatException('Memory record number is invalid.'),
-};
-
-List<String> _stringList(Object? value) {
-  if (value is! String) {
-    throw const FormatException('Memory record JSON must be text.');
-  }
-  final decoded = jsonDecode(value);
-  if (decoded is! List<Object?> || decoded.any((item) => item is! String)) {
-    throw const FormatException('Memory source ids must be a string list.');
-  }
-  return List<String>.unmodifiable(decoded.cast<String>());
-}
 
 T _enumByName<T extends Enum>(List<T> values, String name, String field) {
   for (final value in values) {
@@ -341,9 +162,3 @@ String _text(Object? value, String field) {
   if (value is String) return value;
   throw FormatException('Memory record field "$field" must be a string.');
 }
-
-bool _bool(Object? value) => switch (value) {
-  0 => false,
-  1 => true,
-  _ => throw const FormatException('Memory record boolean must be 0 or 1.'),
-};

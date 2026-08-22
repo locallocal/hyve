@@ -31,8 +31,59 @@ final class AgentRunSnapshot {
   final String capabilityDigest;
 }
 
+final class AgentRunContextReport {
+  AgentRunContextReport({
+    Iterable<String> conversationSummarySegmentIds = const <String>[],
+    Iterable<String> agentMemoryIds = const <String>[],
+    Iterable<String> projectArtifactVersionIds = const <String>[],
+    Iterable<String> skillDigests = const <String>[],
+    Iterable<String> toolNames = const <String>[],
+    this.agentMemoryRevision = 0,
+    this.coveredThroughMessageSequence = 0,
+  }) : conversationSummarySegmentIds = List<String>.unmodifiable(
+         conversationSummarySegmentIds,
+       ),
+       agentMemoryIds = List<String>.unmodifiable(agentMemoryIds),
+       projectArtifactVersionIds = List<String>.unmodifiable(
+         projectArtifactVersionIds,
+       ),
+       skillDigests = List<String>.unmodifiable(skillDigests),
+       toolNames = List<String>.unmodifiable(toolNames);
+
+  static final empty = AgentRunContextReport();
+
+  final List<String> conversationSummarySegmentIds;
+  final List<String> agentMemoryIds;
+  final List<String> projectArtifactVersionIds;
+  final List<String> skillDigests;
+  final List<String> toolNames;
+  final int agentMemoryRevision;
+  final int coveredThroughMessageSequence;
+
+  AgentRunContextReport copyWith({
+    Iterable<String>? conversationSummarySegmentIds,
+    Iterable<String>? agentMemoryIds,
+    Iterable<String>? projectArtifactVersionIds,
+    Iterable<String>? skillDigests,
+    Iterable<String>? toolNames,
+    int? agentMemoryRevision,
+    int? coveredThroughMessageSequence,
+  }) => AgentRunContextReport(
+    conversationSummarySegmentIds:
+        conversationSummarySegmentIds ?? this.conversationSummarySegmentIds,
+    agentMemoryIds: agentMemoryIds ?? this.agentMemoryIds,
+    projectArtifactVersionIds:
+        projectArtifactVersionIds ?? this.projectArtifactVersionIds,
+    skillDigests: skillDigests ?? this.skillDigests,
+    toolNames: toolNames ?? this.toolNames,
+    agentMemoryRevision: agentMemoryRevision ?? this.agentMemoryRevision,
+    coveredThroughMessageSequence:
+        coveredThroughMessageSequence ?? this.coveredThroughMessageSequence,
+  );
+}
+
 final class AgentRun {
-  const AgentRun({
+  AgentRun({
     required this.id,
     required this.projectId,
     required this.turnId,
@@ -49,8 +100,10 @@ final class AgentRun {
     this.startedAt,
     this.completedAt,
     this.errorCode = '',
+    AgentRunContextReport? contextReport,
     required this.createdAt,
-  }) : assert(sourceMessageSequence > 0),
+  }) : contextReport = contextReport ?? AgentRunContextReport.empty,
+       assert(sourceMessageSequence > 0),
        assert(contextThroughMessageSequence >= sourceMessageSequence),
        assert(deliveryDepth >= 0);
 
@@ -70,6 +123,7 @@ final class AgentRun {
   final DateTime? startedAt;
   final DateTime? completedAt;
   final String errorCode;
+  final AgentRunContextReport contextReport;
   final DateTime createdAt;
 
   bool get isTerminal => switch (status) {
@@ -88,6 +142,7 @@ final class AgentRun {
     DateTime? startedAt,
     DateTime? completedAt,
     String? errorCode,
+    AgentRunContextReport? contextReport,
     bool clearStartedAt = false,
     bool clearCompletedAt = false,
   }) => AgentRun(
@@ -107,6 +162,7 @@ final class AgentRun {
     startedAt: clearStartedAt ? null : startedAt ?? this.startedAt,
     completedAt: clearCompletedAt ? null : completedAt ?? this.completedAt,
     errorCode: errorCode ?? this.errorCode,
+    contextReport: contextReport ?? this.contextReport,
     createdAt: createdAt,
   );
 }

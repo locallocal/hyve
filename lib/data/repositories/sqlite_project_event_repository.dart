@@ -59,6 +59,26 @@ final class SqliteProjectEventRepository implements ProjectEventRepository {
   }
 
   @override
+  Future<List<ProjectEvent>> getMessageRange(
+    String projectId, {
+    required int startMessageSequence,
+    required int endMessageSequence,
+  }) async {
+    if (startMessageSequence < 1 || endMessageSequence < startMessageSequence) {
+      throw ArgumentError('Project message range is invalid.');
+    }
+    final events = <ProjectEvent>[];
+    for (final record in await _localDatabase.loadProjectMessageRange(
+      projectId,
+      startMessageSequence: startMessageSequence,
+      endMessageSequence: endMessageSequence,
+    )) {
+      events.add(await _restore(record));
+    }
+    return List<ProjectEvent>.unmodifiable(events);
+  }
+
+  @override
   Future<ProjectEvent?> getAgentReplyForRun(String runId) async {
     final records = await _localDatabase.loadAgentReplyForRun(runId);
     return records.isEmpty ? null : _restore(records.single);

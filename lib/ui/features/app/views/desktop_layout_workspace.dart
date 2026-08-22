@@ -372,6 +372,8 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
                 generationViewModel: _dependencies?.generationRegistry
                     .maybeViewModel(widget.selectedChatId),
               ),
+            if (widget.currentIndex == 0 && _agentMemoryViewModel != null)
+              AgentMemoryPanel(viewModel: _agentMemoryViewModel!),
           ],
         ],
       ),

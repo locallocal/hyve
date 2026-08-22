@@ -6,6 +6,7 @@ import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/model_usage_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
 import 'package:hyve/domain/use_cases/deliver_to_project_agent.dart';
+import 'package:hyve/domain/use_cases/assemble_agent_run_context.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
 
 typedef ReplyRunIdFactory = String Function(String prefix);
@@ -20,6 +21,14 @@ typedef ProjectAgentScopedToolProvider =
       required Project project,
       required Agent agent,
       required AgentRun run,
+    });
+typedef AgentMemoryEvolutionRunner =
+    Future<void> Function({
+      required Agent agent,
+      required String projectId,
+      required List<ProjectEvent> observedEvents,
+      required int contextThroughMessageSequence,
+      required String agentResponse,
     });
 
 final class ProjectAgentReplyExecution {
@@ -40,6 +49,8 @@ final class ExecuteProjectAgentReply {
     required ProjectAgentExecutionGateway gateway,
     required RouteProjectMessage routeProjectMessage,
     DeliverToProjectAgent? deliverToProjectAgent,
+    AssembleAgentRunContext? contextAssembler,
+    AgentMemoryEvolutionRunner? evolveAgentMemory,
     ProjectAgentScopedToolProvider? scopedToolProvider,
     ModelUsageRepository? modelUsageRepository,
     ReplyRunIdFactory? idFactory,
@@ -48,6 +59,8 @@ final class ExecuteProjectAgentReply {
        _gateway = gateway,
        _routeProjectMessage = routeProjectMessage,
        _deliverToProjectAgent = deliverToProjectAgent,
+       _contextAssembler = contextAssembler,
+       _evolveAgentMemory = evolveAgentMemory,
        _scopedToolProvider = scopedToolProvider,
        _modelUsageRepository = modelUsageRepository,
        _idFactory = idFactory ?? _defaultReplyRunIdFactory,
@@ -57,6 +70,8 @@ final class ExecuteProjectAgentReply {
   final ProjectAgentExecutionGateway _gateway;
   final RouteProjectMessage _routeProjectMessage;
   final DeliverToProjectAgent? _deliverToProjectAgent;
+  final AssembleAgentRunContext? _contextAssembler;
+  final AgentMemoryEvolutionRunner? _evolveAgentMemory;
   final ProjectAgentScopedToolProvider? _scopedToolProvider;
   final ModelUsageRepository? _modelUsageRepository;
   final ReplyRunIdFactory _idFactory;
@@ -110,6 +125,21 @@ final class ExecuteProjectAgentReply {
             run: run,
           ) ??
           const <ExecutableTool>[];
+      final assembled = await _contextAssembler?.call(
+        agent: agent,
+        projectId: project.id,
+        sourceEvent: sourceEvent,
+        contextThroughMessageSequence: sourceEvent.messageSequence!,
+        visibleHistory: visibleHistory,
+      );
+      if (assembled != null) {
+        run = run.copyWith(
+          contextReport: assembled.report.copyWith(
+            toolNames: projectTools.map((tool) => tool.definition.name),
+          ),
+        );
+        await _runRepository.save(run);
+      }
       result = await _gateway.reply(
         ProjectAgentReplyRequest(
           runId: runId,
@@ -117,7 +147,8 @@ final class ExecuteProjectAgentReply {
           agent: agent,
           sourceEvent: sourceEvent,
           contextThroughMessageSequence: sourceEvent.messageSequence!,
-          visibleHistory: visibleHistory,
+          visibleHistory: assembled?.visibleHistory ?? visibleHistory,
+          contextMessages: assembled?.contextMessages ?? const [],
           cancellationToken: cancellationToken,
           deliveryExecutor:
               _deliverToProjectAgent == null
@@ -164,6 +195,20 @@ final class ExecuteProjectAgentReply {
               sourceEvent: sourceEvent,
               sourceTurn: turn,
             )).event;
+        final evolve = _evolveAgentMemory;
+        if (evolve != null) {
+          try {
+            await evolve(
+              agent: agent,
+              projectId: project.id,
+              observedEvents: visibleHistory,
+              contextThroughMessageSequence: sourceEvent.messageSequence!,
+              agentResponse: result.text,
+            );
+          } on Object {
+            // Long-term memory evolution is best-effort and cannot fail a reply.
+          }
+        }
       }
     } on ProjectRunCancelledException {
       result = const ProjectAgentReplyResult(

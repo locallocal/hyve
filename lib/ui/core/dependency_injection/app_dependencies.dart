@@ -99,6 +99,7 @@ import 'package:hyve/ui/features/app/view_models/startup_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_form_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_skill_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_view_model.dart';

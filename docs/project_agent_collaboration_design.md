@@ -1,6 +1,6 @@
 # 项目优先的多智能体协作设计
 
-> 状态：Phase 4 已完成（2026-08-22），可以进入 Phase 5。
+> 状态：Phase 5 已完成（2026-08-22），可以进入 Phase 6。
 >
 > Phase 0 决策基线见第 16 节。后续若修改基线，必须同步更新对应策略默认值、数据契约和验收项。
 >
@@ -1385,13 +1385,13 @@ Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行�
 - [x] 把需要持久化的附件和生成产物统一纳入 ProjectArtifact；
 - [x] 实现项目删除的文件暂存与恢复。
 
-### Phase 5：会话摘要与长期记忆
+### Phase 5：会话摘要与长期记忆（已完成）
 
-- 把现有 ConversationMemory 调整为只有 ConversationSummary，不创建项目 Memory item；
-- 实现按消息范围汇总、摘要提取、来源 digest、失效和重建；
-- 实现候选提取、敏感过滤、版本化合并和作用域策略；
-- 实现 AgentMemory 跨项目检索、Token 预算和上下文报告；
-- 实现用户查看、纠正、忘记和冻结 AgentMemory。
+- [x] 把现有 ConversationMemory 调整为只有 ConversationSummary，不创建项目 Memory item；
+- [x] 实现按消息范围汇总、摘要提取、来源 digest、失效和重建；
+- [x] 实现候选提取、敏感过滤、版本化合并和作用域策略；
+- [x] 实现 AgentMemory 跨项目检索、Token 预算和上下文报告；
+- [x] 实现用户查看、纠正、忘记和冻结 AgentMemory。
 
 ### Phase 6：完整体验和观测
 

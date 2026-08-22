@@ -13,6 +13,12 @@ abstract interface class ProjectEventRepository {
 
   Future<ProjectEvent?> getMessageAt(String projectId, int messageSequence);
 
+  Future<List<ProjectEvent>> getMessageRange(
+    String projectId, {
+    required int startMessageSequence,
+    required int endMessageSequence,
+  });
+
   Future<ProjectEvent?> getAgentReplyForRun(String runId);
 
   Future<int> countAgentMessagesForRoot(String projectId, String rootMessageId);

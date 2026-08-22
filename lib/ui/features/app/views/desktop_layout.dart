@@ -10,6 +10,8 @@ import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/core/widgets/model_modalities.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
+import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
+import 'package:hyve/ui/features/bots/views/agent_memory_panel.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
@@ -105,6 +107,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   AppDependencies? _dependencies;
   ChatTokenUsageViewModel? _tokenUsageViewModel;
   ConversationMemoryViewModel? _memoryViewModel;
+  AgentMemoryViewModel? _agentMemoryViewModel;
 
   Bot? get _activeBot => switch (widget.currentIndex) {
     0 => widget.selectedChatBot,
@@ -119,11 +122,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     if (_dependencies == dependencies) return;
     _tokenUsageViewModel?.dispose();
     _memoryViewModel?.dispose();
+    _agentMemoryViewModel?.dispose();
     _tokenUsageViewModel = null;
     _memoryViewModel = null;
+    _agentMemoryViewModel = null;
     _dependencies = dependencies;
     _replaceTokenUsageViewModel();
     _replaceMemoryViewModel();
+    _replaceAgentMemoryViewModel();
   }
 
   @override
@@ -133,8 +139,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
       _chatPageKey = null;
       _replaceTokenUsageViewModel();
       _replaceMemoryViewModel();
+      _replaceAgentMemoryViewModel();
     } else if (oldWidget.selectedChatBot != widget.selectedChatBot) {
       _replaceMemoryViewModel();
+      _replaceAgentMemoryViewModel();
     }
     if (widget.currentIndex != 0 && _inspectorOpen) {
       _inspectorOpen = false;
@@ -165,6 +173,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     _inspectorScrollController.dispose();
     _tokenUsageViewModel?.dispose();
     _memoryViewModel?.dispose();
+    _agentMemoryViewModel?.dispose();
     super.dispose();
   }
 
@@ -190,6 +199,16 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         chatId == null || bot == null || dependencies == null
             ? null
             : dependencies.createConversationMemoryViewModel(chatId, bot);
+  }
+
+  void _replaceAgentMemoryViewModel() {
+    _agentMemoryViewModel?.dispose();
+    final agentId = widget.selectedChatBot?.id;
+    final dependencies = _dependencies;
+    _agentMemoryViewModel =
+        agentId == null || dependencies == null
+            ? null
+            : dependencies.createAgentMemoryViewModel(agentId);
   }
 
   @override

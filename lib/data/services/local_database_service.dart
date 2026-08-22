@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 part 'local_database_mcp_skills.dart';
 part 'local_database_conversations.dart';
+part 'local_database_conversation_summaries.dart';
 part 'local_database_project_agents.dart';
 part 'local_database_agent_deliveries.dart';
 part 'local_database_project_artifacts.dart';

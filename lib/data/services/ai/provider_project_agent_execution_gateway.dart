@@ -7,6 +7,7 @@ import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
 import 'package:hyve/domain/use_cases/agent_run_coordinator.dart';
 import 'package:hyve/data/services/tools/project_artifact_tools.dart';
+import 'package:hyve/data/services/tools/agent_memory_tools.dart';
 import 'package:hyve/data/services/tools/project_deliver_to_agent_tool.dart';
 
 final class ProviderProjectAgentExecutionGateway
@@ -100,6 +101,7 @@ final class ProviderProjectAgentExecutionGateway
       agent: request.agent,
       messages: <ChatMessage>[
         ChatMessage(role: 'system', content: request.agent.systemPrompt),
+        ...request.contextMessages,
         for (final event in request.visibleHistory)
           ChatMessage(
             role:
@@ -176,6 +178,7 @@ final class ProviderProjectAgentExecutionGateway
                 'handoff to another project Agent. Do not simulate a handoff '
                 'with a plain-text @mention.',
           ),
+          ...request.contextMessages,
           for (final event in request.visibleHistory)
             ChatMessage(
               role:
@@ -278,6 +281,19 @@ final class _ProjectAgentToolPolicy implements ToolPolicy {
     if (ProjectArtifactToolNames.readOnly.contains(definition.name)) {
       return const ToolPolicyDecision.allow(
         reason: 'scoped_project_artifact_read',
+      );
+    }
+    if (AgentMemoryToolNames.readOnly.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(reason: 'scoped_agent_memory_read');
+    }
+    if (AgentMemoryToolNames.write.contains(definition.name)) {
+      return const ToolPolicyDecision.allow(
+        reason: 'scoped_agent_memory_proposal',
+      );
+    }
+    if (AgentMemoryToolNames.destructive.contains(definition.name)) {
+      return const ToolPolicyDecision.requireApproval(
+        reason: 'agent_memory_forget_requires_approval',
       );
     }
     if (ProjectArtifactToolNames.write.contains(definition.name)) {

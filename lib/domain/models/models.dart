@@ -1,6 +1,7 @@
 // Public domain model surface.
 export 'bot.dart';
 export 'agent.dart';
+export 'agent_memory.dart';
 export 'agent_delivery.dart';
 export 'agent_run.dart';
 export 'agent_message_cursor.dart';
@@ -11,6 +12,7 @@ export 'chat.dart';
 export 'command_state.dart';
 export 'conversation_history.dart';
 export 'conversation_memory.dart';
+export 'conversation_summary.dart';
 export 'conversation_draft.dart';
 export 'message.dart';
 export 'message_page.dart';

@@ -185,6 +185,7 @@ abstract final class DatabaseSchemaV19 {
         phase TEXT NOT NULL CHECK (phase IN ('decision', 'reply', 'delivery')),
         status TEXT NOT NULL,
         agent_snapshot_json TEXT NOT NULL,
+        context_report_json TEXT NOT NULL DEFAULT '{"conversationSummarySegmentIds":[],"agentMemoryIds":[],"projectArtifactVersionIds":[],"skillDigests":[],"toolNames":[],"agentMemoryRevision":0,"coveredThroughMessageSequence":0}',
         started_at INTEGER,
         completed_at INTEGER,
         error_code TEXT NOT NULL DEFAULT '',
@@ -364,6 +365,8 @@ abstract final class DatabaseSchemaV19 {
         source_digest TEXT NOT NULL,
         summary_file_name TEXT NOT NULL,
         summary_content_digest TEXT NOT NULL,
+        summary_content_bytes INTEGER NOT NULL DEFAULT 0
+          CHECK (summary_content_bytes >= 0),
         estimated_token_count INTEGER NOT NULL DEFAULT 0,
         provider TEXT NOT NULL DEFAULT '',
         model TEXT NOT NULL DEFAULT '',

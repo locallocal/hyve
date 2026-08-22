@@ -51,6 +51,26 @@ final class AgentMemoryPolicy {
   final String uncertainCrossProject;
   final String secretLike;
   final AgentMemoryRetrievalPolicy retrieval;
+
+  AgentMemoryPolicy copyWith({
+    bool? autoEvolutionEnabled,
+    String? projectFactDefaultScope,
+    Iterable<String>? autoCrossProjectKinds,
+    String? privateCrossProject,
+    String? uncertainCrossProject,
+    String? secretLike,
+    AgentMemoryRetrievalPolicy? retrieval,
+  }) => AgentMemoryPolicy(
+    schemaVersion: schemaVersion,
+    autoEvolutionEnabled: autoEvolutionEnabled ?? this.autoEvolutionEnabled,
+    projectFactDefaultScope:
+        projectFactDefaultScope ?? this.projectFactDefaultScope,
+    autoCrossProjectKinds: autoCrossProjectKinds ?? this.autoCrossProjectKinds,
+    privateCrossProject: privateCrossProject ?? this.privateCrossProject,
+    uncertainCrossProject: uncertainCrossProject ?? this.uncertainCrossProject,
+    secretLike: secretLike ?? this.secretLike,
+    retrieval: retrieval ?? this.retrieval,
+  );
 }
 
 final class Agent {

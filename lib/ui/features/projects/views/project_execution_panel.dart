@@ -141,16 +141,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
                               ),
                             ),
                             for (final event in audits)
-                              ListTile(
-                                dense: true,
-                                leading: Icon(_eventIcon(event.eventType)),
-                                title: Text(event.eventType.name),
-                                subtitle: Text(
-                                  '${event.id} · ${event.actorNameSnapshot.isEmpty ? event.actorType.name : event.actorNameSnapshot}',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+                              _AuditEventTile(event: event),
                           ],
                         ],
                       ),
@@ -214,7 +205,7 @@ final class _TurnCard extends StatelessWidget {
             .toSet();
     return ProjectSurfaceCard(
       padding: EdgeInsets.zero,
-      child: ExpansionTile(
+      child: _ExecutionDisclosure(
         key: ValueKey<String>('project-turn-${turn.id}'),
         leading: Icon(_turnIcon(turn.status)),
         title: Text(
@@ -292,7 +283,7 @@ final class _RunTile extends StatelessWidget {
     final report = run.contextReport;
     return ProjectSurfaceCard(
       padding: EdgeInsets.zero,
-      child: ExpansionTile(
+      child: _ExecutionDisclosure(
         key: ValueKey<String>('project-run-${run.id}'),
         leading: Icon(_runIcon(run.status)),
         title: Text(
@@ -339,6 +330,153 @@ final class _RunTile extends StatelessWidget {
           Text(copy.identifiers(copy.tools, report.toolNames)),
           Text('memoryRevision: ${report.agentMemoryRevision}'),
           Text('coveredThrough: ${report.coveredThroughMessageSequence}'),
+        ],
+      ),
+    );
+  }
+}
+
+final class _ExecutionDisclosure extends StatelessWidget {
+  const _ExecutionDisclosure({
+    super.key,
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    required this.children,
+    required this.childrenPadding,
+    this.trailing,
+    this.expandedCrossAxisAlignment = CrossAxisAlignment.center,
+  });
+
+  final Widget leading;
+  final Widget title;
+  final Widget subtitle;
+  final Widget? trailing;
+  final List<Widget> children;
+  final EdgeInsetsGeometry childrenPadding;
+  final CrossAxisAlignment expandedCrossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasShadProjectTheme(context)) {
+      return ExpansionTile(
+        leading: leading,
+        title: title,
+        subtitle: subtitle,
+        trailing: trailing,
+        childrenPadding: childrenPadding,
+        expandedCrossAxisAlignment: expandedCrossAxisAlignment,
+        children: children,
+      );
+    }
+
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    final shadTheme = ShadTheme.of(context);
+    return ShadAccordion<String>(
+      children: <ShadAccordionItem<String>>[
+        ShadAccordionItem<String>(
+          value: 'details',
+          separator: const SizedBox.shrink(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          duration:
+              disableAnimations
+                  ? Duration.zero
+                  : const Duration(milliseconds: 180),
+          underlineTitleOnHover: false,
+          iconData: LucideIcons.chevronDown,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              IconTheme.merge(
+                data: const IconThemeData(size: 20),
+                child: leading,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    DefaultTextStyle.merge(
+                      style: shadTheme.textTheme.small.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      child: title,
+                    ),
+                    const SizedBox(height: 3),
+                    DefaultTextStyle.merge(
+                      style: shadTheme.textTheme.muted,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      child: subtitle,
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...<Widget>[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
+            ],
+          ),
+          child: Padding(
+            padding: childrenPadding,
+            child: Column(
+              crossAxisAlignment: expandedCrossAxisAlignment,
+              children: children,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+final class _AuditEventTile extends StatelessWidget {
+  const _AuditEventTile({required this.event});
+
+  final ProjectEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final actor =
+        event.actorNameSnapshot.isEmpty
+            ? event.actorType.name
+            : event.actorNameSnapshot;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(_eventIcon(event.eventType), size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  event.eventType.name,
+                  style:
+                      shadTheme?.textTheme.small.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ) ??
+                      Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${event.id} · $actor',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      shadTheme?.textTheme.muted ??
+                      Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

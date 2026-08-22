@@ -214,6 +214,9 @@ final class _FakeAssets implements ConversationAssetRepository {
   Future<String?> selectFile() async => '/tmp/file.txt';
 
   @override
+  Future<List<String>> selectFiles() async => const <String>['/tmp/file.txt'];
+
+  @override
   Future<String?> selectImage() async => '/tmp/image.png';
 }
 

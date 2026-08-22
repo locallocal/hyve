@@ -27,15 +27,20 @@ final class SqliteProjectEventRepository implements ProjectEventRepository {
   Future<List<ProjectEvent>> getEvents(
     String projectId, {
     int? afterSequence,
+    int? beforeSequence,
     int limit = 100,
   }) async {
     if (limit <= 0) {
       throw ArgumentError.value(limit, 'limit', 'Must be positive.');
     }
+    if (afterSequence != null && beforeSequence != null) {
+      throw ArgumentError('Only one Project event cursor can be specified.');
+    }
     final events = <ProjectEvent>[];
     for (final record in await _localDatabase.loadProjectEvents(
       projectId,
       afterSequence: afterSequence,
+      beforeSequence: beforeSequence,
       limit: limit,
     )) {
       events.add(await _restore(record));

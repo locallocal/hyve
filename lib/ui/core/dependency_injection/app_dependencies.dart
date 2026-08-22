@@ -114,6 +114,7 @@ import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';
 import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.dart';
 import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
+import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
 
 part 'project_agent_persistence.dart';

@@ -41,11 +41,11 @@
         "description": "新建聊天"
     },
     "newProject": "新建项目",
-    "newProjectDescription": "设置项目名称，并添加一个或多个智能体。",
+    "newProjectDescription": "设置项目名称，并可选择添加智能体。",
     "projectName": "项目名称",
     "projectNameHint": "输入项目名称",
     "projectNameRequired": "请输入项目名称。",
-    "selectProjectBots": "添加智能体",
+    "selectProjectBots": "添加智能体（可选）",
     "selectAtLeastOneBot": "请至少选择一个智能体。",
     "mentionAgentToSend": "请使用 @ 提及至少一个项目智能体。",
     "selectedBotCount": "已选择 {count} 个",

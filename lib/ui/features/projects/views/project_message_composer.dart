@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/features/projects/project_localizations.dart';
 
 final class StructuredProjectMessageController extends TextEditingController {
   StructuredProjectMessageController({
@@ -197,7 +199,7 @@ final class ProjectMessageComposer extends StatefulWidget {
     this.onCancelRuns,
     this.onPickAttachment,
     this.onRemoveAttachment,
-    this.hintText = '输入消息；不选择 @ 时将广播给全部智能体',
+    this.hintText = '',
   });
 
   final StructuredProjectMessageController controller;
@@ -280,6 +282,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
   @override
   Widget build(BuildContext context) {
     final candidates = _candidates;
+    final copy = ProjectLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -323,7 +326,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
                   InputChip(
                     label: Text(
                       widget.attachments[index].displayName.isEmpty
-                          ? '附件 ${index + 1}'
+                          ? copy.attachment(index + 1)
                           : widget.attachments[index].displayName,
                     ),
                     onDeleted:
@@ -334,41 +337,51 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
               ],
             ),
           ),
-        TextField(
-          key: const ValueKey<String>('project-message-field'),
-          controller: widget.controller,
-          focusNode: _focusNode,
-          minLines: 2,
-          maxLines: 6,
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.onPickAttachment != null)
+        CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            const SingleActivator(LogicalKeyboardKey.enter, control: true):
+                _send,
+            const SingleActivator(LogicalKeyboardKey.enter, meta: true): _send,
+          },
+          child: TextField(
+            key: const ValueKey<String>('project-message-field'),
+            controller: widget.controller,
+            focusNode: _focusNode,
+            minLines: 2,
+            maxLines: 6,
+            decoration: InputDecoration(
+              hintText:
+                  widget.hintText.isEmpty
+                      ? copy.broadcastHint
+                      : widget.hintText,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.onPickAttachment != null)
+                    IconButton(
+                      key: const ValueKey<String>('project-pick-attachment'),
+                      tooltip: copy.addAttachment,
+                      onPressed: widget.onPickAttachment,
+                      icon: const Icon(Icons.attach_file_rounded),
+                    ),
+                  if (widget.activeRunCount > 0 && widget.onCancelRuns != null)
+                    IconButton(
+                      key: const ValueKey<String>('project-cancel-runs'),
+                      tooltip: copy.stopRuns,
+                      onPressed: widget.onCancelRuns,
+                      icon: const Icon(Icons.stop_rounded),
+                    ),
                   IconButton(
-                    key: const ValueKey<String>('project-pick-attachment'),
-                    tooltip: '添加附件',
-                    onPressed: widget.onPickAttachment,
-                    icon: const Icon(Icons.attach_file_rounded),
+                    key: const ValueKey<String>('project-send-message'),
+                    tooltip: copy.send,
+                    onPressed: _canSend ? _send : null,
+                    icon: const Icon(Icons.send_rounded),
                   ),
-                if (widget.activeRunCount > 0 && widget.onCancelRuns != null)
-                  IconButton(
-                    key: const ValueKey<String>('project-cancel-runs'),
-                    tooltip: '停止运行',
-                    onPressed: widget.onCancelRuns,
-                    icon: const Icon(Icons.stop_rounded),
-                  ),
-                IconButton(
-                  key: const ValueKey<String>('project-send-message'),
-                  tooltip: '发送',
-                  onPressed: _canSend ? _send : null,
-                  icon: const Icon(Icons.send_rounded),
-                ),
-              ],
+                ],
+              ),
             ),
+            onSubmitted: (_) => _send(),
           ),
-          onSubmitted: (_) => _send(),
         ),
       ],
     );

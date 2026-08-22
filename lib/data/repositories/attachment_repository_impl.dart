@@ -30,6 +30,9 @@ class AttachmentRepositoryImpl implements ConversationAssetRepository {
   Future<String?> selectFile() => _service.selectFile();
 
   @override
+  Future<List<String>> selectFiles() => _service.selectFiles();
+
+  @override
   Future<List<String>> persistAssets({
     required String chatId,
     required Iterable<String> sourcePaths,

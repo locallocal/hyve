@@ -44,5 +44,10 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.single['operation_kind'], 'context_compaction');
     expect(rows.single['total_token_count'], 120);
+
+    final restored = await repository.getForProject('chat_1');
+    expect(restored, hasLength(1));
+    expect(restored.single.messageId, 'context_compaction:summary_1');
+    expect(restored.single.usage.effectiveTotalTokens, 120);
   });
 }

@@ -339,16 +339,6 @@ class _NewProjectPageState extends State<NewProjectPage> {
           ),
           child: _buildBotPicker(context, desktop: desktop),
         ),
-        if (widget.viewModel.validationErrors.contains(
-          NewProjectValidationError.botRequired,
-        )) ...[
-          const SizedBox(height: 8),
-          Text(
-            S.of(context).selectAtLeastOneBot,
-            key: const ValueKey<String>('project-bot-error'),
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
         if (widget.viewModel.error case final error?) ...[
           const SizedBox(height: 16),
           HyveInlineErrorAlert(

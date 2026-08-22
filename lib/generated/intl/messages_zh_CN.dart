@@ -493,7 +493,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "newProject": MessageLookupByLibrary.simpleMessage("新建项目"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
-      "设置项目名称，并添加一个或多个智能体。",
+      "设置项目名称，并可选择添加智能体。",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "暂无已连接且可用的 MCP 工具。",
@@ -609,7 +609,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectBot": MessageLookupByLibrary.simpleMessage("选择智能体"),
     "selectLanguage": MessageLookupByLibrary.simpleMessage("选择语言"),
     "selectModel": MessageLookupByLibrary.simpleMessage("选择模型:"),
-    "selectProjectBots": MessageLookupByLibrary.simpleMessage("添加智能体"),
+    "selectProjectBots": MessageLookupByLibrary.simpleMessage("添加智能体（可选）"),
     "selectProvider": MessageLookupByLibrary.simpleMessage("选择提供商"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("选择主题"),
     "selectedBotCount": m36,

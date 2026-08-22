@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:hyve/data/models/project_agent_records.dart';
+import 'package:hyve/data/models/project_execution_records.dart';
 import 'package:hyve/data/services/local_database_service.dart';
+import 'package:hyve/domain/models/project_event.dart';
 import 'package:hyve/domain/models/project_membership.dart';
 import 'package:hyve/domain/repositories/project_membership_repository.dart';
 
@@ -48,8 +50,17 @@ final class SqliteProjectMembershipRepository
 
   @override
   Future<void> save(ProjectMembership membership) async {
-    await _localDatabase.saveProjectMembership(
+    await _localDatabase.saveProjectMembershipWithAudit(
       ProjectMembershipRecord.fromDomain(membership).values,
+      ProjectEventRecord.fromDomain(
+        _auditEvent(
+          projectId: membership.projectId,
+          agentId: membership.agentId,
+          status: membership.status,
+          timestamp: membership.updatedAt,
+          generation: membership.membershipGeneration,
+        ),
+      ).values,
     );
     _emit(membership.projectId);
   }
@@ -73,10 +84,19 @@ final class SqliteProjectMembershipRepository
     String agentId,
     DateTime removedAt,
   ) async {
-    await _localDatabase.markProjectMembershipRemoved(
+    await _localDatabase.markProjectMembershipRemovedWithAudit(
       projectId,
       agentId,
       removedAt.millisecondsSinceEpoch,
+      ProjectEventRecord.fromDomain(
+        _auditEvent(
+          projectId: projectId,
+          agentId: agentId,
+          status: ProjectMembershipStatus.removed,
+          timestamp: removedAt,
+          generation: 0,
+        ),
+      ).values,
     );
     _emit(projectId);
   }
@@ -87,3 +107,28 @@ final class SqliteProjectMembershipRepository
 
   Future<void> dispose() => _changes.close();
 }
+
+ProjectEvent _auditEvent({
+  required String projectId,
+  required String agentId,
+  required ProjectMembershipStatus status,
+  required DateTime timestamp,
+  required int generation,
+}) => ProjectEvent(
+  id:
+      'membership-$projectId-$agentId-$generation-${status.name}-'
+      '${timestamp.microsecondsSinceEpoch}',
+  projectId: projectId,
+  sequence: 1,
+  eventType: ProjectEventType.membershipChanged,
+  actorType: ProjectEventActorType.user,
+  actorId: 'current-user',
+  actorNameSnapshot: 'User',
+  visibility: ProjectEventVisibility.audit,
+  payload: MembershipChangedPayload(
+    agentId: agentId,
+    currentStatus: status.name,
+  ),
+  createdAt: timestamp,
+  updatedAt: timestamp,
+);

@@ -268,6 +268,7 @@ class SqliteMessageRepository
           messageId: record['message_id']?.toString() ?? '',
           chatId: record['chat_id']?.toString() ?? '',
           botId: record['bot_id']?.toString() ?? '',
+          runId: record['run_id']?.toString() ?? '',
           timestamp: DateTime.fromMillisecondsSinceEpoch(
             _readCount(record['timestamp']),
           ),

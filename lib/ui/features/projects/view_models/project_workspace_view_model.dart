@@ -12,6 +12,8 @@ import 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
 import 'package:hyve/domain/repositories/project_artifact_repository.dart';
 import 'package:hyve/domain/repositories/project_event_repository.dart';
 import 'package:hyve/domain/repositories/project_membership_repository.dart';
+import 'package:hyve/domain/repositories/model_usage_repository.dart';
+import 'package:hyve/domain/repositories/participation_decision_repository.dart';
 import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/repositories/project_turn_repository.dart';
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
@@ -57,6 +59,8 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     required ProjectAgentCursorRepository cursorRepository,
     required AgentRunRepository runRepository,
     required AgentDeliveryRepository deliveryRepository,
+    required ParticipationDecisionRepository decisionRepository,
+    required ModelUsageRepository modelUsageRepository,
     required AgentInboxCoordinator inboxCoordinator,
     required ProjectArtifactRepository artifactRepository,
     required AttachmentRepository attachmentRepository,
@@ -69,6 +73,8 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
        _cursorRepository = cursorRepository,
        _runRepository = runRepository,
        _deliveryRepository = deliveryRepository,
+       _decisionRepository = decisionRepository,
+       _modelUsageRepository = modelUsageRepository,
        _artifactRepository = artifactRepository,
        _attachmentRepository = attachmentRepository,
        _inboxCoordinator = inboxCoordinator {
@@ -107,6 +113,8 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   final ProjectAgentCursorRepository _cursorRepository;
   final AgentRunRepository _runRepository;
   final AgentDeliveryRepository _deliveryRepository;
+  final ParticipationDecisionRepository _decisionRepository;
+  final ModelUsageRepository _modelUsageRepository;
   final ProjectArtifactRepository _artifactRepository;
   final AttachmentRepository _attachmentRepository;
   final AgentInboxCoordinator _inboxCoordinator;
@@ -125,11 +133,15 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   Map<String, ProjectTurn> _turns = const {};
   Map<String, AgentDelivery> _deliveries = const {};
   Map<String, AgentRun> _runs = const {};
+  Map<String, ParticipationDecision> _decisions = const {};
+  List<ModelTokenUsageRecord> _usageRecords = const [];
   Map<String, String> _agentNames = const {};
   List<ProjectArtifactEntry> _artifacts = const [];
   String _artifactQuery = '';
   Set<ProjectArtifactKind> _artifactKinds = const <ProjectArtifactKind>{};
   bool _artifactBusy = false;
+  bool _eventPageBusy = false;
+  bool _hasEarlierEvents = false;
   bool _submitting = false;
   String _errorCode = '';
 
@@ -140,11 +152,15 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   Map<String, ProjectTurn> get turns => _turns;
   Map<String, AgentDelivery> get deliveries => _deliveries;
   Map<String, AgentRun> get runs => _runs;
+  Map<String, ParticipationDecision> get decisions => _decisions;
+  List<ModelTokenUsageRecord> get usageRecords => _usageRecords;
   Map<String, String> get agentNames => _agentNames;
   List<ProjectArtifactEntry> get artifacts => _artifacts;
   String get artifactQuery => _artifactQuery;
   Set<ProjectArtifactKind> get artifactKinds => _artifactKinds;
   bool get artifactBusy => _artifactBusy;
+  bool get eventPageBusy => _eventPageBusy;
+  bool get hasEarlierEvents => _hasEarlierEvents;
   bool get submitting => _submitting;
   String get errorCode => _errorCode;
 
@@ -163,7 +179,16 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     final agentsById = <String, Agent>{
       for (final agent in await _agentRepository.getAgents()) agent.id: agent,
     };
-    final events = await _eventRepository.getEvents(projectId, limit: 200);
+    final latestEvents = await _eventRepository.getEvents(
+      projectId,
+      limit: 200,
+    );
+    final eventById = <String, ProjectEvent>{
+      for (final event in _events) event.id: event,
+      for (final event in latestEvents) event.id: event,
+    };
+    final events = eventById.values.toList(growable: false)
+      ..sort((left, right) => left.sequence.compareTo(right.sequence));
     final turns = await _turnRepository.getForProject(projectId, limit: 200);
     final deliveryRecords = await Future.wait(<Future<AgentDelivery?>>[
       for (final event in events)
@@ -173,6 +198,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     final turnRuns = await Future.wait(<Future<List<AgentRun>>>[
       for (final turn in turns) _runRepository.getForTurn(turn.id),
     ]);
+    final turnDecisions = await Future.wait(
+      <Future<List<ParticipationDecision>>>[
+        for (final turn in turns) _decisionRepository.getForTurn(turn.id),
+      ],
+    );
+    final usageRecords = await _modelUsageRepository.getForProject(projectId);
     final cursors = await _cursorRepository.getForProject(projectId);
     final byAgent = <String, AgentMessageCursor>{
       for (final cursor in cursors) cursor.agentId: cursor,
@@ -210,6 +241,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
         if (agentsById[membership.agentId] case final agent?) agent,
     ]);
     _events = List<ProjectEvent>.unmodifiable(events);
+    _hasEarlierEvents = _events.isNotEmpty && _events.first.sequence > 1;
     _turns = Map<String, ProjectTurn>.unmodifiable({
       for (final turn in turns) turn.id: turn,
     });
@@ -221,11 +253,42 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
       for (final values in turnRuns)
         for (final run in values) run.id: run,
     });
+    _decisions = Map<String, ParticipationDecision>.unmodifiable({
+      for (final values in turnDecisions)
+        for (final decision in values) decision.runId: decision,
+    });
+    _usageRecords = List<ModelTokenUsageRecord>.unmodifiable(usageRecords);
     _agentNames = Map<String, String>.unmodifiable({
       for (final entry in agentsById.entries) entry.key: entry.value.name,
     });
     _agentStatuses = List<ProjectAgentStatusSnapshot>.unmodifiable(statuses);
     notifyListeners();
+  }
+
+  Future<void> loadEarlierEvents() async {
+    if (_eventPageBusy || !_hasEarlierEvents || _events.isEmpty) return;
+    _eventPageBusy = true;
+    notifyListeners();
+    try {
+      final older = await _eventRepository.getEvents(
+        projectId,
+        beforeSequence: _events.first.sequence,
+        limit: 200,
+      );
+      if (isDisposed) return;
+      _events = List<ProjectEvent>.unmodifiable(<ProjectEvent>[
+        ...older,
+        ..._events,
+      ]);
+      _hasEarlierEvents = _events.isNotEmpty && _events.first.sequence > 1;
+    } on Object {
+      _errorCode = 'project_events_load_failed';
+    } finally {
+      if (!isDisposed) {
+        _eventPageBusy = false;
+        notifyListeners();
+      }
+    }
   }
 
   ProjectArtifactActor get _userArtifactActor => const ProjectArtifactActor(
@@ -279,6 +342,23 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     final sourcePath = await _attachmentRepository.selectFile();
     if (sourcePath == null || sourcePath.trim().isEmpty) return null;
     return _importSource(sourcePath, folder: 'imports');
+  }
+
+  Future<List<ProjectArtifactEntry>> importPickedArtifacts() async {
+    return importArtifactPaths(await _attachmentRepository.selectFiles());
+  }
+
+  Future<List<ProjectArtifactEntry>> importArtifactPaths(
+    Iterable<String> sourcePaths,
+  ) async {
+    final imported = <ProjectArtifactEntry>[];
+    for (final sourcePath in sourcePaths.where(
+      (item) => item.trim().isNotEmpty,
+    )) {
+      final entry = await _importSource(sourcePath, folder: 'imports');
+      if (entry != null) imported.add(entry);
+    }
+    return List<ProjectArtifactEntry>.unmodifiable(imported);
   }
 
   Future<ProjectArtifactEntry?> createTextArtifact({
@@ -495,6 +575,16 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   bool cancelRun(String runId) => _inboxCoordinator.cancelRun(runId);
 
   Future<int> cancelTurn(String turnId) => _inboxCoordinator.cancelTurn(turnId);
+
+  int cancelRootChain(String rootRunId) {
+    var cancelled = 0;
+    for (final run in _runs.values.where(
+      (item) => item.rootRunId == rootRunId && !item.isTerminal,
+    )) {
+      if (_inboxCoordinator.cancelRun(run.id)) cancelled++;
+    }
+    return cancelled;
+  }
 
   int cancelActiveRuns() {
     var cancelled = 0;

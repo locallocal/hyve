@@ -352,6 +352,7 @@ String _legacyUsageSelect() => '''
     operation_id AS message_id,
     project_id AS chat_id,
     agent_id AS bot_id,
+    run_id,
     operation_kind,
     token_model,
     input_token_count,

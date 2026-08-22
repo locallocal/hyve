@@ -40,6 +40,7 @@ export 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 export 'package:hyve/domain/use_cases/assemble_agent_run_context.dart';
 export 'package:hyve/domain/use_cases/compact_conversation_messages.dart';
 export 'package:hyve/domain/use_cases/evolve_agent_memory.dart';
+export 'package:hyve/domain/use_cases/manage_project_members.dart';
 export 'package:hyve/domain/services/conversation_summary_source_digest.dart';
 export 'package:hyve/domain/use_cases/create_project.dart';
 export 'package:hyve/domain/use_cases/deliver_to_project_agent.dart';

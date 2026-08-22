@@ -68,6 +68,20 @@ void main() {
     expect(filePicker.allowMultiple, isFalse);
   });
 
+  test('Attachment picker selects multiple project artifact files', () async {
+    filePicker.selectedFile = PlatformFile(
+      name: 'notes.md',
+      size: 1,
+      path: '/tmp/notes.md',
+    );
+
+    final paths = await AttachmentPickerService().selectFiles();
+
+    expect(paths, ['/tmp/notes.md']);
+    expect(filePicker.fileType, FileType.any);
+    expect(filePicker.allowMultiple, isTrue);
+  });
+
   test(
     'Message action repository saves image bytes through FilePicker',
     () async {

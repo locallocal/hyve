@@ -139,10 +139,10 @@ class S {
     return Intl.message('New Project', name: 'newProject', desc: '', args: []);
   }
 
-  /// `Name the project and add one or more bots.`
+  /// `Name the project and optionally add agents.`
   String get newProjectDescription {
     return Intl.message(
-      'Name the project and add one or more bots.',
+      'Name the project and optionally add agents.',
       name: 'newProjectDescription',
       desc: '',
       args: [],
@@ -179,10 +179,10 @@ class S {
     );
   }
 
-  /// `Add bots`
+  /// `Add agents (optional)`
   String get selectProjectBots {
     return Intl.message(
-      'Add bots',
+      'Add agents (optional)',
       name: 'selectProjectBots',
       desc: '',
       args: [],

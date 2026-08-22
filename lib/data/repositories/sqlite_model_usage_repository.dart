@@ -23,4 +23,35 @@ final class SqliteModelUsageRepository implements ModelUsageRepository {
         'total_token_count': record.usage.effectiveTotalTokens,
         'timestamp': record.timestamp.millisecondsSinceEpoch,
       });
+
+  @override
+  Future<List<ModelTokenUsageRecord>> getForProject(String projectId) async {
+    final rows = await _localDatabase.loadTokenUsageRecordsForChat(projectId);
+    return List<ModelTokenUsageRecord>.unmodifiable(
+      rows.map(
+        (row) => ModelTokenUsageRecord(
+          messageId: row['message_id']?.toString() ?? '',
+          chatId: row['chat_id']?.toString() ?? '',
+          botId: row['bot_id']?.toString() ?? '',
+          runId: row['run_id']?.toString() ?? '',
+          operationKind: row['operation_kind']?.toString() ?? 'chat_reply',
+          timestamp: DateTime.fromMillisecondsSinceEpoch(
+            _readCount(row['timestamp']),
+          ),
+          usage: ModelTokenUsage(
+            model: row['token_model']?.toString() ?? '',
+            inputTokens: _readCount(row['input_token_count']),
+            outputTokens: _readCount(row['output_token_count']),
+            totalTokens: _readCount(row['total_token_count']),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+int _readCount(Object? value) => switch (value) {
+  final int count => count,
+  final num count => count.toInt(),
+  _ => int.tryParse(value?.toString() ?? '') ?? 0,
+};

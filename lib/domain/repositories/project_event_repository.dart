@@ -8,6 +8,7 @@ abstract interface class ProjectEventRepository {
   Future<List<ProjectEvent>> getEvents(
     String projectId, {
     int? afterSequence,
+    int? beforeSequence,
     int limit = 100,
   });
 

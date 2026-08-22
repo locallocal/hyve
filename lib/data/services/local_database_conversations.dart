@@ -150,9 +150,29 @@ extension LocalDatabaseConversations on LocalDatabaseService {
 
   Future<void> clearChatHistory(String id, DateTime timestamp) async {
     final database = await _databaseProvider();
+    final updatedAt = timestamp.millisecondsSinceEpoch;
     await database.transaction((transaction) async {
+      // Skill activations are execution telemetry keyed by run without a
+      // foreign key. Remove them before deleting the run graph so a cleared
+      // conversation cannot leave dangling execution records.
+      await transaction.delete(
+        'skill_activations',
+        where: 'project_id = ?',
+        whereArgs: [id],
+      );
+      await transaction.delete(
+        'agent_message_receipts',
+        where: 'project_id = ?',
+        whereArgs: [id],
+      );
       await transaction.delete(
         'project_events',
+        where: 'project_id = ?',
+        whereArgs: [id],
+      );
+      // Deleting turns cascades to runs and participation decisions.
+      await transaction.delete(
+        'project_turns',
         where: 'project_id = ?',
         whereArgs: [id],
       );
@@ -166,14 +186,45 @@ extension LocalDatabaseConversations on LocalDatabaseService {
         where: 'project_id = ?',
         whereArgs: [id],
       );
+      await transaction.rawUpdate(
+        '''
+        UPDATE project_agent_cursors
+        SET last_processed_message_sequence = 0,
+            processing_message_sequence = NULL,
+            worker_state = CASE
+              WHEN EXISTS (
+                SELECT 1 FROM project_memberships AS membership
+                WHERE membership.project_id = project_agent_cursors.project_id
+                  AND membership.agent_id = project_agent_cursors.agent_id
+                  AND membership.status = 'active'
+              ) THEN 'idle'
+              ELSE 'paused'
+            END,
+            active_run_id = NULL,
+            lease_owner = '',
+            lease_expires_at = NULL,
+            last_error = '',
+            updated_at = ?
+        WHERE project_id = ?
+        ''',
+        <Object?>[updatedAt, id],
+      );
+      // A membership without a materialized cursor is initialized from this
+      // value. Keep that fallback contiguous with the reset project counter.
+      await transaction.update(
+        'project_memberships',
+        <String, Object?>{'join_message_sequence': 0, 'updated_at': updatedAt},
+        where: 'project_id = ?',
+        whereArgs: [id],
+      );
       await transaction.update(
         'projects',
         {
           'last_message': '',
           'last_event_sequence': 0,
           'last_message_sequence': 0,
-          'last_message_at': timestamp.millisecondsSinceEpoch,
-          'updated_at': timestamp.millisecondsSinceEpoch,
+          'last_message_at': updatedAt,
+          'updated_at': updatedAt,
         },
         where: 'id = ?',
         whereArgs: [id],

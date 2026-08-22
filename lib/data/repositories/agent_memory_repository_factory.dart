@@ -18,16 +18,23 @@ final class AgentMemoryBackendUnavailableException implements Exception {
 }
 
 final class AgentMemoryRepositoryFactory {
-  const AgentMemoryRepositoryFactory({
+  AgentMemoryRepositoryFactory({
     required AgentMemoryRepository fileRepository,
     ExternalAgentMemoryRepositoryProvider? externalProvider,
   }) : _fileRepository = fileRepository,
-       _externalProvider = externalProvider;
+       _externalProvider = externalProvider {
+    _watch(fileRepository);
+  }
 
   final AgentMemoryRepository _fileRepository;
   final ExternalAgentMemoryRepositoryProvider? _externalProvider;
+  final StreamController<String> _changes = StreamController.broadcast();
+  final Set<AgentMemoryRepository> _watched =
+      Set<AgentMemoryRepository>.identity();
+  final List<StreamSubscription<String>> _subscriptions =
+      <StreamSubscription<String>>[];
 
-  Stream<String> get changes => _fileRepository.changes;
+  Stream<String> get changes => _changes.stream;
 
   Future<AgentMemoryRepository> forAgent(Agent agent) async {
     if (agent.memoryBackend == AgentMemoryBackend.file) return _fileRepository;
@@ -35,7 +42,25 @@ final class AgentMemoryRepositoryFactory {
     if (provider == null) {
       throw AgentMemoryBackendUnavailableException(agent.memoryBackendRef);
     }
-    return provider(agent.memoryBackendRef);
+    final repository = await provider(agent.memoryBackendRef);
+    _watch(repository);
+    return repository;
+  }
+
+  void _watch(AgentMemoryRepository repository) {
+    if (!_watched.add(repository)) return;
+    _subscriptions.add(
+      repository.changes.listen((agentId) {
+        if (!_changes.isClosed) _changes.add(agentId);
+      }),
+    );
+  }
+
+  Future<void> dispose() async {
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    await _changes.close();
   }
 }
 

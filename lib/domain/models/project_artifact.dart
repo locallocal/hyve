@@ -127,6 +127,26 @@ final class ProjectArtifactEntry {
   final String snippet;
 }
 
+final class ProjectArtifactMessageReference {
+  const ProjectArtifactMessageReference({
+    required this.eventId,
+    required this.artifactVersionId,
+    required this.messageSequence,
+    required this.actorId,
+    required this.actorName,
+    required this.content,
+    required this.createdAt,
+  });
+
+  final String eventId;
+  final String artifactVersionId;
+  final int messageSequence;
+  final String actorId;
+  final String actorName;
+  final String content;
+  final DateTime createdAt;
+}
+
 final class ProjectArtifactQuery {
   ProjectArtifactQuery({
     this.text = '',

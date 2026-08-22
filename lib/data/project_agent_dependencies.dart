@@ -1,5 +1,7 @@
 export 'repositories/file_project_storage_repository.dart';
+export 'repositories/file_project_temporary_attachment_repository.dart';
 export 'repositories/file_agent_memory_repository.dart';
+export 'repositories/external_vector_agent_memory_repository.dart';
 export 'repositories/agent_memory_repository_factory.dart';
 export 'repositories/sqlite_agent_memory_evolution_repository.dart';
 export 'repositories/sqlite_conversation_summary_repository.dart';
@@ -35,6 +37,7 @@ export 'package:hyve/domain/repositories/project_membership_repository.dart';
 export 'package:hyve/domain/repositories/project_message_route_repository.dart';
 export 'package:hyve/domain/repositories/project_repository.dart';
 export 'package:hyve/domain/repositories/project_storage_repository.dart';
+export 'package:hyve/domain/repositories/project_temporary_attachment_repository.dart';
 export 'package:hyve/domain/repositories/project_turn_repository.dart';
 export 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 export 'package:hyve/domain/use_cases/assemble_agent_run_context.dart';

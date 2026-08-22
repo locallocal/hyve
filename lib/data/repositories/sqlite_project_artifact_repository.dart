@@ -49,6 +49,34 @@ final class SqliteProjectArtifactRepository
   }
 
   @override
+  Future<List<ProjectArtifactMessageReference>> messageReferences({
+    required String projectId,
+    required String artifactId,
+    String versionId = '',
+    required ProjectArtifactActor actor,
+  }) async => <ProjectArtifactMessageReference>[
+    for (final record in await _localDatabase
+        .loadProjectArtifactMessageReferences(
+          projectId: projectId,
+          artifactId: artifactId,
+          versionId: versionId,
+          actorType: actor.type.name,
+          actorId: actor.id,
+        ))
+      ProjectArtifactMessageReference(
+        eventId: record['event_id']! as String,
+        artifactVersionId: record['artifact_version_id']! as String,
+        messageSequence: record['message_sequence']! as int,
+        actorId: record['actor_id']! as String,
+        actorName: record['actor_name_snapshot']! as String,
+        content: record['content']! as String,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(
+          record['created_at']! as int,
+        ),
+      ),
+  ];
+
+  @override
   Future<List<ProjectArtifactEntry>> search({
     required String projectId,
     required ProjectArtifactActor actor,

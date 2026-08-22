@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
@@ -8,6 +9,8 @@ import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/use_cases/manage_project_members.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_members_sheet.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   testWidgets('narrow member sheet adds, pauses, grants access, and removes', (
@@ -102,6 +105,70 @@ void main() {
     expect(cancelled, ['run-1']);
     expect(memberships.item('agent-1').status, ProjectMembershipStatus.removed);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('desktop member panel uses Shad controls and filters safely', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 760);
+    addTearDown(tester.view.reset);
+    final now = DateTime.utc(2026, 8, 22);
+    final agents = _AgentRepository(<Agent>[
+      _agent('agent-1', 'Researcher', now),
+      _agent('agent-2', 'Writer', now),
+    ]);
+    final memberships = _MembershipRepository(<ProjectMembership>[
+      _membership('agent-1', now),
+    ]);
+    final cursors = _CursorRepository(now);
+    final viewModel = ProjectMembersViewModel(
+      projectId: 'project-1',
+      agentRepository: agents,
+      membershipRepository: memberships,
+      cursorRepository: cursors,
+      manageMembers: ManageProjectMembers(
+        projectRepository: _ProjectRepository(now),
+        agentRepository: agents,
+        membershipRepository: memberships,
+        cursorRepository: cursors,
+        wakeup: (_, _) async {},
+        cancelRun: (_) => true,
+        clock: () => now,
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectMembersSheet(
+                  viewModel: viewModel,
+                  embedded: true,
+                  disposeViewModel: false,
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShadInput), findsOneWidget);
+      expect(find.byType(ShadSelect<String>), findsOneWidget);
+      expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);
+      expect(find.byType(ShadCard), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('project-member-search')),
+        'Writer',
+      );
+      await tester.pump();
+
+      expect(find.text('Researcher'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
   });
 }
 

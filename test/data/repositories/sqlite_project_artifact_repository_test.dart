@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/data/repositories/file_project_storage_repository.dart';
+import 'package:hyve/data/models/project_execution_records.dart';
 import 'package:hyve/data/repositories/sqlite_agent_repository.dart';
 import 'package:hyve/data/repositories/sqlite_project_artifact_repository.dart';
 import 'package:hyve/data/repositories/sqlite_project_membership_repository.dart';
@@ -360,13 +361,43 @@ void main() {
       bytes: Uint8List.fromList(utf8.encode('referenced')),
       actor: user,
     );
+    final message = ProjectEvent(
+      id: 'reference-message',
+      projectId: 'project-1',
+      sequence: 2,
+      messageSequence: 1,
+      eventType: ProjectEventType.userMessage,
+      actorType: ProjectEventActorType.user,
+      actorId: 'current-user',
+      actorNameSnapshot: 'User',
+      content: 'Use the referenced artifact',
+      payload: ProjectMessagePayload(
+        projectArtifactVersionIds: <String>[created.version.id],
+      ),
+      createdAt: DateTime(2026, 8, 22, 10, 1),
+      updatedAt: DateTime(2026, 8, 22, 10, 1),
+    );
+    await database.insert(
+      'project_events',
+      ProjectEventRecord.fromDomain(message).values,
+    );
     await database.insert('project_event_artifacts', <String, Object?>{
-      'event_id': created.auditEventId,
+      'event_id': message.id,
       'artifact_id': created.artifact.id,
       'artifact_version_id': created.version.id,
       'relation': 'attachment',
       'position': 0,
     });
+    final references = await artifactRepository.messageReferences(
+      projectId: 'project-1',
+      artifactId: created.artifact.id,
+      versionId: created.version.id,
+      actor: user,
+    );
+    expect(references, hasLength(1));
+    expect(references.single.eventId, message.id);
+    expect(references.single.messageSequence, 1);
+    expect(references.single.content, 'Use the referenced artifact');
 
     await expectLater(
       artifactRepository.delete(

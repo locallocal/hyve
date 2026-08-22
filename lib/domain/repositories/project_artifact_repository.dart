@@ -29,6 +29,13 @@ abstract interface class ProjectArtifactRepository {
     required ProjectArtifactActor actor,
   });
 
+  Future<List<ProjectArtifactMessageReference>> messageReferences({
+    required String projectId,
+    required String artifactId,
+    String versionId = '',
+    required ProjectArtifactActor actor,
+  });
+
   Future<ProjectArtifactReadResult> read({
     required String projectId,
     required String artifactId,

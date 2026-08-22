@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 final class StructuredProjectMessageController extends TextEditingController {
   StructuredProjectMessageController({
@@ -199,6 +201,7 @@ final class ProjectMessageComposer extends StatefulWidget {
     this.onCancelRuns,
     this.onPickAttachment,
     this.onRemoveAttachment,
+    this.onToggleAttachmentPromotion,
     this.hintText = '',
   });
 
@@ -210,6 +213,7 @@ final class ProjectMessageComposer extends StatefulWidget {
   final VoidCallback? onCancelRuns;
   final VoidCallback? onPickAttachment;
   final ValueChanged<int>? onRemoveAttachment;
+  final void Function(int index, bool promote)? onToggleAttachmentPromotion;
   final String hintText;
 
   @override
@@ -285,56 +289,21 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
     final copy = ProjectLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (candidates.isNotEmpty)
-          Material(
-            key: const ValueKey<String>('project-mention-suggestions'),
-            elevation: 3,
-            borderRadius: BorderRadius.circular(12),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                for (final agent in candidates)
-                  ListTile(
-                    key: ValueKey<String>('project-mention-${agent.id}'),
-                    dense: true,
-                    title: Text(agent.name),
-                    onTap: () {
-                      final query = _mentionQuery;
-                      if (query == null) return;
-                      widget.controller.insertMention(
-                        agent: agent,
-                        replaceRange: TextRange(
-                          start: query.start,
-                          end: widget.controller.selection.baseOffset,
-                        ),
-                      );
-                      _focusNode.requestFocus();
-                    },
-                  ),
-              ],
-            ),
+          _MentionSuggestions(
+            candidates: candidates,
+            onSelected: _selectMention,
           ),
         if (widget.attachments.isNotEmpty)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Wrap(
-              key: const ValueKey<String>('project-message-attachments'),
-              spacing: 8,
-              children: [
-                for (var index = 0; index < widget.attachments.length; index++)
-                  InputChip(
-                    label: Text(
-                      widget.attachments[index].displayName.isEmpty
-                          ? copy.attachment(index + 1)
-                          : widget.attachments[index].displayName,
-                    ),
-                    onDeleted:
-                        widget.onRemoveAttachment == null
-                            ? null
-                            : () => widget.onRemoveAttachment!(index),
-                  ),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _AttachmentList(
+              attachments: widget.attachments,
+              copy: copy,
+              onToggle: widget.onToggleAttachmentPromotion,
+              onRemove: widget.onRemoveAttachment,
             ),
           ),
         CallbackShortcuts(
@@ -343,49 +312,294 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
                 _send,
             const SingleActivator(LogicalKeyboardKey.enter, meta: true): _send,
           },
-          child: TextField(
-            key: const ValueKey<String>('project-message-field'),
-            controller: widget.controller,
-            focusNode: _focusNode,
-            minLines: 2,
-            maxLines: 6,
-            decoration: InputDecoration(
-              hintText:
-                  widget.hintText.isEmpty
-                      ? copy.broadcastHint
-                      : widget.hintText,
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.onPickAttachment != null)
-                    IconButton(
-                      key: const ValueKey<String>('project-pick-attachment'),
-                      tooltip: copy.addAttachment,
-                      onPressed: widget.onPickAttachment,
-                      icon: const Icon(Icons.attach_file_rounded),
+          child: ProjectSurfaceCard(
+            padding: const EdgeInsets.all(10),
+            margin: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (hasShadProjectTheme(context))
+                  ShadTextarea(
+                    key: const ValueKey<String>('project-message-field'),
+                    controller: widget.controller,
+                    focusNode: _focusNode,
+                    placeholder: Text(
+                      widget.hintText.isEmpty
+                          ? copy.broadcastHint
+                          : widget.hintText,
                     ),
-                  if (widget.activeRunCount > 0 && widget.onCancelRuns != null)
-                    IconButton(
-                      key: const ValueKey<String>('project-cancel-runs'),
-                      tooltip: copy.stopRuns,
-                      onPressed: widget.onCancelRuns,
-                      icon: const Icon(Icons.stop_rounded),
+                    minHeight: 72,
+                    maxHeight: 180,
+                    resizable: false,
+                    onSubmitted: (_) => _send(),
+                  )
+                else
+                  TextField(
+                    key: const ValueKey<String>('project-message-field'),
+                    controller: widget.controller,
+                    focusNode: _focusNode,
+                    minLines: 2,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      hintText:
+                          widget.hintText.isEmpty
+                              ? copy.broadcastHint
+                              : widget.hintText,
                     ),
-                  IconButton(
-                    key: const ValueKey<String>('project-send-message'),
-                    tooltip: copy.send,
-                    onPressed: _canSend ? _send : null,
-                    icon: const Icon(Icons.send_rounded),
+                    onSubmitted: (_) => _send(),
                   ),
-                ],
-              ),
+                const SizedBox(height: 8),
+                _ComposerToolbar(
+                  canSend: _canSend,
+                  activeRunCount: widget.activeRunCount,
+                  copy: copy,
+                  onPickAttachment: widget.onPickAttachment,
+                  onCancelRuns: widget.onCancelRuns,
+                  onSend: _send,
+                ),
+              ],
             ),
-            onSubmitted: (_) => _send(),
           ),
         ),
       ],
     );
   }
+
+  void _selectMention(Agent agent) {
+    final query = _mentionQuery;
+    if (query == null) return;
+    widget.controller.insertMention(
+      agent: agent,
+      replaceRange: TextRange(
+        start: query.start,
+        end: widget.controller.selection.baseOffset,
+      ),
+    );
+    _focusNode.requestFocus();
+  }
+}
+
+final class _MentionSuggestions extends StatelessWidget {
+  const _MentionSuggestions({
+    required this.candidates,
+    required this.onSelected,
+  });
+
+  final List<Agent> candidates;
+  final ValueChanged<Agent> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hasShadProjectTheme(context)) {
+      return ProjectSurfaceCard(
+        key: const ValueKey<String>('project-mention-suggestions'),
+        padding: const EdgeInsets.all(6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final agent in candidates)
+              ShadButton.ghost(
+                key: ValueKey<String>('project-mention-${agent.id}'),
+                leading: const Icon(LucideIcons.bot, size: 16),
+                mainAxisAlignment: MainAxisAlignment.start,
+                onPressed: () => onSelected(agent),
+                child: Text(agent.name),
+              ),
+          ],
+        ),
+      );
+    }
+    return Material(
+      key: const ValueKey<String>('project-mention-suggestions'),
+      elevation: 3,
+      borderRadius: BorderRadius.circular(12),
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          for (final agent in candidates)
+            ListTile(
+              key: ValueKey<String>('project-mention-${agent.id}'),
+              dense: true,
+              title: Text(agent.name),
+              onTap: () => onSelected(agent),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+final class _AttachmentList extends StatelessWidget {
+  const _AttachmentList({
+    required this.attachments,
+    required this.copy,
+    required this.onToggle,
+    required this.onRemove,
+  });
+
+  final List<PendingAttachment> attachments;
+  final ProjectLocalizations copy;
+  final void Function(int index, bool promote)? onToggle;
+  final ValueChanged<int>? onRemove;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: Wrap(
+      key: const ValueKey<String>('project-message-attachments'),
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var index = 0; index < attachments.length; index++)
+          _AttachmentChip(
+            key: ValueKey<String>('project-attachment-$index'),
+            attachment: attachments[index],
+            label:
+                attachments[index].displayName.isEmpty
+                    ? copy.attachment(index + 1)
+                    : attachments[index].displayName,
+            tooltip:
+                attachments[index].promoteToProjectArtifact
+                    ? copy.savedAsProjectArtifact
+                    : copy.saveAsProjectArtifact,
+            removeLabel: copy.remove,
+            onToggle:
+                onToggle == null
+                    ? null
+                    : (selected) => onToggle!(index, selected),
+            onRemove: onRemove == null ? null : () => onRemove!(index),
+          ),
+      ],
+    ),
+  );
+}
+
+final class _AttachmentChip extends StatelessWidget {
+  const _AttachmentChip({
+    super.key,
+    required this.attachment,
+    required this.label,
+    required this.tooltip,
+    required this.removeLabel,
+    required this.onToggle,
+    required this.onRemove,
+  });
+
+  final PendingAttachment attachment;
+  final String label;
+  final String tooltip;
+  final String removeLabel;
+  final ValueChanged<bool>? onToggle;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final promoted = attachment.promoteToProjectArtifact;
+    if (hasShadProjectTheme(context)) {
+      return Semantics(
+        label: '$label, $tooltip',
+        selected: promoted,
+        child: ShadTooltip(
+          builder: (_) => Text(tooltip),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ShadBadge.raw(
+                variant:
+                    promoted
+                        ? ShadBadgeVariant.secondary
+                        : ShadBadgeVariant.outline,
+                onPressed: onToggle == null ? null : () => onToggle!(!promoted),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      promoted ? LucideIcons.folderKanban : LucideIcons.file,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 220),
+                      child: Text(label, overflow: TextOverflow.ellipsis),
+                    ),
+                  ],
+                ),
+              ),
+              if (onRemove != null)
+                ProjectIconAction(
+                  icon: LucideIcons.x,
+                  label: removeLabel,
+                  onPressed: onRemove,
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Tooltip(
+      message: tooltip,
+      child: InputChip(
+        selected: promoted,
+        avatar: Icon(
+          promoted ? Icons.inventory_2_outlined : Icons.attach_file,
+          size: 16,
+        ),
+        label: Text(label),
+        onSelected: onToggle,
+        onDeleted: onRemove,
+      ),
+    );
+  }
+}
+
+final class _ComposerToolbar extends StatelessWidget {
+  const _ComposerToolbar({
+    required this.canSend,
+    required this.activeRunCount,
+    required this.copy,
+    required this.onPickAttachment,
+    required this.onCancelRuns,
+    required this.onSend,
+  });
+
+  final bool canSend;
+  final int activeRunCount;
+  final ProjectLocalizations copy;
+  final VoidCallback? onPickAttachment;
+  final VoidCallback? onCancelRuns;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    alignment: WrapAlignment.end,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      if (onPickAttachment != null)
+        ProjectActionButton(
+          key: const ValueKey<String>('project-pick-attachment'),
+          label: copy.addAttachment,
+          onPressed: onPickAttachment,
+          variant: ProjectActionVariant.ghost,
+          leading: const Icon(LucideIcons.paperclip, size: 16),
+        ),
+      if (activeRunCount > 0 && onCancelRuns != null)
+        ProjectActionButton(
+          key: const ValueKey<String>('project-cancel-runs'),
+          label: copy.stopRuns,
+          onPressed: onCancelRuns,
+          variant: ProjectActionVariant.outline,
+          leading: const Icon(LucideIcons.square, size: 16),
+        ),
+      ProjectActionButton(
+        key: const ValueKey<String>('project-send-message'),
+        label: copy.send,
+        onPressed: canSend ? onSend : null,
+        leading: const Icon(LucideIcons.send, size: 16),
+      ),
+    ],
+  );
 }
 
 int _compareSpans(MentionSpan left, MentionSpan right) =>

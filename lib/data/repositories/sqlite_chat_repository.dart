@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hyve/data/models/local_records.dart';
 import 'package:hyve/data/services/local_database_service.dart';
 import 'package:hyve/data/services/conversation_summary_storage.dart';
+import 'package:hyve/data/services/project_agent_storage_service.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/chat_repository.dart';
 import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
@@ -16,15 +17,18 @@ class SqliteChatRepository implements ChatAggregateRepository {
     ConversationMemoryRepository? conversationMemoryRepository,
     ConversationSummaryStorage? conversationSummaryStorage,
     ConversationDraftRepository? conversationDraftRepository,
+    ProjectAgentStorageService? projectAgentStorage,
   }) : _localDatabase = localDatabase,
        _conversationMemoryRepository = conversationMemoryRepository,
        _conversationSummaryStorage = conversationSummaryStorage,
-       _conversationDraftRepository = conversationDraftRepository;
+       _conversationDraftRepository = conversationDraftRepository,
+       _projectAgentStorage = projectAgentStorage;
 
   final LocalDatabaseService _localDatabase;
   final ConversationMemoryRepository? _conversationMemoryRepository;
   final ConversationSummaryStorage? _conversationSummaryStorage;
   final ConversationDraftRepository? _conversationDraftRepository;
+  final ProjectAgentStorageService? _projectAgentStorage;
   final StreamController<List<Chat>> _changes =
       StreamController<List<Chat>>.broadcast();
   List<Chat>? _cache;
@@ -98,6 +102,12 @@ class SqliteChatRepository implements ChatAggregateRepository {
       rethrow;
     }
     await staged?.commit();
+    try {
+      await _projectAgentStorage?.clearProjectTemporaryAttachments(id);
+    } on Object {
+      // The database clear already committed. Orphaned temporary files are
+      // safer than reporting that the conversation still exists.
+    }
     await _conversationDraftRepository?.delete(id);
     _cache = _cache?.where((chat) => chat.id != id).toList();
     if (storage == null) {
@@ -211,6 +221,12 @@ class SqliteChatRepository implements ChatAggregateRepository {
       rethrow;
     }
     await staged?.commit();
+    try {
+      await _projectAgentStorage?.clearProjectTemporaryAttachments(id);
+    } on Object {
+      // The database clear already committed. Orphaned temporary files are
+      // safer than reporting that the conversation still exists.
+    }
     final cache = _cache;
     if (cache != null) {
       _cache = [

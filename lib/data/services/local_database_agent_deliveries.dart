@@ -30,16 +30,11 @@ extension LocalDatabaseAgentDeliveries on LocalDatabaseService {
     final database = await _databaseProvider();
     await database.transaction((transaction) async {
       final projectId = eventValues['project_id']! as String;
-      final projects = await transaction.query(
-        'projects',
-        columns: const <String>['last_event_sequence'],
-        where: 'id = ?',
-        whereArgs: <Object?>[projectId],
-        limit: 1,
+      final eventSequence = await _nextProjectEventSequence(
+        transaction,
+        projectId,
+        missingProjectError: 'delivery_project_not_found',
       );
-      if (projects.isEmpty) throw StateError('delivery_project_not_found');
-      final eventSequence =
-          (projects.single['last_event_sequence']! as int) + 1;
       final event = Map<String, Object?>.from(eventValues)
         ..['sequence'] = eventSequence;
       await transaction.insert('agent_runs', deliveryRunValues);
@@ -52,6 +47,11 @@ extension LocalDatabaseAgentDeliveries on LocalDatabaseService {
         },
         where: 'id = ?',
         whereArgs: <Object?>[projectId],
+      );
+      await _appendRunStatusAuditIfChanged(
+        transaction,
+        runValues: deliveryRunValues,
+        previousStatus: '',
       );
     });
     _advanceMessageRevision(eventValues['project_id']! as String);
@@ -204,7 +204,11 @@ extension LocalDatabaseAgentDeliveries on LocalDatabaseService {
       }
 
       final project = projects.single;
-      final eventSequence = (project['last_event_sequence']! as int) + 1;
+      final eventSequence = await _nextProjectEventSequence(
+        transaction,
+        projectId,
+        missingProjectError: 'delivery_project_not_found',
+      );
       final messageSequence = (project['last_message_sequence']! as int) + 1;
       final event =
           Map<String, Object?>.from(eventValues)
@@ -248,6 +252,11 @@ extension LocalDatabaseAgentDeliveries on LocalDatabaseService {
         },
         where: 'id = ?',
         whereArgs: <Object?>[projectId],
+      );
+      await _appendRunStatusAuditIfChanged(
+        transaction,
+        runValues: deliveryRunValues,
+        previousStatus: '',
       );
       return AgentDeliveryAppendDatabaseRecord(
         eventValues: event,

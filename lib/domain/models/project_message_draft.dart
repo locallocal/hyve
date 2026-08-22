@@ -7,11 +7,22 @@ final class PendingAttachment {
     required this.sourcePath,
     required this.kind,
     this.displayName = '',
+    this.promoteToProjectArtifact = false,
   });
 
   final String sourcePath;
   final PendingAttachmentKind kind;
   final String displayName;
+  final bool promoteToProjectArtifact;
+
+  PendingAttachment copyWith({bool? promoteToProjectArtifact}) =>
+      PendingAttachment(
+        sourcePath: sourcePath,
+        kind: kind,
+        displayName: displayName,
+        promoteToProjectArtifact:
+            promoteToProjectArtifact ?? this.promoteToProjectArtifact,
+      );
 }
 
 /// A stable Agent reference embedded in a project message draft.

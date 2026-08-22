@@ -114,6 +114,17 @@ final class ProjectAgentStorageService {
     if (await root.exists()) await root.delete(recursive: true);
   }
 
+  Future<void> clearProjectTemporaryAttachments(String projectId) async {
+    final root = await projectRoot(projectId);
+    for (final relativePath in const <String>[
+      'tmp/message_attachments',
+      'tmp/staging',
+    ]) {
+      final directory = Directory(join(root.path, relativePath));
+      if (await directory.exists()) await directory.delete(recursive: true);
+    }
+  }
+
   Future<StagedEntityDeletion?> _stage({
     required String kind,
     required String id,

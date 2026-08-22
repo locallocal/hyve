@@ -116,7 +116,6 @@ import 'package:hyve/ui/features/profile/view_models/legal_document_view_model.d
 import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/skills/view_models/skill_library_view_model.dart';
-
 part 'project_agent_persistence.dart';
 
 class AppDependencies {
@@ -191,6 +190,7 @@ class AppDependencies {
       conversationMemoryRepository: conversationMemoryRepository,
       conversationSummaryStorage: conversationSummaryStorage,
       conversationDraftRepository: conversationDraftRepository,
+      projectAgentStorage: projectAgentStorage,
     );
     final messageRepository = SqliteMessageRepository(
       localDatabase: localDatabase,

@@ -750,7 +750,7 @@ void main() {
       payload: 'This review should be cancelled with the root Turn.',
       requestPublicReply: true,
     );
-    gateway.replyDelay = const Duration(milliseconds: 100);
+    gateway.replyDelay = const Duration(milliseconds: 300);
     final source = await route(
       projectId: 'project-1',
       draft: ProjectMessageDraft(

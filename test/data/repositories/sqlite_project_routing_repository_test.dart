@@ -303,6 +303,14 @@ void main() {
     expect(recovered?.activeRunId, isNull);
     expect(recovered?.workerState, AgentInboxWorkerState.scheduled);
     expect((await runs.getRun(runId))?.status, AgentRunStatus.interrupted);
+    final runAudits = (await database.query(
+      'project_events',
+      where: 'event_type = ?',
+      whereArgs: const <Object?>['runStatusChanged'],
+      orderBy: 'sequence ASC',
+    ));
+    expect(runAudits, hasLength(2));
+    expect(runAudits.last['payload_json'], contains('interrupted'));
     final reclaimed = await cursors.claimNext(
       projectId: 'project-1',
       agentId: 'agent-1',
@@ -351,10 +359,20 @@ void main() {
         projectId: 'project-1',
         draft: ProjectMessageDraft(
           text: 'review the brief',
+          attachments: const <PendingAttachment>[
+            PendingAttachment(
+              sourcePath: '/persisted/project-1/report.txt',
+              kind: PendingAttachmentKind.file,
+              displayName: 'report.txt',
+            ),
+          ],
           projectArtifactVersionIds: const <String>['version-1'],
         ),
       );
 
+      expect((routed.event.payload as ProjectMessagePayload).files, <String>[
+        '/persisted/project-1/report.txt',
+      ]);
       expect(
         (routed.event.payload as ProjectMessagePayload)
             .projectArtifactVersionIds,

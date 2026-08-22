@@ -1,6 +1,45 @@
 part of 'local_database_service.dart';
 
 extension LocalDatabaseProjectArtifacts on LocalDatabaseService {
+  Future<List<Map<String, Object?>>> loadProjectArtifactMessageReferences({
+    required String projectId,
+    required String artifactId,
+    required String versionId,
+    required String actorType,
+    required String actorId,
+  }) async {
+    final database = await _databaseProvider();
+    return database.transaction((transaction) async {
+      await _requireProjectArtifactAccess(
+        transaction,
+        projectId: projectId,
+        actorType: actorType,
+        actorId: actorId,
+        write: false,
+      );
+      return transaction.rawQuery(
+        '''
+        SELECT event.id AS event_id,
+               link.artifact_version_id,
+               event.message_sequence,
+               event.actor_id,
+               event.actor_name_snapshot,
+               event.content,
+               event.created_at
+        FROM project_event_artifacts AS link
+        JOIN project_events AS event ON event.id = link.event_id
+        JOIN project_artifacts AS artifact ON artifact.id = link.artifact_id
+        WHERE artifact.project_id = ?
+          AND artifact.id = ?
+          AND event.message_sequence IS NOT NULL
+          AND (? = '' OR link.artifact_version_id = ?)
+        ORDER BY event.message_sequence DESC
+        ''',
+        <Object?>[projectId, artifactId, versionId, versionId],
+      );
+    });
+  }
+
   Future<List<ProjectArtifactDatabaseRecord>> queryProjectArtifacts({
     required String projectId,
     required String actorType,

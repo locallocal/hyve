@@ -20,6 +20,7 @@ final class ProjectAgentPersistence {
     required this.modelUsageRepository,
     required this.manageProjectMembers,
     required this.attachmentRepository,
+    required this.temporaryAttachmentRepository,
     required this.routeRepository,
     required this.routeProjectMessage,
     required this.inboxCoordinator,
@@ -50,16 +51,21 @@ final class ProjectAgentPersistence {
       localDatabase: localDatabase,
       storage: FileProjectStorageRepository(storage: storage),
     );
+    final temporaryAttachmentRepository =
+        FileProjectTemporaryAttachmentRepository(storage: storage);
     final eventRepository = SqliteProjectEventRepository(
       localDatabase: localDatabase,
     );
     final fileAgentMemoryRepository = FileAgentMemoryRepository(
       storage: storage,
     );
+    final externalAgentMemoryProvider =
+        HttpExternalAgentMemoryRepositoryProvider();
     final agentMemoryRepository = AgentMemoryRepositoryRouter(
       agentRepository: agentRepository,
       factory: AgentMemoryRepositoryFactory(
         fileRepository: fileAgentMemoryRepository,
+        externalProvider: externalAgentMemoryProvider.call,
       ),
     );
     final agentMemoryEvolutionRepository = SqliteAgentMemoryEvolutionRepository(
@@ -258,6 +264,7 @@ final class ProjectAgentPersistence {
       modelUsageRepository: modelUsageRepository,
       manageProjectMembers: manageProjectMembers,
       attachmentRepository: attachmentRepository,
+      temporaryAttachmentRepository: temporaryAttachmentRepository,
       routeRepository: routeRepository,
       routeProjectMessage: routeProjectMessage,
       inboxCoordinator: inboxCoordinator,
@@ -286,6 +293,7 @@ final class ProjectAgentPersistence {
   final ModelUsageRepository modelUsageRepository;
   final ManageProjectMembers manageProjectMembers;
   final AttachmentRepository attachmentRepository;
+  final ProjectTemporaryAttachmentRepository temporaryAttachmentRepository;
   final ProjectMessageRouteRepository routeRepository;
   final RouteProjectMessage routeProjectMessage;
   final AgentInboxCoordinator inboxCoordinator;
@@ -303,11 +311,13 @@ final class ProjectAgentPersistence {
         cursorRepository: cursorRepository,
         runRepository: runRepository,
         deliveryRepository: deliveryRepository,
+        receiptRepository: receiptRepository,
         decisionRepository: decisionRepository,
         modelUsageRepository: modelUsageRepository,
         inboxCoordinator: inboxCoordinator,
         artifactRepository: artifactRepository,
         attachmentRepository: attachmentRepository,
+        temporaryAttachmentRepository: temporaryAttachmentRepository,
       );
 
   ProjectMembersViewModel createMembersViewModel(String projectId) =>

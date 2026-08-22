@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 final class ProjectExecutionPanel extends StatelessWidget {
   const ProjectExecutionPanel({
@@ -30,14 +32,14 @@ final class ProjectExecutionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = ConstrainedBox(
+    return ProjectDialogSurface(
+      embedded: embedded,
       constraints: BoxConstraints(
         maxWidth: embedded ? double.infinity : 920,
         maxHeight: embedded ? double.infinity : 760,
       ),
       child: _content(context),
     );
-    return embedded ? content : Dialog(child: content);
   }
 
   Widget _content(BuildContext context) {
@@ -63,10 +65,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Icon(
-                  Icons.monitor_heart_outlined,
-                  semanticLabel: copy.execution,
-                ),
+                Icon(LucideIcons.activity, semanticLabel: copy.execution),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -75,10 +74,10 @@ final class ProjectExecutionPanel extends StatelessWidget {
                   ),
                 ),
                 if (!embedded)
-                  IconButton(
-                    tooltip: copy.close,
+                  ProjectIconAction(
+                    label: copy.close,
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+                    icon: LucideIcons.x,
                   ),
               ],
             ),
@@ -88,22 +87,22 @@ final class ProjectExecutionPanel extends StatelessWidget {
               runSpacing: 8,
               children: <Widget>[
                 _MetricChip(
-                  icon: Icons.play_circle_outline,
+                  icon: LucideIcons.play,
                   label: copy.totalRuns,
                   value: '${runs.length}',
                 ),
                 _MetricChip(
-                  icon: Icons.psychology_outlined,
+                  icon: LucideIcons.brain,
                   label: copy.decisions,
                   value: '${decisions.length}',
                 ),
                 _MetricChip(
-                  icon: Icons.skip_next_outlined,
+                  icon: LucideIcons.circleSlash,
                   label: copy.passed,
                   value: '$passCount',
                 ),
                 _MetricChip(
-                  icon: Icons.data_usage_outlined,
+                  icon: LucideIcons.chartNoAxesColumnIncreasing,
                   label: copy.tokenUsage,
                   value: '${totalUsage.effectiveTotalTokens}',
                 ),
@@ -113,7 +112,10 @@ final class ProjectExecutionPanel extends StatelessWidget {
             Expanded(
               child:
                   sortedTurns.isEmpty && audits.isEmpty
-                      ? Center(child: Text(copy.noExecutions))
+                      ? ProjectEmptyState(
+                        icon: LucideIcons.activity,
+                        title: copy.noExecutions,
+                      )
                       : ListView(
                         key: const ValueKey<String>('project-execution-list'),
                         children: <Widget>[
@@ -174,7 +176,7 @@ final class _MetricChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     label: '$label: $value',
-    child: Chip(avatar: Icon(icon, size: 16), label: Text('$label · $value')),
+    child: ProjectBadge(icon: icon, label: '$label · $value'),
   );
 }
 
@@ -210,8 +212,8 @@ final class _TurnCard extends StatelessWidget {
             .map((run) => run.rootRunId)
             .where((id) => id.isNotEmpty)
             .toSet();
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return ProjectSurfaceCard(
+      padding: EdgeInsets.zero,
       child: ExpansionTile(
         key: ValueKey<String>('project-turn-${turn.id}'),
         leading: Icon(_turnIcon(turn.status)),
@@ -226,20 +228,22 @@ final class _TurnCard extends StatelessWidget {
           if (!turn.isTerminal)
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton.icon(
+              child: ProjectActionButton(
                 key: ValueKey<String>('cancel-turn-${turn.id}'),
                 onPressed: () => onCancelTurn(turn.id),
-                icon: const Icon(Icons.stop_circle_outlined),
-                label: Text(copy.cancelTurn),
+                leading: const Icon(LucideIcons.square, size: 16),
+                label: copy.cancelTurn,
+                variant: ProjectActionVariant.destructive,
               ),
             ),
           for (final rootId in activeRoots)
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton.icon(
+              child: ProjectActionButton(
                 onPressed: () => onCancelRootChain(rootId),
-                icon: const Icon(Icons.account_tree_outlined),
-                label: Text(copy.cancelRootChain),
+                leading: const Icon(LucideIcons.circleStop, size: 16),
+                label: copy.cancelRootChain,
+                variant: ProjectActionVariant.outline,
               ),
             ),
           for (final run in orderedRuns)
@@ -286,9 +290,10 @@ final class _RunTile extends StatelessWidget {
     final copy = ProjectLocalizations.of(context);
     final duration = _duration(run);
     final report = run.contextReport;
-    return Card.outlined(
-      key: ValueKey<String>('project-run-${run.id}'),
+    return ProjectSurfaceCard(
+      padding: EdgeInsets.zero,
       child: ExpansionTile(
+        key: ValueKey<String>('project-run-${run.id}'),
         leading: Icon(_runIcon(run.status)),
         title: Text(
           '$agentName · ${copy.runStatus(run.phase.name, run.status.name)}',
@@ -307,10 +312,11 @@ final class _RunTile extends StatelessWidget {
         trailing:
             run.isTerminal
                 ? null
-                : IconButton(
-                  tooltip: copy.cancelRun,
+                : ProjectIconAction(
+                  label: copy.cancelRun,
                   onPressed: onCancel,
-                  icon: const Icon(Icons.stop_circle_outlined),
+                  icon: LucideIcons.square,
+                  destructive: true,
                 ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,

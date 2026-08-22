@@ -32,15 +32,15 @@ void main() {
         'id': 'project-1',
         'name': 'Large timeline',
         'response_policy_json': '{}',
-        'last_event_sequence': 250,
-        'last_message_sequence': 250,
-        'last_message': 'Message 250',
+        'last_event_sequence': 5000,
+        'last_message_sequence': 5000,
+        'last_message': 'Message 5000',
         'last_message_at': now.millisecondsSinceEpoch,
         'created_at': now.millisecondsSinceEpoch,
         'updated_at': now.millisecondsSinceEpoch,
       });
       final batch = database.batch();
-      for (var sequence = 1; sequence <= 250; sequence++) {
+      for (var sequence = 1; sequence <= 5000; sequence++) {
         final event = ProjectEvent(
           id: 'event-$sequence',
           projectId: 'project-1',
@@ -63,24 +63,24 @@ void main() {
       await batch.commit(noResult: true);
 
       final stopwatch = Stopwatch()..start();
-      final latest = await repository.getEvents('project-1', limit: 100);
+      final latest = await repository.getEvents('project-1', limit: 200);
       final older = await repository.getEvents(
         'project-1',
         beforeSequence: latest.first.sequence,
-        limit: 100,
+        limit: 200,
       );
       stopwatch.stop();
 
       expect(
         latest.map((event) => event.sequence),
         orderedEquals(<int>[
-          for (var sequence = 151; sequence <= 250; sequence++) sequence,
+          for (var sequence = 4801; sequence <= 5000; sequence++) sequence,
         ]),
       );
       expect(
         older.map((event) => event.sequence),
         orderedEquals(<int>[
-          for (var sequence = 51; sequence <= 150; sequence++) sequence,
+          for (var sequence = 4601; sequence <= 4800; sequence++) sequence,
         ]),
       );
       expect(stopwatch.elapsed, lessThan(const Duration(seconds: 2)));

@@ -144,14 +144,21 @@ class _ProjectBotAvatars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (bots.isEmpty) {
+      final shadScheme = ShadTheme.maybeOf(context)?.colorScheme;
+      final materialScheme = Theme.of(context).colorScheme;
       return SizedBox.square(
         dimension: 32,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: shadScheme?.muted ?? materialScheme.surfaceContainerHighest,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.folder_outlined, size: 17),
+          child: Icon(
+            Icons.folder_outlined,
+            size: 17,
+            color:
+                shadScheme?.mutedForeground ?? materialScheme.onSurfaceVariant,
+          ),
         ),
       );
     }

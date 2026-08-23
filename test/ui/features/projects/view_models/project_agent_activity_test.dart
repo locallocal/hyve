@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 
 void main() {
   final now = DateTime.utc(2026, 8, 22);
@@ -83,5 +83,32 @@ void main() {
     );
 
     expect(activity, ProjectAgentActivity.skipped);
+  });
+
+  test('terminal failure receipt remains visible as failed', () {
+    final activity = resolveProjectAgentActivity(
+      membership,
+      AgentMessageCursor(
+        projectId: 'project-1',
+        agentId: 'agent-1',
+        lastProcessedMessageSequence: 1,
+        updatedAt: now,
+      ),
+      null,
+      null,
+      AgentMessageReceipt(
+        projectId: 'project-1',
+        agentId: 'agent-1',
+        messageSequence: 1,
+        messageEventId: 'event-1',
+        turnId: 'turn-1',
+        outcome: AgentMessageReceiptOutcome.failedSkipped,
+        completedAt: now,
+        errorCode: 'reply_failed',
+      ),
+      project,
+    );
+
+    expect(activity, ProjectAgentActivity.failed);
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
@@ -171,7 +172,13 @@ final class AgentInboxCoordinator {
       if (claim == null) return;
       try {
         await _process(claim, leaseOwner);
-      } on Object {
+      } on Object catch (error, stackTrace) {
+        developer.log(
+          'Project Agent inbox processing failed',
+          name: 'hyve.project_inbox',
+          error: error,
+          stackTrace: stackTrace,
+        );
         await _complete(
           claim,
           leaseOwner,
@@ -412,6 +419,7 @@ final class AgentInboxCoordinator {
       now: _clock(),
     );
     _runCancellations[run.id] = token;
+    if (await _isTurnCancelled(claim.event.turnId)) token.cancel();
   }
 
   Future<bool> _isTurnCancelled(String turnId) async =>

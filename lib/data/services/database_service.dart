@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hyve/data/services/database_schema_v19.dart';
+import 'package:hyve/data/services/database_migrations.dart';
+import 'package:hyve/data/services/database_schema_v20.dart';
 import 'package:hyve/domain/models/app_failure.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,7 +32,9 @@ class DatabaseService {
   Database? _database;
   Future<Database>? _openingDatabase;
 
-  static const int databaseVersion = 19;
+  static const int databaseVersion = DatabaseMigrations.currentVersion;
+  static const int oldestMigratableVersion =
+      DatabaseMigrations.oldestSupportedVersion;
   static const String _databaseFileName = 'app.db';
   static const String _currentBackupName = '.hyve_backup_current';
   static const String _previousBackupName = '.hyve_backup_previous';
@@ -82,7 +85,9 @@ class DatabaseService {
         version: databaseVersion,
         onConfigure: configure,
         onCreate: createSchema,
+        onUpgrade: DatabaseMigrations.upgrade,
       );
+      await DatabaseMigrations.verifyCurrentSchema(database);
       await _verifyIntegrity(database);
       await preparation?.commit();
       return database;
@@ -106,7 +111,7 @@ class DatabaseService {
         'Only schema version $databaseVersion can be created.',
       );
     }
-    await DatabaseSchemaV19.create(db);
+    await DatabaseSchemaV20.create(db);
   }
 
   static Future<_ResetStage?> _prepareDatabase({
@@ -126,13 +131,16 @@ class DatabaseService {
     try {
       version = await _readVersion(databasePath);
     } on Object catch (error) {
-      final restored = await _restoreLatestCurrentBackup(support, databasePath);
-      if (!restored) {
+      final restoredVersion = await _restoreLatestCompatibleBackup(
+        support,
+        databasePath,
+      );
+      if (restoredVersion == null) {
         throw AppFailure.storage('database_recovery_failed', cause: error);
       }
-      version = await _readVersion(databasePath);
+      version = restoredVersion;
     }
-    if (version < databaseVersion) {
+    if (version < oldestMigratableVersion) {
       return _stageObsoleteData(
         support: support,
         legacyDocuments: legacyDocuments,
@@ -152,13 +160,17 @@ class DatabaseService {
     }
 
     try {
-      await _verifyDatabaseFile(databasePath);
-      await _writeRollingBackup(support, databasePath);
+      await _verifyDatabaseFile(databasePath, expectedVersion: version);
+      await _writeRollingBackup(support, databasePath, schemaVersion: version);
     } on Object catch (error) {
-      final restored = await _restoreLatestCurrentBackup(support, databasePath);
-      if (!restored) {
+      final restoredVersion = await _restoreLatestCompatibleBackup(
+        support,
+        databasePath,
+      );
+      if (restoredVersion == null) {
         throw AppFailure.storage('database_recovery_failed', cause: error);
       }
+      version = restoredVersion;
     }
     return _stageObsoleteData(
       support: support,
@@ -183,15 +195,20 @@ class DatabaseService {
     }
   }
 
-  static Future<void> _verifyDatabaseFile(String databasePath) async {
+  static Future<void> _verifyDatabaseFile(
+    String databasePath, {
+    required int expectedVersion,
+  }) async {
     final database = await openDatabase(
       databasePath,
       readOnly: true,
       singleInstance: false,
     );
     try {
-      if (await database.getVersion() != databaseVersion) {
-        throw const FormatException('Backup schema version is not current.');
+      if (await database.getVersion() != expectedVersion) {
+        throw FormatException(
+          'Database schema version does not match $expectedVersion.',
+        );
       }
       await _verifyIntegrity(database);
     } finally {
@@ -249,7 +266,7 @@ class DatabaseService {
       });
     } else if (!includeSupportData) {
       // Compatibility for tests and custom providers that use one root: clean
-      // the obsolete conversation directory without ever staging the live v19
+      // the obsolete conversation directory without ever staging the live
       // database or its project/agent data.
       add(support, const <String>{'chats'});
     } else {
@@ -336,7 +353,10 @@ class DatabaseService {
       var currentIsValid = false;
       if (await databaseExists(databasePath)) {
         try {
-          await _verifyDatabaseFile(databasePath);
+          await _verifyDatabaseFile(
+            databasePath,
+            expectedVersion: databaseVersion,
+          );
           currentIsValid = true;
         } on Object {
           currentIsValid = false;
@@ -360,8 +380,9 @@ class DatabaseService {
 
   static Future<void> _writeRollingBackup(
     Directory root,
-    String databasePath,
-  ) async {
+    String databasePath, {
+    required int schemaVersion,
+  }) async {
     final staging = Directory(
       join(
         root.path,
@@ -381,7 +402,7 @@ class DatabaseService {
       }
       await File(join(staging.path, _backupManifestName)).writeAsString(
         jsonEncode(<String, Object?>{
-          'schema_version': databaseVersion,
+          'schema_version': schemaVersion,
           'created_at': DateTime.now().toUtc().toIso8601String(),
           'includes': <String>[_databaseFileName, 'projects', 'agents'],
         }),
@@ -396,13 +417,14 @@ class DatabaseService {
     }
   }
 
-  static Future<bool> _restoreLatestCurrentBackup(
+  static Future<int?> _restoreLatestCompatibleBackup(
     Directory root,
     String databasePath,
   ) async {
     for (final name in <String>[_currentBackupName, _previousBackupName]) {
       final backup = Directory(join(root.path, name));
-      if (!await _isCurrentBackupValid(backup)) continue;
+      final schemaVersion = await _compatibleBackupVersion(backup);
+      if (schemaVersion == null) continue;
       try {
         await deleteDatabase(databasePath);
         await File(join(backup.path, _databaseFileName)).copy(databasePath);
@@ -412,29 +434,34 @@ class DatabaseService {
           final saved = Directory(join(backup.path, dataRoot));
           if (await saved.exists()) await _copyDirectory(saved, current);
         }
-        await _verifyDatabaseFile(databasePath);
-        return true;
+        await _verifyDatabaseFile(databasePath, expectedVersion: schemaVersion);
+        return schemaVersion;
       } on Object {
-        // Try the previous version 19 snapshot.
+        // Try the previous compatible snapshot.
       }
     }
-    return false;
+    return null;
   }
 
-  static Future<bool> _isCurrentBackupValid(Directory backup) async {
+  static Future<int?> _compatibleBackupVersion(Directory backup) async {
     try {
       final manifest = File(join(backup.path, _backupManifestName));
       final database = File(join(backup.path, _databaseFileName));
-      if (!await manifest.exists() || !await database.exists()) return false;
+      if (!await manifest.exists() || !await database.exists()) return null;
       final decoded = jsonDecode(await manifest.readAsString());
       if (decoded is! Map<String, Object?> ||
-          decoded['schema_version'] != databaseVersion) {
-        return false;
+          decoded['schema_version'] is! int) {
+        return null;
       }
-      await _verifyDatabaseFile(database.path);
-      return true;
+      final schemaVersion = decoded['schema_version']! as int;
+      if (schemaVersion < oldestMigratableVersion ||
+          schemaVersion > databaseVersion) {
+        return null;
+      }
+      await _verifyDatabaseFile(database.path, expectedVersion: schemaVersion);
+      return schemaVersion;
     } on Object {
-      return false;
+      return null;
     }
   }
 

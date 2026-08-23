@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-abstract final class DatabaseSchemaV19 {
+abstract final class DatabaseSchemaV20 {
   static Future<void> create(DatabaseExecutor db) async {
     await _createAgents(db);
     await _createProjects(db);

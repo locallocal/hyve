@@ -656,16 +656,18 @@ extension LocalDatabaseProjectAgents on LocalDatabaseService {
         throw StateError('agent_cursor_not_contiguous');
       }
       await transaction.insert('agent_message_receipts', receipt);
+      final failed = receipt['outcome'] == 'failedSkipped';
+      final errorCode = failed ? receipt['error_code']! as String : '';
       await transaction.update(
         'project_agent_cursors',
         <String, Object?>{
           'last_processed_message_sequence': messageSequence,
           'processing_message_sequence': null,
-          'worker_state': 'scheduled',
+          'worker_state': failed ? 'error' : 'scheduled',
           'active_run_id': null,
           'lease_owner': '',
           'lease_expires_at': null,
-          'last_error': '',
+          'last_error': errorCode,
           'updated_at': receipt['completed_at'],
         },
         where: 'project_id = ? AND agent_id = ?',

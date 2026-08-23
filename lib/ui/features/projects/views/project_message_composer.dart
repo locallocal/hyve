@@ -29,10 +29,13 @@ final class StructuredProjectMessageController extends TextEditingController {
   @override
   set value(TextEditingValue newValue) {
     final previousText = text;
-    super.value = newValue;
     if (!_applyingStructuredEdit && previousText != newValue.text) {
       _reconcileTextEdit(previousText, newValue.text);
     }
+    // Keep structured spans consistent before TextEditingController notifies
+    // listeners. Listeners may resolve a newly completed plain-text mention;
+    // reconciling afterwards would shift that new span a second time.
+    super.value = newValue;
   }
 
   void insertMention({required Agent agent, required TextRange replaceRange}) {
@@ -227,6 +230,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
   void initState() {
     super.initState();
     widget.controller.addListener(_changed);
+    _synchronizeMentions();
   }
 
   @override
@@ -236,6 +240,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
       oldWidget.controller.removeListener(_changed);
       widget.controller.addListener(_changed);
     }
+    _synchronizeMentions();
   }
 
   @override
@@ -246,8 +251,15 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
   }
 
   void _changed() {
-    widget.controller.convertUniquePlainTextMentions(widget.activeAgents);
+    _synchronizeMentions();
     if (mounted) setState(() {});
+  }
+
+  void _synchronizeMentions() {
+    widget.controller.removeMentionsForInactiveAgents(
+      widget.activeAgents.map((agent) => agent.id).toSet(),
+    );
+    widget.controller.convertUniquePlainTextMentions(widget.activeAgents);
   }
 
   ({int start, String query})? get _mentionQuery {
@@ -280,6 +292,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
 
   void _send() {
     if (!_canSend) return;
+    _synchronizeMentions();
     widget.onSend(widget.controller.draft(attachments: widget.attachments));
   }
 

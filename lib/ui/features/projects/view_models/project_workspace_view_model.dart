@@ -21,18 +21,8 @@ import 'package:hyve/domain/repositories/project_temporary_attachment_repository
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
-
-enum ProjectAgentActivity {
-  idle,
-  deciding,
-  willReply,
-  skipped,
-  replying,
-  catchingUp,
-  paused,
-  failed,
-}
 
 final class ProjectAgentStatusSnapshot {
   const ProjectAgentStatusSnapshot({
@@ -42,6 +32,7 @@ final class ProjectAgentStatusSnapshot {
     required this.latestMessageSequence,
     required this.backlog,
     this.activeRunId = '',
+    this.errorCode = '',
   });
 
   final String agentId;
@@ -50,6 +41,7 @@ final class ProjectAgentStatusSnapshot {
   final int latestMessageSequence;
   final int backlog;
   final String activeRunId;
+  final String errorCode;
 }
 
 final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
@@ -262,6 +254,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
       final last =
           cursor?.lastProcessedMessageSequence ??
           membership.joinMessageSequence;
+      final latestReceipt = latestReceiptByAgent[membership.agentId];
       statuses.add(
         ProjectAgentStatusSnapshot(
           agentId: membership.agentId,
@@ -270,7 +263,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
             cursor,
             run,
             latestDecisionByAgent[membership.agentId],
-            latestReceiptByAgent[membership.agentId],
+            latestReceipt,
             project,
           ),
           lastProcessedMessageSequence: last,
@@ -280,6 +273,13 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
                   ? project.lastMessageSequence - last
                   : 0,
           activeRunId: cursor?.activeRunId ?? '',
+          errorCode:
+              cursor?.lastError.isNotEmpty == true
+                  ? cursor!.lastError
+                  : latestReceipt?.outcome ==
+                      AgentMessageReceiptOutcome.failedSkipped
+                  ? latestReceipt?.errorCode ?? ''
+                  : '',
         ),
       );
     }
@@ -702,49 +702,6 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     _artifactSubscription.cancel();
     super.dispose();
   }
-}
-
-ProjectAgentActivity resolveProjectAgentActivity(
-  ProjectMembership membership,
-  AgentMessageCursor? cursor,
-  AgentRun? run,
-  ParticipationDecision? latestDecision,
-  AgentMessageReceipt? latestReceipt,
-  Project project,
-) {
-  if (membership.status != ProjectMembershipStatus.active ||
-      cursor?.workerState == AgentInboxWorkerState.paused) {
-    return ProjectAgentActivity.paused;
-  }
-  if (cursor?.workerState == AgentInboxWorkerState.error) {
-    return ProjectAgentActivity.failed;
-  }
-  if (run?.phase == AgentRunPhase.decision && !run!.isTerminal) {
-    return ProjectAgentActivity.deciding;
-  }
-  if (run?.phase == AgentRunPhase.reply &&
-      (run?.status == AgentRunStatus.queued ||
-          run?.status == AgentRunStatus.preparing)) {
-    return ProjectAgentActivity.willReply;
-  }
-  if (run?.phase == AgentRunPhase.reply && !run!.isTerminal) {
-    return ProjectAgentActivity.replying;
-  }
-  final processing = cursor?.processingMessageSequence;
-  if (processing != null && latestDecision?.messageSequence == processing) {
-    return latestDecision?.choice == ParticipationChoice.reply
-        ? ProjectAgentActivity.willReply
-        : ProjectAgentActivity.skipped;
-  }
-  if ((cursor?.lastProcessedMessageSequence ?? membership.joinMessageSequence) <
-      project.lastMessageSequence) {
-    return ProjectAgentActivity.catchingUp;
-  }
-  if (latestReceipt?.messageSequence == project.lastMessageSequence &&
-      latestReceipt?.outcome == AgentMessageReceiptOutcome.passed) {
-    return ProjectAgentActivity.skipped;
-  }
-  return ProjectAgentActivity.idle;
 }
 
 PendingAttachmentKind _pendingAttachmentKind(String filePath) {

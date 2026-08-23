@@ -852,6 +852,38 @@ void main() {
       ProjectTurnStatus.failed,
     );
   });
+
+  test('last target failure remains visible on an idle cursor', () async {
+    gateway.timeoutReplyAgentId = 'agent-2';
+    final routed = await route(
+      projectId: 'project-1',
+      draft: ProjectMessageDraft(
+        text: '@Agent 2 time out',
+        mentions: const <MentionSpan>[
+          MentionSpan(
+            agentId: 'agent-2',
+            start: 0,
+            length: 8,
+            displayTextSnapshot: '@Agent 2',
+          ),
+        ],
+      ),
+    );
+    await inbox.wakeProject('project-1');
+    await inbox.waitForIdle(projectId: 'project-1');
+
+    final failedCursor = await cursors.getCursor('project-1', 'agent-2');
+    expect(failedCursor?.workerState, AgentInboxWorkerState.idle);
+    expect(failedCursor?.lastError, 'simulated_reply_timeout');
+    expect(
+      (await receipts.getReceipt('project-1', 'agent-2', 1))?.outcome,
+      AgentMessageReceiptOutcome.failedSkipped,
+    );
+    expect(
+      (await turns.getTurn(routed.turn.id))?.status,
+      ProjectTurnStatus.failed,
+    );
+  });
 }
 
 final class _ExecutionGateway implements ProjectAgentExecutionGateway {

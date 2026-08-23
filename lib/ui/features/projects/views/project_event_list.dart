@@ -15,6 +15,7 @@ final class ProjectEventList extends StatefulWidget {
     this.hasEarlier = false,
     this.loadingEarlier = false,
     this.onLoadEarlier,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
   });
 
   final List<ProjectEvent> events;
@@ -25,6 +26,7 @@ final class ProjectEventList extends StatefulWidget {
   final bool hasEarlier;
   final bool loadingEarlier;
   final VoidCallback? onLoadEarlier;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<ProjectEventList> createState() => _ProjectEventListState();
@@ -80,7 +82,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     return ListView.builder(
       key: const ValueKey<String>('project-event-timeline'),
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: widget.padding,
       itemCount: messages.length + (widget.hasEarlier ? 1 : 0),
       itemBuilder: (context, index) {
         if (widget.hasEarlier && index == 0) {

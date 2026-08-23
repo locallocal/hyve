@@ -292,26 +292,33 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     ProjectLocalizations copy,
   ) => Column(
     children: <Widget>[
-      _AgentStatusStrip(
-        statuses: viewModel.agentStatuses,
-        agents: viewModel.activeAgents,
+      ProjectContentBounds(
+        child: _AgentStatusStrip(
+          statuses: viewModel.agentStatuses,
+          agents: viewModel.activeAgents,
+        ),
       ),
       if (viewModel.activeAgents.isEmpty)
-        _NoAgentsNotice(message: copy.noAgentsNotice),
+        ProjectContentBounds(
+          child: _NoAgentsNotice(message: copy.noAgentsNotice),
+        ),
       Expanded(
-        child: ProjectEventList(
-          events: viewModel.events,
-          turns: viewModel.turns,
-          deliveries: viewModel.deliveries,
-          runs: viewModel.runs,
-          agentNames: viewModel.agentNames,
-          hasEarlier: viewModel.hasEarlierEvents,
-          loadingEarlier: viewModel.eventPageBusy,
-          onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),
+        child: ProjectContentBounds(
+          child: ProjectEventList(
+            events: viewModel.events,
+            turns: viewModel.turns,
+            deliveries: viewModel.deliveries,
+            runs: viewModel.runs,
+            agentNames: viewModel.agentNames,
+            hasEarlier: viewModel.hasEarlierEvents,
+            loadingEarlier: viewModel.eventPageBusy,
+            onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
         ),
       ),
       if (viewModel.errorCode.isNotEmpty)
-        Padding(
+        ProjectContentBounds(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
           child: Semantics(
             liveRegion: true,
@@ -322,28 +329,23 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             ),
           ),
         ),
-      Padding(
+      ProjectContentBounds(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: projectContentMaxWidth),
-            child: ProjectMessageComposer(
-              controller: _composer,
-              activeAgents: viewModel.activeAgents,
-              attachments: _attachments,
-              hintText: copy.broadcastHint,
-              onPickAttachment: () => unawaited(_pickAttachment()),
-              onRemoveAttachment:
-                  (index) => setState(() => _attachments.removeAt(index)),
-              onToggleAttachmentPromotion: _toggleAttachmentPromotion,
-              activeRunCount:
-                  viewModel.agentStatuses
-                      .where((status) => status.activeRunId.isNotEmpty)
-                      .length,
-              onCancelRuns: viewModel.cancelActiveRuns,
-              onSend: (draft) => unawaited(_submit(draft)),
-            ),
-          ),
+        child: ProjectMessageComposer(
+          controller: _composer,
+          activeAgents: viewModel.activeAgents,
+          attachments: _attachments,
+          hintText: copy.broadcastHint,
+          onPickAttachment: () => unawaited(_pickAttachment()),
+          onRemoveAttachment:
+              (index) => setState(() => _attachments.removeAt(index)),
+          onToggleAttachmentPromotion: _toggleAttachmentPromotion,
+          activeRunCount:
+              viewModel.agentStatuses
+                  .where((status) => status.activeRunId.isNotEmpty)
+                  .length,
+          onCancelRuns: viewModel.cancelActiveRuns,
+          onSend: (draft) => unawaited(_submit(draft)),
         ),
       ),
     ],
@@ -485,7 +487,7 @@ final class _NoAgentsNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     if (hasShadProjectTheme(context)) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.only(top: 8),
         child: ShadAlert(
           key: const ValueKey<String>('project-no-agents-notice'),
           icon: const Icon(LucideIcons.info),

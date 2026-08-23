@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#0F172A</color>
-    <color name="splash_bubble">#5B8DEF</color>
-    <color name="splash_star">#FFF8E7</color>
-    <color name="splash_accent">#26C6DA</color>
+    <color name="splash_background">#09090B</color>
+    <color name="splash_mark">#FAFAFA</color>
+    <color name="splash_nodes">#F5B942</color>
 </resources>

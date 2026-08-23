@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SplashScreen AVD artwork uses the official 432dp canvas and 288dp safe area. -->
+<!-- Animated Hyve hive-H artwork stays within Android's splash safe area. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:width="432dp"
@@ -7,37 +7,28 @@
     android:viewportWidth="432"
     android:viewportHeight="432"
     tools:ignore="VectorRaster">
-    <path
-        android:name="bubble_path"
-        android:fillColor="@android:color/transparent"
-        android:pathData="M270,126 C232,103 183,102 145,124 C105,147 85,192 96,235 C102,263 117,282 139,296 L129,317 L158,306 C195,327 238,327 272,307 C311,284 330,244 325,202"
-        android:strokeColor="@color/splash_bubble"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeWidth="22"
-        android:trimPathEnd="0" />
     <group
-        android:name="main_star_group"
+        android:name="mark_group"
         android:pivotX="216"
         android:pivotY="216"
         android:scaleX="0.45"
         android:scaleY="0.45">
         <path
-            android:name="main_star_path"
+            android:name="mark_path"
             android:fillAlpha="0"
-            android:fillColor="@color/splash_star"
-            android:pathData="M216,148 C221,189 243,211 284,216 C243,221 221,243 216,284 C211,243 189,221 148,216 C189,211 211,189 216,148 Z" />
+            android:fillColor="@color/splash_mark"
+            android:pathData="M150,128 L180,145 L180,194 L252,194 L252,145 L282,128 L312,145 L312,187 L276,208 L276,224 L312,245 L312,287 L282,304 L252,287 L252,238 L180,238 L180,287 L150,304 L120,287 L120,245 L156,224 L156,208 L120,187 L120,145 Z" />
     </group>
     <group
-        android:name="accent_star_group"
-        android:pivotX="299"
-        android:pivotY="151"
+        android:name="nodes_group"
+        android:pivotX="216"
+        android:pivotY="216"
         android:scaleX="0.25"
         android:scaleY="0.25">
         <path
-            android:name="accent_star_path"
+            android:name="nodes_path"
             android:fillAlpha="0"
-            android:fillColor="@color/splash_accent"
-            android:pathData="M299,126 C302,141 309,148 324,151 C309,154 302,161 299,176 C296,161 289,154 274,151 C289,148 296,141 299,126 Z" />
+            android:fillColor="@color/splash_nodes"
+            android:pathData="M216,74 L242,89 L242,119 L216,134 L190,119 L190,89 Z M100,186 L126,201 L126,231 L100,246 L74,231 L74,201 Z M332,186 L358,201 L358,231 L332,246 L306,231 L306,201 Z M216,298 L242,313 L242,343 L216,358 L190,343 L190,313 Z" />
     </group>
 </vector>

@@ -169,6 +169,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
             container: true,
             label: '${fromUser ? copy.user : actorName}: ${event.content}',
             child: _ProjectMessageBubble(
+              key: ValueKey<String>('project-message-bubble-${event.id}'),
               fromUser: fromUser,
               constraints: const BoxConstraints(maxWidth: 680),
               margin: const EdgeInsets.symmetric(vertical: 5),
@@ -195,7 +196,13 @@ final class _ProjectEventListState extends State<ProjectEventList> {
                       child: Text(
                         copy.noParticipant,
                         key: ValueKey<String>('no-participant-${event.id}'),
-                        style: Theme.of(context).textTheme.labelSmall,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color:
+                              ShadTheme.maybeOf(
+                                context,
+                              )?.colorScheme.mutedForeground ??
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   if (event.terminalState !=
@@ -332,6 +339,7 @@ final class ProjectDeliveryCard extends StatelessWidget {
 
 final class _ProjectMessageBubble extends StatelessWidget {
   const _ProjectMessageBubble({
+    super.key,
     required this.fromUser,
     required this.constraints,
     required this.margin,
@@ -346,18 +354,30 @@ final class _ProjectMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
-    final color =
-        shadTheme == null
-            ? fromUser
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surfaceContainerHighest
-            : fromUser
-            ? shadTheme.colorScheme.primary
-            : shadTheme.colorScheme.muted;
+    final materialScheme = Theme.of(context).colorScheme;
+    final background =
+        shadTheme?.colorScheme.background ?? materialScheme.surface;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final color = Color.alphaBlend(
+      (shadTheme == null
+              ? fromUser
+                  ? materialScheme.primaryContainer
+                  : materialScheme.surfaceContainerHighest
+              : fromUser
+              ? shadTheme.colorScheme.primary
+              : shadTheme.colorScheme.muted)
+          .withValues(
+            alpha:
+                fromUser
+                    ? dark
+                        ? 0.14
+                        : 0.06
+                    : 0.42,
+          ),
+      background,
+    );
     final foreground =
-        shadTheme != null && fromUser
-            ? shadTheme.colorScheme.primaryForeground
-            : null;
+        shadTheme?.colorScheme.foreground ?? materialScheme.onSurface;
     return Container(
       constraints: constraints,
       margin: margin,
@@ -365,13 +385,9 @@ final class _ProjectMessageBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: shadTheme?.radius ?? BorderRadius.circular(14),
-        border:
-            shadTheme == null
-                ? null
-                : Border.all(color: shadTheme.colorScheme.border),
       ),
       child: DefaultTextStyle.merge(
-        style: foreground == null ? null : TextStyle(color: foreground),
+        style: TextStyle(color: foreground),
         child: IconTheme.merge(
           data: IconThemeData(color: foreground),
           child: child,

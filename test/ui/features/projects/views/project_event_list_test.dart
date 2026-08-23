@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/views/project_event_list.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   testWidgets(
@@ -93,6 +96,132 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'message backgrounds are subtle and current-message hint is visible',
+    (tester) async {
+      final now = DateTime.utc(2026, 8, 23);
+      final event = _message(
+        id: 'current-message',
+        turnId: 'current-turn',
+        sequence: 1,
+        messageSequence: 1,
+        actorType: ProjectEventActorType.user,
+        content: 'Current project message',
+        now: now,
+      );
+      final agentEvent = _message(
+        id: 'agent-message',
+        turnId: 'agent-turn',
+        sequence: 2,
+        messageSequence: 2,
+        actorType: ProjectEventActorType.agent,
+        content: 'Agent response',
+        now: now,
+      );
+      final turn = ProjectTurn(
+        id: 'current-turn',
+        projectId: 'project-1',
+        rootEventId: event.id,
+        initiatorType: ProjectTurnInitiatorType.user,
+        initiatorId: 'user',
+        routingMode: ProjectTurnRoutingMode.broadcast,
+        sourceMessageId: event.id,
+        sourceMessageSequence: 1,
+        recipientCount: 0,
+        rootTurnId: 'current-turn',
+        status: ProjectTurnStatus.completed,
+        noParticipant: true,
+        createdAt: now,
+        completedAt: now,
+      );
+
+      for (final brightness in Brightness.values) {
+        await tester.pumpWidget(
+          shadHarness(
+            brightness: brightness,
+            locale: const Locale('zh', 'CN'),
+            homeBuilder:
+                (_) => Scaffold(
+                  body: ProjectEventList(
+                    events: <ProjectEvent>[event, agentEvent],
+                    turns: <String, ProjectTurn>{turn.id: turn},
+                    deliveries: const <String, AgentDelivery>{},
+                    runs: const <String, AgentRun>{},
+                    agentNames: const <String, String>{'agent-1': 'Researcher'},
+                  ),
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bubbleFinder = find.byKey(
+          const ValueKey<String>('project-message-bubble-current-message'),
+        );
+        final bubble = tester.widget<Container>(
+          find
+              .descendant(of: bubbleFinder, matching: find.byType(Container))
+              .first,
+        );
+        final decoration = bubble.decoration! as BoxDecoration;
+        final shadTheme = ShadTheme.of(tester.element(bubbleFinder));
+        expect(decoration.border, isNull, reason: brightness.name);
+        expect(
+          _colorDistance(decoration.color!, shadTheme.colorScheme.background),
+          lessThan(
+            _colorDistance(
+                  shadTheme.colorScheme.primary,
+                  shadTheme.colorScheme.background,
+                ) *
+                0.025,
+          ),
+          reason: brightness.name,
+        );
+
+        final agentBubbleFinder = find.byKey(
+          const ValueKey<String>('project-message-bubble-agent-message'),
+        );
+        final agentBubble = tester.widget<Container>(
+          find
+              .descendant(
+                of: agentBubbleFinder,
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        final agentDecoration = agentBubble.decoration! as BoxDecoration;
+        expect(agentDecoration.border, isNull, reason: brightness.name);
+        expect(
+          _colorDistance(
+            agentDecoration.color!,
+            shadTheme.colorScheme.background,
+          ),
+          lessThan(
+            _colorDistance(
+                  shadTheme.colorScheme.muted,
+                  shadTheme.colorScheme.background,
+                ) *
+                0.20,
+          ),
+          reason: brightness.name,
+        );
+
+        final hint = tester.widget<Text>(
+          find.byKey(const ValueKey<String>('no-participant-current-message')),
+        );
+        expect(hint.data, '本条消息没有智能体需要补充。');
+        expect(hint.style?.color, shadTheme.colorScheme.mutedForeground);
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+}
+
+double _colorDistance(Color left, Color right) {
+  final red = left.r - right.r;
+  final green = left.g - right.g;
+  final blue = left.b - right.b;
+  return red * red + green * green + blue * blue;
 }
 
 ProjectEvent _message({

@@ -959,16 +959,6 @@ class S {
     );
   }
 
-  /// `Clear chat history`
-  String get clearChatHistory {
-    return Intl.message(
-      'Clear chat history',
-      name: 'clearChatHistory',
-      desc: 'Clear chat history',
-      args: [],
-    );
-  }
-
   /// `{minutes} minutes ago`
   String minutesAgo(int minutes) {
     return Intl.message(
@@ -1129,42 +1119,12 @@ class S {
     );
   }
 
-  /// `Are you sure you want to clear all chat history with "{botName}"? This action cannot be undone.`
-  String confirmClearChat(String botName) {
-    return Intl.message(
-      'Are you sure you want to clear all chat history with "$botName"? This action cannot be undone.',
-      name: 'confirmClearChat',
-      desc: 'Confirmation text for clearing chat history',
-      args: [botName],
-    );
-  }
-
-  /// `Chat history cleared`
-  String get chatHistoryCleared {
-    return Intl.message(
-      'Chat history cleared',
-      name: 'chatHistoryCleared',
-      desc: 'Notification shown after chat history is cleared',
-      args: [],
-    );
-  }
-
   /// `Reply cancelled`
   String get replyCancelled {
     return Intl.message(
       'Reply cancelled',
       name: 'replyCancelled',
       desc: 'Notification shown after cancelling AI reply generation',
-      args: [],
-    );
-  }
-
-  /// `Clear`
-  String get clear {
-    return Intl.message(
-      'Clear',
-      name: 'clear',
-      desc: 'Text for the button to clear chat history',
       args: [],
     );
   }
@@ -2768,16 +2728,6 @@ class S {
       name: 'unableToLoadMessages',
       desc: '',
       args: [],
-    );
-  }
-
-  /// `Could not clear chat history: {error}`
-  String clearChatFailed(String error) {
-    return Intl.message(
-      'Could not clear chat history: $error',
-      name: 'clearChatFailed',
-      desc: '',
-      args: [error],
     );
   }
 

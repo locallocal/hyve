@@ -223,51 +223,44 @@ void main() {
     },
   );
 
-  test(
-    'message history cache stays coherent across writes and clears',
-    () async {
-      final repository = SqliteMessageRepository(localDatabase: localDatabase);
-      final bot = _bot();
-      final timestamp = DateTime(2026, 8, 10, 10);
-      await botRepository.addBot(bot);
-      await localDatabase.insertChat(
-        ChatRecord.fromDomain(
-          Chat(
-            id: 'chat-cache',
-            botIds: [bot.id],
-            lastMessageTimestamp: timestamp,
-            createTimestamp: timestamp,
-            modifyTimestamp: timestamp,
-          ),
-        ).values,
-      );
-      final original = Message(
-        messageId: 'message-cache',
-        turnId: 'turn-cache',
-        chatId: 'chat-cache',
-        botId: bot.id,
-        senderId: 'me',
-        content: 'before',
-        timestamp: timestamp,
-      );
-      await repository.upsertMessage(original);
+  test('message history cache stays coherent across writes', () async {
+    final repository = SqliteMessageRepository(localDatabase: localDatabase);
+    final bot = _bot();
+    final timestamp = DateTime(2026, 8, 10, 10);
+    await botRepository.addBot(bot);
+    await localDatabase.insertChat(
+      ChatRecord.fromDomain(
+        Chat(
+          id: 'chat-cache',
+          botIds: [bot.id],
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ).values,
+    );
+    final original = Message(
+      messageId: 'message-cache',
+      turnId: 'turn-cache',
+      chatId: 'chat-cache',
+      botId: bot.id,
+      senderId: 'me',
+      content: 'before',
+      timestamp: timestamp,
+    );
+    await repository.upsertMessage(original);
 
-      final firstPage = await repository.getMessagePage('chat-cache');
-      final cachedPage = await repository.getMessagePage('chat-cache');
-      expect(cachedPage, same(firstPage));
-      expect(repository.peekMessages('chat-cache'), same(firstPage.messages));
+    final firstPage = await repository.getMessagePage('chat-cache');
+    final cachedPage = await repository.getMessagePage('chat-cache');
+    expect(cachedPage, same(firstPage));
+    expect(repository.peekMessages('chat-cache'), same(firstPage.messages));
 
-      await repository.upsertMessage(original.copyWith(content: 'after'));
-      final updatedPage = await repository.getMessagePage('chat-cache');
-      expect(updatedPage, isNot(same(firstPage)));
-      expect(updatedPage.messages.single.content, 'after');
-      expect(repository.peekMessages('chat-cache'), same(updatedPage.messages));
-
-      await localDatabase.clearChatHistory('chat-cache', timestamp);
-      expect(repository.peekMessages('chat-cache'), isNull);
-      expect(await repository.getMessages('chat-cache'), isEmpty);
-    },
-  );
+    await repository.upsertMessage(original.copyWith(content: 'after'));
+    final updatedPage = await repository.getMessagePage('chat-cache');
+    expect(updatedPage, isNot(same(firstPage)));
+    expect(updatedPage.messages.single.content, 'after');
+    expect(repository.peekMessages('chat-cache'), same(updatedPage.messages));
+  });
 
   test('message pages use a stable timestamp and id cursor', () async {
     final repository = SqliteMessageRepository(localDatabase: localDatabase);
@@ -589,17 +582,6 @@ void main() {
         ),
         timestamp: timestamp,
       ),
-    );
-
-    await chatRepository.clearHistory('chat-clear');
-
-    expect(await repository.getMessages('chat-clear'), isEmpty);
-    final records = await repository.getTokenUsageRecordsForChat('chat-clear');
-    expect(records, hasLength(1));
-    expect(records.single.usage.effectiveTotalTokens, 120);
-    expect(
-      (await repository.getTokenUsageForBot('bot-1')).effectiveTotalTokens,
-      120,
     );
 
     await chatRepository.deleteChat('chat-clear');

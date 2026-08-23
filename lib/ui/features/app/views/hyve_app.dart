@@ -16,7 +16,7 @@ import 'package:hyve/ui/features/app/view_models/startup_view_model.dart';
 import 'package:hyve/ui/features/app/views/desktop_layout.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:hyve/ui/features/bots/views/bots.dart';
-import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chat/views/stop_generation_dialog.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chats.dart';
 import 'package:hyve/ui/features/mcp/view_models/mcp_servers_view_model.dart';

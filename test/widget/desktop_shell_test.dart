@@ -10,7 +10,7 @@ import 'package:hyve/ui/features/app/views/desktop_layout.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:hyve/ui/features/bots/views/bots.dart';
-import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
+import 'package:hyve/ui/features/chat/views/stop_generation_dialog.dart';
 import 'package:hyve/ui/features/chats/view_models/chat_list_view_model.dart';
 import 'package:hyve/ui/features/chats/views/chats.dart';
 import 'package:hyve/ui/features/chats/views/chat_item.dart';
@@ -243,7 +243,7 @@ void main() {
     });
   });
 
-  testWidgets('desktop selected chat exposes clear action in the toolbar', (
+  testWidgets('desktop selected chat has no clear-history action', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -256,9 +256,9 @@ void main() {
 
       expect(
         find.byKey(const ValueKey<String>('desktop-toolbar-clear-chat')),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(find.bySemanticsLabel('清空项目记录'), findsOneWidget);
+      expect(find.bySemanticsLabel('清空项目记录'), findsNothing);
     });
   });
 
@@ -370,44 +370,7 @@ void main() {
     });
   });
 
-  testWidgets('desktop clear chat cancel matches delete bot styling', (
-    tester,
-  ) async {
-    await withDesktopPlatform(() async {
-      await tester.pumpWidget(
-        shadHarness(
-          brightness: Brightness.light,
-          homeBuilder:
-              (context) => Scaffold(
-                body: ShadButton(
-                  onPressed:
-                      () => unawaited(showClearChatDialog(context, '测试智能体')),
-                  child: const Text('打开清空项目弹窗'),
-                ),
-              ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('打开清空项目弹窗'));
-      await tester.pumpAndSettle();
-
-      final cancelButtonFinder =
-          find
-              .ancestor(of: find.text('取消'), matching: find.byType(ShadButton))
-              .first;
-      final cancelButton = tester.widget<ShadButton>(cancelButtonFinder);
-      expect(cancelButton.variant, ShadButtonVariant.outline);
-      expect(cancelButton.autofocus, isFalse);
-
-      await tester.tap(cancelButtonFinder);
-      await tester.pumpAndSettle();
-
-      expect(find.text('取消'), findsNothing);
-    });
-  });
-
-  testWidgets('desktop stop generation dialog matches clear chat styling', (
+  testWidgets('desktop stop generation dialog uses Shad alert actions', (
     tester,
   ) async {
     await withDesktopPlatform(() async {

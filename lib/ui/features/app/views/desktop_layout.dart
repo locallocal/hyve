@@ -388,11 +388,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                         isChat: isChat,
                                         overlaySidebar: overlaySidebar,
                                       ),
-                              onClearChat:
-                                  widget.currentIndex == 0 &&
-                                          widget.selectedChatId != null
-                                      ? _requestClearChat
-                                      : null,
                               onShowProjectMembers:
                                   projectWorkspaceSelected
                                       ? () => unawaited(

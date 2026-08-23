@@ -32,75 +32,71 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(botName) => "已刪除與 ${botName} 的聊天";
 
-  static String m6(error) => "Could not clear chat history: ${error}";
+  static String m6(botName) => "刪除機器人會刪除對應的聊天記錄，確定要刪除 ${botName} 嗎？";
 
-  static String m7(botName) => "確定要清空與 \"${botName}\" 的所有聊天記錄嗎？此操作無法撤銷。";
+  static String m7(botName) => "刪除聊天會清空所有的聊天記錄，確定要刪除與 ${botName} 的聊天嗎？";
 
-  static String m8(botName) => "刪除機器人會刪除對應的聊天記錄，確定要刪除 ${botName} 嗎？";
+  static String m8(name) => "確定刪除「${name}」？快取的工具目錄與安全憑證也會移除。";
 
-  static String m9(botName) => "刪除聊天會清空所有的聊天記錄，確定要刪除與 ${botName} 的聊天嗎？";
+  static String m9(name) => "確定解除安裝技能「${name}」？相關智慧體綁定也會被移除。";
 
-  static String m10(name) => "確定刪除「${name}」？快取的工具目錄與安全憑證也會移除。";
+  static String m10(year) => "© ${year} Hyve 團隊";
 
-  static String m11(name) => "確定解除安裝技能「${name}」？相關智慧體綁定也會被移除。";
+  static String m11(error) => "Could not create the chat: ${error}";
 
-  static String m12(year) => "© ${year} Hyve 團隊";
+  static String m12(error) => "建立專案失敗：${error}";
 
-  static String m13(error) => "Could not create the chat: ${error}";
+  static String m13(error) => "Could not delete the chat: ${error}";
 
-  static String m14(error) => "建立專案失敗：${error}";
+  static String m14(milliseconds) => "${milliseconds} 毫秒";
 
-  static String m15(error) => "Could not delete the chat: ${error}";
+  static String m15(seconds) => "${seconds} 秒";
 
-  static String m16(milliseconds) => "${milliseconds} 毫秒";
+  static String m16(name) => "允許「${name}」將已宣告的指令碼註冊為工具。每次呼叫仍須核准，並在桌面沙箱中執行。";
 
-  static String m17(seconds) => "${seconds} 秒";
+  static String m17(count) => "${count} files";
 
-  static String m18(name) => "允許「${name}」將已宣告的指令碼註冊為工具。每次呼叫仍須核准，並在桌面沙箱中執行。";
+  static String m18(error) => "Generate image failed: ${error}";
 
-  static String m19(count) => "${count} files";
+  static String m19(error) => "Could not generate music: ${error}";
 
-  static String m20(error) => "Generate image failed: ${error}";
+  static String m20(error) => "Could not generate speech: ${error}";
 
-  static String m21(error) => "Could not generate music: ${error}";
+  static String m21(error) => "Could not generate video: ${error}";
 
-  static String m22(error) => "Could not generate speech: ${error}";
+  static String m22(count) => "${count} items";
 
-  static String m23(error) => "Could not generate video: ${error}";
+  static String m23(language) => "語言已設置為${language}";
 
-  static String m24(count) => "${count} items";
+  static String m24(error) => "MCP 連線失敗：${error}";
 
-  static String m25(language) => "語言已設置為${language}";
+  static String m25(count) => "${count} configured (values hidden)";
 
-  static String m26(error) => "MCP 連線失敗：${error}";
+  static String m26(minutes) => "${minutes}分鐘前";
 
-  static String m27(count) => "${count} configured (values hidden)";
+  static String m27(count) => "成功獲取 ${count} 個模型";
 
-  static String m28(minutes) => "${minutes}分鐘前";
+  static String m28(count) => "${count} 次命令執行";
 
-  static String m29(count) => "成功獲取 ${count} 個模型";
+  static String m29(duration) => "耗時 ${duration}";
 
-  static String m30(count) => "${count} 次命令執行";
+  static String m30(count) => "${count} 筆檔案狀態";
 
-  static String m31(duration) => "耗時 ${duration}";
+  static String m31(count) => "${count} 次工具呼叫";
 
-  static String m32(count) => "${count} 筆檔案狀態";
+  static String m32(error) => "獲取回覆失敗: ${error}";
 
-  static String m33(count) => "${count} 次工具呼叫";
+  static String m33(error) => "Could not save image: ${error}";
 
-  static String m34(error) => "獲取回覆失敗: ${error}";
+  static String m34(count) => "已選擇 ${count} 個";
 
-  static String m35(error) => "Could not save image: ${error}";
+  static String m35(error) => "Could not share image: ${error}";
 
-  static String m36(count) => "已選擇 ${count} 個";
+  static String m36(error) => "技能匯入失敗：${error}";
 
-  static String m37(error) => "Could not share image: ${error}";
+  static String m37(duration) => "思考完成 · ${duration}";
 
-  static String m38(error) => "技能匯入失敗：${error}";
-
-  static String m39(duration) => "思考完成 · ${duration}";
-
-  static String m40(error) => "影片播放錯誤：${error}";
+  static String m38(error) => "影片播放錯誤：${error}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -184,20 +180,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "changesSaved": MessageLookupByLibrary.simpleMessage("已儲存"),
     "chatDeleted": m5,
     "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("對話執行狀態"),
-    "chatHistoryCleared": MessageLookupByLibrary.simpleMessage("聊天記錄已清空"),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search matches bot names and the latest message.",
     ),
     "chats": MessageLookupByLibrary.simpleMessage("聊天"),
     "chooseFromGallery": MessageLookupByLibrary.simpleMessage("Gallery"),
-    "clear": MessageLookupByLibrary.simpleMessage("清空"),
     "clearAttachments": MessageLookupByLibrary.simpleMessage(
       "Clear attachments",
     ),
     "clearAutomaticMemory": MessageLookupByLibrary.simpleMessage("清除自動記憶"),
     "clearChat": MessageLookupByLibrary.simpleMessage("清空聊天"),
-    "clearChatFailed": m6,
-    "clearChatHistory": MessageLookupByLibrary.simpleMessage("清空聊天記錄"),
     "clearPinnedSkills": MessageLookupByLibrary.simpleMessage("清除專案固定技能"),
     "clearSearch": MessageLookupByLibrary.simpleMessage("Clear search"),
     "clickDayForHourlyUsage": MessageLookupByLibrary.simpleMessage(
@@ -211,12 +203,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "compactionFailed": MessageLookupByLibrary.simpleMessage("失敗"),
     "compactionStatus": MessageLookupByLibrary.simpleMessage("壓縮狀態"),
     "confirm": MessageLookupByLibrary.simpleMessage("確定"),
-    "confirmClearChat": m7,
     "confirmDelete": MessageLookupByLibrary.simpleMessage("確認刪除"),
-    "confirmDeleteBot": m8,
-    "confirmDeleteChat": m9,
-    "confirmDeleteMcpServer": m10,
-    "confirmUninstallSkill": m11,
+    "confirmDeleteBot": m6,
+    "confirmDeleteChat": m7,
+    "confirmDeleteMcpServer": m8,
+    "confirmUninstallSkill": m9,
     "contactInfoHint": MessageLookupByLibrary.simpleMessage("聯絡方式（可選）"),
     "contextAndMemory": MessageLookupByLibrary.simpleMessage("上下文與記憶"),
     "contextCompacted": MessageLookupByLibrary.simpleMessage("上下文已壓縮"),
@@ -229,10 +220,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "copySkillStorageLocation": MessageLookupByLibrary.simpleMessage(
       "Copy installation location",
     ),
-    "copyright": m12,
-    "createChatFailed": m13,
+    "copyright": m10,
+    "createChatFailed": m11,
     "createProject": MessageLookupByLibrary.simpleMessage("建立專案"),
-    "createProjectFailed": m14,
+    "createProjectFailed": m12,
     "creatingChat": MessageLookupByLibrary.simpleMessage("Creating…"),
     "creationTime": MessageLookupByLibrary.simpleMessage("Creation Time"),
     "customProvider": MessageLookupByLibrary.simpleMessage("自定義供應商..."),
@@ -251,7 +242,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("刪除"),
     "deleteBot": MessageLookupByLibrary.simpleMessage("刪除智能體"),
     "deleteChat": MessageLookupByLibrary.simpleMessage("刪除聊天"),
-    "deleteChatFailed": m15,
+    "deleteChatFailed": m13,
     "deleteMcpServer": MessageLookupByLibrary.simpleMessage("刪除 MCP 伺服器"),
     "desktopAboutAndLegal": MessageLookupByLibrary.simpleMessage("關於與法律資訊"),
     "desktopAppearanceAndLanguage": MessageLookupByLibrary.simpleMessage(
@@ -277,8 +268,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "disableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部關閉工具"),
     "disableSkillScripts": MessageLookupByLibrary.simpleMessage("停用指令碼"),
-    "durationMilliseconds": m16,
-    "durationSeconds": m17,
+    "durationMilliseconds": m14,
+    "durationSeconds": m15,
     "edit": MessageLookupByLibrary.simpleMessage("編輯"),
     "editBot": MessageLookupByLibrary.simpleMessage("編輯機器人"),
     "editMcpServer": MessageLookupByLibrary.simpleMessage("編輯 MCP 伺服器"),
@@ -292,7 +283,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enableAllMcpTools": MessageLookupByLibrary.simpleMessage("全部開啟工具"),
     "enableSkillScripts": MessageLookupByLibrary.simpleMessage("啟用指令碼"),
-    "enableSkillScriptsDescription": m18,
+    "enableSkillScriptsDescription": m16,
     "enableSkillScriptsTitle": MessageLookupByLibrary.simpleMessage(
       "啟用隔離的技能指令碼？",
     ),
@@ -319,7 +310,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fetchModelList": MessageLookupByLibrary.simpleMessage("獲取模型列表"),
     "fetchModelListFirst": MessageLookupByLibrary.simpleMessage("請先獲取模型列表"),
     "fileAttachment": MessageLookupByLibrary.simpleMessage("File attachment"),
-    "fileCount": m19,
+    "fileCount": m17,
     "fileResult": MessageLookupByLibrary.simpleMessage("File result"),
     "fileStatus": MessageLookupByLibrary.simpleMessage("檔案狀態"),
     "fileTypeMusic": MessageLookupByLibrary.simpleMessage("音樂"),
@@ -332,10 +323,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontSizeSettings": MessageLookupByLibrary.simpleMessage("文字大小"),
     "fontSizeUpdated": MessageLookupByLibrary.simpleMessage("文字大小已更新"),
     "forgetMemory": MessageLookupByLibrary.simpleMessage("遺忘"),
-    "generateImageFailed": m20,
-    "generateMusicFailed": m21,
-    "generateSpeechFailed": m22,
-    "generateVideoFailed": m23,
+    "generateImageFailed": m18,
+    "generateMusicFailed": m19,
+    "generateSpeechFailed": m20,
+    "generateVideoFailed": m21,
     "generatedImage": MessageLookupByLibrary.simpleMessage("Image generated"),
     "generating": MessageLookupByLibrary.simpleMessage("Generating…"),
     "generatingImage": MessageLookupByLibrary.simpleMessage(
@@ -368,10 +359,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputTokens": MessageLookupByLibrary.simpleMessage("輸入 Token"),
     "installSkillUpdate": MessageLookupByLibrary.simpleMessage("安裝更新"),
     "invalidSummary": MessageLookupByLibrary.simpleMessage("生成的摘要未通過驗證"),
-    "itemCount": m24,
+    "itemCount": m22,
     "jumpToLatest": MessageLookupByLibrary.simpleMessage("Jump to Latest"),
     "justNow": MessageLookupByLibrary.simpleMessage("剛剛"),
-    "languageChanged": m25,
+    "languageChanged": m23,
     "languageSettings": MessageLookupByLibrary.simpleMessage("語言設定"),
     "lightMode": MessageLookupByLibrary.simpleMessage("淺色模式"),
     "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
@@ -404,7 +395,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpConnected": MessageLookupByLibrary.simpleMessage("已連線"),
     "mcpConnecting": MessageLookupByLibrary.simpleMessage("連線中"),
     "mcpConnectionError": MessageLookupByLibrary.simpleMessage("連線錯誤"),
-    "mcpConnectionFailed": m26,
+    "mcpConnectionFailed": m24,
     "mcpConnectionSettings": MessageLookupByLibrary.simpleMessage("連線設定"),
     "mcpDisconnected": MessageLookupByLibrary.simpleMessage("未連線"),
     "mcpEndpoint": MessageLookupByLibrary.simpleMessage("Streamable HTTP 端點"),
@@ -412,7 +403,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpEnvironmentDescription": MessageLookupByLibrary.simpleMessage(
       "每行填寫一個 KEY=VALUE。內容會儲存在作業系統安全憑證儲存區；編輯時留空可保留現有值。",
     ),
-    "mcpHiddenEnvironmentVariableCount": m27,
+    "mcpHiddenEnvironmentVariableCount": m25,
     "mcpHttpsRequired": MessageLookupByLibrary.simpleMessage(
       "遠端 MCP 端點必須使用 HTTPS。",
     ),
@@ -489,7 +480,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "messageHint": MessageLookupByLibrary.simpleMessage("輸入消息，使用 @ 提及智慧體..."),
     "messageSkills": MessageLookupByLibrary.simpleMessage("技能"),
-    "minutesAgo": m28,
+    "minutesAgo": m26,
     "modalityAudio": MessageLookupByLibrary.simpleMessage("Audio"),
     "modalityFile": MessageLookupByLibrary.simpleMessage("File"),
     "modalityImage": MessageLookupByLibrary.simpleMessage("Image"),
@@ -508,7 +499,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "modelInputModalities": MessageLookupByLibrary.simpleMessage("Input"),
     "modelOutputModalities": MessageLookupByLibrary.simpleMessage("Output"),
-    "modelsRetrievedSuccess": m29,
+    "modelsRetrievedSuccess": m27,
     "modificationTime": MessageLookupByLibrary.simpleMessage(
       "Modification Time",
     ),
@@ -596,11 +587,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "previewText": MessageLookupByLibrary.simpleMessage("預覽文字效果"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("隱私政策"),
-    "processCommandCount": m30,
-    "processDuration": m31,
-    "processFileCount": m32,
+    "processCommandCount": m28,
+    "processDuration": m29,
+    "processFileCount": m30,
     "processInformation": MessageLookupByLibrary.simpleMessage("過程資訊"),
-    "processToolCount": m33,
+    "processToolCount": m31,
     "profile": MessageLookupByLibrary.simpleMessage("我的"),
     "projectName": MessageLookupByLibrary.simpleMessage("專案名稱"),
     "projectNameHint": MessageLookupByLibrary.simpleMessage("輸入專案名稱"),
@@ -633,7 +624,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyCancelled": MessageLookupByLibrary.simpleMessage("回覆已取消"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回覆"),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("恢復預設值"),
-    "responseError": m34,
+    "responseError": m32,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("恢復"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("保留的最近輪次"),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
@@ -642,7 +633,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("儲存並連線"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("儲存修改"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m35,
+    "saveImageFailed": m33,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -660,11 +651,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectProjectBots": MessageLookupByLibrary.simpleMessage("加入智慧體"),
     "selectProvider": MessageLookupByLibrary.simpleMessage("選擇提供商:"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("選擇主題"),
-    "selectedBotCount": m36,
+    "selectedBotCount": m34,
     "send": MessageLookupByLibrary.simpleMessage("發送"),
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m37,
+    "shareImageFailed": m35,
     "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage(
       "Image from Hyve",
     ),
@@ -688,7 +679,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("已關閉"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("已開啟"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("檔案"),
-    "skillImportFailed": m38,
+    "skillImportFailed": m36,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("技能已匯入"),
     "skillLibrary": MessageLookupByLibrary.simpleMessage("技能"),
     "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
@@ -789,7 +780,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "themeSetToSystem": MessageLookupByLibrary.simpleMessage("已設置為跟隨系統主題"),
     "themeSettings": MessageLookupByLibrary.simpleMessage("主題設定"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("思考完成"),
-    "thinkingCompletedWithDuration": m39,
+    "thinkingCompletedWithDuration": m37,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("正在思考…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
@@ -826,7 +817,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "version": MessageLookupByLibrary.simpleMessage("版本 1.0.0"),
     "videoGenerated": MessageLookupByLibrary.simpleMessage("Video generated"),
     "videoLoadFailed": MessageLookupByLibrary.simpleMessage("無法載入影片"),
-    "videoPlaybackError": m40,
+    "videoPlaybackError": m38,
     "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("查看摘要"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(

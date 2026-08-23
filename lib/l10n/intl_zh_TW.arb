@@ -363,10 +363,6 @@
             }
         }
     },
-    "clearChatHistory": "清空聊天記錄",
-    "@clearChatHistory": {
-        "description": "清空聊天記錄"
-    },
     "minutesAgo": "{minutes}分鐘前",
     "@minutesAgo": {
         "placeholders": {
@@ -462,27 +458,9 @@
     "@pauseGeneration": {
         "description": "暫停AI回覆生成的按鈕"
     },
-    "confirmClearChat": "確定要清空與 \"{botName}\" 的所有聊天記錄嗎？此操作無法撤銷。",
-    "@confirmClearChat": {
-        "description": "清空聊天記錄的確認文字",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "聊天記錄已清空",
-    "@chatHistoryCleared": {
-        "description": "清空聊天記錄後的通知"
-    },
     "replyCancelled": "回覆已取消",
     "@replyCancelled": {
         "description": "取消AI回覆生成後的通知"
-    },
-    "clear": "清空",
-    "@clear": {
-        "description": "清空聊天記錄的按鈕"
     },
     "confirmDelete": "確認刪除",
     "@confirmDelete": {
@@ -904,7 +882,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

@@ -375,10 +375,6 @@
             }
         }
     },
-    "clearChatHistory": "清空聊天记录",
-    "@clearChatHistory": {
-        "description": "清空聊天记录"
-    },
     "minutesAgo": "{minutes}分钟前",
     "@minutesAgo": {
         "placeholders": {
@@ -476,27 +472,9 @@
     "@pauseGeneration": {
     "description": "暂停AI生成回复的按钮提示"
     },
-    "confirmClearChat": "确定要清空与 \"{botName}\" 的所有聊天记录吗？此操作不可恢复。",
-    "@confirmClearChat": {
-    "description": "确认清空聊天记录的提示文本",
-        "placeholders": {
-            "botName": {
-            "type": "String",
-            "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "聊天记录已清空",
-    "@chatHistoryCleared": {
-    "description": "清空聊天记录后的提示信息"
-    },
     "replyCancelled": "已取消回复",
     "@replyCancelled": {
     "description": "取消AI回复生成后的提示信息"
-    },
-    "clear": "清理",
-    "@clear": {
-    "description": "清空聊天记录按钮文本"
     },
     "confirmDelete": "确认删除",
     "@confirmDelete": {
@@ -834,12 +812,6 @@
     "stopGenerationBeforeLeavingDescription": "已生成的部分回复会被保留。",
     "stopAndContinue": "停止并继续",
     "unableToLoadMessages": "无法加载消息",
-    "clearChatFailed": "清空聊天记录失败：{error}",
-    "@clearChatFailed": {
-        "placeholders": {
-            "error": {"type": "String"}
-        }
-    },
     "deleteChatFailed": "删除项目失败：{error}",
     "@deleteChatFailed": {
         "placeholders": {

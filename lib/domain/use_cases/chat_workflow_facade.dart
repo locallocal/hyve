@@ -121,8 +121,6 @@ final class ChatWorkflowFacade {
   Future<void> updateLastMessage(String content) =>
       _chats.updateLastMessage(chatId, content);
 
-  Future<void> clearHistory() => _chats.clearHistory(chatId);
-
   void notifyChatListChanged() => _chats.invalidate();
 
   Future<PreparedChatTurn> prepareTextTurn({

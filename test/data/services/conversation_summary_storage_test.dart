@@ -76,7 +76,7 @@ void main() {
     );
   });
 
-  test('stages clear for rollback and chat deletion for commit', () async {
+  test('stages chat deletion for rollback and commit', () async {
     await storage.write(
       chatId: 'chat_1',
       summaryId: 'summary_1',
@@ -86,9 +86,9 @@ void main() {
       path.join(root.path, 'chats', 'chat_1', 'summaries', 'summary_1.md'),
     );
 
-    final clear = await storage.stageForChatClear('chat_1');
+    final rollback = await storage.stageForChatDeletion('chat_1');
     expect(await summaryFile.exists(), isFalse);
-    await clear!.rollback();
+    await rollback!.rollback();
     expect(await summaryFile.exists(), isTrue);
 
     final deletion = await storage.stageForChatDeletion('chat_1');

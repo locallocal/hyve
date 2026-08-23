@@ -342,40 +342,63 @@ void main() {
     expect(projectEvents, isNot(contains('ExpansionTile(')));
   });
 
-  test('desktop Project actions stay in the unified toolbar row', () {
-    final toolbar =
-        File(
-          'lib/ui/features/app/views/desktop_layout_toolbar.dart',
-        ).readAsStringSync();
-    final actionsIndex = toolbar.lastIndexOf('ProjectWorkspaceToolbarActions(');
-    final clearIndex = toolbar.indexOf(
-      'if (onClearChat != null)',
-      actionsIndex,
-    );
-    expect(actionsIndex, greaterThanOrEqualTo(0));
-    expect(clearIndex, greaterThan(actionsIndex));
+  test(
+    'desktop Project actions stay in the toolbar without history clearing',
+    () {
+      final toolbar =
+          File(
+            'lib/ui/features/app/views/desktop_layout_toolbar.dart',
+          ).readAsStringSync();
+      final actionsIndex = toolbar.lastIndexOf(
+        'ProjectWorkspaceToolbarActions(',
+      );
+      expect(actionsIndex, greaterThanOrEqualTo(0));
+      expect(toolbar, isNot(contains('onClearChat')));
+      expect(toolbar, isNot(contains('desktop-toolbar-clear-chat')));
 
-    final desktopWorkspace =
-        File(
-          'lib/ui/features/app/views/desktop_layout_workspace.dart',
-        ).readAsStringSync();
-    expect(desktopWorkspace, contains('embedded: true'));
-    expect(
-      desktopWorkspace,
-      contains('controller: _projectWorkspaceController'),
-    );
+      final chatPage =
+          File('lib/ui/features/chat/views/chat.dart').readAsStringSync();
+      expect(chatPage, isNot(contains('requestClearChat')));
+      expect(chatPage, isNot(contains('clearChatHistory')));
+      expect(
+        File('lib/ui/features/chat/views/clear_chat_dialog.dart').existsSync(),
+        isFalse,
+      );
+      final chatRepository =
+          File(
+            'lib/domain/repositories/chat_repository.dart',
+          ).readAsStringSync();
+      expect(chatRepository, isNot(contains('clearHistory')));
+      final localConversations =
+          File(
+            'lib/data/services/local_database_conversations.dart',
+          ).readAsStringSync();
+      expect(localConversations, isNot(contains('clearChatHistory')));
+      final englishMessages = File('lib/l10n/intl_en.arb').readAsStringSync();
+      expect(englishMessages, isNot(contains('clearChatHistory')));
 
-    final projectWorkspace =
-        File(
-          'lib/ui/features/projects/views/project_workspace_page.dart',
-        ).readAsStringSync();
-    expect(
-      RegExp(
-        r'appBar:\s+widget\.embedded\s+\?\s+null\s+:\s+AppBar\(',
-      ).hasMatch(projectWorkspace),
-      isTrue,
-    );
-  });
+      final desktopWorkspace =
+          File(
+            'lib/ui/features/app/views/desktop_layout_workspace.dart',
+          ).readAsStringSync();
+      expect(desktopWorkspace, contains('embedded: true'));
+      expect(
+        desktopWorkspace,
+        contains('controller: _projectWorkspaceController'),
+      );
+
+      final projectWorkspace =
+          File(
+            'lib/ui/features/projects/views/project_workspace_page.dart',
+          ).readAsStringSync();
+      expect(
+        RegExp(
+          r'appBar:\s+widget\.embedded\s+\?\s+null\s+:\s+AppBar\(',
+        ).hasMatch(projectWorkspace),
+        isTrue,
+      );
+    },
+  );
 
   test('Project member addition stays inside the member dialog', () {
     final workspace =

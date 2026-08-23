@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "Chat-Verlauf löschen",
-    "@clearChatHistory": {
-        "description": "Chat-Verlauf löschen"
-    },
     "minutesAgo": "vor {minutes} Minuten",
     "@minutesAgo": {
         "placeholders": {
@@ -468,27 +464,9 @@
     "@pauseGeneration": {
         "description": "Schaltfläche zum Pausieren der KI-Antwortgenerierung"
     },
-    "confirmClearChat": "Möchten Sie wirklich alle Chat-Verläufe mit \"{botName}\" löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "@confirmClearChat": {
-        "description": "Bestätigungstext zum Löschen des Chat-Verlaufs",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "Chat-Verlauf wurde gelöscht",
-    "@chatHistoryCleared": {
-        "description": "Hinweis nach dem Löschen des Chat-Verlaufs"
-    },
     "replyCancelled": "Antwort abgebrochen",
     "@replyCancelled": {
         "description": "Hinweis nach dem Abbrechen der KI-Antwortgenerierung"
-    },
-    "clear": "Löschen",
-    "@clear": {
-        "description": "Schaltfläche zum Löschen des Chat-Verlaufs"
     },
     "confirmDelete": "Löschen bestätigen",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

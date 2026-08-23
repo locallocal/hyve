@@ -126,13 +126,6 @@ final class SqliteConversationMemoryRepository
   }
 
   @override
-  Future<void> clearForChat(String chatId) async {
-    await _storage.clearSummaries(chatId);
-    await _localDatabase.deleteConversationSummariesV19(chatId);
-    _emit(chatId);
-  }
-
-  @override
   Future<void> deleteForChat(String chatId) async {
     await _storage.deleteChatDirectory(chatId);
     await _localDatabase.deleteConversationSummariesV19(chatId);

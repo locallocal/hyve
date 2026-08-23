@@ -61,8 +61,4 @@ extension _DesktopLayoutResizing on _DesktopLayoutState {
   void _resetInspectorWidth() {
     _updateState(() => _inspectorWidth = HyveDesktopThemeSpec.inspectorWidth);
   }
-
-  Future<void> _requestClearChat() async {
-    await _chatPageKey?.currentState?.requestClearChat();
-  }
 }

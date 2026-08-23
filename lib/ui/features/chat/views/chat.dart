@@ -12,7 +12,6 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/chat_view_model.dart';
 import 'package:hyve/ui/features/chat/views/attachments.dart';
-import 'package:hyve/ui/features/chat/views/clear_chat_dialog.dart';
 import 'package:hyve/ui/features/chat/views/message_input.dart';
 import 'package:hyve/ui/features/chat/views/message_list.dart';
 import 'package:hyve/ui/features/chat/views/typing_indicator.dart';
@@ -70,7 +69,6 @@ class ChatPageState extends State<ChatPage> {
   bool _isLoading = true;
   bool _isLoadingEarlier = false;
   String? _historyError;
-  int _composerFocusToken = 0;
   bool _isTyping = false;
   bool _isStreaming = false;
   bool _isCancellable = false;
@@ -445,16 +443,6 @@ class ChatPageState extends State<ChatPage> {
         scrolledUnderElevation: 0,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.cleaning_services_rounded, size: 24),
-            tooltip: desktopProjectText(
-              context,
-              S.of(context).clearChatHistory,
-            ),
-            onPressed: requestClearChat,
-          ),
-        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -473,7 +461,6 @@ class ChatPageState extends State<ChatPage> {
                 canCancel: _isCancellable,
                 isStopping: _isStopping,
                 autofocus: _autofocusComposer,
-                focusRequestToken: _composerFocusToken,
                 hasPendingAttachments:
                     _selectedFiles.isNotEmpty || _selectedImages.isNotEmpty,
                 onCameraPressed: getAttachImageFromCamera,

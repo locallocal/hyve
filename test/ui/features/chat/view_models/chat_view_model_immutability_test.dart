@@ -199,9 +199,6 @@ final class _StubChatRepository implements ChatRepository {
   Stream<List<Chat>> get changes => const Stream<List<Chat>>.empty();
 
   @override
-  Future<void> clearHistory(String id) async {}
-
-  @override
   void invalidate() {}
 
   @override

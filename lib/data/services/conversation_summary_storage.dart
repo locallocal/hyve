@@ -33,13 +33,11 @@ final class StagedConversationDeletion {
   StagedConversationDeletion({
     required Directory original,
     required Directory staged,
-    required this.recreateOriginal,
   }) : _original = original,
        _staged = staged;
 
   final Directory _original;
   final Directory _staged;
-  final bool recreateOriginal;
 
   Future<void> rollback() async {
     if (!await _staged.exists()) return;
@@ -51,9 +49,6 @@ final class StagedConversationDeletion {
   Future<void> commit() async {
     try {
       if (await _staged.exists()) await _staged.delete(recursive: true);
-      if (recreateOriginal && !await _original.exists()) {
-        await _original.create(recursive: true);
-      }
     } on FileSystemException {
       // The staged path remains outside normal reads and startup recovery will
       // retry physical deletion.
@@ -160,11 +155,8 @@ final class ConversationSummaryStorage {
     if (await directory.exists()) await directory.delete(recursive: true);
   }
 
-  Future<StagedConversationDeletion?> stageForChatClear(String chatId) =>
-      _stage(chatId: chatId, summariesOnly: true);
-
   Future<StagedConversationDeletion?> stageForChatDeletion(String chatId) =>
-      _stage(chatId: chatId, summariesOnly: false);
+      _stage(chatId);
 
   Future<void> recoverPendingDeletions() async {
     final root = await _documentsDirectoryProvider();
@@ -179,34 +171,22 @@ final class ConversationSummaryStorage {
     }
   }
 
-  Future<StagedConversationDeletion?> _stage({
-    required String chatId,
-    required bool summariesOnly,
-  }) async {
+  Future<StagedConversationDeletion?> _stage(String chatId) async {
     _validateId(chatId, 'chatId');
     final root = await _documentsDirectoryProvider();
-    final original = Directory(
-      summariesOnly
-          ? path.join(root.path, 'chats', chatId, 'summaries')
-          : path.join(root.path, 'chats', chatId),
-    );
+    final original = Directory(path.join(root.path, 'chats', chatId));
     if (!await original.exists()) return null;
     final pending = Directory(path.join(root.path, '.pending_deletions'));
     await pending.create(recursive: true);
     final staged = Directory(
       path.join(
         pending.path,
-        '${summariesOnly ? 'clear' : 'delete'}_${chatId}_'
+        'delete_${chatId}_'
         '${DateTime.now().microsecondsSinceEpoch}',
       ),
     );
     await original.rename(staged.path);
-    if (summariesOnly) await original.create(recursive: true);
-    return StagedConversationDeletion(
-      original: original,
-      staged: staged,
-      recreateOriginal: summariesOnly,
-    );
+    return StagedConversationDeletion(original: original, staged: staged);
   }
 
   Future<Directory> _summaryDirectory(String chatId) async {

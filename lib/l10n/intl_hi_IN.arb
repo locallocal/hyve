@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "चैट इतिहास साफ़ करें",
-    "@clearChatHistory": {
-        "description": "चैट इतिहास साफ़ करें"
-    },
     "minutesAgo": "{minutes} मिनट पहले",
     "@minutesAgo": {
         "placeholders": {
@@ -454,27 +450,9 @@
     "@pauseGeneration": {
         "description": "AI उत्तर उत्पादन रोकने के लिए बटन"
     },
-    "confirmClearChat": "क्या आप वाकई \"{botName}\" के साथ सभी चैट इतिहास मिटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती है।",
-    "@confirmClearChat": {
-        "description": "चैट इतिहास मिटाने के लिए पुष्टिकरण टेक्स्व्सटँ",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "चैट इतिहास मिटा दिया गया",
-    "@chatHistoryCleared": {
-        "description": "चैट इतिहास मिटाने के बाद सूचना"
-    },
     "replyCancelled": "उत्तर रद्द किया गया",
     "@replyCancelled": {
         "description": "AI उत्तर उत्पादन रद्द करने के बाद सूचना"
-    },
-    "clear": "मिटाएं",
-    "@clear": {
-        "description": "चैट इतिहास मिटाने के लिए बटन"
     },
     "confirmDelete": "हटाने की पुष्टि करें",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

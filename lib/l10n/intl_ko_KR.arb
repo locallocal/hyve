@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "채팅 기록 지우기",
-    "@clearChatHistory": {
-        "description": "채팅 기록 지우기"
-    },
     "minutesAgo": "{minutes}분 전",
     "@minutesAgo": {
         "placeholders": {
@@ -454,27 +450,9 @@
     "@pauseGeneration": {
         "description": "AI 응답 생성을 일시 중지하는 버튼"
     },
-    "confirmClearChat": "\"{botName}\"와(과)의 모든 채팅 기록을 지우시겠습니까? 이 작업은 취소할 수 없습니다.",
-    "@confirmClearChat": {
-        "description": "채팅 기록을 지우기 위한 확인 텍스트",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "채팅 기록이 지워졌습니다",
-    "@chatHistoryCleared": {
-        "description": "채팅 기록을 지운 후 알림"
-    },
     "replyCancelled": "응답이 취소되었습니다",
     "@replyCancelled": {
         "description": "AI 응답 생성을 취소한 후 알림"
-    },
-    "clear": "지우기",
-    "@clear": {
-        "description": "채팅 기록을 지우는 버튼"
     },
     "confirmDelete": "삭제 확인",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

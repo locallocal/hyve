@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "Очистить историю чата",
-    "@clearChatHistory": {
-        "description": "Очистить историю чата"
-    },
     "minutesAgo": "{minutes} минут назад",
     "@minutesAgo": {
         "placeholders": {
@@ -454,27 +450,9 @@
     "@pauseGeneration": {
         "description": "Кнопка для приостановки генерации ответа ИИ"
     },
-    "confirmClearChat": "Вы уверены, что хотите очистить всю историю чата с \"{botName}\"? Это действие нельзя отменить.",
-    "@confirmClearChat": {
-        "description": "Текст подтверждения для очистки истории чата",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "История чата очищена",
-    "@chatHistoryCleared": {
-        "description": "Уведомление после очистки истории чата"
-    },
     "replyCancelled": "Ответ отменен",
     "@replyCancelled": {
         "description": "Уведомление после отмены генерации ответа ИИ"
-    },
-    "clear": "Очистить",
-    "@clear": {
-        "description": "Кнопка для очистки истории чата"
     },
     "confirmDelete": "Подтвердить удаление",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

@@ -376,10 +376,6 @@
             }
         }
     },
-    "clearChatHistory": "Cancella cronologia chat",
-    "@clearChatHistory": {
-        "description": "Cancella cronologia chat"
-    },
     "minutesAgo": "{minutes} minuti fa",
     "@minutesAgo": {
         "placeholders": {
@@ -468,27 +464,9 @@
     "@pauseGeneration": {
         "description": "Pulsante per mettere in pausa la generazione della risposta AI"
     },
-    "confirmClearChat": "Sei sicuro di voler cancellare tutta la cronologia chat con \"{botName}\"? Questa azione non può essere annullata.",
-    "@confirmClearChat": {
-        "description": "Testo di conferma per cancellare la cronologia chat",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "Cronologia chat cancellata",
-    "@chatHistoryCleared": {
-        "description": "Notifica dopo aver cancellato la cronologia chat"
-    },
     "replyCancelled": "Risposta annullata",
     "@replyCancelled": {
         "description": "Notifica dopo aver annullato la generazione della risposta AI"
-    },
-    "clear": "Cancella",
-    "@clear": {
-        "description": "Pulsante per cancellare la cronologia chat"
     },
     "confirmDelete": "Conferma eliminazione",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

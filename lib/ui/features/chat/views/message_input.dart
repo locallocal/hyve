@@ -22,7 +22,6 @@ class MessageInput extends StatefulWidget {
   final bool hasPendingAttachments;
   final bool desktopMode;
   final bool autofocus;
-  final int focusRequestToken;
   final VoidCallback onSend;
   final VoidCallback onCancelRequest;
   final VoidCallback onCameraPressed;
@@ -43,7 +42,6 @@ class MessageInput extends StatefulWidget {
     this.hasPendingAttachments = false,
     this.desktopMode = false,
     this.autofocus = false,
-    this.focusRequestToken = 0,
     required this.onCameraPressed,
     required this.onGalleryPressed,
     required this.onFilePressed,
@@ -132,11 +130,6 @@ class _MessageInputState extends State<MessageInput> {
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_handleComposerChanged);
       widget.controller.addListener(_handleComposerChanged);
-    }
-    if (oldWidget.focusRequestToken != widget.focusRequestToken) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _focusNode.requestFocus();
-      });
     }
   }
 

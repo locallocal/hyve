@@ -207,44 +207,6 @@ class SqliteChatRepository implements ChatAggregateRepository {
   }
 
   @override
-  Future<void> clearHistory(String id) async {
-    final timestamp = DateTime.now();
-    final storage = _conversationSummaryStorage;
-    final staged = await storage?.stageForChatClear(id);
-    try {
-      if (storage == null) {
-        await _conversationMemoryRepository?.clearForChat(id);
-      }
-      await _localDatabase.clearChatHistory(id, timestamp);
-    } catch (_) {
-      await staged?.rollback();
-      rethrow;
-    }
-    await staged?.commit();
-    try {
-      await _projectAgentStorage?.clearProjectTemporaryAttachments(id);
-    } on Object {
-      // The database clear already committed. Orphaned temporary files are
-      // safer than reporting that the conversation still exists.
-    }
-    final cache = _cache;
-    if (cache != null) {
-      _cache = [
-        for (final chat in cache)
-          if (chat.id == id)
-            chat.copyWith(
-              lastMessage: '',
-              lastMessageTimestamp: timestamp,
-              modifyTimestamp: timestamp,
-            )
-          else
-            chat,
-      ];
-    }
-    _emit();
-  }
-
-  @override
   void invalidate() {
     _cache = null;
     _emit();

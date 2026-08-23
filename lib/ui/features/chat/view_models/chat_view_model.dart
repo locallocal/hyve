@@ -149,8 +149,6 @@ class ChatViewModel extends DisposableChangeNotifier {
   Future<void> updateLastMessage(String content) =>
       _workflow.updateLastMessage(content);
 
-  Future<void> clearHistory() => _workflow.clearHistory();
-
   Future<PreparedChatTurn> prepareTextTurn({
     required List<Message> history,
     required Message userMessage,
@@ -301,10 +299,6 @@ class ChatViewModel extends DisposableChangeNotifier {
   );
 
   Future<bool> cancelMedia() => _workflow.cancelMedia();
-
-  bool get hasBlockingRun => _interaction.hasBlockingRun;
-
-  bool get supportsRunCancellation => _interaction.supportsRunCancellation;
 
   Future<bool> stopActiveRun() => _interaction.stopActiveRun();
 

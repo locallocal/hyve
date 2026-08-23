@@ -55,7 +55,6 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final VoidCallback? onToggleInspector;
   final VoidCallback? onCreateChat;
   final VoidCallback? onSearchRequested;
-  final VoidCallback? onClearChat;
   final VoidCallback? onShowProjectMembers;
   final VoidCallback? onShowProjectArtifacts;
   final VoidCallback? onShowProjectExecution;
@@ -73,7 +72,6 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.onToggleInspector,
     required this.onCreateChat,
     required this.onSearchRequested,
-    required this.onClearChat,
     required this.onShowProjectMembers,
     required this.onShowProjectArtifacts,
     required this.onShowProjectExecution,
@@ -192,18 +190,6 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             onShowMembers: onShowProjectMembers!,
                             onShowArtifacts: onShowProjectArtifacts!,
                             onShowExecution: onShowProjectExecution!,
-                          ),
-                        if (onClearChat != null)
-                          HyveDesktopIconAction(
-                            key: const ValueKey<String>(
-                              'desktop-toolbar-clear-chat',
-                            ),
-                            label: desktopProjectText(
-                              context,
-                              S.of(context).clearChatHistory,
-                            ),
-                            onPressed: onClearChat,
-                            icon: LucideIcons.eraser,
                           ),
                         if (inspectorAvailable)
                           HyveDesktopIconAction(

@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "チャット履歴をクリア",
-    "@clearChatHistory": {
-        "description": "チャット履歴をクリア"
-    },
     "minutesAgo": "{minutes}分前",
     "@minutesAgo": {
         "placeholders": {
@@ -454,27 +450,9 @@
     "@pauseGeneration": {
         "description": "AI応答生成を一時停止するボタン"
     },
-    "confirmClearChat": "\"{botName}\"とのすべてのチャット履歴を消去してもよろしいですか？この操作は元に戻せません。",
-    "@confirmClearChat": {
-        "description": "チャット履歴を消去する確認テキスト",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "チャット履歴が消去されました",
-    "@chatHistoryCleared": {
-        "description": "チャット履歴を消去した後の通知"
-    },
     "replyCancelled": "応答がキャンセルされました",
     "@replyCancelled": {
         "description": "AI応答生成をキャンセルした後の通知"
-    },
-    "clear": "クリア",
-    "@clear": {
-        "description": "チャット履歴をクリアするボタン"
     },
     "confirmDelete": "削除の確認",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

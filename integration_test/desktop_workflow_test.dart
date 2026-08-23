@@ -400,9 +400,6 @@ class _MemoryChatRepository implements ChatRepository {
   }
 
   @override
-  Future<void> clearHistory(String id) async {}
-
-  @override
   Future<void> deleteChat(String id) async {
     items.removeWhere((chat) => chat.id == id);
     _changes.add(List<Chat>.unmodifiable(items));

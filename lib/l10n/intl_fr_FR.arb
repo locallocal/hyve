@@ -364,10 +364,6 @@
             }
         }
     },
-    "clearChatHistory": "Effacer l'historique de discussion",
-    "@clearChatHistory": {
-        "description": "Effacer l'historique de discussion"
-    },
     "minutesAgo": "il y a {minutes} minutes",
     "@minutesAgo": {
         "placeholders": {
@@ -454,27 +450,9 @@
     "@pauseGeneration": {
         "description": "Bouton pour mettre en pause la génération de réponse de l'IA"
     },
-    "confirmClearChat": "Êtes-vous sûr de vouloir effacer tout l'historique de discussion avec \"{botName}\"? Cette action ne peut pas être annulée.",
-    "@confirmClearChat": {
-        "description": "Texte de confirmation pour effacer l'historique de discussion",
-        "placeholders": {
-            "botName": {
-                "type": "String",
-                "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "Historique de discussion effacé",
-    "@chatHistoryCleared": {
-        "description": "Notification après l'effacement de l'historique de discussion"
-    },
     "replyCancelled": "Réponse annulée",
     "@replyCancelled": {
         "description": "Notification après l'annulation de la génération de réponse de l'IA"
-    },
-    "clear": "Effacer",
-    "@clear": {
-        "description": "Bouton pour effacer l'historique de discussion"
     },
     "confirmDelete": "Confirmer la suppression",
     "@confirmDelete": {
@@ -836,7 +814,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
     "deleteChatFailed": "Could not delete the chat: {error}",
     "tokenUsage": "Token usage",
     "conversationTokenShare": "Token share by conversation",

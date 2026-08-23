@@ -79,7 +79,6 @@ extension _ChatPageWorkspace on ChatPageState {
                 canCancel: _isCancellable,
                 isStopping: _isStopping,
                 autofocus: _autofocusComposer,
-                focusRequestToken: _composerFocusToken,
                 hasPendingAttachments:
                     _selectedFiles.isNotEmpty || _selectedImages.isNotEmpty,
                 desktopMode: true,

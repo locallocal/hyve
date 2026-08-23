@@ -24,6 +24,5 @@ abstract interface class ConversationMemoryRepository {
     String lastError = '',
   });
   Future<void> clearAutomaticMemory(String chatId);
-  Future<void> clearForChat(String chatId);
   Future<void> deleteForChat(String chatId);
 }

@@ -36,10 +36,5 @@ final class ChatInteractionFacade {
     }
   }
 
-  bool get hasBlockingRun => generationRegistry.hasBlockingRun(chatId);
-
-  bool get supportsRunCancellation =>
-      generationRegistry.supportsCancellationForRun(chatId);
-
   Future<bool> stopActiveRun() => generationRegistry.stopForNavigation(chatId);
 }

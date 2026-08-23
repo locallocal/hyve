@@ -381,10 +381,6 @@
             }
         }
     },
-    "clearChatHistory": "Clear chat history",
-    "@clearChatHistory": {
-        "description": "Clear chat history"
-    },
     "minutesAgo": "{minutes} minutes ago",
     "@minutesAgo": {
         "placeholders": {
@@ -482,27 +478,9 @@
     "@pauseGeneration": {
     "description": "Tooltip for the button to pause AI response generation"
     },
-    "confirmClearChat": "Are you sure you want to clear all chat history with \"{botName}\"? This action cannot be undone.",
-    "@confirmClearChat": {
-    "description": "Confirmation text for clearing chat history",
-        "placeholders": {
-            "botName": {
-            "type": "String",
-            "example": "GPT-4"
-            }
-        }
-    },
-    "chatHistoryCleared": "Chat history cleared",
-    "@chatHistoryCleared": {
-    "description": "Notification shown after chat history is cleared"
-    },
     "replyCancelled": "Reply cancelled",
     "@replyCancelled": {
     "description": "Notification shown after cancelling AI reply generation"
-    },
-    "clear": "Clear",
-    "@clear": {
-    "description": "Text for the button to clear chat history"
     },
     "confirmDelete": "Confirm Delete",
     "@confirmDelete": {
@@ -840,12 +818,6 @@
     "stopGenerationBeforeLeavingDescription": "The partial response will be kept.",
     "stopAndContinue": "Stop and continue",
     "unableToLoadMessages": "Unable to load messages",
-    "clearChatFailed": "Could not clear chat history: {error}",
-    "@clearChatFailed": {
-        "placeholders": {
-            "error": {"type": "String"}
-        }
-    },
     "deleteChatFailed": "Could not delete the chat: {error}",
     "@deleteChatFailed": {
         "placeholders": {

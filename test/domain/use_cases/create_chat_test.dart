@@ -79,9 +79,6 @@ class _FakeChatRepository implements ChatRepository {
   Future<void> addChat(Chat chat) async => added.add(chat);
 
   @override
-  Future<void> clearHistory(String id) async {}
-
-  @override
   Future<void> deleteChat(String id) async {}
 
   @override

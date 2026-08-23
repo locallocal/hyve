@@ -12,13 +12,13 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('version 19 schema', () {
+  group('current schema', () {
     test('creates only the new Project and Agent persistence model', () async {
       final database = await _openCurrentDatabase();
       addTearDown(database.close);
 
       await _expectCurrentSchema(database);
-      expect(await database.getVersion(), 19);
+      expect(await database.getVersion(), DatabaseService.databaseVersion);
       expect(await database.rawQuery('PRAGMA quick_check'), [
         <String, Object?>{'quick_check': 'ok'},
       ]);
@@ -142,11 +142,14 @@ void main() {
     });
   });
 
-  group('version 19 reset and recovery', () {
+  group('database upgrade, reset, and recovery', () {
     test('reopens a current Application Support database intact', () async {
       final roots = await _TemporaryRoots.create('hyve_current_');
       addTearDown(roots.delete);
-      final initial = await _openFileDatabase(roots.databasePath, version: 19);
+      final initial = await _openFileDatabase(
+        roots.databasePath,
+        version: DatabaseService.databaseVersion,
+      );
       await initial.insert('agents', _agentRow('current-agent'));
       await initial.close();
 
@@ -164,6 +167,195 @@ void main() {
       expect(
         File(path.join(roots.legacy.path, 'app.db')).existsSync(),
         isFalse,
+      );
+    });
+
+    test('upgrades a drifted v19 database without losing data', () async {
+      final roots = await _TemporaryRoots.create('hyve_v19_upgrade_');
+      addTearDown(roots.delete);
+      final legacy = await _openFileDatabase(
+        roots.databasePath,
+        version: DatabaseService.databaseVersion,
+      );
+      await legacy.insert('agents', _agentRow('preserved-agent'));
+      await legacy.insert('projects', <String, Object?>{
+        ..._projectRow('preserved-project'),
+        'last_event_sequence': 1,
+        'last_message_sequence': 1,
+        'last_message': 'message awaiting reply',
+      });
+      await legacy.insert('project_memberships', <String, Object?>{
+        'project_id': 'preserved-project',
+        'agent_id': 'preserved-agent',
+        'status': 'active',
+        'position': 0,
+        'project_storage_access': 'read',
+        'capability_restrictions_json': '{}',
+        'membership_generation': 1,
+        'join_message_sequence': 0,
+        'joined_at': 1,
+        'removed_at': null,
+        'updated_at': 1,
+      });
+      await legacy.insert('project_events', <String, Object?>{
+        'id': 'event-1',
+        'project_id': 'preserved-project',
+        'turn_id': 'turn-1',
+        'run_id': '',
+        'sequence': 1,
+        'message_sequence': 1,
+        'event_type': 'userMessage',
+        'actor_type': 'user',
+        'actor_id': 'me',
+        'actor_name_snapshot': '',
+        'actor_avatar_snapshot': '',
+        'visibility': 'project',
+        'reply_to_event_id': '',
+        'reply_to_message_sequence': null,
+        'root_message_id': 'event-1',
+        'autonomous_depth': 0,
+        'content': 'message awaiting reply',
+        'payload_json': '{"reasoning":""}',
+        'terminal_state': 'completed',
+        'has_partial_content': 0,
+        'created_at': 1,
+        'updated_at': 1,
+      });
+      await legacy.insert('project_event_targets', <String, Object?>{
+        'event_id': 'event-1',
+        'agent_id': 'preserved-agent',
+        'target_kind': 'mention',
+        'position': 0,
+      });
+      await legacy.insert('project_turns', <String, Object?>{
+        'id': 'turn-1',
+        'project_id': 'preserved-project',
+        'root_event_id': 'event-1',
+        'initiator_type': 'user',
+        'initiator_id': 'me',
+        'routing_mode': 'targeted',
+        'source_message_id': 'event-1',
+        'source_message_sequence': 1,
+        'recipient_count': 1,
+        'root_turn_id': 'turn-1',
+        'autonomous_depth': 0,
+        'status': 'failed',
+        'no_participant': 0,
+        'created_at': 1,
+        'completed_at': 2,
+      });
+      await legacy.insert('project_agent_cursors', <String, Object?>{
+        'project_id': 'preserved-project',
+        'agent_id': 'preserved-agent',
+        'last_processed_message_sequence': 1,
+        'processing_message_sequence': null,
+        'worker_state': 'idle',
+        'active_run_id': null,
+        'lease_owner': '',
+        'lease_expires_at': null,
+        'last_error': '',
+        'updated_at': 1,
+      });
+      await legacy.insert('agent_message_receipts', <String, Object?>{
+        'project_id': 'preserved-project',
+        'agent_id': 'preserved-agent',
+        'message_sequence': 1,
+        'message_event_id': 'event-1',
+        'turn_id': 'turn-1',
+        'outcome': 'failedSkipped',
+        'decision_run_id': '',
+        'reply_run_id': '',
+        'reply_event_id': '',
+        'started_at': 1,
+        'completed_at': 2,
+        'error_code': 'inbox_message_failed',
+      });
+      await legacy.execute(
+        'ALTER TABLE agent_runs DROP COLUMN context_report_json',
+      );
+      await legacy.execute(
+        'ALTER TABLE conversation_summary_segments '
+        'DROP COLUMN summary_content_bytes',
+      );
+      await legacy.setVersion(19);
+      await legacy.close();
+
+      final upgraded = await roots.service().initDatabase();
+      addTearDown(upgraded.close);
+
+      expect(await upgraded.getVersion(), DatabaseService.databaseVersion);
+      expect(
+        (await upgraded.rawQuery(
+          'PRAGMA table_info(agent_runs)',
+        )).map((column) => column['name']),
+        contains('context_report_json'),
+      );
+      expect(
+        (await upgraded.rawQuery(
+          'PRAGMA table_info(conversation_summary_segments)',
+        )).map((column) => column['name']),
+        contains('summary_content_bytes'),
+      );
+      expect(
+        await upgraded.query(
+          'agents',
+          where: 'id = ?',
+          whereArgs: const ['preserved-agent'],
+        ),
+        hasLength(1),
+      );
+      expect(
+        await upgraded.query(
+          'projects',
+          where: 'id = ?',
+          whereArgs: const ['preserved-project'],
+        ),
+        hasLength(1),
+      );
+      final cursor =
+          (await upgraded.query(
+            'project_agent_cursors',
+            where: 'project_id = ? AND agent_id = ?',
+            whereArgs: const ['preserved-project', 'preserved-agent'],
+          )).single;
+      expect(cursor['last_processed_message_sequence'], 0);
+      expect(cursor['worker_state'], 'scheduled');
+      expect(cursor['last_error'], '');
+      expect(await upgraded.query('agent_message_receipts'), isEmpty);
+      final turn =
+          (await upgraded.query(
+            'project_turns',
+            where: 'id = ?',
+            whereArgs: const ['turn-1'],
+          )).single;
+      expect(turn['status'], 'dispatching');
+      expect(turn['completed_at'], isNull);
+      expect(await upgraded.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+    });
+
+    test('upgrades an already complete v19 schema idempotently', () async {
+      final roots = await _TemporaryRoots.create('hyve_complete_v19_');
+      addTearDown(roots.delete);
+      final legacy = await _openFileDatabase(
+        roots.databasePath,
+        version: DatabaseService.databaseVersion,
+      );
+      await legacy.insert('agents', _agentRow('preserved-agent'));
+      await legacy.setVersion(19);
+      await legacy.close();
+
+      final upgraded = await roots.service().initDatabase();
+      addTearDown(upgraded.close);
+
+      expect(await upgraded.getVersion(), DatabaseService.databaseVersion);
+      await _expectCurrentSchema(upgraded);
+      expect(
+        await upgraded.query(
+          'agents',
+          where: 'id = ?',
+          whereArgs: const ['preserved-agent'],
+        ),
+        hasLength(1),
       );
     });
 
@@ -241,7 +433,7 @@ void main() {
       addTearDown(roots.delete);
       final newer = await _openFileDatabase(
         roots.databasePath,
-        version: 20,
+        version: DatabaseService.databaseVersion + 1,
         createCurrentSchema: false,
       );
       await newer.close();
@@ -257,11 +449,14 @@ void main() {
         ),
       );
       expect(File(roots.databasePath).existsSync(), isTrue);
-      expect(await _readVersion(roots.databasePath), 20);
+      expect(
+        await _readVersion(roots.databasePath),
+        DatabaseService.databaseVersion + 1,
+      );
     });
 
     test(
-      'restores v19 database plus Project and Agent roots from backup',
+      'restores the current database plus Project and Agent roots from backup',
       () async {
         final roots = await _TemporaryRoots.create('hyve_recovery_');
         addTearDown(roots.delete);
@@ -307,25 +502,28 @@ void main() {
       },
     );
 
-    test('does not replace corrupt v19 data without a valid backup', () async {
-      final roots = await _TemporaryRoots.create('hyve_corrupt_');
-      addTearDown(roots.delete);
-      await File(
-        roots.databasePath,
-      ).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
+    test(
+      'does not replace corrupt current data without a valid backup',
+      () async {
+        final roots = await _TemporaryRoots.create('hyve_corrupt_');
+        addTearDown(roots.delete);
+        await File(
+          roots.databasePath,
+        ).writeAsBytes(<int>[0, 1, 2, 3], flush: true);
 
-      await expectLater(
-        roots.service().initDatabase(),
-        throwsA(
-          isA<AppFailure>().having(
-            (failure) => failure.code,
-            'code',
-            'database_recovery_failed',
+        await expectLater(
+          roots.service().initDatabase(),
+          throwsA(
+            isA<AppFailure>().having(
+              (failure) => failure.code,
+              'code',
+              'database_recovery_failed',
+            ),
           ),
-        ),
-      );
-      expect(await File(roots.databasePath).readAsBytes(), <int>[0, 1, 2, 3]);
-    });
+        );
+        expect(await File(roots.databasePath).readAsBytes(), <int>[0, 1, 2, 3]);
+      },
+    );
   });
 }
 
@@ -471,6 +669,18 @@ Future<void> _expectCurrentSchema(Database database) async {
       'profile',
     }),
   );
+  expect(
+    (await database.rawQuery(
+      'PRAGMA table_info(agent_runs)',
+    )).map((column) => column['name']),
+    contains('context_report_json'),
+  );
+  expect(
+    (await database.rawQuery(
+      'PRAGMA table_info(conversation_summary_segments)',
+    )).map((column) => column['name']),
+    contains('summary_content_bytes'),
+  );
 }
 
 Future<Set<String>> _tableNames(Database database) async {
@@ -485,7 +695,7 @@ Future<Database> _openCurrentDatabase() {
   return databaseFactoryFfi.openDatabase(
     inMemoryDatabasePath,
     options: OpenDatabaseOptions(
-      version: 19,
+      version: DatabaseService.databaseVersion,
       onConfigure: DatabaseService.configure,
       onCreate: DatabaseService.createSchema,
     ),

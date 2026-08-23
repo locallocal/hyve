@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
@@ -455,7 +456,8 @@ final class _AgentStatusStrip extends StatelessWidget {
                 label:
                     '${names[status.agentId] ?? status.agentId}, '
                     '${copy.activity(status.activity)}, '
-                    '${copy.processed(status.lastProcessedMessageSequence, status.latestMessageSequence)}',
+                    '${copy.processed(status.lastProcessedMessageSequence, status.latestMessageSequence)}'
+                    '${status.errorCode.isEmpty ? '' : ', ${copy.errorCode(status.errorCode)}'}',
                 child: ProjectBadge(
                   icon: _activityIcon(status.activity),
                   variant:
@@ -468,7 +470,8 @@ final class _AgentStatusStrip extends StatelessWidget {
                       '${names[status.agentId] ?? status.agentId} · '
                       '${copy.activity(status.activity)} · '
                       '${copy.processed(status.lastProcessedMessageSequence, status.latestMessageSequence)}'
-                      '${status.backlog > 0 ? ' · ${copy.backlog(status.backlog)}' : ''}',
+                      '${status.backlog > 0 ? ' · ${copy.backlog(status.backlog)}' : ''}'
+                      '${status.errorCode.isEmpty ? '' : ' · ${copy.errorCode(status.errorCode)}'}',
                 ),
               ),
             ),

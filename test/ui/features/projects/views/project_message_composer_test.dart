@@ -107,6 +107,36 @@ void main() {
     expect(sent?.mentionedAgentIds, <String>['agent-2']);
   });
 
+  testWidgets('typed mention at the end keeps its Agent id when sent', (
+    tester,
+  ) async {
+    final controller = StructuredProjectMessageController();
+    addTearDown(controller.dispose);
+    ProjectMessageDraft? sent;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ProjectMessageComposer(
+            controller: controller,
+            activeAgents: <Agent>[_agent('agent-1', '研究员')],
+            onSend: (draft) => sent = draft,
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('project-message-field')),
+      '请处理这条消息 @研究员',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-send-message')),
+    );
+
+    expect(sent?.mentionedAgentIds, <String>['agent-1']);
+  });
+
   testWidgets('composer sends selected project attachments', (tester) async {
     final controller = StructuredProjectMessageController();
     addTearDown(controller.dispose);

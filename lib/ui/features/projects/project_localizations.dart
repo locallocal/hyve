@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 
 /// Feature-local copy with an English fallback for every non-Chinese locale.
 ///

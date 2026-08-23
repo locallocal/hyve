@@ -20,7 +20,7 @@ void main() {
   tearDown(() => database.close());
 
   test(
-    'version 19 has no SQLite-backed Project or Agent memory items',
+    'current schema has no SQLite-backed Project or Agent memory items',
     () async {
       final tables = await database.rawQuery(
         "SELECT name FROM sqlite_master WHERE type = 'table'",

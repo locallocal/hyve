@@ -400,6 +400,7 @@ final class ProjectTextInput extends StatelessWidget {
     this.onSubmitted,
     this.focusNode,
     this.enabled = true,
+    this.showLabel = true,
   });
 
   final TextEditingController controller;
@@ -410,26 +411,29 @@ final class ProjectTextInput extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
   final bool enabled;
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
     if (hasShadProjectTheme(context)) {
       final theme = ShadTheme.of(context);
+      final input = ShadInput(
+        controller: controller,
+        focusNode: focusNode,
+        placeholder: Text(label),
+        leading: leading,
+        trailing: trailing,
+        enabled: enabled,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+      );
+      if (!showLabel) return input;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(label, style: theme.textTheme.small),
           const SizedBox(height: 6),
-          ShadInput(
-            controller: controller,
-            focusNode: focusNode,
-            placeholder: Text(label),
-            leading: leading,
-            trailing: trailing,
-            enabled: enabled,
-            onChanged: onChanged,
-            onSubmitted: onSubmitted,
-          ),
+          input,
         ],
       );
     }
@@ -438,7 +442,9 @@ final class ProjectTextInput extends StatelessWidget {
       focusNode: focusNode,
       enabled: enabled,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: showLabel ? label : null,
+        hintText: showLabel ? null : label,
+        isDense: !showLabel,
         prefixIcon: leading,
         suffixIcon: trailing,
       ),

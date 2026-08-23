@@ -136,30 +136,42 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                   onChanged: (value) => setState(() => _query = value),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
+                Column(
                   key: const ValueKey<String>('project-member-add'),
-                  child: ProjectSelect<String>(
-                    key: ValueKey<String>(
-                      'project-member-add-options-${available.map((item) => item.id).join('-')}',
-                    ),
-                    placeholder:
-                        available.isEmpty
-                            ? copy.noAvailableAgents
-                            : copy.addAgent,
-                    options: <ProjectSelectOption<String>>[
-                      for (final agent in available)
-                        ProjectSelectOption<String>(
-                          value: agent.id,
-                          label: agent.name,
-                        ),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    if (hasShadProjectTheme(context)) ...<Widget>[
+                      Text(
+                        copy.addAgent,
+                        key: const ValueKey<String>('project-member-add-label'),
+                        style: ShadTheme.of(context).textTheme.small,
+                      ),
+                      const SizedBox(height: 6),
                     ],
-                    enabled: !widget.viewModel.mutating && available.isNotEmpty,
-                    onChanged: (agentId) {
-                      if (agentId != null) {
-                        unawaited(widget.viewModel.add(agentId));
-                      }
-                    },
-                  ),
+                    ProjectSelect<String>(
+                      key: ValueKey<String>(
+                        'project-member-add-options-${available.map((item) => item.id).join('-')}',
+                      ),
+                      placeholder:
+                          available.isEmpty
+                              ? copy.noAvailableAgents
+                              : copy.addAgent,
+                      options: <ProjectSelectOption<String>>[
+                        for (final agent in available)
+                          ProjectSelectOption<String>(
+                            value: agent.id,
+                            label: agent.name,
+                          ),
+                      ],
+                      enabled:
+                          !widget.viewModel.mutating && available.isNotEmpty,
+                      onChanged: (agentId) {
+                        if (agentId != null) {
+                          unawaited(widget.viewModel.add(agentId));
+                        }
+                      },
+                    ),
+                  ],
                 ),
                 if (widget.viewModel.errorCode.isNotEmpty)
                   Padding(

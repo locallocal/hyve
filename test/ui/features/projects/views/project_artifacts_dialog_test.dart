@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   testWidgets('initial artifact refresh runs after the mounting build', (
@@ -35,6 +38,87 @@ void main() {
     await tester.pump();
     expect(find.byType(ProjectArtifactsDialog), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('artifact toolbar controls share one exactly aligned row', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 720);
+    addTearDown(tester.view.reset);
+    final controller = _SynchronousArtifactsController();
+    addTearDown(controller.dispose);
+
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectArtifactsDialog(
+                  viewModel: controller,
+                  embedded: true,
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(const ValueKey<String>('artifact-primary-toolbar')),
+        findsOneWidget,
+      );
+      void expectAlignedRow() {
+        final primaryRow = tester.getRect(
+          find.byKey(const ValueKey<String>('artifact-primary-toolbar')),
+        );
+        final searchContainer = tester.getRect(
+          find.byKey(const ValueKey<String>('artifact-search-container')),
+        );
+        final kindFilter = tester.getRect(
+          find.byKey(const ValueKey<String>('artifact-kind-filter')),
+        );
+        final importButton = tester.getRect(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('artifact-import-button')),
+            matching: find.byType(ShadButton),
+          ),
+        );
+        final createButton = tester.getRect(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('artifact-create-button')),
+            matching: find.byType(ShadButton),
+          ),
+        );
+
+        expect(searchContainer.left, primaryRow.left);
+        expect(searchContainer.width, greaterThan(250));
+        expect(searchContainer.right, lessThan(kindFilter.left));
+        expect(kindFilter.right, lessThan(importButton.left));
+        expect(importButton.right, lessThan(createButton.left));
+        expect(createButton.right, primaryRow.right);
+        for (final control
+            in <String, Rect>{
+              'search': searchContainer,
+              'kind filter': kindFilter,
+              'import': importButton,
+              'create': createButton,
+            }.entries) {
+          expect(control.value.top, primaryRow.top, reason: control.key);
+          expect(control.value.height, 36, reason: control.key);
+        }
+        expect(primaryRow.height, 36);
+      }
+
+      expectAlignedRow();
+
+      tester.view.physicalSize = const Size(392, 720);
+      await tester.pumpAndSettle();
+
+      expectAlignedRow();
+      expect(tester.takeException(), isNull);
+    });
   });
 }
 

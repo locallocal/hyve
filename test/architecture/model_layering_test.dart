@@ -342,6 +342,41 @@ void main() {
     expect(projectEvents, isNot(contains('ExpansionTile(')));
   });
 
+  test('desktop Project actions stay in the unified toolbar row', () {
+    final toolbar =
+        File(
+          'lib/ui/features/app/views/desktop_layout_toolbar.dart',
+        ).readAsStringSync();
+    final actionsIndex = toolbar.lastIndexOf('ProjectWorkspaceToolbarActions(');
+    final clearIndex = toolbar.indexOf(
+      'if (onClearChat != null)',
+      actionsIndex,
+    );
+    expect(actionsIndex, greaterThanOrEqualTo(0));
+    expect(clearIndex, greaterThan(actionsIndex));
+
+    final desktopWorkspace =
+        File(
+          'lib/ui/features/app/views/desktop_layout_workspace.dart',
+        ).readAsStringSync();
+    expect(desktopWorkspace, contains('embedded: true'));
+    expect(
+      desktopWorkspace,
+      contains('controller: _projectWorkspaceController'),
+    );
+
+    final projectWorkspace =
+        File(
+          'lib/ui/features/projects/views/project_workspace_page.dart',
+        ).readAsStringSync();
+    expect(
+      RegExp(
+        r'appBar:\s+widget\.embedded\s+\?\s+null\s+:\s+AppBar\(',
+      ).hasMatch(projectWorkspace),
+      isTrue,
+    );
+  });
+
   test(
     'responsive desktop branches use shared shape, icon, and color tokens',
     () {

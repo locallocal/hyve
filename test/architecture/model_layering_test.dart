@@ -377,6 +377,21 @@ void main() {
     );
   });
 
+  test('Project member addition stays inside the member dialog', () {
+    final workspace =
+        File(
+          'lib/ui/features/projects/views/project_workspace_page.dart',
+        ).readAsStringSync();
+    final membersDialog =
+        File(
+          'lib/ui/features/projects/views/project_members_sheet.dart',
+        ).readAsStringSync();
+
+    expect(workspace, isNot(contains('copy.addAgent')));
+    expect(membersDialog, contains("'project-member-add-label'"));
+    expect(membersDialog, contains('copy.addAgent'));
+  });
+
   test(
     'responsive desktop branches use shared shape, icon, and color tokens',
     () {

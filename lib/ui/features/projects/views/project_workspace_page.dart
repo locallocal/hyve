@@ -297,11 +297,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
         agents: viewModel.activeAgents,
       ),
       if (viewModel.activeAgents.isEmpty)
-        _NoAgentsNotice(
-          message: copy.noAgentsNotice,
-          actionLabel: copy.addAgent,
-          onAdd: () => unawaited(_showMembers()),
-        ),
+        _NoAgentsNotice(message: copy.noAgentsNotice),
       Expanded(
         child: ProjectEventList(
           events: viewModel.events,
@@ -478,15 +474,9 @@ final class _AgentStatusStrip extends StatelessWidget {
 }
 
 final class _NoAgentsNotice extends StatelessWidget {
-  const _NoAgentsNotice({
-    required this.message,
-    required this.actionLabel,
-    required this.onAdd,
-  });
+  const _NoAgentsNotice({required this.message});
 
   final String message;
-  final String actionLabel;
-  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -497,11 +487,6 @@ final class _NoAgentsNotice extends StatelessWidget {
           key: const ValueKey<String>('project-no-agents-notice'),
           icon: const Icon(LucideIcons.info),
           description: Text(message),
-          trailing: ProjectActionButton(
-            label: actionLabel,
-            onPressed: onAdd,
-            variant: ProjectActionVariant.outline,
-          ),
         ),
       );
     }
@@ -509,7 +494,7 @@ final class _NoAgentsNotice extends StatelessWidget {
       key: const ValueKey<String>('project-no-agents-notice'),
       content: Text(message),
       leading: const Icon(Icons.info_outline),
-      actions: <Widget>[TextButton(onPressed: onAdd, child: Text(actionLabel))],
+      actions: const <Widget>[],
     );
   }
 }

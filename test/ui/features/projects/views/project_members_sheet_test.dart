@@ -155,6 +155,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.byKey(const ValueKey<String>('project-member-add-label')),
+        findsOneWidget,
+      );
       expect(find.byType(ShadInput), findsOneWidget);
       expect(find.byType(ShadSelect<String>), findsOneWidget);
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);

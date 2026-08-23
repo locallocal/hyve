@@ -21,6 +21,7 @@ import 'package:hyve/domain/repositories/project_temporary_attachment_repository
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 import 'package:hyve/domain/use_cases/route_project_message.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
+import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 
 enum ProjectAgentActivity {
   idle,
@@ -51,7 +52,8 @@ final class ProjectAgentStatusSnapshot {
   final String activeRunId;
 }
 
-final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
+final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
+    implements ProjectArtifactsController {
   ProjectWorkspaceViewModel({
     required this.projectId,
     required RouteProjectMessage routeProjectMessage,
@@ -165,13 +167,16 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
   Map<String, ParticipationDecision> get decisions => _decisions;
   List<ModelTokenUsageRecord> get usageRecords => _usageRecords;
   Map<String, String> get agentNames => _agentNames;
+  @override
   List<ProjectArtifactEntry> get artifacts => _artifacts;
   String get artifactQuery => _artifactQuery;
   Set<ProjectArtifactKind> get artifactKinds => _artifactKinds;
+  @override
   bool get artifactBusy => _artifactBusy;
   bool get eventPageBusy => _eventPageBusy;
   bool get hasEarlierEvents => _hasEarlierEvents;
   bool get submitting => _submitting;
+  @override
   String get errorCode => _errorCode;
 
   Future<void> refresh() async {
@@ -341,6 +346,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     name: 'User',
   );
 
+  @override
   Future<void> refreshArtifacts({
     String? query,
     Set<ProjectArtifactKind>? kinds,
@@ -388,10 +394,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     return _importSource(sourcePath, folder: 'imports');
   }
 
+  @override
   Future<List<ProjectArtifactEntry>> importPickedArtifacts() async {
     return importArtifactPaths(await _attachmentRepository.selectFiles());
   }
 
+  @override
   Future<List<ProjectArtifactEntry>> importArtifactPaths(
     Iterable<String> sourcePaths,
   ) async {
@@ -405,6 +413,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     return List<ProjectArtifactEntry>.unmodifiable(imported);
   }
 
+  @override
   Future<ProjectArtifactEntry?> createTextArtifact({
     required String relativePath,
     required String content,
@@ -429,6 +438,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  @override
   Future<ProjectArtifactReadResult?> previewArtifact(
     ProjectArtifactEntry entry, {
     String versionId = '',
@@ -447,6 +457,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  @override
   Future<List<ProjectArtifactVersion>> artifactVersions(
     ProjectArtifactEntry entry,
   ) async {
@@ -462,6 +473,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  @override
   Future<List<ProjectArtifactMessageReference>> artifactMessageReferences(
     ProjectArtifactEntry entry, {
     String versionId = '',
@@ -472,6 +484,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     actor: _userArtifactActor,
   );
 
+  @override
   Future<ProjectArtifactEntry?> writeTextArtifactVersion({
     required ProjectArtifactEntry entry,
     required String content,
@@ -495,6 +508,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  @override
   Future<bool> moveArtifact(
     ProjectArtifactEntry entry,
     String relativePath,
@@ -514,6 +528,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier {
     }
   }
 
+  @override
   Future<bool> deleteArtifact(ProjectArtifactEntry entry) async {
     try {
       await _artifactRepository.delete(

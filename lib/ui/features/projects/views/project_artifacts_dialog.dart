@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
-import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
+import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_file_drop_target.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 final class ProjectArtifactsPanel extends StatelessWidget {
   const ProjectArtifactsPanel({super.key, required this.viewModel});
 
-  final ProjectWorkspaceViewModel viewModel;
+  final ProjectArtifactsController viewModel;
 
   @override
   Widget build(BuildContext context) =>
@@ -25,7 +25,7 @@ final class ProjectArtifactsDialog extends StatefulWidget {
     this.embedded = false,
   });
 
-  final ProjectWorkspaceViewModel viewModel;
+  final ProjectArtifactsController viewModel;
   final bool embedded;
 
   @override
@@ -41,7 +41,9 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
   @override
   void initState() {
     super.initState();
-    unawaited(widget.viewModel.refreshArtifacts());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(widget.viewModel.refreshArtifacts());
+    });
   }
 
   @override
@@ -416,7 +418,7 @@ final class ProjectArtifactPreviewDialog extends StatefulWidget {
     required this.entry,
   });
 
-  final ProjectWorkspaceViewModel viewModel;
+  final ProjectArtifactsController viewModel;
   final ProjectArtifactEntry entry;
 
   @override

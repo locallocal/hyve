@@ -86,13 +86,16 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
                         ),
                       ),
                       Expanded(
-                        child: DropdownButton<SkillUpdatePolicy>(
+                        child: ShadSelect<SkillUpdatePolicy>(
                           key: const ValueKey<String>('skill-update-policy'),
-                          value: _updatePolicy,
-                          isExpanded: true,
-                          items: [
+                          initialValue: _updatePolicy,
+                          maxHeight: 240,
+                          selectedOptionBuilder:
+                              (_, policy) =>
+                                  Text(_updatePolicyLabel(strings, policy)),
+                          options: [
                             for (final policy in SkillUpdatePolicy.values)
-                              DropdownMenuItem(
+                              ShadOption<SkillUpdatePolicy>(
                                 value: policy,
                                 child: Text(
                                   _updatePolicyLabel(strings, policy),

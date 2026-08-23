@@ -7,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 /// The fallback palette mirrors the shadcn Zinc scheme. Keeping these semantic
 /// names lets legacy Material-only widgets share the same desktop appearance.
 part 'desktop_theme_spec.dart';
+part 'desktop_action_surface.dart';
 part 'theme_components.dart';
 
 @immutable

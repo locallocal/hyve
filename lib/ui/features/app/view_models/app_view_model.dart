@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/profile_repository.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 import 'package:hyve/utils/utils.dart';
 
-class AppViewModel extends ChangeNotifier {
+class AppViewModel extends DisposableChangeNotifier {
   AppViewModel({
     required Profile initialProfile,
     required ProfileRepository profileRepository,
@@ -37,8 +38,7 @@ class AppViewModel extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
-    _profileSubscription.cancel();
-    super.dispose();
+  void disposeResources() {
+    unawaited(_profileSubscription.cancel());
   }
 }

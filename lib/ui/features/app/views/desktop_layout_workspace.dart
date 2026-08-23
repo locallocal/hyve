@@ -106,6 +106,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
             child: Semantics(
               button: true,
               label: MaterialLocalizations.of(context).closeButtonTooltip,
+              onTap: () => setState(() => _compactSidebarOpen = false),
               child: GestureDetector(
                 onTap: () => setState(() => _compactSidebarOpen = false),
                 child: ColoredBox(
@@ -239,12 +240,17 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
       child: Stack(
         children: [
           Positioned.fill(
-            child: GestureDetector(
+            child: Semantics(
+              button: true,
+              label: MaterialLocalizations.of(context).closeButtonTooltip,
               onTap: () => setState(() => _inspectorOpen = false),
-              child: ColoredBox(
-                color: HyveDesktopTokens.of(
-                  context,
-                ).scrim.withValues(alpha: 0.12),
+              child: GestureDetector(
+                onTap: () => setState(() => _inspectorOpen = false),
+                child: ColoredBox(
+                  color: HyveDesktopTokens.of(
+                    context,
+                  ).scrim.withValues(alpha: 0.12),
+                ),
               ),
             ),
           ),

@@ -36,7 +36,6 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
     debugLabel: 'desktop-mcp-server-card-actions',
   );
   bool _menuActionInvokedByPointer = false;
-  bool _hovered = false;
 
   @override
   void didUpdateWidget(covariant _DesktopServerCard oldWidget) {
@@ -180,105 +179,89 @@ class _DesktopServerCardState extends State<_DesktopServerCard> {
     final tokens = HyveDesktopTokens.of(context);
     final statusColor = _statusColor(tokens, widget.server.status);
 
-    return Semantics(
-      button: true,
+    return HyveDesktopActionSurface(
       label: widget.server.name,
       hint: strings.mcpServerDetails,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.onOpenDetails,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 140),
-            transform:
-                _hovered
-                    ? (Matrix4.identity()..translateByDouble(0, -2, 0, 1))
-                    : Matrix4.identity(),
-            child: ShadCard(
-              width: double.infinity,
-              backgroundColor: _hovered ? theme.colorScheme.accent : null,
-              title: Row(
-                children: [
-                  if (widget.busy)
-                    const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    Icon(
-                      _mcpStatusIcon(widget.server.status),
-                      size: 18,
-                      color: statusColor,
-                    ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.server.name,
-                      key: ValueKey<String>(
-                        'desktop-mcp-server-title-${widget.server.id}',
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: HyveDesktopThemeSpec.pageTitleStyle(context),
-                    ),
+      onPressed: widget.onOpenDetails,
+      builder:
+          (context, highlighted) => ShadCard(
+            width: double.infinity,
+            backgroundColor: highlighted ? theme.colorScheme.accent : null,
+            title: Row(
+              children: [
+                if (widget.busy)
+                  const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(
+                    _mcpStatusIcon(widget.server.status),
+                    size: 18,
+                    color: statusColor,
                   ),
-                ],
-              ),
-              description: Text(
-                mcpConnectionSummary(widget.server),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Align(
-                  alignment: AlignmentDirectional.bottomCenter,
-                  child: Row(
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.server.name,
                     key: ValueKey<String>(
-                      'desktop-mcp-server-footer-${widget.server.id}',
+                      'desktop-mcp-server-title-${widget.server.id}',
                     ),
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            _McpServerTag(
-                              label: _mcpStatusLabel(
-                                context,
-                                widget.server.status,
-                              ),
-                              foregroundColor: statusColor,
-                            ),
-                            _McpServerTag(
-                              label:
-                                  widget.server.transport.type ==
-                                          McpTransportType.stdio
-                                      ? strings.mcpTransportStdio
-                                      : strings.mcpTransportStreamableHttp,
-                            ),
-                            _McpServerTag(
-                              label:
-                                  '${widget.tools.length} ${strings.mcpTools}',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildActionMenu(context),
-                    ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: HyveDesktopThemeSpec.pageTitleStyle(context),
                   ),
+                ),
+              ],
+            ),
+            description: Text(
+              mcpConnectionSummary(widget.server),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Align(
+                alignment: AlignmentDirectional.bottomCenter,
+                child: Row(
+                  key: ValueKey<String>(
+                    'desktop-mcp-server-footer-${widget.server.id}',
+                  ),
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _McpServerTag(
+                            label: _mcpStatusLabel(
+                              context,
+                              widget.server.status,
+                            ),
+                            foregroundColor: statusColor,
+                          ),
+                          _McpServerTag(
+                            label:
+                                widget.server.transport.type ==
+                                        McpTransportType.stdio
+                                    ? strings.mcpTransportStdio
+                                    : strings.mcpTransportStreamableHttp,
+                          ),
+                          _McpServerTag(
+                            label: '${widget.tools.length} ${strings.mcpTools}',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActionMenu(context),
+                  ],
                 ),
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 

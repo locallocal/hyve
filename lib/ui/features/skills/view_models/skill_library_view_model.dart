@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/catalog_controller.dart';
 import 'package:hyve/domain/repositories/skill_ecosystem_repository.dart';
 import 'package:hyve/domain/repositories/skill_repository.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
-final class SkillLibraryViewModel extends ChangeNotifier {
+final class SkillLibraryViewModel extends DisposableChangeNotifier {
   static const int defaultPageSize = 10;
 
   SkillLibraryViewModel({
@@ -25,7 +25,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
        _bundledSkillLoader = bundledSkillLoader,
        assert(pageSize > 0) {
     _changesSubscription = _skillRepository.changes.listen((skills) {
-      if (_disposed) return;
+      if (isDisposed) return;
       _applyInstalledSkills(skills);
       unawaited(_refreshEcosystemState());
     });
@@ -56,7 +56,6 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   List<OnlineSkillCatalogEntry> _availableUpdates = const [];
   List<SkillCatalogSource> _configuredCatalogs = const [];
   bool _isRefreshingCatalogs = false;
-  bool _disposed = false;
 
   List<SkillDescriptor> get skills => _skills;
   List<SkillDescriptor> get filteredSkills => _filteredSkills;
@@ -107,17 +106,22 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final installed = await _skillRepository.getInstalled(forceRefresh: true);
+      if (isDisposed) return;
       final bundled = await _bundledSkillLoader?.call() ?? const [];
+      if (isDisposed) return;
       _bundledContents = Map<String, SkillContent>.unmodifiable({
         for (final content in bundled) content.descriptor.id: content,
       });
       _applyInstalledSkills(installed, notify: false);
       await _refreshEcosystemState(notify: false);
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'skill_library_load_failed');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -163,6 +167,7 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     try {
       await _skillRepository.uninstall(skillId);
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'skill_uninstall_failed');
       notifyListeners();
       rethrow;
@@ -177,8 +182,10 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     _error = null;
     try {
       await service.setEnabled(skill, enabled);
+      if (isDisposed) return;
       await _refreshEcosystemState();
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'skill_delete_failed');
       notifyListeners();
       rethrow;
@@ -193,9 +200,9 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     final repository = _ecosystemRepository;
     if (repository == null) return;
     await repository.setSkillUpdatePolicy(skill.id, policy);
-    _applyInstalledSkills(
-      await _skillRepository.getInstalled(forceRefresh: true),
-    );
+    final installed = await _skillRepository.getInstalled(forceRefresh: true);
+    if (isDisposed) return;
+    _applyInstalledSkills(installed);
   }
 
   Future<void> refreshCatalogs() async {
@@ -216,20 +223,23 @@ final class SkillLibraryViewModel extends ChangeNotifier {
         }
       }
       await service.applyAutomaticUpdates();
-      _applyInstalledSkills(
-        await _skillRepository.getInstalled(forceRefresh: true),
-        notify: false,
-      );
+      final installed = await _skillRepository.getInstalled(forceRefresh: true);
+      final availableUpdates = await service.availableUpdates();
+      if (isDisposed) return;
+      _applyInstalledSkills(installed, notify: false);
       _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
-        await service.availableUpdates(),
+        availableUpdates,
       );
       if (firstError != null) throw firstError;
     } catch (error) {
+      if (isDisposed) return;
       _error = AppFailure.from(error, code: 'skill_operation_failed');
       rethrow;
     } finally {
-      _isRefreshingCatalogs = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isRefreshingCatalogs = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -237,12 +247,12 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     final service = _catalogService;
     if (service == null) return;
     await service.install(entry);
-    _applyInstalledSkills(
-      await _skillRepository.getInstalled(forceRefresh: true),
-      notify: false,
-    );
+    final installed = await _skillRepository.getInstalled(forceRefresh: true);
+    final availableUpdates = await service.availableUpdates();
+    if (isDisposed) return;
+    _applyInstalledSkills(installed, notify: false);
     _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
-      await service.availableUpdates(),
+      availableUpdates,
     );
     notifyListeners();
   }
@@ -255,14 +265,18 @@ final class SkillLibraryViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final skill = await _skillRepository.install(source);
+      if (isDisposed) return null;
       _lastImported = skill;
       return skill;
     } catch (error) {
+      if (isDisposed) return null;
       _error = AppFailure.from(error, code: 'skill_catalog_refresh_failed');
       rethrow;
     } finally {
-      _isImporting = false;
-      notifyListeners();
+      if (!isDisposed) {
+        _isImporting = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -311,9 +325,14 @@ final class SkillLibraryViewModel extends ChangeNotifier {
   }
 
   Future<void> _refreshEcosystemState({bool notify = true}) async {
+    var sandboxStatus = _sandboxStatus;
+    var scriptToolSkillIds = _scriptToolSkillIds;
+    var scriptEnabledSkillIds = _scriptEnabledSkillIds;
+    var configuredCatalogs = _configuredCatalogs;
+    var availableUpdates = _availableUpdates;
     final scriptService = _scriptCatalogService;
     if (scriptService != null) {
-      _sandboxStatus = await scriptService.sandboxStatus();
+      sandboxStatus = await scriptService.sandboxStatus();
       final withToolManifest = <String>{};
       final enabled = <String>{};
       for (final skill in _skills) {
@@ -323,28 +342,32 @@ final class SkillLibraryViewModel extends ChangeNotifier {
           enabled.add(skill.id);
         }
       }
-      _scriptToolSkillIds = Set.unmodifiable(withToolManifest);
-      _scriptEnabledSkillIds = Set.unmodifiable(enabled);
+      scriptToolSkillIds = Set.unmodifiable(withToolManifest);
+      scriptEnabledSkillIds = Set.unmodifiable(enabled);
     }
     final catalog = _catalogService;
     final ecosystem = _ecosystemRepository;
     if (ecosystem != null) {
-      _configuredCatalogs = List<SkillCatalogSource>.unmodifiable(
+      configuredCatalogs = List<SkillCatalogSource>.unmodifiable(
         await ecosystem.getCatalogs(),
       );
     }
     if (catalog != null) {
-      _availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
+      availableUpdates = List<OnlineSkillCatalogEntry>.unmodifiable(
         await catalog.availableUpdates(),
       );
     }
-    if (notify && !_disposed) notifyListeners();
+    if (isDisposed) return;
+    _sandboxStatus = sandboxStatus;
+    _scriptToolSkillIds = scriptToolSkillIds;
+    _scriptEnabledSkillIds = scriptEnabledSkillIds;
+    _configuredCatalogs = configuredCatalogs;
+    _availableUpdates = availableUpdates;
+    if (notify) notifyListeners();
   }
 
   @override
-  void dispose() {
-    _disposed = true;
+  void disposeResources() {
     unawaited(_changesSubscription.cancel());
-    super.dispose();
   }
 }

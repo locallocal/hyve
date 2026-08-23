@@ -592,6 +592,7 @@ class HyveContextMenu extends StatefulWidget {
       ),
     ),
     this.enabled = true,
+    this.childManagesFocus = false,
   });
 
   final Widget child;
@@ -600,6 +601,12 @@ class HyveContextMenu extends StatefulWidget {
   final BoxConstraints constraints;
   final ShadAnchorBase keyboardAnchor;
   final bool enabled;
+
+  /// Whether [child] already installs a focus widget with [focusNode].
+  ///
+  /// This avoids an extra tab stop when a keyboard-accessible action surface
+  /// also owns the focus used to open this context menu.
+  final bool childManagesFocus;
 
   @override
   State<HyveContextMenu> createState() => _HyveContextMenuState();
@@ -694,11 +701,18 @@ class _HyveContextMenuState extends State<HyveContextMenu> {
 
   @override
   Widget build(BuildContext context) {
-    Widget trigger = Focus(
-      focusNode: _focusNode,
-      canRequestFocus: widget.enabled,
-      child: widget.child,
+    assert(
+      !widget.childManagesFocus || widget.focusNode != null,
+      'A child-managed context menu requires a shared focusNode.',
     );
+    Widget trigger =
+        widget.childManagesFocus
+            ? widget.child
+            : Focus(
+              focusNode: _focusNode,
+              canRequestFocus: widget.enabled,
+              child: widget.child,
+            );
 
     if (!_canOpen) return trigger;
 

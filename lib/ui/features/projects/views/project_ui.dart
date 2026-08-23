@@ -231,6 +231,103 @@ final class ProjectSurfaceCard extends StatelessWidget {
   }
 }
 
+/// Responsive disclosure that uses the Shad accordion interaction on desktop
+/// and the native Material expansion pattern in the mobile-only theme.
+final class ProjectDisclosure extends StatelessWidget {
+  const ProjectDisclosure({
+    super.key,
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    required this.children,
+    required this.childrenPadding,
+    this.trailing,
+    this.expandedCrossAxisAlignment = CrossAxisAlignment.center,
+  });
+
+  final Widget leading;
+  final Widget title;
+  final Widget subtitle;
+  final Widget? trailing;
+  final List<Widget> children;
+  final EdgeInsetsGeometry childrenPadding;
+  final CrossAxisAlignment expandedCrossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasShadProjectTheme(context)) {
+      return ExpansionTile(
+        leading: leading,
+        title: title,
+        subtitle: subtitle,
+        trailing: trailing,
+        childrenPadding: childrenPadding,
+        expandedCrossAxisAlignment: expandedCrossAxisAlignment,
+        children: children,
+      );
+    }
+
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    final shadTheme = ShadTheme.of(context);
+    return ShadAccordion<String>(
+      children: <ShadAccordionItem<String>>[
+        ShadAccordionItem<String>(
+          value: 'details',
+          separator: const SizedBox.shrink(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          duration:
+              disableAnimations
+                  ? Duration.zero
+                  : const Duration(milliseconds: 180),
+          underlineTitleOnHover: false,
+          iconData: LucideIcons.chevronDown,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              IconTheme.merge(
+                data: const IconThemeData(size: 20),
+                child: leading,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    DefaultTextStyle.merge(
+                      style: shadTheme.textTheme.small.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      child: title,
+                    ),
+                    const SizedBox(height: 3),
+                    DefaultTextStyle.merge(
+                      style: shadTheme.textTheme.muted,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      child: subtitle,
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...<Widget>[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
+            ],
+          ),
+          child: Padding(
+            padding: childrenPadding,
+            child: Column(
+              crossAxisAlignment: expandedCrossAxisAlignment,
+              children: children,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 final class ProjectOverflowMenu<T> extends StatelessWidget {
   const ProjectOverflowMenu({
     super.key,

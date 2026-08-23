@@ -38,11 +38,17 @@ final class ProjectExecutionPanel extends StatelessWidget {
         maxWidth: embedded ? double.infinity : 920,
         maxHeight: embedded ? double.infinity : 760,
       ),
-      child: _content(context),
+      child: LayoutBuilder(
+        builder:
+            (context, constraints) => _content(
+              context,
+              hasBoundedHeight: constraints.hasBoundedHeight,
+            ),
+      ),
     );
   }
 
-  Widget _content(BuildContext context) {
+  Widget _content(BuildContext context, {required bool hasBoundedHeight}) {
     final copy = ProjectLocalizations.of(context);
     final sortedTurns = turns.values.toList(growable: false)
       ..sort((left, right) => right.createdAt.compareTo(left.createdAt));
@@ -57,10 +63,51 @@ final class ProjectExecutionPanel extends StatelessWidget {
         .where((event) => event.messageSequence == null)
         .take(50)
         .toList(growable: false);
+    final history =
+        sortedTurns.isEmpty && audits.isEmpty
+            ? ProjectEmptyState(
+              icon: LucideIcons.activity,
+              title: copy.noExecutions,
+            )
+            : ListView(
+              primary: hasBoundedHeight ? null : false,
+              shrinkWrap: !hasBoundedHeight,
+              physics:
+                  hasBoundedHeight
+                      ? null
+                      : const NeverScrollableScrollPhysics(),
+              key: const ValueKey<String>('project-execution-list'),
+              children: <Widget>[
+                for (final turn in sortedTurns)
+                  _TurnCard(
+                    turn: turn,
+                    runs: runs.values
+                        .where((run) => run.turnId == turn.id)
+                        .toList(growable: false),
+                    decisions: decisions,
+                    usageRecords: usageRecords,
+                    agentNames: agentNames,
+                    onCancelRun: onCancelRun,
+                    onCancelTurn: onCancelTurn,
+                    onCancelRootChain: onCancelRootChain,
+                  ),
+                if (audits.isNotEmpty) ...<Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+                    child: Text(
+                      copy.auditEvents,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  for (final event in audits) _AuditEventTile(event: event),
+                ],
+              ],
+            );
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          mainAxisSize: hasBoundedHeight ? MainAxisSize.max : MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Row(
@@ -109,43 +156,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Expanded(
-              child:
-                  sortedTurns.isEmpty && audits.isEmpty
-                      ? ProjectEmptyState(
-                        icon: LucideIcons.activity,
-                        title: copy.noExecutions,
-                      )
-                      : ListView(
-                        key: const ValueKey<String>('project-execution-list'),
-                        children: <Widget>[
-                          for (final turn in sortedTurns)
-                            _TurnCard(
-                              turn: turn,
-                              runs: runs.values
-                                  .where((run) => run.turnId == turn.id)
-                                  .toList(growable: false),
-                              decisions: decisions,
-                              usageRecords: usageRecords,
-                              agentNames: agentNames,
-                              onCancelRun: onCancelRun,
-                              onCancelTurn: onCancelTurn,
-                              onCancelRootChain: onCancelRootChain,
-                            ),
-                          if (audits.isNotEmpty) ...<Widget>[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                              child: Text(
-                                copy.auditEvents,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            for (final event in audits)
-                              _AuditEventTile(event: event),
-                          ],
-                        ],
-                      ),
-            ),
+            if (hasBoundedHeight) Expanded(child: history) else history,
           ],
         ),
       ),

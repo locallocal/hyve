@@ -120,6 +120,48 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  testWidgets('supports retained offstage layout in expanding Shad tabs', (
+    tester,
+  ) async {
+    final controller = _SynchronousArtifactsController();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => SizedBox(
+              width: 368,
+              height: 700,
+              child: ShadTabs<int>(
+                value: 1,
+                maintainState: true,
+                tabs: <ShadTab<int>>[
+                  ShadTab<int>(
+                    value: 0,
+                    expandContent: true,
+                    content: ProjectArtifactsDialog(
+                      viewModel: controller,
+                      embedded: true,
+                    ),
+                    child: const Text('Artifacts tab'),
+                  ),
+                  const ShadTab<int>(
+                    value: 1,
+                    expandContent: true,
+                    content: SizedBox.shrink(),
+                    child: Text('Execution tab'),
+                  ),
+                ],
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
 }
 
 final class _SynchronousArtifactsController extends ChangeNotifier

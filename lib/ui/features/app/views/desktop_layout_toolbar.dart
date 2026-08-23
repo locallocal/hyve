@@ -1,5 +1,47 @@
 part of 'desktop_layout.dart';
 
+/// Project-specific actions hosted by the unified desktop toolbar.
+class ProjectWorkspaceToolbarActions extends StatelessWidget {
+  const ProjectWorkspaceToolbarActions({
+    super.key,
+    required this.onShowMembers,
+    required this.onShowArtifacts,
+    required this.onShowExecution,
+  });
+
+  final VoidCallback onShowMembers;
+  final VoidCallback onShowArtifacts;
+  final VoidCallback onShowExecution;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = ProjectLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        HyveDesktopIconAction(
+          key: const ValueKey<String>('project-members-button'),
+          label: copy.members,
+          onPressed: onShowMembers,
+          icon: LucideIcons.bot,
+        ),
+        HyveDesktopIconAction(
+          key: const ValueKey<String>('project-artifacts-button'),
+          label: copy.artifacts,
+          onPressed: onShowArtifacts,
+          icon: LucideIcons.folderKanban,
+        ),
+        HyveDesktopIconAction(
+          key: const ValueKey<String>('project-execution-button'),
+          label: copy.execution,
+          onPressed: onShowExecution,
+          icon: LucideIcons.activity,
+        ),
+      ],
+    );
+  }
+}
+
 class _UnifiedDesktopToolbar extends StatelessWidget {
   final int currentIndex;
   final Bot? bot;
@@ -14,6 +56,9 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final VoidCallback? onCreateChat;
   final VoidCallback? onSearchRequested;
   final VoidCallback? onClearChat;
+  final VoidCallback? onShowProjectMembers;
+  final VoidCallback? onShowProjectArtifacts;
+  final VoidCallback? onShowProjectExecution;
 
   const _UnifiedDesktopToolbar({
     required this.currentIndex,
@@ -29,6 +74,9 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.onCreateChat,
     required this.onSearchRequested,
     required this.onClearChat,
+    required this.onShowProjectMembers,
+    required this.onShowProjectArtifacts,
+    required this.onShowProjectExecution,
   });
 
   @override
@@ -136,6 +184,14 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             ),
                             onPressed: onCreateChat,
                             icon: desktopProjectIcon,
+                          ),
+                        if (onShowProjectMembers != null &&
+                            onShowProjectArtifacts != null &&
+                            onShowProjectExecution != null)
+                          ProjectWorkspaceToolbarActions(
+                            onShowMembers: onShowProjectMembers!,
+                            onShowArtifacts: onShowProjectArtifacts!,
+                            onShowExecution: onShowProjectExecution!,
                           ),
                         if (onClearChat != null)
                           HyveDesktopIconAction(

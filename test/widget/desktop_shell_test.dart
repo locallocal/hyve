@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/use_cases/create_chat.dart';
+import 'package:hyve/ui/features/app/views/desktop_layout.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_list_view_model.dart';
 import 'package:hyve/ui/features/bots/views/bots.dart';
@@ -18,6 +19,43 @@ import 'package:hyve/utils/theme.dart';
 import '../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('Project actions share one desktop toolbar group', (
+    tester,
+  ) async {
+    var members = 0;
+    var artifacts = 0;
+    var execution = 0;
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: Center(
+                child: ProjectWorkspaceToolbarActions(
+                  onShowMembers: () => members += 1,
+                  onShowArtifacts: () => artifacts += 1,
+                  onShowExecution: () => execution += 1,
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final key in const <String>[
+      'project-members-button',
+      'project-artifacts-button',
+      'project-execution-button',
+    ]) {
+      expect(find.byKey(ValueKey<String>(key)), findsOneWidget);
+      await tester.tap(find.byKey(ValueKey<String>(key)));
+      await tester.pump();
+    }
+
+    expect((members, artifacts, execution), (1, 1, 1));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('desktop project toolbar exposes one shared project chat', (
     tester,
   ) async {

@@ -174,6 +174,8 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
         key: ValueKey<String>('project-workspace-${widget.selectedChatId}'),
         projectId: widget.selectedChatId!,
         projectName: widget.selectedProjectName,
+        embedded: true,
+        controller: _projectWorkspaceController,
       );
     }
     if (widget.selectedChatId != null && widget.selectedChatBot != null) {

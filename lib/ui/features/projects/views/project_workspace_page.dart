@@ -17,15 +17,39 @@ import 'package:hyve/ui/features/projects/views/project_ui.dart';
 export 'package:hyve/ui/features/projects/views/project_event_list.dart'
     show ProjectDeliveryCard;
 
+/// Commands exposed by an embedded Project workspace to its desktop shell.
+final class ProjectWorkspaceController {
+  _ProjectWorkspacePageState? _state;
+
+  Future<void> showMembers() async {
+    final state = _state;
+    if (state != null) await state._showMembers();
+  }
+
+  void showArtifacts() => _state?._showArtifacts();
+
+  void showExecution() => _state?._showExecution();
+
+  void _attach(_ProjectWorkspacePageState state) => _state = state;
+
+  void _detach(_ProjectWorkspacePageState state) {
+    if (identical(_state, state)) _state = null;
+  }
+}
+
 final class ProjectWorkspacePage extends StatefulWidget {
   const ProjectWorkspacePage({
     super.key,
     required this.projectId,
     this.projectName = '',
+    this.embedded = false,
+    this.controller,
   });
 
   final String projectId;
   final String projectName;
+  final bool embedded;
+  final ProjectWorkspaceController? controller;
 
   @override
   State<ProjectWorkspacePage> createState() => _ProjectWorkspacePageState();
@@ -37,6 +61,21 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   ProjectWorkspaceViewModel? _viewModel;
   ProjectMembersViewModel? _membersViewModel;
   final List<PendingAttachment> _attachments = <PendingAttachment>[];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?._attach(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant ProjectWorkspacePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,6 +90,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
 
   @override
   void dispose() {
+    widget.controller?._detach(this);
     _composer.dispose();
     _viewModel?.dispose();
     _membersViewModel?.dispose();
@@ -179,38 +219,43 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 final persistentInspector =
                     constraints.maxWidth >= inspectorBreakpoint;
                 return Scaffold(
-                  appBar: AppBar(
-                    title: Text(title),
-                    centerTitle: false,
-                    scrolledUnderElevation: 0,
-                    actions: <Widget>[
-                      ProjectIconAction(
-                        key: const ValueKey<String>('project-members-button'),
-                        label: copy.members,
-                        onPressed: () => unawaited(_showMembers()),
-                        icon: LucideIcons.bot,
-                      ),
-                      if (!persistentInspector)
-                        ProjectIconAction(
-                          key: const ValueKey<String>(
-                            'project-artifacts-button',
+                  appBar:
+                      widget.embedded
+                          ? null
+                          : AppBar(
+                            title: Text(title),
+                            centerTitle: false,
+                            scrolledUnderElevation: 0,
+                            actions: <Widget>[
+                              ProjectIconAction(
+                                key: const ValueKey<String>(
+                                  'project-members-button',
+                                ),
+                                label: copy.members,
+                                onPressed: () => unawaited(_showMembers()),
+                                icon: LucideIcons.bot,
+                              ),
+                              if (!persistentInspector)
+                                ProjectIconAction(
+                                  key: const ValueKey<String>(
+                                    'project-artifacts-button',
+                                  ),
+                                  label: copy.artifacts,
+                                  onPressed: _showArtifacts,
+                                  icon: LucideIcons.folderKanban,
+                                ),
+                              if (!persistentInspector)
+                                ProjectIconAction(
+                                  key: const ValueKey<String>(
+                                    'project-execution-button',
+                                  ),
+                                  label: copy.execution,
+                                  onPressed: _showExecution,
+                                  icon: LucideIcons.activity,
+                                ),
+                              const SizedBox(width: 4),
+                            ],
                           ),
-                          label: copy.artifacts,
-                          onPressed: _showArtifacts,
-                          icon: LucideIcons.folderKanban,
-                        ),
-                      if (!persistentInspector)
-                        ProjectIconAction(
-                          key: const ValueKey<String>(
-                            'project-execution-button',
-                          ),
-                          label: copy.execution,
-                          onPressed: _showExecution,
-                          icon: LucideIcons.activity,
-                        ),
-                      const SizedBox(width: 4),
-                    ],
-                  ),
                   body: SafeArea(
                     top: false,
                     child:

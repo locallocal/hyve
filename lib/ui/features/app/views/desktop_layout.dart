@@ -18,6 +18,7 @@ import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:hyve/ui/features/chat/views/conversation_model_controls.dart';
 import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
+import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
@@ -104,6 +105,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   bool _chatOverlayDismissScheduled = false;
 
   GlobalKey<ChatPageState>? _chatPageKey;
+  final ProjectWorkspaceController _projectWorkspaceController =
+      ProjectWorkspaceController();
   AppDependencies? _dependencies;
   ChatTokenUsageViewModel? _tokenUsageViewModel;
   ConversationMemoryViewModel? _memoryViewModel;
@@ -257,6 +260,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
             );
     final inspectorAvailable =
         width >= 800 && widget.currentIndex == 0 && _activeBot != null;
+    final projectWorkspaceSelected =
+        widget.currentIndex == 0 &&
+        widget.selectedChatId != null &&
+        widget.selectedProjectUsesAgentRuntime;
     final inspectorShouldDock =
         width >= 1500 && _inspectorOpen && inspectorAvailable;
     final dockInspector =
@@ -385,6 +392,23 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                   widget.currentIndex == 0 &&
                                           widget.selectedChatId != null
                                       ? _requestClearChat
+                                      : null,
+                              onShowProjectMembers:
+                                  projectWorkspaceSelected
+                                      ? () => unawaited(
+                                        _projectWorkspaceController
+                                            .showMembers(),
+                                      )
+                                      : null,
+                              onShowProjectArtifacts:
+                                  projectWorkspaceSelected
+                                      ? _projectWorkspaceController
+                                          .showArtifacts
+                                      : null,
+                              onShowProjectExecution:
+                                  projectWorkspaceSelected
+                                      ? _projectWorkspaceController
+                                          .showExecution
                                       : null,
                             ),
                             Expanded(

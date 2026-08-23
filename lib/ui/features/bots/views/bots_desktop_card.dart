@@ -35,12 +35,13 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
   final FocusNode _menuFocusNode = FocusNode(
     debugLabel: 'desktop-bot-card-actions',
   );
-  bool _hovered = false;
+  final FocusNode _cardFocusNode = FocusNode(debugLabel: 'desktop-bot-card');
 
   @override
   void dispose() {
     _menuController.dispose();
     _menuFocusNode.dispose();
+    _cardFocusNode.dispose();
     super.dispose();
   }
 
@@ -140,46 +141,41 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
       locale: Localizations.localeOf(context).toString(),
     );
     final mcpServerNames = widget.metrics.mcpServerNames;
-    return Semantics(
-      button: true,
-      label: widget.bot.name,
-      hint: S.of(context).selectBot,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: HyveContextMenu(
-          items: [
-            ShadContextMenuItem(
-              leading: const Icon(desktopProjectIcon, size: 16),
-              onPressed: widget.onStartChat,
-              child: Text(
-                desktopProjectText(context, S.of(context).startChatting),
-              ),
-            ),
-            ShadContextMenuItem(
-              leading: const Icon(LucideIcons.info, size: 16),
-              onPressed: widget.onOpen,
-              child: Text(S.of(context).details),
-            ),
-            ShadContextMenuItem(
-              leading: const Icon(LucideIcons.pencil, size: 16),
-              onPressed: widget.onEdit,
-              child: Text(S.of(context).editBot),
-            ),
-            ShadContextMenuItem(
-              leading: const Icon(LucideIcons.trash2, size: 16),
-              onPressed: widget.onDelete,
-              child: Text(S.of(context).deleteBot),
-            ),
-          ],
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: widget.onOpen,
-            child: ShadCard(
+    return HyveContextMenu(
+      focusNode: _cardFocusNode,
+      childManagesFocus: true,
+      items: [
+        ShadContextMenuItem(
+          leading: const Icon(desktopProjectIcon, size: 16),
+          onPressed: widget.onStartChat,
+          child: Text(desktopProjectText(context, S.of(context).startChatting)),
+        ),
+        ShadContextMenuItem(
+          leading: const Icon(LucideIcons.info, size: 16),
+          onPressed: widget.onOpen,
+          child: Text(S.of(context).details),
+        ),
+        ShadContextMenuItem(
+          leading: const Icon(LucideIcons.pencil, size: 16),
+          onPressed: widget.onEdit,
+          child: Text(S.of(context).editBot),
+        ),
+        ShadContextMenuItem(
+          leading: const Icon(LucideIcons.trash2, size: 16),
+          onPressed: widget.onDelete,
+          child: Text(S.of(context).deleteBot),
+        ),
+      ],
+      child: HyveDesktopActionSurface(
+        focusNode: _cardFocusNode,
+        label: widget.bot.name,
+        hint: S.of(context).selectBot,
+        onPressed: widget.onOpen,
+        builder:
+            (context, highlighted) => ShadCard(
               key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),
               padding: const EdgeInsets.all(18),
-              backgroundColor: _hovered ? theme.colorScheme.accent : null,
+              backgroundColor: highlighted ? theme.colorScheme.accent : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -387,8 +383,6 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
                 ],
               ),
             ),
-          ),
-        ),
       ),
     );
   }

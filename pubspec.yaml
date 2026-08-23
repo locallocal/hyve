@@ -43,7 +43,7 @@ dependencies:
   # sqlite3 3.x uses build hooks to bundle SQLite on desktop platforms.
   sqlite3: ^3.5.1
   path: ^1.9.1
-  flutter_markdown: ^0.7.6
+  flutter_markdown_plus: ^1.0.12
   markdown: ^7.3.0
   flutter_svg: ^2.0.5
   file_picker: ^12.0.0-beta.7

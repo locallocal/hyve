@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/services/hyve_system_prompt.dart';
 import 'package:hyve/domain/use_cases/compact_conversation.dart';

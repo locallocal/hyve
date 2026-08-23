@@ -10,6 +10,7 @@ import 'package:hyve/domain/repositories/mcp_server_repository.dart';
 import 'package:hyve/domain/repositories/message_repository.dart';
 import 'package:hyve/domain/use_cases/create_chat.dart';
 import 'package:hyve/domain/use_cases/bot_commands.dart';
+import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 
 @immutable
 class BotCardMetrics {
@@ -32,7 +33,7 @@ class BotCardMetrics {
   final List<OutputModality> outputModalities;
 }
 
-class BotListViewModel extends ChangeNotifier {
+class BotListViewModel extends DisposableChangeNotifier {
   static final RegExp _searchWhitespace = RegExp(r'\s+');
   static final RegExp _searchSeparators = RegExp(r'[\s\-_.:/]+');
 
@@ -126,7 +127,6 @@ class BotListViewModel extends ChangeNotifier {
   bool _metricsLoadScheduled = false;
   bool _reloadAllMetrics = false;
   final Set<String> _pendingMetricBotIds = <String>{};
-  bool _disposed = false;
   int _loadGeneration = 0;
   int _metricsLoadGeneration = 0;
 
@@ -153,14 +153,14 @@ class BotListViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final bots = await _botRepository.getBots();
-      if (_disposed || generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _applyBots(bots, notify: false);
       await _loadCardMetrics(bots, notify: false);
     } catch (error) {
-      if (_disposed || generation != _loadGeneration) return;
+      if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'bot_list_load_failed');
     } finally {
-      if (!_disposed && generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration) {
         _isLoading = false;
         notifyListeners();
       }
@@ -215,12 +215,12 @@ class BotListViewModel extends ChangeNotifier {
       _error = failure;
       rethrow;
     } finally {
-      if (!_disposed) notifyListeners();
+      if (!isDisposed) notifyListeners();
     }
   }
 
   void _handleBotsChanged(List<Bot> bots) {
-    if (_disposed) return;
+    if (isDisposed) return;
     final previous = {for (final bot in _bots) bot.id: bot};
     final next = {for (final bot in bots) bot.id: bot};
     final changedIds =
@@ -332,7 +332,7 @@ class BotListViewModel extends ChangeNotifier {
           bindingCounts[bot.id] ?? 0,
         ),
     ];
-    if (_disposed || generation != _metricsLoadGeneration) return;
+    if (isDisposed || generation != _metricsLoadGeneration) return;
     final activeIds = bots.map((bot) => bot.id).toSet();
     _cardMetrics = Map<String, BotCardMetrics>.unmodifiable({
       for (final entry in _cardMetrics.entries)
@@ -422,7 +422,7 @@ class BotListViewModel extends ChangeNotifier {
   );
 
   void _scheduleMetricsLoad([Set<String>? botIds]) {
-    if (_disposed) return;
+    if (isDisposed) return;
     if (botIds == null) {
       _reloadAllMetrics = true;
       _pendingMetricBotIds.clear();
@@ -433,7 +433,7 @@ class BotListViewModel extends ChangeNotifier {
     _metricsLoadScheduled = true;
     scheduleMicrotask(() async {
       _metricsLoadScheduled = false;
-      if (_disposed) return;
+      if (isDisposed) return;
       final affected =
           _reloadAllMetrics ? null : Set<String>.of(_pendingMetricBotIds);
       _reloadAllMetrics = false;
@@ -442,7 +442,7 @@ class BotListViewModel extends ChangeNotifier {
       try {
         await _loadCardMetrics(_bots, affectedBotIds: affected);
       } catch (error) {
-        if (_disposed) return;
+        if (isDisposed) return;
         _error = AppFailure.from(error, code: 'bot_metrics_load_failed');
         notifyListeners();
       }
@@ -450,14 +450,12 @@ class BotListViewModel extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
-    _disposed = true;
-    _botSubscription.cancel();
-    _messageSubscription?.cancel();
-    _bindingSubscription?.cancel();
-    _messageMetricSubscription?.cancel();
-    _bindingMetricSubscription?.cancel();
-    _mcpSubscription?.cancel();
-    super.dispose();
+  void disposeResources() {
+    unawaited(_botSubscription.cancel());
+    unawaited(_messageSubscription?.cancel());
+    unawaited(_bindingSubscription?.cancel());
+    unawaited(_messageMetricSubscription?.cancel());
+    unawaited(_bindingMetricSubscription?.cancel());
+    unawaited(_mcpSubscription?.cancel());
   }
 }

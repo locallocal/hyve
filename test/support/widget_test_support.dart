@@ -119,6 +119,7 @@ Widget desktopHarness({
 Widget shadHarness({
   required Brightness brightness,
   required WidgetBuilder homeBuilder,
+  Locale locale = const Locale('zh', 'CN'),
 }) {
   final shadTheme = buildHyveShadTheme(
     brightness: brightness,
@@ -141,7 +142,7 @@ Widget shadHarness({
             context: shadContext,
             fontSize: 16,
           ),
-          locale: const Locale('zh', 'CN'),
+          locale: locale,
           supportedLocales: supportedLocales,
           localizationsDelegates: const [
             GlobalShadLocalizations.delegate,

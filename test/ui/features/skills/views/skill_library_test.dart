@@ -340,7 +340,11 @@ void main() {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
 
-    final skill = _skill('Release Notes', 'Create polished changelogs');
+    final skill = _skill(
+      'Release Notes',
+      'Create polished changelogs',
+      catalogId: 'official',
+    );
     String? clipboardText;
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
@@ -384,6 +388,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadDialog), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('skill-update-policy')),
+        findsOneWidget,
+      );
+      expect(find.byType(ShadSelect<SkillUpdatePolicy>), findsOneWidget);
+      expect(find.byType(DropdownButton<SkillUpdatePolicy>), findsNothing);
       expect(find.text('Instructions for Release Notes'), findsOneWidget);
       expect(
         find.byKey(const ValueKey<String>('skill-storage-location')),
@@ -756,6 +766,7 @@ SkillDescriptor _skill(
   bool hasScripts = false,
   bool hasReferences = false,
   bool hasAssets = false,
+  String catalogId = '',
   SkillSignatureStatus signatureStatus = SkillSignatureStatus.unsigned,
   List<SkillDiagnostic> diagnostics = const [],
 }) {
@@ -776,6 +787,7 @@ SkillDescriptor _skill(
     hasScripts: hasScripts,
     hasReferences: hasReferences,
     hasAssets: hasAssets,
+    catalogId: catalogId,
     signatureStatus: signatureStatus,
     installedAt: timestamp,
     updatedAt: timestamp,

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
+
+import '../support/widget_test_support.dart';
 
 void main() {
   testWidgets('delivery card expands to visible audit and run-chain details', (
@@ -95,43 +98,48 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 640,
-              child: ProjectDeliveryCard(
-                event: event,
-                delivery: delivery,
-                turn: ProjectTurn(
-                  id: event.turnId,
-                  projectId: event.projectId,
-                  rootEventId: 'source-event-1',
-                  initiatorType: ProjectTurnInitiatorType.agent,
-                  initiatorId: 'agent-1',
-                  routingMode: ProjectTurnRoutingMode.delivery,
-                  sourceMessageId: event.id,
-                  sourceMessageSequence: 2,
-                  recipientCount: 1,
-                  rootTurnId: 'root-turn-1',
-                  status: ProjectTurnStatus.delivering,
-                  createdAt: now,
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('en'),
+        homeBuilder:
+            (context) => Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 640,
+                  child: ProjectDeliveryCard(
+                    event: event,
+                    delivery: delivery,
+                    turn: ProjectTurn(
+                      id: event.turnId,
+                      projectId: event.projectId,
+                      rootEventId: 'source-event-1',
+                      initiatorType: ProjectTurnInitiatorType.agent,
+                      initiatorId: 'agent-1',
+                      routingMode: ProjectTurnRoutingMode.delivery,
+                      sourceMessageId: event.id,
+                      sourceMessageSequence: 2,
+                      recipientCount: 1,
+                      rootTurnId: 'root-turn-1',
+                      status: ProjectTurnStatus.delivering,
+                      createdAt: now,
+                    ),
+                    agentNames: const <String, String>{
+                      'agent-1': 'Researcher',
+                      'agent-2': 'Reviewer',
+                    },
+                    runs: <String, AgentRun>{
+                      deliveryRun.id: deliveryRun,
+                      childRun.id: childRun,
+                    },
+                  ),
                 ),
-                agentNames: const <String, String>{
-                  'agent-1': 'Researcher',
-                  'agent-2': 'Reviewer',
-                },
-                runs: <String, AgentRun>{
-                  deliveryRun.id: deliveryRun,
-                  childRun.id: childRun,
-                },
               ),
             ),
-          ),
-        ),
       ),
     );
 
+    expect(find.byType(ShadAccordion<String>), findsOneWidget);
+    expect(find.byType(ExpansionTile), findsNothing);
     expect(find.text('Review the findings'), findsOneWidget);
     expect(find.textContaining('Researcher → Reviewer'), findsOneWidget);
     expect(

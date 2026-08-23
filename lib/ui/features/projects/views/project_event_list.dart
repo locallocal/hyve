@@ -252,7 +252,7 @@ final class ProjectDeliveryCard extends StatelessWidget {
       key: ValueKey<String>('project-delivery-card-${event.id}'),
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: EdgeInsets.zero,
-      child: ExpansionTile(
+      child: ProjectDisclosure(
         key: ValueKey<String>('project-delivery-expansion-${event.id}'),
         leading: const Icon(LucideIcons.send),
         title: Text(payload.summary),

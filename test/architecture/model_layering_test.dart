@@ -177,6 +177,23 @@ void main() {
         reason: '${file.path} has no disposal guard',
       );
     }
+
+    final viewModels = Directory('lib/ui')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where(
+          (file) =>
+              (file.path.endsWith('_view_model.dart') ||
+                  file.path.contains('/view_models/')) &&
+              !file.path.endsWith('disposable_change_notifier.dart'),
+        );
+    for (final file in viewModels) {
+      expect(
+        file.readAsStringSync(),
+        isNot(contains('extends ChangeNotifier')),
+        reason: '${file.path} bypasses DisposableChangeNotifier',
+      );
+    }
   });
 
   test('views do not invoke platform action plugins directly', () {
@@ -298,7 +315,31 @@ void main() {
         isNot(contains('BorderRadius.circular(')),
         reason: '${file.path} defines a radius outside the desktop spec',
       );
+      expect(
+        source,
+        isNot(contains('DropdownButton')),
+        reason: '${file.path} mixes a Material select into desktop UI',
+      );
     }
+  });
+
+  test('desktop rich cards and disclosures use shared Shad interactions', () {
+    for (final path in const <String>[
+      'lib/ui/features/bots/views/bots_desktop_card.dart',
+      'lib/ui/features/mcp/views/mcp_servers_desktop.dart',
+      'lib/ui/features/skills/views/skill_library_cards.dart',
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(source, contains('HyveDesktopActionSurface('), reason: path);
+      expect(source, isNot(contains('GestureDetector(')), reason: path);
+    }
+
+    final projectEvents =
+        File(
+          'lib/ui/features/projects/views/project_event_list.dart',
+        ).readAsStringSync();
+    expect(projectEvents, contains('ProjectDisclosure('));
+    expect(projectEvents, isNot(contains('ExpansionTile(')));
   });
 
   test(

@@ -93,6 +93,24 @@ void main() {
     expect(updatesSnapshot, hasLength(1));
   });
 
+  test('library ignores a load completion after disposal', () async {
+    final installed = Completer<List<SkillDescriptor>>();
+    final viewModel = SkillLibraryViewModel(
+      skillRepository: _FakeSkillRepository(
+        const [],
+        installedFuture: installed.future,
+      ),
+      pickerRepository: const _FakeSkillPickerRepository(null),
+    );
+
+    final load = viewModel.load();
+    viewModel.dispose();
+    installed.complete([_skill('late')]);
+
+    await expectLater(load, completes);
+    expect(viewModel.skills, isEmpty);
+  });
+
   test('library searches Skill names and descriptions', () async {
     final repository = _FakeSkillRepository([
       _skill('Release Notes', description: 'Create polished changelogs'),
@@ -594,12 +612,13 @@ SkillContent _bundledSkillContent() {
 }
 
 final class _FakeSkillRepository implements SkillRepository {
-  _FakeSkillRepository(List<SkillDescriptor> initial)
+  _FakeSkillRepository(List<SkillDescriptor> initial, {this.installedFuture})
     : _skills = List<SkillDescriptor>.of(initial);
 
   final StreamController<List<SkillDescriptor>> _changes =
       StreamController<List<SkillDescriptor>>.broadcast();
   final List<SkillImportSource> installedSources = [];
+  final Future<List<SkillDescriptor>>? installedFuture;
   List<SkillDescriptor> _skills;
 
   @override
@@ -612,7 +631,7 @@ final class _FakeSkillRepository implements SkillRepository {
   @override
   Future<List<SkillDescriptor>> getInstalled({
     bool forceRefresh = false,
-  }) async => List<SkillDescriptor>.unmodifiable(_skills);
+  }) async => installedFuture ?? List<SkillDescriptor>.unmodifiable(_skills);
 
   @override
   Future<SkillDescriptor> install(SkillImportSource source) async {

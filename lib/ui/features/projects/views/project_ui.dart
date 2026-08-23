@@ -137,6 +137,7 @@ final class ProjectIconAction extends StatelessWidget {
     required this.onPressed,
     this.selected,
     this.destructive = false,
+    this.variant = ShadButtonVariant.ghost,
   });
 
   final IconData icon;
@@ -144,6 +145,7 @@ final class ProjectIconAction extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool? selected;
   final bool destructive;
+  final ShadButtonVariant variant;
 
   @override
   Widget build(BuildContext context) => HyveDesktopIconAction(
@@ -151,8 +153,7 @@ final class ProjectIconAction extends StatelessWidget {
     label: label,
     onPressed: onPressed,
     selected: selected,
-    variant:
-        destructive ? ShadButtonVariant.destructive : ShadButtonVariant.ghost,
+    variant: destructive ? ShadButtonVariant.destructive : variant,
   );
 }
 

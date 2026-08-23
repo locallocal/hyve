@@ -56,6 +56,8 @@ void main() {
         '新的消息',
       );
       await tester.pump();
+      expect(find.text('Stop active runs'), findsNothing);
+      expect(find.text('Send'), findsNothing);
       await tester.tap(
         find.byKey(const ValueKey<String>('project-send-message')),
       );
@@ -176,6 +178,7 @@ void main() {
                     displayName: 'a-long-report-name.md',
                   ),
                 ],
+                onPickAttachment: () {},
                 onSend: (_) {},
               ),
             ),
@@ -187,6 +190,36 @@ void main() {
         find.byKey(const ValueKey<String>('project-message-field')),
         findsOneWidget,
       );
+      final field = tester.widget<TextField>(
+        find.byKey(const ValueKey<String>('project-message-field')),
+      );
+      expect(field.decoration?.border, InputBorder.none);
+      expect(field.decoration?.enabledBorder, InputBorder.none);
+      expect(field.decoration?.focusedBorder, InputBorder.none);
+      final surfaceRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-composer-surface')),
+      );
+      for (final actionKey in const <String>[
+        'project-pick-attachment',
+        'project-send-message',
+      ]) {
+        final actionRect = tester.getRect(find.byKey(ValueKey(actionKey)));
+        expect(
+          surfaceRect.contains(actionRect.center),
+          isTrue,
+          reason: size.toString(),
+        );
+      }
+      final pickRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-pick-attachment')),
+      );
+      final sendRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-send-message')),
+      );
+      expect(pickRect.right, closeTo(sendRect.left, 0.01));
+      expect(pickRect.bottom, closeTo(sendRect.bottom, 0.01));
+      expect(find.text('Add attachment'), findsNothing);
+      expect(find.text('Send'), findsNothing);
     }
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -202,6 +235,7 @@ void main() {
     addTearDown(controller.dispose);
     ProjectMessageDraft? sent;
     (int, bool)? promotion;
+    var pickCalls = 0;
 
     await withDesktopPlatform(() async {
       await tester.pumpWidget(
@@ -225,6 +259,9 @@ void main() {
                       ],
                       onToggleAttachmentPromotion:
                           (index, selected) => promotion = (index, selected),
+                      onPickAttachment: () => pickCalls += 1,
+                      activeRunCount: 1,
+                      onCancelRuns: () {},
                       onSend: (draft) => sent = draft,
                     ),
                   ),
@@ -235,8 +272,42 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShadTextarea), findsOneWidget);
-      expect(find.byType(ShadCard), findsOneWidget);
+      expect(find.byType(ShadCard), findsNothing);
       expect(find.byType(ShadBadge), findsOneWidget);
+      expect(
+        tester.widget<ShadTextarea>(find.byType(ShadTextarea)).decoration,
+        same(ShadDecoration.none),
+      );
+      expect(find.byIcon(LucideIcons.plus), findsOneWidget);
+      expect(find.byIcon(LucideIcons.square), findsOneWidget);
+      expect(find.byIcon(LucideIcons.send), findsOneWidget);
+      expect(find.text('Add attachment'), findsNothing);
+      expect(find.text('Send'), findsNothing);
+      expect(find.text('停止运行'), findsNothing);
+      expect(find.bySemanticsLabel('添加附件'), findsOneWidget);
+      expect(find.bySemanticsLabel('发送'), findsOneWidget);
+
+      final surfaceRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-composer-surface')),
+      );
+      final pickRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-pick-attachment')),
+      );
+      final sendRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-send-message')),
+      );
+      expect(surfaceRect.contains(pickRect.center), isTrue);
+      expect(surfaceRect.contains(sendRect.center), isTrue);
+      expect(pickRect.right, closeTo(sendRect.left, 0.01));
+      expect(pickRect.bottom, closeTo(sendRect.bottom, 0.01));
+      expect(surfaceRect.right - sendRect.right, closeTo(6, 0.01));
+      expect(surfaceRect.bottom - sendRect.bottom, closeTo(4, 0.01));
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('project-pick-attachment')),
+      );
+      await tester.pump();
+      expect(pickCalls, 1);
 
       await tester.tap(find.text('report.md'));
       await tester.pump();

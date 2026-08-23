@@ -198,6 +198,70 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
     );
   }
 
+  Widget _artifactResults(
+    BuildContext context,
+    ProjectLocalizations copy,
+    ProjectArtifactsController viewModel, {
+    required bool hasBoundedHeight,
+  }) {
+    if (viewModel.artifacts.isEmpty) {
+      return ProjectEmptyState(icon: LucideIcons.file, title: copy.noArtifacts);
+    }
+    return ListView.builder(
+      primary: hasBoundedHeight ? null : false,
+      shrinkWrap: !hasBoundedHeight,
+      physics: hasBoundedHeight ? null : const NeverScrollableScrollPhysics(),
+      key: const ValueKey<String>('artifact-list'),
+      itemCount: viewModel.artifacts.length,
+      itemBuilder: (context, index) {
+        final entry = viewModel.artifacts[index];
+        final artifact = entry.artifact;
+        final version = entry.currentVersion;
+        return ProjectSurfaceCard(
+          key: ValueKey<String>('project-artifact-${artifact.id}'),
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: Icon(_kindIcon(artifact.kind)),
+            title: Text(artifact.relativePath),
+            subtitle: Text(
+              '${copy.artifactKind(artifact.kind)} · '
+              '${version.byteLength} B · '
+              'v${version.versionNumber} · '
+              '${copy.actorSource(artifact)}\n'
+              '${version.contentDigest.substring(0, 12)}'
+              '${entry.snippet.isEmpty ? '' : ' · ${entry.snippet}'}',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            isThreeLine: true,
+            onTap: () => _preview(entry),
+            trailing: ProjectOverflowMenu<_ArtifactAction>(
+              onSelected: (action) => _handleAction(action, entry),
+              items: [
+                ProjectMenuItem<_ArtifactAction>(
+                  value: _ArtifactAction.preview,
+                  label: copy.previewAndHistory,
+                  icon: LucideIcons.eye,
+                ),
+                ProjectMenuItem<_ArtifactAction>(
+                  value: _ArtifactAction.rename,
+                  label: copy.moveOrRename,
+                  icon: LucideIcons.pencil,
+                ),
+                ProjectMenuItem<_ArtifactAction>(
+                  value: _ArtifactAction.delete,
+                  label: copy.delete,
+                  icon: LucideIcons.trash2,
+                  destructive: true,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final copy = ProjectLocalizations.of(context);
@@ -212,231 +276,196 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
           maxWidth: widget.embedded ? double.infinity : 900,
           maxHeight: widget.embedded ? double.infinity : 680,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: AnimatedBuilder(
-            animation: widget.viewModel,
-            builder: (context, _) {
-              final viewModel = widget.viewModel;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        LucideIcons.folderKanban,
-                        semanticLabel: copy.artifacts,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        copy.artifacts,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const Spacer(),
-                      if (!widget.embedded)
-                        ProjectIconAction(
-                          label: copy.close,
-                          onPressed: () => Navigator.pop(context),
-                          icon: LucideIcons.x,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      const minimumToolbarWidth = 720.0;
-                      final toolbarWidth =
-                          constraints.maxWidth < minimumToolbarWidth
-                              ? minimumToolbarWidth
-                              : constraints.maxWidth;
-                      return SingleChildScrollView(
-                        key: const ValueKey<String>('artifact-toolbar'),
-                        scrollDirection: Axis.horizontal,
-                        child: SizedBox(
-                          width: toolbarWidth,
-                          height: 36,
-                          child: Row(
-                            key: const ValueKey<String>(
-                              'artifact-primary-toolbar',
+        child: LayoutBuilder(
+          builder:
+              (context, panelConstraints) => Padding(
+                padding: const EdgeInsets.all(20),
+                child: AnimatedBuilder(
+                  animation: widget.viewModel,
+                  builder: (context, _) {
+                    final viewModel = widget.viewModel;
+                    final hasBoundedHeight = panelConstraints.hasBoundedHeight;
+                    final results = _artifactResults(
+                      context,
+                      copy,
+                      viewModel,
+                      hasBoundedHeight: hasBoundedHeight,
+                    );
+                    return Column(
+                      mainAxisSize:
+                          hasBoundedHeight
+                              ? MainAxisSize.max
+                              : MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.folderKanban,
+                              semanticLabel: copy.artifacts,
                             ),
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: SizedBox(
-                                  key: const ValueKey<String>(
-                                    'artifact-search-container',
-                                  ),
-                                  height: 36,
-                                  child: ProjectTextInput(
-                                    key: const ValueKey<String>(
-                                      'artifact-search-field',
-                                    ),
-                                    controller: _search,
-                                    label: copy.searchArtifacts,
-                                    showLabel: false,
-                                    leading: const Icon(
-                                      LucideIcons.search,
-                                      size: 16,
-                                    ),
-                                    onChanged: _scheduleFilter,
-                                    onSubmitted: _submitFilter,
-                                  ),
-                                ),
+                            const SizedBox(width: 10),
+                            Text(
+                              copy.artifacts,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Spacer(),
+                            if (!widget.embedded)
+                              ProjectIconAction(
+                                label: copy.close,
+                                onPressed: () => Navigator.pop(context),
+                                icon: LucideIcons.x,
                               ),
-                              const SizedBox(width: 10),
-                              SizedBox(
-                                width: 160,
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            const minimumToolbarWidth = 720.0;
+                            final toolbarWidth =
+                                constraints.maxWidth < minimumToolbarWidth
+                                    ? minimumToolbarWidth
+                                    : constraints.maxWidth;
+                            return SingleChildScrollView(
+                              key: const ValueKey<String>('artifact-toolbar'),
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: toolbarWidth,
                                 height: 36,
-                                key: const ValueKey<String>(
-                                  'artifact-kind-filter',
-                                ),
-                                child: ProjectSelect<ProjectArtifactKind>(
-                                  initialValue: _kind,
-                                  placeholder: copy.allTypes,
-                                  options: [
-                                    for (final kind
-                                        in ProjectArtifactKind.values)
-                                      ProjectSelectOption<ProjectArtifactKind>(
-                                        value: kind,
-                                        label: copy.artifactKind(kind),
+                                child: Row(
+                                  key: const ValueKey<String>(
+                                    'artifact-primary-toolbar',
+                                  ),
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        key: const ValueKey<String>(
+                                          'artifact-search-container',
+                                        ),
+                                        height: 36,
+                                        child: ProjectTextInput(
+                                          key: const ValueKey<String>(
+                                            'artifact-search-field',
+                                          ),
+                                          controller: _search,
+                                          label: copy.searchArtifacts,
+                                          showLabel: false,
+                                          leading: const Icon(
+                                            LucideIcons.search,
+                                            size: 16,
+                                          ),
+                                          onChanged: _scheduleFilter,
+                                          onSubmitted: _submitFilter,
+                                        ),
                                       ),
-                                  ],
-                                  onChanged: (kind) {
-                                    setState(() => _kind = kind);
-                                    unawaited(_applyFilter());
-                                  },
-                                ),
-                              ),
-                              if (_kind != null) ...[
-                                const SizedBox(width: 10),
-                                ProjectActionButton(
-                                  label: copy.allTypes,
-                                  onPressed: () {
-                                    setState(() => _kind = null);
-                                    unawaited(_applyFilter());
-                                  },
-                                  variant: ProjectActionVariant.ghost,
-                                  leading: const Icon(LucideIcons.x, size: 16),
-                                ),
-                              ],
-                              const SizedBox(width: 10),
-                              ProjectActionButton(
-                                key: const ValueKey<String>(
-                                  'artifact-import-button',
-                                ),
-                                onPressed:
-                                    viewModel.artifactBusy
-                                        ? null
-                                        : () => unawaited(
-                                          viewModel.importPickedArtifacts(),
-                                        ),
-                                leading: const Icon(
-                                  LucideIcons.fileUp,
-                                  size: 16,
-                                ),
-                                label: copy.importFiles,
-                                variant: ProjectActionVariant.outline,
-                              ),
-                              const SizedBox(width: 10),
-                              ProjectActionButton(
-                                key: const ValueKey<String>(
-                                  'artifact-create-button',
-                                ),
-                                onPressed:
-                                    viewModel.artifactBusy
-                                        ? null
-                                        : () => unawaited(_createText()),
-                                leading: const Icon(LucideIcons.plus, size: 16),
-                                label: copy.createText,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  if (viewModel.artifactBusy)
-                    const LinearProgressIndicator(
-                      key: ValueKey<String>('artifact-loading'),
-                    ),
-                  if (viewModel.errorCode.startsWith('artifact_'))
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        copy.artifactError(viewModel.errorCode),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child:
-                        viewModel.artifacts.isEmpty
-                            ? ProjectEmptyState(
-                              icon: LucideIcons.file,
-                              title: copy.noArtifacts,
-                            )
-                            : ListView.builder(
-                              key: const ValueKey<String>('artifact-list'),
-                              itemCount: viewModel.artifacts.length,
-                              itemBuilder: (context, index) {
-                                final entry = viewModel.artifacts[index];
-                                final artifact = entry.artifact;
-                                final version = entry.currentVersion;
-                                return ProjectSurfaceCard(
-                                  key: ValueKey<String>(
-                                    'project-artifact-${artifact.id}',
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  child: ListTile(
-                                    leading: Icon(_kindIcon(artifact.kind)),
-                                    title: Text(artifact.relativePath),
-                                    subtitle: Text(
-                                      '${copy.artifactKind(artifact.kind)} · '
-                                      '${version.byteLength} B · '
-                                      'v${version.versionNumber} · '
-                                      '${copy.actorSource(artifact)}\n'
-                                      '${version.contentDigest.substring(0, 12)}'
-                                      '${entry.snippet.isEmpty ? '' : ' · ${entry.snippet}'}',
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    isThreeLine: true,
-                                    onTap: () => _preview(entry),
-                                    trailing:
-                                        ProjectOverflowMenu<_ArtifactAction>(
-                                          onSelected:
-                                              (action) =>
-                                                  _handleAction(action, entry),
-                                          items: [
-                                            ProjectMenuItem<_ArtifactAction>(
-                                              value: _ArtifactAction.preview,
-                                              label: copy.previewAndHistory,
-                                              icon: LucideIcons.eye,
+                                    const SizedBox(width: 10),
+                                    SizedBox(
+                                      width: 160,
+                                      height: 36,
+                                      key: const ValueKey<String>(
+                                        'artifact-kind-filter',
+                                      ),
+                                      child: ProjectSelect<ProjectArtifactKind>(
+                                        initialValue: _kind,
+                                        placeholder: copy.allTypes,
+                                        options: [
+                                          for (final kind
+                                              in ProjectArtifactKind.values)
+                                            ProjectSelectOption<
+                                              ProjectArtifactKind
+                                            >(
+                                              value: kind,
+                                              label: copy.artifactKind(kind),
                                             ),
-                                            ProjectMenuItem<_ArtifactAction>(
-                                              value: _ArtifactAction.rename,
-                                              label: copy.moveOrRename,
-                                              icon: LucideIcons.pencil,
-                                            ),
-                                            ProjectMenuItem<_ArtifactAction>(
-                                              value: _ArtifactAction.delete,
-                                              label: copy.delete,
-                                              icon: LucideIcons.trash2,
-                                              destructive: true,
-                                            ),
-                                          ],
+                                        ],
+                                        onChanged: (kind) {
+                                          setState(() => _kind = kind);
+                                          unawaited(_applyFilter());
+                                        },
+                                      ),
+                                    ),
+                                    if (_kind != null) ...[
+                                      const SizedBox(width: 10),
+                                      ProjectActionButton(
+                                        label: copy.allTypes,
+                                        onPressed: () {
+                                          setState(() => _kind = null);
+                                          unawaited(_applyFilter());
+                                        },
+                                        variant: ProjectActionVariant.ghost,
+                                        leading: const Icon(
+                                          LucideIcons.x,
+                                          size: 16,
                                         ),
-                                  ),
-                                );
-                              },
+                                      ),
+                                    ],
+                                    const SizedBox(width: 10),
+                                    ProjectActionButton(
+                                      key: const ValueKey<String>(
+                                        'artifact-import-button',
+                                      ),
+                                      onPressed:
+                                          viewModel.artifactBusy
+                                              ? null
+                                              : () => unawaited(
+                                                viewModel
+                                                    .importPickedArtifacts(),
+                                              ),
+                                      leading: const Icon(
+                                        LucideIcons.fileUp,
+                                        size: 16,
+                                      ),
+                                      label: copy.importFiles,
+                                      variant: ProjectActionVariant.outline,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ProjectActionButton(
+                                      key: const ValueKey<String>(
+                                        'artifact-create-button',
+                                      ),
+                                      onPressed:
+                                          viewModel.artifactBusy
+                                              ? null
+                                              : () => unawaited(_createText()),
+                                      leading: const Icon(
+                                        LucideIcons.plus,
+                                        size: 16,
+                                      ),
+                                      label: copy.createText,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (viewModel.artifactBusy)
+                          const LinearProgressIndicator(
+                            key: ValueKey<String>('artifact-loading'),
+                          ),
+                        if (viewModel.errorCode.startsWith('artifact_'))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              copy.artifactError(viewModel.errorCode),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                             ),
-                  ),
-                ],
-              );
-            },
-          ),
+                          ),
+                        const SizedBox(height: 8),
+                        if (hasBoundedHeight)
+                          Expanded(child: results)
+                        else
+                          results,
+                      ],
+                    );
+                  },
+                ),
+              ),
         ),
       ),
     );

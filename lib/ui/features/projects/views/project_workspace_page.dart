@@ -378,6 +378,9 @@ final class _PersistentProjectInspectorState
           value: _selected,
           onChanged: (value) => setState(() => _selected = value),
           gap: 12,
+          contentConstraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height,
+          ),
           tabs: <ShadTab<int>>[
             ShadTab<int>(
               value: 0,

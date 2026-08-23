@@ -177,6 +177,59 @@ void main() {
     expect(find.textContaining('summary-1'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('supports retained offstage layout in expanding Shad tabs', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => SizedBox(
+              width: 368,
+              height: 700,
+              child: ShadTabs<int>(
+                value: 0,
+                maintainState: true,
+                tabs: <ShadTab<int>>[
+                  const ShadTab<int>(
+                    value: 0,
+                    expandContent: true,
+                    content: SizedBox.shrink(),
+                    child: Text('Artifacts tab'),
+                  ),
+                  ShadTab<int>(
+                    value: 1,
+                    expandContent: true,
+                    content: const ProjectExecutionPanel(
+                      embedded: true,
+                      turns: <String, ProjectTurn>{},
+                      runs: <String, AgentRun>{},
+                      decisions: <String, ParticipationDecision>{},
+                      usageRecords: <ModelTokenUsageRecord>[],
+                      events: <ProjectEvent>[],
+                      agentNames: <String, String>{},
+                      onCancelRun: _ignore,
+                      onCancelTurn: _ignore,
+                      onCancelRootChain: _ignore,
+                    ),
+                    child: const Text('Execution tab'),
+                  ),
+                ],
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Execution tab'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('暂无执行记录'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 void _ignore(String _) {}

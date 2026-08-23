@@ -312,53 +312,17 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
                 _send,
             const SingleActivator(LogicalKeyboardKey.enter, meta: true): _send,
           },
-          child: ProjectSurfaceCard(
-            padding: const EdgeInsets.all(10),
-            margin: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (hasShadProjectTheme(context))
-                  ShadTextarea(
-                    key: const ValueKey<String>('project-message-field'),
-                    controller: widget.controller,
-                    focusNode: _focusNode,
-                    placeholder: Text(
-                      widget.hintText.isEmpty
-                          ? copy.broadcastHint
-                          : widget.hintText,
-                    ),
-                    minHeight: 72,
-                    maxHeight: 180,
-                    resizable: false,
-                    onSubmitted: (_) => _send(),
-                  )
-                else
-                  TextField(
-                    key: const ValueKey<String>('project-message-field'),
-                    controller: widget.controller,
-                    focusNode: _focusNode,
-                    minLines: 2,
-                    maxLines: 6,
-                    decoration: InputDecoration(
-                      hintText:
-                          widget.hintText.isEmpty
-                              ? copy.broadcastHint
-                              : widget.hintText,
-                    ),
-                    onSubmitted: (_) => _send(),
-                  ),
-                const SizedBox(height: 8),
-                _ComposerToolbar(
-                  canSend: _canSend,
-                  activeRunCount: widget.activeRunCount,
-                  copy: copy,
-                  onPickAttachment: widget.onPickAttachment,
-                  onCancelRuns: widget.onCancelRuns,
-                  onSend: _send,
-                ),
-              ],
-            ),
+          child: _ComposerSurface(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            hintText:
+                widget.hintText.isEmpty ? copy.broadcastHint : widget.hintText,
+            canSend: _canSend,
+            activeRunCount: widget.activeRunCount,
+            copy: copy,
+            onPickAttachment: widget.onPickAttachment,
+            onCancelRuns: widget.onCancelRuns,
+            onSend: _send,
           ),
         ),
       ],
@@ -552,8 +516,11 @@ final class _AttachmentChip extends StatelessWidget {
   }
 }
 
-final class _ComposerToolbar extends StatelessWidget {
-  const _ComposerToolbar({
+final class _ComposerSurface extends StatelessWidget {
+  const _ComposerSurface({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
     required this.canSend,
     required this.activeRunCount,
     required this.copy,
@@ -562,6 +529,11 @@ final class _ComposerToolbar extends StatelessWidget {
     required this.onSend,
   });
 
+  static const EdgeInsets _inputPadding = EdgeInsets.fromLTRB(12, 12, 12, 58);
+
+  final StructuredProjectMessageController controller;
+  final FocusNode focusNode;
+  final String hintText;
   final bool canSend;
   final int activeRunCount;
   final ProjectLocalizations copy;
@@ -570,36 +542,87 @@ final class _ComposerToolbar extends StatelessWidget {
   final VoidCallback onSend;
 
   @override
-  Widget build(BuildContext context) => Wrap(
-    alignment: WrapAlignment.end,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      if (onPickAttachment != null)
-        ProjectActionButton(
-          key: const ValueKey<String>('project-pick-attachment'),
-          label: copy.addAttachment,
-          onPressed: onPickAttachment,
-          variant: ProjectActionVariant.ghost,
-          leading: const Icon(LucideIcons.paperclip, size: 16),
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final radius = shadTheme?.radius ?? BorderRadius.circular(12);
+    final backgroundColor =
+        shadTheme?.colorScheme.muted.withValues(alpha: 0.55) ??
+        Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.72);
+
+    return DecoratedBox(
+      key: const ValueKey<String>('project-composer-surface'),
+      decoration: BoxDecoration(color: backgroundColor, borderRadius: radius),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: <Widget>[
+            if (shadTheme != null)
+              ShadTextarea(
+                key: const ValueKey<String>('project-message-field'),
+                controller: controller,
+                focusNode: focusNode,
+                placeholder: Text(hintText),
+                padding: _inputPadding,
+                decoration: ShadDecoration.none,
+                minHeight: 72,
+                maxHeight: 180,
+                resizable: false,
+                onSubmitted: (_) => onSend(),
+              )
+            else
+              TextField(
+                key: const ValueKey<String>('project-message-field'),
+                controller: controller,
+                focusNode: focusNode,
+                minLines: 2,
+                maxLines: 6,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: _inputPadding,
+                ),
+                onSubmitted: (_) => onSend(),
+              ),
+            PositionedDirectional(
+              end: 6,
+              bottom: 4,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (activeRunCount > 0 && onCancelRuns != null)
+                    ProjectIconAction(
+                      key: const ValueKey<String>('project-cancel-runs'),
+                      icon: LucideIcons.square,
+                      label: copy.stopRuns,
+                      onPressed: onCancelRuns,
+                      variant: ShadButtonVariant.outline,
+                    ),
+                  if (onPickAttachment != null)
+                    ProjectIconAction(
+                      key: const ValueKey<String>('project-pick-attachment'),
+                      icon: LucideIcons.plus,
+                      label: copy.addAttachment,
+                      onPressed: onPickAttachment,
+                    ),
+                  ProjectIconAction(
+                    key: const ValueKey<String>('project-send-message'),
+                    icon: LucideIcons.send,
+                    label: copy.send,
+                    onPressed: canSend ? onSend : null,
+                    variant: ShadButtonVariant.primary,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      if (activeRunCount > 0 && onCancelRuns != null)
-        ProjectActionButton(
-          key: const ValueKey<String>('project-cancel-runs'),
-          label: copy.stopRuns,
-          onPressed: onCancelRuns,
-          variant: ProjectActionVariant.outline,
-          leading: const Icon(LucideIcons.square, size: 16),
-        ),
-      ProjectActionButton(
-        key: const ValueKey<String>('project-send-message'),
-        label: copy.send,
-        onPressed: canSend ? onSend : null,
-        leading: const Icon(LucideIcons.send, size: 16),
       ),
-    ],
-  );
+    );
+  }
 }
 
 int _compareSpans(MentionSpan left, MentionSpan right) =>

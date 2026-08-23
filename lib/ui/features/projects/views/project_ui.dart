@@ -9,6 +9,30 @@ const double projectCompactWidth = 560;
 bool hasShadProjectTheme(BuildContext context) =>
     ShadTheme.maybeOf(context) != null;
 
+/// Keeps every primary project workspace section on the same responsive axis.
+final class ProjectContentBounds extends StatelessWidget {
+  const ProjectContentBounds({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: padding,
+    child: Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: projectContentMaxWidth),
+        child: SizedBox(width: double.infinity, child: child),
+      ),
+    ),
+  );
+}
+
 enum ProjectActionVariant { primary, secondary, outline, ghost, destructive }
 
 enum ProjectBadgeVariant { primary, secondary, outline, destructive }

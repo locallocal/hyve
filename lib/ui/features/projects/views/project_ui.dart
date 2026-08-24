@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/utils/theme.dart';
 
 const double projectContentMaxWidth = 920;
 const double projectInspectorWidth = 392;
@@ -549,6 +550,14 @@ final class ProjectEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
+    if (shadTheme != null && description != null) {
+      return DesktopEmptyStateCard(
+        icon: icon,
+        title: title,
+        description: description!,
+        action: action,
+      );
+    }
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),

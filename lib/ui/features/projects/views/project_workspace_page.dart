@@ -292,70 +292,94 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   Widget _workspace(
     ProjectWorkspaceViewModel viewModel,
     ProjectLocalizations copy,
-  ) => ProjectInitialLoadGate(
-    ready: viewModel.project != null,
-    loadingLabel: copy.loadingWorkspace,
-    child: Column(
-      children: <Widget>[
-        ProjectContentBounds(
-          child: _AgentStatusStrip(
-            statuses: viewModel.agentStatuses,
-            agents: viewModel.activeAgents,
-          ),
-        ),
-        if (viewModel.activeAgents.isEmpty)
+  ) {
+    final hasActiveAgents = viewModel.activeAgents.isNotEmpty;
+    final hasTimelineEntries = ProjectEventList.hasTimelineEntries(
+      viewModel.events,
+    );
+    return ProjectInitialLoadGate(
+      ready: viewModel.project != null,
+      loadingLabel: copy.loadingWorkspace,
+      child: Column(
+        children: <Widget>[
           ProjectContentBounds(
-            child: _NoAgentsNotice(message: copy.noAgentsNotice),
-          ),
-        Expanded(
-          child: ProjectContentBounds(
-            child: ProjectEventList(
-              events: viewModel.events,
-              turns: viewModel.turns,
-              deliveries: viewModel.deliveries,
-              runs: viewModel.runs,
-              agentNames: viewModel.agentNames,
-              hasEarlier: viewModel.hasEarlierEvents,
-              loadingEarlier: viewModel.eventPageBusy,
-              onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            child: _AgentStatusStrip(
+              statuses: viewModel.agentStatuses,
+              agents: viewModel.activeAgents,
             ),
           ),
-        ),
-        if (viewModel.errorCode.isNotEmpty)
-          ProjectContentBounds(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(
-                copy.routeError(viewModel.errorCode),
-                key: const ValueKey<String>('project-route-error'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+          if (!hasActiveAgents && hasTimelineEntries)
+            ProjectContentBounds(
+              child: _NoAgentsNotice(message: copy.noAgentsNotice),
+            ),
+          Expanded(
+            child: ProjectContentBounds(
+              child: ProjectEventList(
+                events: viewModel.events,
+                turns: viewModel.turns,
+                deliveries: viewModel.deliveries,
+                runs: viewModel.runs,
+                agentNames: viewModel.agentNames,
+                hasEarlier: viewModel.hasEarlierEvents,
+                loadingEarlier: viewModel.eventPageBusy,
+                onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                emptyIcon:
+                    hasActiveAgents
+                        ? LucideIcons.messageSquareText
+                        : LucideIcons.bot,
+                emptyTitle:
+                    hasActiveAgents
+                        ? copy.emptyTimelineTitle
+                        : copy.noAgentsTitle,
+                emptyDescription:
+                    hasActiveAgents ? copy.emptyTimeline : copy.noAgentsNotice,
+                emptyAction:
+                    hasActiveAgents
+                        ? null
+                        : ProjectActionButton(
+                          label: copy.addAgent,
+                          onPressed: () => unawaited(_showMembers()),
+                          leading: const Icon(LucideIcons.plus, size: 16),
+                        ),
               ),
             ),
           ),
-        ProjectContentBounds(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: ProjectMessageComposer(
-            controller: _composer,
-            activeAgents: viewModel.activeAgents,
-            attachments: _attachments,
-            hintText: copy.broadcastHint,
-            onPickAttachment: () => unawaited(_pickAttachment()),
-            onRemoveAttachment:
-                (index) => setState(() => _attachments.removeAt(index)),
-            onToggleAttachmentPromotion: _toggleAttachmentPromotion,
-            activeRunCount:
-                viewModel.agentStatuses
-                    .where((status) => status.activeRunId.isNotEmpty)
-                    .length,
-            onCancelRuns: viewModel.cancelActiveRuns,
-            onSend: (draft) => unawaited(_submit(draft)),
+          if (viewModel.errorCode.isNotEmpty)
+            ProjectContentBounds(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  copy.routeError(viewModel.errorCode),
+                  key: const ValueKey<String>('project-route-error'),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ),
+          ProjectContentBounds(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ProjectMessageComposer(
+              controller: _composer,
+              activeAgents: viewModel.activeAgents,
+              attachments: _attachments,
+              hintText: copy.broadcastHint,
+              onPickAttachment: () => unawaited(_pickAttachment()),
+              onRemoveAttachment:
+                  (index) => setState(() => _attachments.removeAt(index)),
+              onToggleAttachmentPromotion: _toggleAttachmentPromotion,
+              activeRunCount:
+                  viewModel.agentStatuses
+                      .where((status) => status.activeRunId.isNotEmpty)
+                      .length,
+              onCancelRuns: viewModel.cancelActiveRuns,
+              onSend: (draft) => unawaited(_submit(draft)),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 final class _PersistentProjectInspector extends StatefulWidget {

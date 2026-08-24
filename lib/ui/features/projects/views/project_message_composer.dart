@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
+import 'package:hyve/utils/theme.dart';
 
 final class StructuredProjectMessageController extends TextEditingController {
   StructuredProjectMessageController({
@@ -557,7 +558,8 @@ final class _ComposerSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
-    final radius = shadTheme?.radius ?? BorderRadius.circular(12);
+    final radius = shadTheme?.radius ?? HyveDesktopThemeSpec.controlRadius;
+    final tokens = HyveDesktopTokens.of(context);
     final backgroundColor =
         shadTheme?.colorScheme.muted.withValues(alpha: 0.55) ??
         Theme.of(
@@ -567,72 +569,86 @@ final class _ComposerSurface extends StatelessWidget {
     return DecoratedBox(
       key: const ValueKey<String>('project-composer-surface'),
       decoration: BoxDecoration(color: backgroundColor, borderRadius: radius),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
-          children: <Widget>[
-            if (shadTheme != null)
-              ShadTextarea(
-                key: const ValueKey<String>('project-message-field'),
-                controller: controller,
-                focusNode: focusNode,
-                placeholder: Text(hintText),
-                padding: _inputPadding,
-                decoration: ShadDecoration.none,
-                minHeight: 72,
-                maxHeight: 180,
-                resizable: false,
-                onSubmitted: (_) => onSend(),
-              )
-            else
-              TextField(
-                key: const ValueKey<String>('project-message-field'),
-                controller: controller,
-                focusNode: focusNode,
-                minLines: 2,
-                maxLines: 6,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: _inputPadding,
+      child: Stack(
+        children: <Widget>[
+          if (shadTheme != null)
+            ShadTextarea(
+              key: const ValueKey<String>('project-message-field'),
+              controller: controller,
+              focusNode: focusNode,
+              placeholder: Text(hintText),
+              padding: _inputPadding,
+              minHeight: 72,
+              maxHeight: 180,
+              resizable: false,
+              onSubmitted: (_) => onSend(),
+            )
+          else
+            TextField(
+              key: const ValueKey<String>('project-message-field'),
+              controller: controller,
+              focusNode: focusNode,
+              minLines: 2,
+              maxLines: 6,
+              decoration: InputDecoration(
+                hintText: hintText,
+                border: OutlineInputBorder(
+                  borderRadius: radius,
+                  borderSide: BorderSide.none,
                 ),
-                onSubmitted: (_) => onSend(),
-              ),
-            PositionedDirectional(
-              end: 6,
-              bottom: 4,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (activeRunCount > 0 && onCancelRuns != null)
-                    ProjectIconAction(
-                      key: const ValueKey<String>('project-cancel-runs'),
-                      icon: LucideIcons.square,
-                      label: copy.stopRuns,
-                      onPressed: onCancelRuns,
-                      variant: ShadButtonVariant.outline,
-                    ),
-                  if (onPickAttachment != null)
-                    ProjectIconAction(
-                      key: const ValueKey<String>('project-pick-attachment'),
-                      icon: LucideIcons.plus,
-                      label: copy.addAttachment,
-                      onPressed: onPickAttachment,
-                    ),
-                  ProjectIconAction(
-                    key: const ValueKey<String>('project-send-message'),
-                    icon: LucideIcons.send,
-                    label: copy.send,
-                    onPressed: canSend ? onSend : null,
-                    variant: ShadButtonVariant.primary,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: radius,
+                  borderSide: BorderSide(color: tokens.separator),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: radius,
+                  borderSide: BorderSide(
+                    color: tokens.focusRing,
+                    width: tokens.highContrast ? 2 : 1.5,
                   ),
-                ],
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: radius,
+                  borderSide: BorderSide(
+                    color: tokens.separator.withValues(alpha: 0.6),
+                  ),
+                ),
+                contentPadding: _inputPadding,
               ),
+              onSubmitted: (_) => onSend(),
             ),
-          ],
-        ),
+          PositionedDirectional(
+            end: 6,
+            bottom: 4,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (activeRunCount > 0 && onCancelRuns != null)
+                  ProjectIconAction(
+                    key: const ValueKey<String>('project-cancel-runs'),
+                    icon: LucideIcons.square,
+                    label: copy.stopRuns,
+                    onPressed: onCancelRuns,
+                    variant: ShadButtonVariant.outline,
+                  ),
+                if (onPickAttachment != null)
+                  ProjectIconAction(
+                    key: const ValueKey<String>('project-pick-attachment'),
+                    icon: LucideIcons.plus,
+                    label: copy.addAttachment,
+                    onPressed: onPickAttachment,
+                  ),
+                ProjectIconAction(
+                  key: const ValueKey<String>('project-send-message'),
+                  icon: LucideIcons.send,
+                  label: copy.send,
+                  onPressed: canSend ? onSend : null,
+                  variant: ShadButtonVariant.primary,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

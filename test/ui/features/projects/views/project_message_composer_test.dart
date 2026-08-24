@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/views/project_message_composer.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../../../../support/widget_test_support.dart';
 
@@ -223,9 +224,17 @@ void main() {
       final field = tester.widget<TextField>(
         find.byKey(const ValueKey<String>('project-message-field')),
       );
-      expect(field.decoration?.border, InputBorder.none);
-      expect(field.decoration?.enabledBorder, InputBorder.none);
-      expect(field.decoration?.focusedBorder, InputBorder.none);
+      final enabledBorder =
+          field.decoration!.enabledBorder! as OutlineInputBorder;
+      final focusedBorder =
+          field.decoration!.focusedBorder! as OutlineInputBorder;
+      final tokens = HyveDesktopTokens.of(
+        tester.element(find.byType(TextField)),
+      );
+      expect(enabledBorder.borderRadius, HyveDesktopThemeSpec.controlRadius);
+      expect(enabledBorder.borderSide.color, tokens.separator);
+      expect(focusedBorder.borderRadius, HyveDesktopThemeSpec.controlRadius);
+      expect(focusedBorder.borderSide.color, tokens.focusRing);
       final surfaceRect = tester.getRect(
         find.byKey(const ValueKey<String>('project-composer-surface')),
       );
@@ -304,9 +313,21 @@ void main() {
       expect(find.byType(ShadTextarea), findsOneWidget);
       expect(find.byType(ShadCard), findsNothing);
       expect(find.byType(ShadBadge), findsOneWidget);
+      final textarea = tester.widget<ShadTextarea>(find.byType(ShadTextarea));
+      final shadTheme = ShadTheme.of(tester.element(find.byType(ShadTextarea)));
+      final searchBorder = shadTheme.inputTheme.decoration?.border;
+      final composerBorder = shadTheme.textareaTheme.decoration?.border;
+      expect(textarea.decoration, isNull);
+      expect(composerBorder?.top?.width, searchBorder?.top?.width);
+      expect(composerBorder?.top?.color, searchBorder?.top?.color);
+      expect(composerBorder?.radius, searchBorder?.radius);
       expect(
-        tester.widget<ShadTextarea>(find.byType(ShadTextarea)).decoration,
-        same(ShadDecoration.none),
+        tester
+            .widget<DecoratedBox>(
+              find.byKey(const ValueKey<String>('project-composer-surface')),
+            )
+            .child,
+        isA<Stack>(),
       );
       expect(find.byIcon(LucideIcons.plus), findsOneWidget);
       expect(find.byIcon(LucideIcons.square), findsOneWidget);

@@ -7,6 +7,92 @@ import 'package:hyve/ui/features/projects/views/project_event_list.dart';
 import '../../../../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('empty timeline matches the desktop shadcn empty state', (
+    tester,
+  ) async {
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: brightness,
+          locale: const Locale('zh', 'CN'),
+          homeBuilder:
+              (_) => const Scaffold(
+                body: ProjectEventList(
+                  events: <ProjectEvent>[],
+                  turns: <String, ProjectTurn>{},
+                  deliveries: <String, AgentDelivery>{},
+                  runs: <String, AgentRun>{},
+                  agentNames: <String, String>{},
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final titleFinder = find.text('暂无消息');
+      final descriptionFinder = find.text('发送消息开始协作；不使用 @ 时将广播。');
+      final title = tester.widget<Text>(titleFinder);
+      final description = tester.widget<Text>(descriptionFinder);
+      final materialTheme = Theme.of(tester.element(titleFinder));
+
+      expect(find.byIcon(LucideIcons.messageSquareText), findsOneWidget);
+      expect(
+        tester.widget<Icon>(find.byIcon(LucideIcons.messageSquareText)).size,
+        18,
+      );
+      expect(
+        title.style?.fontSize,
+        materialTheme.textTheme.titleMedium?.fontSize,
+      );
+      expect(title.style?.fontWeight, FontWeight.w600);
+      expect(
+        title.style?.fontFamilyFallback,
+        materialTheme.textTheme.titleMedium?.fontFamilyFallback,
+      );
+      expect(
+        description.style?.fontSize,
+        materialTheme.textTheme.bodyMedium?.fontSize,
+      );
+      expect(
+        description.style?.fontFamilyFallback,
+        materialTheme.textTheme.bodyMedium?.fontFamilyFallback,
+      );
+      expect(tester.takeException(), isNull, reason: brightness.name);
+    }
+  });
+
+  testWidgets('empty timeline accepts a no-agent action', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: ProjectEventList(
+                events: const <ProjectEvent>[],
+                turns: const <String, ProjectTurn>{},
+                deliveries: const <String, AgentDelivery>{},
+                runs: const <String, AgentRun>{},
+                agentNames: const <String, String>{},
+                emptyIcon: LucideIcons.bot,
+                emptyTitle: '暂无活跃智能体',
+                emptyDescription: '添加智能体后即可开始协作。',
+                emptyAction: ShadButton(
+                  onPressed: () => tapped = true,
+                  child: const Text('添加智能体'),
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('暂无活跃智能体'), findsOneWidget);
+    expect(find.text('添加智能体后即可开始协作。'), findsOneWidget);
+    await tester.tap(find.text('添加智能体'));
+    expect(tapped, isTrue);
+  });
+
   testWidgets(
     'shows reply navigation and keeps pass decisions out of bubbles',
     (tester) async {

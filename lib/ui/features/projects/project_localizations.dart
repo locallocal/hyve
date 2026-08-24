@@ -38,6 +38,8 @@ final class ProjectLocalizations {
     'This project has no active agents. Messages are saved, but no reply will be generated.',
     '当前项目没有活跃智能体；消息会被保存，但不会产生回复。',
   );
+  String get noAgentsTitle => _text('No active agents', '暂无活跃智能体');
+  String get emptyTimelineTitle => _text('No messages yet', '暂无消息');
   String get emptyTimeline => _text(
     'Send a message to start collaborating. Messages without @ are broadcast.',
     '发送消息开始协作；不使用 @ 时将广播。',

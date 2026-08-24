@@ -16,6 +16,10 @@ final class ProjectEventList extends StatefulWidget {
     this.loadingEarlier = false,
     this.onLoadEarlier,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    this.emptyIcon,
+    this.emptyTitle,
+    this.emptyDescription,
+    this.emptyAction,
   });
 
   final List<ProjectEvent> events;
@@ -27,6 +31,17 @@ final class ProjectEventList extends StatefulWidget {
   final bool loadingEarlier;
   final VoidCallback? onLoadEarlier;
   final EdgeInsetsGeometry padding;
+  final IconData? emptyIcon;
+  final String? emptyTitle;
+  final String? emptyDescription;
+  final Widget? emptyAction;
+
+  static bool hasTimelineEntries(Iterable<ProjectEvent> events) =>
+      events.any(_isTimelineEntry);
+
+  static bool _isTimelineEntry(ProjectEvent event) =>
+      event.messageSequence != null ||
+      event.eventType == ProjectEventType.systemNotice;
 
   @override
   State<ProjectEventList> createState() => _ProjectEventListState();
@@ -36,11 +51,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
   final ScrollController _scrollController = ScrollController();
 
   List<ProjectEvent> get _messages => widget.events
-      .where(
-        (event) =>
-            event.messageSequence != null ||
-            event.eventType == ProjectEventType.systemNotice,
-      )
+      .where(ProjectEventList._isTimelineEntry)
       .toList(growable: false);
 
   @override
@@ -75,8 +86,10 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     final copy = ProjectLocalizations.of(context);
     if (messages.isEmpty) {
       return ProjectEmptyState(
-        icon: LucideIcons.sparkles,
-        title: copy.emptyTimeline,
+        icon: widget.emptyIcon ?? LucideIcons.messageSquareText,
+        title: widget.emptyTitle ?? copy.emptyTimelineTitle,
+        description: widget.emptyDescription ?? copy.emptyTimeline,
+        action: widget.emptyAction,
       );
     }
     return ListView.builder(

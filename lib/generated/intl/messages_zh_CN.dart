@@ -113,6 +113,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "addSkill": MessageLookupByLibrary.simpleMessage("添加技能"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("调整应用内文字大小"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("调整文字大小"),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "打开一个使用此智能体的项目后，即可查看并管理其上下文与记忆。",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("智能体记忆"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage("自动演化记忆"),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "长期记忆归属于此智能体，并可在不同项目间复用。",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage("所有已安装技能均已添加。"),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("始终启用"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
@@ -486,6 +494,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "设置项目名称，并可选择添加智能体。",
     ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage("此智能体还没有长期记忆。"),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "暂无已连接且可用的 MCP 工具。",
     ),

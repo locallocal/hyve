@@ -125,6 +125,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "Ajustar tamaño de fuente",
     ),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Abre un proyecto que use este agente para ver y gestionar su contexto y memoria.",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("Memoria del agente"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage(
+      "Evolución automática de la memoria",
+    ),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "La memoria a largo plazo pertenece a este agente y puede reutilizarse entre proyectos.",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "Se añadieron todas las habilidades instaladas.",
     ),
@@ -654,6 +664,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProject": MessageLookupByLibrary.simpleMessage("New Project"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "Name the project and add one or more bots.",
+    ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage(
+      "Este agente aún no tiene memoria a largo plazo.",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "No hay herramientas MCP conectadas disponibles.",

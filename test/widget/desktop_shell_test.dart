@@ -262,7 +262,7 @@ void main() {
     });
   });
 
-  testWidgets('desktop chat inspector uses the wider responsive sheet', (
+  testWidgets('desktop project toolbar omits the agent information panel', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -290,82 +290,15 @@ void main() {
       await tester.pumpWidget(desktopHarness(selectedChatBot: bot));
       await tester.pumpAndSettle();
 
-      await tester.tap(
+      expect(
         find.byKey(const ValueKey<String>('desktop-toolbar-inspector')),
-      );
-      await tester.pumpAndSettle();
-
-      final sheet = tester.widget<ShadSheet>(find.byType(ShadSheet));
-      expect(sheet.constraints?.minWidth, HyveDesktopThemeSpec.inspectorWidth);
-      expect(sheet.constraints?.maxWidth, HyveDesktopThemeSpec.inspectorWidth);
-      final inspector = find.byKey(
-        const PageStorageKey<String>('desktop-context-inspector'),
-      );
-      final inspectorList = tester.widget<ListView>(inspector);
-      expect(inspectorList.padding, const EdgeInsets.only(top: 12, right: 16));
-      final infoRows = find.byType(HyveInspectorInfoRow);
-      expect(infoRows, findsNWidgets(5));
-      final labelLefts = <double>[];
-      for (var index = 0; index < 3; index += 1) {
-        final row = infoRows.at(index);
-        final label = find.descendant(of: row, matching: find.byType(Text));
-        final value = find.descendant(
-          of: row,
-          matching: find.byType(SelectableText),
-        );
-        expect(tester.widget<SelectableText>(value).textAlign, TextAlign.right);
-        labelLefts.add(tester.getRect(label).left);
-        expect(
-          tester.getRect(value).right,
-          closeTo(tester.getRect(row).right, 0.01),
-        );
-        expect(
-          tester.getRect(inspector).right - tester.getRect(row).right,
-          greaterThanOrEqualTo(16),
-        );
-      }
-      expect(labelLefts[1], closeTo(labelLefts[0], 0.01));
-      expect(labelLefts[2], closeTo(labelLefts[0], 0.01));
-      final inputModalities = find.byKey(
-        const ValueKey<String>('conversation-model-modalities-input'),
-      );
-      final outputModalities = find.byKey(
-        const ValueKey<String>('conversation-model-modalities-output'),
-      );
-      expect(inputModalities, findsOneWidget);
-      expect(outputModalities, findsOneWidget);
-      expect(
-        find.descendant(
-          of: inputModalities,
-          matching: find.byIcon(Icons.text_fields_rounded),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: inputModalities,
-          matching: find.byIcon(Icons.image_outlined),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: inputModalities,
-          matching: find.byIcon(Icons.audio_file_outlined),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: outputModalities,
-          matching: find.byIcon(Icons.text_fields_rounded),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: inputModalities, matching: find.text('文本')),
         findsNothing,
       );
+      expect(
+        find.byKey(const PageStorageKey<String>('desktop-context-inspector')),
+        findsNothing,
+      );
+      expect(find.byType(ShadSheet), findsNothing);
       expect(tester.takeException(), isNull);
     });
   });

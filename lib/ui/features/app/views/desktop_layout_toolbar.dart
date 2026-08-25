@@ -49,10 +49,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final bool isChat;
   final bool compact;
   final bool sidebarVisible;
-  final bool inspectorVisible;
-  final bool inspectorAvailable;
   final VoidCallback onToggleSidebar;
-  final VoidCallback? onToggleInspector;
   final VoidCallback? onCreateChat;
   final VoidCallback? onSearchRequested;
   final VoidCallback? onShowProjectMembers;
@@ -66,10 +63,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.isChat,
     required this.compact,
     required this.sidebarVisible,
-    required this.inspectorVisible,
-    required this.inspectorAvailable,
     required this.onToggleSidebar,
-    required this.onToggleInspector,
     required this.onCreateChat,
     required this.onSearchRequested,
     required this.onShowProjectMembers,
@@ -191,57 +185,9 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             onShowArtifacts: onShowProjectArtifacts!,
                             onShowExecution: onShowProjectExecution!,
                           ),
-                        if (inspectorAvailable)
-                          HyveDesktopIconAction(
-                            key: const ValueKey<String>(
-                              'desktop-toolbar-inspector',
-                            ),
-                            label:
-                                inspectorVisible
-                                    ? S.of(context).hideInspector
-                                    : S.of(context).showInspector,
-                            onPressed: onToggleInspector,
-                            selected: inspectorVisible,
-                            variant:
-                                inspectorVisible
-                                    ? ShadButtonVariant.secondary
-                                    : ShadButtonVariant.ghost,
-                            icon:
-                                inspectorVisible
-                                    ? LucideIcons.panelRightClose
-                                    : LucideIcons.panelRightOpen,
-                          ),
                       ],
                     )
-                    : DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: HyveDesktopThemeSpec.controlFill(context),
-                        borderRadius: HyveDesktopThemeSpec.controlRadius,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (inspectorAvailable)
-                            _DesktopToolbarIconAction(
-                              key: const ValueKey<String>(
-                                'desktop-toolbar-inspector',
-                              ),
-                              tooltip:
-                                  inspectorVisible
-                                      ? S.of(context).hideInspector
-                                      : S.of(context).showInspector,
-                              onPressed: onToggleInspector,
-                              selected: inspectorVisible,
-                              icon: Icon(
-                                inspectorVisible
-                                    ? LucideIcons.panelRightClose
-                                    : LucideIcons.panelRightOpen,
-                                size: 17,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                    : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -253,14 +199,12 @@ class _DesktopToolbarIconAction extends StatefulWidget {
   final String tooltip;
   final VoidCallback? onPressed;
   final Widget icon;
-  final bool selected;
 
   const _DesktopToolbarIconAction({
     super.key,
     required this.tooltip,
     required this.onPressed,
     required this.icon,
-    this.selected = false,
   });
 
   @override
@@ -282,7 +226,6 @@ class _DesktopToolbarIconActionState extends State<_DesktopToolbarIconAction> {
     return Semantics(
       button: true,
       enabled: widget.onPressed != null,
-      selected: widget.selected,
       label: widget.tooltip,
       child: SizedBox(
         width: 44,
@@ -292,10 +235,7 @@ class _DesktopToolbarIconActionState extends State<_DesktopToolbarIconAction> {
             focusNode: _focusNode,
             builder: (context) => Text(widget.tooltip),
             child: ShadIconButton.raw(
-              variant:
-                  widget.selected
-                      ? ShadButtonVariant.secondary
-                      : ShadButtonVariant.ghost,
+              variant: ShadButtonVariant.ghost,
               focusNode: _focusNode,
               width: 32,
               height: 32,

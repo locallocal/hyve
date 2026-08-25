@@ -125,6 +125,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "adjustFontSize": MessageLookupByLibrary.simpleMessage(
       "फॉन्ट साइज़ समायोजित करें",
     ),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "इस एजेंट का उपयोग करने वाला प्रोजेक्ट खोलें, ताकि उसका संदर्भ और मेमोरी देखी और प्रबंधित की जा सके।",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("एजेंट मेमोरी"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage(
+      "स्वचालित मेमोरी विकास",
+    ),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "दीर्घकालिक मेमोरी इस एजेंट की है और इसे अलग-अलग प्रोजेक्ट में दोबारा उपयोग किया जा सकता है।",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "सभी इंस्टॉल किए गए कौशल जोड़ दिए गए हैं।",
     ),
@@ -636,6 +646,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProject": MessageLookupByLibrary.simpleMessage("New Project"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "Name the project and add one or more bots.",
+    ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage(
+      "इस एजेंट के पास अभी कोई दीर्घकालिक मेमोरी नहीं है।",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "कोई कनेक्टेड MCP टूल उपलब्ध नहीं है।",

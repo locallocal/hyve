@@ -8,16 +8,10 @@ import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
-import 'package:hyve/ui/core/widgets/model_modalities.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
 import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
-import 'package:hyve/ui/features/bots/views/agent_memory_panel.dart';
-import 'package:hyve/ui/features/chat/view_models/chat_token_usage_view_model.dart';
 import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
-import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
-import 'package:hyve/ui/features/chat/views/conversation_model_controls.dart';
-import 'package:hyve/ui/features/chat/views/token_usage_chart.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 import 'package:hyve/utils/theme.dart';
@@ -31,7 +25,7 @@ part 'desktop_layout_shortcuts.dart';
 part 'desktop_layout_overlays.dart';
 part 'desktop_layout_resizing.dart';
 
-enum _ChatOverlay { sidebar, inspector }
+enum _ChatOverlay { sidebar }
 
 /// Adaptive desktop shell for macOS, Windows and Linux.
 ///
@@ -89,11 +83,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   void _updateState(VoidCallback callback) => setState(callback);
 
   double _sidebarWidth = HyveDesktopThemeSpec.sidebarWidth;
-  double _inspectorWidth = HyveDesktopThemeSpec.inspectorWidth;
   bool _sidebarVisible = true;
   bool _compactSidebarOpen = false;
-  bool _inspectorOpen = false;
-  final ScrollController _inspectorScrollController = ScrollController();
   _ChatOverlay? _activeChatOverlay;
   NavigatorState? _chatOverlayNavigator;
   ModalRoute<dynamic>? _chatOverlayRoute;
@@ -108,7 +99,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   final ProjectWorkspaceController _projectWorkspaceController =
       ProjectWorkspaceController();
   AppDependencies? _dependencies;
-  ChatTokenUsageViewModel? _tokenUsageViewModel;
   ConversationMemoryViewModel? _memoryViewModel;
   AgentMemoryViewModel? _agentMemoryViewModel;
 
@@ -123,14 +113,11 @@ class _DesktopLayoutState extends State<DesktopLayout> {
     super.didChangeDependencies();
     final dependencies = AppScope.maybeOf(context);
     if (_dependencies == dependencies) return;
-    _tokenUsageViewModel?.dispose();
     _memoryViewModel?.dispose();
     _agentMemoryViewModel?.dispose();
-    _tokenUsageViewModel = null;
     _memoryViewModel = null;
     _agentMemoryViewModel = null;
     _dependencies = dependencies;
-    _replaceTokenUsageViewModel();
     _replaceMemoryViewModel();
     _replaceAgentMemoryViewModel();
   }
@@ -138,18 +125,19 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   @override
   void didUpdateWidget(covariant DesktopLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedChatId != widget.selectedChatId) {
-      _chatPageKey = null;
-      _replaceTokenUsageViewModel();
+    final chatChanged = oldWidget.selectedChatId != widget.selectedChatId;
+    final chatBotChanged = oldWidget.selectedChatBot != widget.selectedChatBot;
+    final projectBotsChanged =
+        oldWidget.selectedChatBots != widget.selectedChatBots;
+    final selectedBotChanged = oldWidget.selectedBot != widget.selectedBot;
+    if (chatChanged) _chatPageKey = null;
+    if (chatChanged ||
+        chatBotChanged ||
+        projectBotsChanged ||
+        selectedBotChanged) {
       _replaceMemoryViewModel();
-      _replaceAgentMemoryViewModel();
-    } else if (oldWidget.selectedChatBot != widget.selectedChatBot) {
-      _replaceMemoryViewModel();
-      _replaceAgentMemoryViewModel();
     }
-    if (widget.currentIndex != 0 && _inspectorOpen) {
-      _inspectorOpen = false;
-    }
+    if (selectedBotChanged) _replaceAgentMemoryViewModel();
     if (oldWidget.currentIndex == 0 && widget.currentIndex != 0) {
       _preserveChatOverlayIntent = false;
       unawaited(_dismissActiveChatOverlay());
@@ -173,40 +161,31 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         }),
       );
     }
-    _inspectorScrollController.dispose();
-    _tokenUsageViewModel?.dispose();
     _memoryViewModel?.dispose();
     _agentMemoryViewModel?.dispose();
     super.dispose();
   }
 
-  void _replaceTokenUsageViewModel() {
-    final chatId = widget.selectedChatId;
-    if (_tokenUsageViewModel?.chatId == chatId && chatId != null) return;
-    _tokenUsageViewModel?.dispose();
-    final dependencies = _dependencies;
-    _tokenUsageViewModel =
-        chatId == null || dependencies == null
-            ? null
-            : dependencies.createChatTokenUsageViewModel(chatId);
-    final viewModel = _tokenUsageViewModel;
-    if (viewModel != null) unawaited(viewModel.load());
-  }
-
   void _replaceMemoryViewModel() {
     _memoryViewModel?.dispose();
     final chatId = widget.selectedChatId;
-    final bot = widget.selectedChatBot;
+    final bot = widget.selectedBot;
     final dependencies = _dependencies;
+    final botBelongsToProject = widget.selectedChatBots.any(
+      (projectBot) => projectBot.id == bot?.id,
+    );
     _memoryViewModel =
-        chatId == null || bot == null || dependencies == null
+        chatId == null ||
+                bot == null ||
+                !botBelongsToProject ||
+                dependencies == null
             ? null
             : dependencies.createConversationMemoryViewModel(chatId, bot);
   }
 
   void _replaceAgentMemoryViewModel() {
     _agentMemoryViewModel?.dispose();
-    final agentId = widget.selectedChatBot?.id;
+    final agentId = widget.selectedBot?.id;
     final dependencies = _dependencies;
     _agentMemoryViewModel =
         agentId == null || dependencies == null
@@ -258,39 +237,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
               HyveDesktopThemeSpec.sidebarMinWidth,
               HyveDesktopThemeSpec.sidebarMaxWidth,
             );
-    final inspectorAvailable =
-        width >= 800 && widget.currentIndex == 0 && _activeBot != null;
     final projectWorkspaceSelected =
         widget.currentIndex == 0 &&
         widget.selectedChatId != null &&
         widget.selectedProjectUsesAgentRuntime;
-    final inspectorShouldDock =
-        width >= 1500 && _inspectorOpen && inspectorAvailable;
-    final dockInspector =
-        inspectorShouldDock && _activeChatOverlay != _ChatOverlay.inspector;
-    final overlayInspector =
-        width < 1500 && _inspectorOpen && inspectorAvailable;
-    final inspectorMaxWidth = math.min(
-      HyveDesktopThemeSpec.inspectorMaxWidth,
-      math.max(
-        HyveDesktopThemeSpec.inspectorMinWidth,
-        width -
-            (showSidebar ? sidebarWidth : 0) -
-            HyveDesktopThemeSpec.detailMinWidth -
-            HyveDesktopThemeSpec.splitterHitWidth * 2,
-      ),
-    );
-    final inspectorWidth =
-        _inspectorWidth
-            .clamp(HyveDesktopThemeSpec.inspectorMinWidth, inspectorMaxWidth)
-            .toDouble();
-
     if (isChat) {
       _closeChatOverlayForBreakpoint(
         width: width,
         sidebarDocked: sidebarDocked,
-        inspectorDocked: inspectorShouldDock,
-        inspectorAvailable: inspectorAvailable,
       );
     }
 
@@ -301,8 +255,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
           context: context,
           isChat: isChat,
           overlaySidebar: overlaySidebar,
-          inspectorAvailable: inspectorAvailable,
-          useInspectorSheet: isChat && width < 1500,
         ),
         child: Focus(
           autofocus: true,
@@ -334,12 +286,8 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           label: S.of(context).showSidebar,
                           value: sidebarWidth,
                           onResize:
-                              (delta) => _resizeSidebar(
-                                delta,
-                                availableWidth: width,
-                                dockInspector: dockInspector,
-                                inspectorWidth: inspectorWidth,
-                              ),
+                              (delta) =>
+                                  _resizeSidebar(delta, availableWidth: width),
                           onReset: () => _resetSidebarWidth(width),
                         ),
                       ],
@@ -357,13 +305,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                               _ChatOverlay.sidebar
                                           : _compactSidebarOpen
                                       : _sidebarVisible,
-                              inspectorVisible:
-                                  dockInspector ||
-                                  (isChat
-                                      ? _activeChatOverlay ==
-                                          _ChatOverlay.inspector
-                                      : overlayInspector),
-                              inspectorAvailable: inspectorAvailable,
                               compact: isChat && overlaySidebar,
                               isChat: isChat,
                               onToggleSidebar:
@@ -372,13 +313,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     overlay: overlaySidebar,
                                     useChatSheet: isChat,
                                   ),
-                              onToggleInspector:
-                                  inspectorAvailable
-                                      ? () => _toggleInspector(
-                                        context,
-                                        useChatSheet: isChat && width < 1500,
-                                      )
-                                      : null,
                               onCreateChat: widget.onCreateChat,
                               onSearchRequested:
                                   widget.currentIndex >= 2
@@ -406,36 +340,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                           .showExecution
                                       : null,
                             ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(child: _buildWorkspace(context)),
-                                  if (dockInspector) ...[
-                                    _DesktopResizeHandle(
-                                      label: S.of(context).showInspector,
-                                      value: inspectorWidth,
-                                      reversed: true,
-                                      onResize:
-                                          (delta) => _resizeInspector(
-                                            delta,
-                                            availableWidth: width,
-                                            sidebarWidth:
-                                                showSidebar ? sidebarWidth : 0,
-                                          ),
-                                      onReset: _resetInspectorWidth,
-                                    ),
-                                    SizedBox(
-                                      width: inspectorWidth,
-                                      child: _buildInspector(
-                                        context,
-                                        overlay: false,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
+                            Expanded(child: _buildWorkspace(context)),
                           ],
                         ),
                       ),
@@ -443,8 +348,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                   ),
                   if (!isChat && overlaySidebar && _compactSidebarOpen)
                     _buildSidebarOverlay(context, width),
-                  if (!isChat && overlayInspector)
-                    _buildInspectorOverlay(context, width),
                 ],
               ),
             ),

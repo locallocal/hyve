@@ -120,6 +120,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "addSkill": MessageLookupByLibrary.simpleMessage("스킬 추가"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("앱 글꼴 크기 조정"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("글꼴 크기 조정"),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "이 에이전트를 사용하는 프로젝트를 열어 컨텍스트와 메모리를 확인하고 관리하세요.",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("에이전트 메모리"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage(
+      "자동 메모리 진화",
+    ),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "장기 메모리는 이 에이전트에 속하며 프로젝트 간에 재사용할 수 있습니다.",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "설치된 모든 스킬이 추가되었습니다.",
     ),
@@ -562,6 +572,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProject": MessageLookupByLibrary.simpleMessage("New Project"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "Name the project and add one or more bots.",
+    ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage(
+      "이 에이전트에는 아직 장기 메모리가 없습니다.",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "연결되어 사용 가능한 MCP 도구가 없습니다.",

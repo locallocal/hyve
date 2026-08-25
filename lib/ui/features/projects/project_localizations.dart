@@ -197,6 +197,10 @@ final class ProjectLocalizations {
 
   String get searchAgents => _text('Search agents', '搜索智能体');
   String get addAgent => _text('Add agent', '添加智能体');
+  String get membersDescription => _text(
+    'Manage agent order, artifact access, and project participation.',
+    '管理智能体顺序、产物权限和项目参与状态。',
+  );
   String get noMembers => _text('No project members yet', '项目暂无成员');
   String get noAvailableAgents =>
       _text('No agents are available to add', '没有可添加的智能体');
@@ -204,6 +208,8 @@ final class ProjectLocalizations {
   String get pause => _text('Pause', '暂停');
   String get resume => _text('Resume', '恢复');
   String get remove => _text('Remove', '移除');
+  String reorderMember(String name) =>
+      _text('Drag to reorder $name', '拖动以调整 $name 的顺序');
   String get storageAccess => _text('Artifact access', '产物权限');
   String storageAccessName(ProjectStorageAccess access) => switch (access) {
     ProjectStorageAccess.none => _text('None', '无'),

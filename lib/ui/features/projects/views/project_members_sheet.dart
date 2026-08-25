@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
@@ -11,11 +12,13 @@ final class ProjectMembersSheet extends StatefulWidget {
   const ProjectMembersSheet({
     super.key,
     required this.viewModel,
+    this.agentStatuses = const <ProjectAgentStatusSnapshot>[],
     this.embedded = false,
     this.disposeViewModel = true,
   });
 
   final ProjectMembersViewModel viewModel;
+  final List<ProjectAgentStatusSnapshot> agentStatuses;
   final bool embedded;
   final bool disposeViewModel;
 
@@ -78,6 +81,9 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
         child: ListenableBuilder(
           listenable: widget.viewModel,
           builder: (context, _) {
+            final statusesByAgent = <String, ProjectAgentStatusSnapshot>{
+              for (final status in widget.agentStatuses) status.agentId: status,
+            };
             final normalized = _query.trim().toLowerCase();
             final members = widget.viewModel.members
                 .where(
@@ -299,6 +305,8 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                                   'project-member-${member.membership.agentId}',
                                 ),
                                 member: member,
+                                processingStatus:
+                                    statusesByAgent[member.membership.agentId],
                                 index: index,
                                 enabled: !widget.viewModel.mutating,
                                 dragEnabled:
@@ -338,6 +346,7 @@ final class _MemberCard extends StatelessWidget {
   const _MemberCard({
     super.key,
     required this.member,
+    required this.processingStatus,
     required this.index,
     required this.enabled,
     required this.dragEnabled,
@@ -347,6 +356,7 @@ final class _MemberCard extends StatelessWidget {
   });
 
   final ProjectMemberSnapshot member;
+  final ProjectAgentStatusSnapshot? processingStatus;
   final int index;
   final bool enabled;
   final bool dragEnabled;
@@ -361,6 +371,7 @@ final class _MemberCard extends StatelessWidget {
     final paused = membership.status == ProjectMembershipStatus.paused;
     final name = member.agent?.name ?? copy.deletedAgent;
     final shadTheme = ShadTheme.maybeOf(context);
+    final status = processingStatus;
 
     Widget accessControl() => KeyedSubtree(
       key: ValueKey<String>('member-access-${membership.agentId}'),
@@ -467,16 +478,21 @@ final class _MemberCard extends StatelessWidget {
                         ),
               ),
               const SizedBox(height: 6),
-              ProjectBadge(
-                key: ValueKey<String>('member-status-${membership.agentId}'),
-                label: paused ? copy.pausedStatus : copy.active,
-                icon:
-                    paused ? LucideIcons.circlePause : LucideIcons.circleCheck,
-                variant:
-                    paused
-                        ? ProjectBadgeVariant.secondary
-                        : ProjectBadgeVariant.outline,
-              ),
+              if (status == null)
+                ProjectBadge(
+                  key: ValueKey<String>('member-status-${membership.agentId}'),
+                  label: paused ? copy.pausedStatus : copy.active,
+                  icon:
+                      paused
+                          ? LucideIcons.circlePause
+                          : LucideIcons.circleCheck,
+                  variant:
+                      paused
+                          ? ProjectBadgeVariant.secondary
+                          : ProjectBadgeVariant.outline,
+                )
+              else
+                _MemberProcessingSummary(status: status),
             ],
           ),
         ),
@@ -485,7 +501,8 @@ final class _MemberCard extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          '$name, ${paused ? copy.pausedStatus : copy.active}, '
+          '$name, '
+          '${status == null ? (paused ? copy.pausedStatus : copy.active) : copy.activity(status.activity)}, '
           '${copy.storageAccess}: ${copy.storageAccessName(membership.projectStorageAccess)}',
       child: ProjectSurfaceCard(
         padding: const EdgeInsets.all(12),
@@ -523,3 +540,103 @@ final class _MemberCard extends StatelessWidget {
     );
   }
 }
+
+final class _MemberProcessingSummary extends StatelessWidget {
+  const _MemberProcessingSummary({required this.status});
+
+  final ProjectAgentStatusSnapshot status;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = ProjectLocalizations.of(context);
+    final progress = copy.processed(
+      status.lastProcessedMessageSequence,
+      status.latestMessageSequence,
+    );
+    return Semantics(
+      container: true,
+      label:
+          '${copy.activity(status.activity)}, $progress'
+          '${status.backlog > 0 ? ', ${copy.backlog(status.backlog)}' : ''}'
+          '${status.errorCode.isEmpty ? '' : ', ${copy.errorCode(status.errorCode)}'}',
+      child: ExcludeSemantics(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: <Widget>[
+            ProjectBadge(
+              key: ValueKey<String>('member-activity-${status.agentId}'),
+              label: copy.activity(status.activity),
+              icon: _activityIcon(status.activity),
+              variant:
+                  status.activity == ProjectAgentActivity.failed
+                      ? ProjectBadgeVariant.destructive
+                      : status.activeRunId.isNotEmpty
+                      ? ProjectBadgeVariant.secondary
+                      : ProjectBadgeVariant.outline,
+            ),
+            _ProcessingMeta(
+              key: ValueKey<String>('member-progress-${status.agentId}'),
+              icon: LucideIcons.listChecks,
+              label: progress,
+            ),
+            if (status.backlog > 0)
+              ProjectBadge(
+                key: ValueKey<String>('member-backlog-${status.agentId}'),
+                label: copy.backlog(status.backlog),
+                icon: LucideIcons.clock3,
+                variant: ProjectBadgeVariant.secondary,
+              ),
+            if (status.errorCode.isNotEmpty)
+              ProjectBadge(
+                key: ValueKey<String>('member-error-${status.agentId}'),
+                label: copy.errorCode(status.errorCode),
+                icon: LucideIcons.circleAlert,
+                variant: ProjectBadgeVariant.destructive,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+final class _ProcessingMeta extends StatelessWidget {
+  const _ProcessingMeta({super.key, required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final color =
+        shadTheme?.colorScheme.mutedForeground ??
+        Theme.of(context).colorScheme.onSurfaceVariant;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style:
+              shadTheme?.textTheme.muted.copyWith(fontSize: 12) ??
+              Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
+        ),
+      ],
+    );
+  }
+}
+
+IconData _activityIcon(ProjectAgentActivity activity) => switch (activity) {
+  ProjectAgentActivity.idle => LucideIcons.circleCheck,
+  ProjectAgentActivity.deciding => LucideIcons.brainCircuit,
+  ProjectAgentActivity.willReply => LucideIcons.circleEllipsis,
+  ProjectAgentActivity.skipped => LucideIcons.skipForward,
+  ProjectAgentActivity.replying => LucideIcons.messageSquareText,
+  ProjectAgentActivity.catchingUp => LucideIcons.refreshCw,
+  ProjectAgentActivity.paused => LucideIcons.circlePause,
+  ProjectAgentActivity.failed => LucideIcons.circleAlert,
+};

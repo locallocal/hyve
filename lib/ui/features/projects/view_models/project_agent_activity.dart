@@ -11,6 +11,28 @@ enum ProjectAgentActivity {
   failed,
 }
 
+/// Read-only processing state shared by the workspace and member management
+/// surfaces for a single project agent.
+final class ProjectAgentStatusSnapshot {
+  const ProjectAgentStatusSnapshot({
+    required this.agentId,
+    required this.activity,
+    required this.lastProcessedMessageSequence,
+    required this.latestMessageSequence,
+    required this.backlog,
+    this.activeRunId = '',
+    this.errorCode = '',
+  });
+
+  final String agentId;
+  final ProjectAgentActivity activity;
+  final int lastProcessedMessageSequence;
+  final int latestMessageSequence;
+  final int backlog;
+  final String activeRunId;
+  final String errorCode;
+}
+
 ProjectAgentActivity resolveProjectAgentActivity(
   ProjectMembership membership,
   AgentMessageCursor? cursor,

@@ -4276,6 +4276,56 @@ class S {
     );
   }
 
+  /// `Agent memory`
+  String get agentMemory {
+    return Intl.message(
+      'Agent memory',
+      name: 'agentMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic memory evolution`
+  String get agentMemoryAutoEvolution {
+    return Intl.message(
+      'Automatic memory evolution',
+      name: 'agentMemoryAutoEvolution',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Long-term memory belongs to this agent and can be reused across projects.`
+  String get agentMemoryDescription {
+    return Intl.message(
+      'Long-term memory belongs to this agent and can be reused across projects.',
+      name: 'agentMemoryDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This agent has no long-term memory yet.`
+  String get noAgentMemory {
+    return Intl.message(
+      'This agent has no long-term memory yet.',
+      name: 'noAgentMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open a project that uses this agent to view and manage its context and memory.`
+  String get agentContextMemoryUnavailable {
+    return Intl.message(
+      'Open a project that uses this agent to view and manage its context and memory.',
+      name: 'agentContextMemoryUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Context and memory`
   String get contextAndMemory {
     return Intl.message(

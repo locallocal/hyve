@@ -32,29 +32,16 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
     _updateState(() {
       _activeChatOverlay = overlay;
       _preserveChatOverlayIntent = false;
-      if (overlay == _ChatOverlay.sidebar) {
-        _sidebarVisible = true;
-        _inspectorOpen = false;
-      } else {
-        _inspectorOpen = true;
-      }
+      _sidebarVisible = true;
     });
 
     final navigator = Navigator.of(context, rootNavigator: true);
     _chatOverlayNavigator = navigator;
     _chatOverlayRoute = null;
     _chatOverlayRouteReady = routeReady;
-    final side =
-        overlay == _ChatOverlay.sidebar
-            ? ShadSheetSide.left
-            : ShadSheetSide.right;
-    final targetWidth =
-        overlay == _ChatOverlay.sidebar
-            ? HyveDesktopThemeSpec.sidebarWidth
-            : HyveDesktopThemeSpec.inspectorWidth;
     final closed = showChatShadSheet<void>(
       context: context,
-      side: side,
+      side: ShadSheetSide.left,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       useRootNavigator: true,
       builder: (sheetContext) {
@@ -67,37 +54,26 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
           0.0,
           MediaQuery.sizeOf(sheetContext).width - 32,
         );
-        final width = math.min(targetWidth, availableWidth);
+        final width = math.min(
+          HyveDesktopThemeSpec.sidebarWidth,
+          availableWidth,
+        );
         return ShadSheet(
           draggable: false,
           scrollable: false,
-          padding: overlay == _ChatOverlay.sidebar ? EdgeInsets.zero : null,
+          padding: EdgeInsets.zero,
           constraints: BoxConstraints.tightFor(width: width),
-          title:
-              overlay == _ChatOverlay.inspector
-                  ? Text(S.of(sheetContext).botInformation)
-                  : null,
           closeIcon: HyveDesktopIconAction(
             icon: LucideIcons.x,
             label: MaterialLocalizations.of(sheetContext).closeButtonTooltip,
             onPressed: () => unawaited(_dismissActiveChatOverlay()),
           ),
-          child: SizedBox.expand(
-            child:
-                overlay == _ChatOverlay.sidebar
-                    ? _buildSidebar(sheetContext)
-                    : _buildInspector(
-                      sheetContext,
-                      overlay: true,
-                      showHeader: false,
-                      contentPadding: const EdgeInsets.only(top: 12, right: 16),
-                    ),
-          ),
+          child: SizedBox.expand(child: _buildSidebar(sheetContext)),
         );
       },
     ).then<void>((_) {});
     _chatOverlayClosed = closed;
-    unawaited(_watchChatOverlayClosed(session, overlay, closed));
+    unawaited(_watchChatOverlayClosed(session, closed));
     await _waitForChatOverlayRoute();
   }
 
@@ -106,10 +82,9 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
 
   Future<void> _dismissActiveChatOverlayNow() async {
     final session = _chatOverlaySession;
-    final overlay = _activeChatOverlay;
     final closed = _chatOverlayClosed;
     final navigator = _chatOverlayNavigator;
-    if (overlay == null || closed == null || navigator == null) {
+    if (_activeChatOverlay == null || closed == null || navigator == null) {
       return;
     }
     final route = _chatOverlayRoute ?? await _waitForChatOverlayRoute();
@@ -122,7 +97,7 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
       }
     }
     await closed;
-    _completeChatOverlaySession(session, overlay, closed);
+    _completeChatOverlaySession(session, closed);
   }
 
   Future<ModalRoute<dynamic>?> _waitForChatOverlayRoute() async {
@@ -137,22 +112,14 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
     ]);
   }
 
-  Future<void> _watchChatOverlayClosed(
-    int session,
-    _ChatOverlay overlay,
-    Future<void> closed,
-  ) async {
+  Future<void> _watchChatOverlayClosed(int session, Future<void> closed) async {
     await closed;
     await _enqueueChatOverlayTransition(() async {
-      _completeChatOverlaySession(session, overlay, closed);
+      _completeChatOverlaySession(session, closed);
     });
   }
 
-  void _completeChatOverlaySession(
-    int session,
-    _ChatOverlay overlay,
-    Future<void> closed,
-  ) {
+  void _completeChatOverlaySession(int session, Future<void> closed) {
     if (session != _chatOverlaySession || _chatOverlayClosed != closed) return;
     final preserveIntent = _preserveChatOverlayIntent;
     void clearSession() {
@@ -163,13 +130,7 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
       _chatOverlayClosed = null;
       _preserveChatOverlayIntent = false;
       _chatOverlayDismissScheduled = false;
-      if (!preserveIntent) {
-        if (overlay == _ChatOverlay.sidebar) {
-          _sidebarVisible = false;
-        } else {
-          _inspectorOpen = false;
-        }
-      }
+      if (!preserveIntent) _sidebarVisible = false;
     }
 
     if (mounted) {
@@ -202,22 +163,13 @@ extension _DesktopLayoutOverlays on _DesktopLayoutState {
   void _closeChatOverlayForBreakpoint({
     required double width,
     required bool sidebarDocked,
-    required bool inspectorDocked,
-    required bool inspectorAvailable,
   }) {
     final overlay = _activeChatOverlay;
     if (overlay == null || _chatOverlayDismissScheduled) return;
-    final mustClose = switch (overlay) {
-      _ChatOverlay.sidebar => sidebarDocked,
-      _ChatOverlay.inspector => inspectorDocked || !inspectorAvailable,
-    };
-    if (!mustClose) return;
+    if (!sidebarDocked) return;
 
     _chatOverlayDismissScheduled = true;
-    _preserveChatOverlayIntent = switch (overlay) {
-      _ChatOverlay.sidebar => width >= 960,
-      _ChatOverlay.inspector => width >= 1500,
-    };
+    _preserveChatOverlayIntent = width >= 960;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(_dismissActiveChatOverlay());
     });

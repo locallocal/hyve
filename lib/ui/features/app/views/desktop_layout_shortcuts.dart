@@ -5,8 +5,6 @@ extension _DesktopLayoutShortcuts on _DesktopLayoutState {
     required BuildContext context,
     required bool isChat,
     required bool overlaySidebar,
-    required bool inspectorAvailable,
-    required bool useInspectorSheet,
   }) {
     return <ShortcutActivator, VoidCallback>{
       const SingleActivator(LogicalKeyboardKey.keyB, control: true):
@@ -21,24 +19,6 @@ extension _DesktopLayoutShortcuts on _DesktopLayoutState {
             overlay: overlaySidebar,
             useChatSheet: isChat,
           ),
-      const SingleActivator(
-        LogicalKeyboardKey.keyI,
-        control: true,
-        alt: true,
-      ): () {
-        if (inspectorAvailable) {
-          _toggleInspector(context, useChatSheet: useInspectorSheet);
-        }
-      },
-      const SingleActivator(
-        LogicalKeyboardKey.keyI,
-        meta: true,
-        alt: true,
-      ): () {
-        if (inspectorAvailable) {
-          _toggleInspector(context, useChatSheet: useInspectorSheet);
-        }
-      },
       const SingleActivator(LogicalKeyboardKey.comma, control: true):
           () => _selectPage(4),
       const SingleActivator(LogicalKeyboardKey.comma, meta: true):
@@ -126,25 +106,12 @@ extension _DesktopLayoutShortcuts on _DesktopLayoutState {
     });
   }
 
-  void _toggleInspector(BuildContext context, {required bool useChatSheet}) {
-    if (useChatSheet) {
-      unawaited(_openChatOverlay(context, _ChatOverlay.inspector));
-      return;
-    }
-    _updateState(() {
-      _inspectorOpen = !_inspectorOpen;
-      if (_inspectorOpen) _compactSidebarOpen = false;
-    });
-  }
-
   void _closeTopOverlay() {
     if (_activeChatOverlay != null) {
       unawaited(_dismissActiveChatOverlay());
       return;
     }
-    if (_inspectorOpen) {
-      _updateState(() => _inspectorOpen = false);
-    } else if (_compactSidebarOpen) {
+    if (_compactSidebarOpen) {
       _updateState(() => _compactSidebarOpen = false);
     }
   }

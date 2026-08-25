@@ -211,6 +211,15 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
         bot: widget.selectedBot!,
         embedded: true,
         readOnly: !widget.isEditingBot,
+        conversationMemoryViewModel: _memoryViewModel,
+        conversationGenerationViewModel:
+            _memoryViewModel == null ||
+                    widget.selectedBot?.id != widget.selectedChatBot?.id
+                ? null
+                : _dependencies?.generationRegistry.maybeViewModel(
+                  widget.selectedChatId,
+                ),
+        agentMemoryViewModel: _agentMemoryViewModel,
         avatarPicker: widget.avatarPicker,
         onBotUpdated: widget.onBotUpdated,
         onBotDeleted: widget.onBotDeleted,
@@ -221,170 +230,6 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
       title: S.of(context).Bots,
       description: S.of(context).selectBot,
       imageAsset: 'assets/icon/app_icon.png',
-    );
-  }
-
-  Widget _buildInspectorOverlay(BuildContext context, double availableWidth) {
-    final width =
-        _inspectorWidth
-            .clamp(
-              HyveDesktopThemeSpec.inspectorMinWidth,
-              math.min(
-                HyveDesktopThemeSpec.inspectorMaxWidth,
-                math.max(
-                  HyveDesktopThemeSpec.inspectorMinWidth,
-                  availableWidth - 24.0,
-                ),
-              ),
-            )
-            .toDouble();
-    return Positioned.fill(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Semantics(
-              button: true,
-              label: MaterialLocalizations.of(context).closeButtonTooltip,
-              onTap: () => setState(() => _inspectorOpen = false),
-              child: GestureDetector(
-                onTap: () => setState(() => _inspectorOpen = false),
-                child: ColoredBox(
-                  color: HyveDesktopTokens.of(
-                    context,
-                  ).scrim.withValues(alpha: 0.12),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            bottom: 8,
-            width: width,
-            child: Material(
-              color: Colors.transparent,
-              elevation: 10,
-              shadowColor: HyveDesktopTokens.of(
-                context,
-              ).scrim.withValues(alpha: 0.2),
-              borderRadius: HyveDesktopThemeSpec.containerRadius,
-              clipBehavior: Clip.antiAlias,
-              child: _buildInspector(context, overlay: true),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInspector(
-    BuildContext context, {
-    required bool overlay,
-    bool showHeader = true,
-    EdgeInsetsGeometry? contentPadding,
-  }) {
-    final bot = _activeBot;
-    final generationViewModel =
-        widget.currentIndex == 0 &&
-                widget.selectedChatId != null &&
-                widget.selectedChatBot != null &&
-                _dependencies != null
-            ? _dependencies!.generationRegistry.viewModelFor(
-              widget.selectedChatId!,
-              widget.selectedChatBot!,
-            )
-            : null;
-    final decoration =
-        overlay && showHeader
-            ? HyveDesktopThemeSpec.overlayInspectorDecoration(context)
-            : showHeader
-            ? HyveDesktopThemeSpec.inspectorDecoration(context)
-            : const BoxDecoration();
-    return Container(
-      decoration: decoration,
-      child: ListView(
-        key: const PageStorageKey<String>('desktop-context-inspector'),
-        controller: _inspectorScrollController,
-        padding: contentPadding ?? const EdgeInsets.fromLTRB(16, 12, 16, 20),
-        children: [
-          if (showHeader) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    S.of(context).botInformation,
-                    style: HyveDesktopThemeSpec.sectionTitleStyle(context),
-                  ),
-                ),
-                if (widget.currentIndex == 0)
-                  HyveDesktopIconAction(
-                    label: MaterialLocalizations.of(context).closeButtonTooltip,
-                    onPressed: () => setState(() => _inspectorOpen = false),
-                    icon: LucideIcons.x,
-                  )
-                else
-                  _DesktopToolbarIconAction(
-                    tooltip:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
-                    onPressed: () => setState(() => _inspectorOpen = false),
-                    icon: const Icon(LucideIcons.x, size: 17),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-          ],
-          if (bot != null) ...[
-            _InspectorRow(
-              icon:
-                  widget.currentIndex == 0
-                      ? LucideIcons.bot
-                      : LucideIcons.sparkles,
-              label: S.of(context).name,
-              value: bot.name,
-            ),
-            _InspectorRow(
-              icon:
-                  widget.currentIndex == 0
-                      ? LucideIcons.server
-                      : LucideIcons.server,
-              label: S.of(context).provider,
-              value: bot.provider.isEmpty ? '—' : bot.provider,
-            ),
-            _InspectorRow(
-              icon:
-                  widget.currentIndex == 0 ? LucideIcons.cpu : LucideIcons.cpu,
-              label: S.of(context).model,
-              value: bot.model.isEmpty ? '—' : bot.model,
-            ),
-            ModelModalitiesView(
-              inputModalities:
-                  generationViewModel?.capabilityProvider.getInputModalites() ??
-                  bot.configuredInputModalities ??
-                  const [InputModality.text],
-              outputModalities:
-                  generationViewModel?.capabilityProvider
-                      .getOutputModalites() ??
-                  bot.configuredOutputModalities ??
-                  const [OutputModality.text],
-              keyPrefix: 'conversation-model-modalities',
-            ),
-            if (generationViewModel != null)
-              ConversationModelControls(
-                provider: generationViewModel.capabilityProvider,
-              ),
-            if (widget.currentIndex == 0 && _tokenUsageViewModel != null)
-              ConversationTokenUsagePanel(viewModel: _tokenUsageViewModel!),
-            if (widget.currentIndex == 0 && _memoryViewModel != null)
-              ConversationMemoryPanel(
-                viewModel: _memoryViewModel!,
-                generationViewModel: _dependencies?.generationRegistry
-                    .maybeViewModel(widget.selectedChatId),
-              ),
-            if (widget.currentIndex == 0 && _agentMemoryViewModel != null)
-              AgentMemoryPanel(viewModel: _agentMemoryViewModel!),
-          ],
-        ],
-      ),
     );
   }
 }

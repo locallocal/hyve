@@ -77,35 +77,24 @@ void main() {
     );
   }
 
-  for (final (width, inspectorDocked) in const [
-    (1499.0, false),
-    (1500.0, true),
-    (1501.0, true),
-  ]) {
+  for (final width in const [1499.0, 1500.0, 1501.0]) {
     testWidgets(
-      'inspector uses ${inspectorDocked ? 'dock' : 'sheet'} at ${width.toInt()}px',
+      'project agent information stays removed at ${width.toInt()}px',
       (tester) async {
         await _withDesktopPlatform(() async {
           await _pumpLayout(tester, width: width, selectedChatBot: _bot);
 
-          await tester.tap(
-            find.byKey(const ValueKey<String>('desktop-toolbar-inspector')),
-          );
-          await tester.pumpAndSettle();
-
-          final inspector = find.byKey(
-            const PageStorageKey<String>('desktop-context-inspector'),
-          );
-          final inspectorSheet = find.ancestor(
-            of: inspector,
-            matching: find.byType(ShadSheet),
-          );
-
-          expect(inspector, findsOneWidget);
           expect(
-            inspectorSheet,
-            inspectorDocked ? findsNothing : findsOneWidget,
+            find.byKey(const ValueKey<String>('desktop-toolbar-inspector')),
+            findsNothing,
           );
+          expect(
+            find.byKey(
+              const PageStorageKey<String>('desktop-context-inspector'),
+            ),
+            findsNothing,
+          );
+          expect(find.byType(ShadSheet), findsNothing);
           expect(tester.takeException(), isNull);
         });
       },

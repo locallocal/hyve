@@ -15,11 +15,16 @@ import 'package:hyve/ui/core/widgets/logo.dart';
 import 'package:hyve/ui/core/widgets/model_modalities.dart';
 import 'package:hyve/ui/core/widgets/token_usage_indicator.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
+import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_skill_view_model.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_form_view_model.dart';
+import 'package:hyve/ui/features/bots/views/agent_memory_panel.dart';
 import 'package:hyve/ui/features/bots/views/bot_mcp_tool_picker.dart';
 import 'package:hyve/ui/features/bots/views/bot_token_usage.dart';
 import 'package:hyve/ui/features/bots/views/skill_description_test_dialog.dart';
+import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
+import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
+import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 
@@ -36,6 +41,9 @@ class EditBotPage extends StatefulWidget {
   final bool readOnly;
   final BotSkillViewModel? skillViewModel;
   final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
+  final ConversationMemoryViewModel? conversationMemoryViewModel;
+  final ChatGenerationViewModel? conversationGenerationViewModel;
+  final AgentMemoryViewModel? agentMemoryViewModel;
 
   const EditBotPage({
     super.key,
@@ -47,6 +55,9 @@ class EditBotPage extends StatefulWidget {
     this.readOnly = false,
     this.skillViewModel,
     this.mcpCatalogLoader,
+    this.conversationMemoryViewModel,
+    this.conversationGenerationViewModel,
+    this.agentMemoryViewModel,
   });
 
   @override
@@ -553,6 +564,69 @@ class _EditAIBotPageState extends State<EditBotPage> {
                     [_buildBotSkills()],
                     sectionKey: const ValueKey<String>(
                       'desktop-bot-skills-section',
+                    ),
+                  ),
+                ],
+                if (widget.readOnly) ...[
+                  SizedBox(height: widget.embedded ? 20 : 16),
+                  _buildFormSection(
+                    context,
+                    S.of(context).contextAndMemory,
+                    [
+                      if (widget.conversationMemoryViewModel
+                          case final viewModel?)
+                        ConversationMemoryPanel(
+                          viewModel: viewModel,
+                          generationViewModel:
+                              widget.conversationGenerationViewModel,
+                          showSectionHeader: false,
+                          showSystemPrompt: false,
+                        )
+                      else
+                        widget.embedded
+                            ? ShadAlert(
+                              key: const ValueKey<String>(
+                                'agent-context-memory-unavailable',
+                              ),
+                              icon: const Icon(LucideIcons.info),
+                              description: Text(
+                                S.of(context).agentContextMemoryUnavailable,
+                              ),
+                            )
+                            : Row(
+                              key: const ValueKey<String>(
+                                'agent-context-memory-unavailable',
+                              ),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.info_outline, size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    S.of(context).agentContextMemoryUnavailable,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ],
+                    sectionKey: const ValueKey<String>(
+                      'desktop-bot-context-memory-section',
+                    ),
+                  ),
+                ],
+                if (widget.readOnly && widget.agentMemoryViewModel != null) ...[
+                  SizedBox(height: widget.embedded ? 20 : 16),
+                  _buildFormSection(
+                    context,
+                    S.of(context).agentMemory,
+                    [
+                      AgentMemoryPanel(
+                        viewModel: widget.agentMemoryViewModel!,
+                        showSectionHeader: false,
+                      ),
+                    ],
+                    sectionKey: const ValueKey<String>(
+                      'desktop-bot-agent-memory-section',
                     ),
                   ),
                 ],

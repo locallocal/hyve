@@ -115,6 +115,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "addSkill": MessageLookupByLibrary.simpleMessage("加入技能"),
     "adjustAppFontSize": MessageLookupByLibrary.simpleMessage("調整應用內文字大小"),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("調整文字大小"),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "開啟一個使用此智慧體的專案後，即可檢視並管理其上下文與記憶。",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("智慧體記憶"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage("自動演化記憶"),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "長期記憶屬於此智慧體，並可在不同專案間重複使用。",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage("所有已安裝技能均已加入。"),
     "alwaysActivation": MessageLookupByLibrary.simpleMessage("始終啟用"),
     "alwaysActivationDescription": MessageLookupByLibrary.simpleMessage(
@@ -518,6 +526,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "設定專案名稱，並加入一個或多個智慧體。",
     ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage("此智慧體還沒有長期記憶。"),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "目前沒有已連線且可用的 MCP 工具。",
     ),

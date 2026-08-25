@@ -122,6 +122,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "アプリのフォントサイズを調整する",
     ),
     "adjustFontSize": MessageLookupByLibrary.simpleMessage("フォントサイズを調整"),
+    "agentContextMemoryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "このエージェントを使用するプロジェクトを開くと、コンテキストとメモリを表示・管理できます。",
+    ),
+    "agentMemory": MessageLookupByLibrary.simpleMessage("エージェントメモリ"),
+    "agentMemoryAutoEvolution": MessageLookupByLibrary.simpleMessage(
+      "メモリの自動進化",
+    ),
+    "agentMemoryDescription": MessageLookupByLibrary.simpleMessage(
+      "長期メモリはこのエージェントに属し、プロジェクト間で再利用できます。",
+    ),
     "allSkillsAdded": MessageLookupByLibrary.simpleMessage(
       "インストール済みのスキルはすべて追加されています。",
     ),
@@ -566,6 +576,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "newProject": MessageLookupByLibrary.simpleMessage("New Project"),
     "newProjectDescription": MessageLookupByLibrary.simpleMessage(
       "Name the project and add one or more bots.",
+    ),
+    "noAgentMemory": MessageLookupByLibrary.simpleMessage(
+      "このエージェントにはまだ長期メモリがありません。",
     ),
     "noBotMcpToolsAvailable": MessageLookupByLibrary.simpleMessage(
       "接続済みの利用可能な MCP ツールはありません。",

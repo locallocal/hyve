@@ -71,6 +71,7 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
 
   Widget _buildContent(BuildContext context) {
     final copy = ProjectLocalizations.of(context);
+    final shadTheme = ShadTheme.maybeOf(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -99,13 +100,52 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Icon(LucideIcons.bot, semanticLabel: copy.members),
-                    const SizedBox(width: 10),
+                    if (shadTheme == null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          LucideIcons.bot,
+                          semanticLabel: copy.members,
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: shadTheme.colorScheme.border,
+                          ),
+                          borderRadius: shadTheme.radius,
+                        ),
+                        child: Icon(
+                          LucideIcons.bot,
+                          size: 18,
+                          color: shadTheme.colorScheme.foreground,
+                          semanticLabel: copy.members,
+                        ),
+                      ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        copy.members,
-                        style: Theme.of(context).textTheme.titleLarge,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            copy.members,
+                            style:
+                                shadTheme?.textTheme.h4 ??
+                                Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            copy.membersDescription,
+                            style:
+                                shadTheme?.textTheme.muted ??
+                                Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                     ),
                     if (!widget.embedded)
@@ -116,79 +156,120 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ProjectTextInput(
-                  key: const ValueKey<String>('project-member-search'),
-                  controller: _search,
-                  label: copy.searchAgents,
-                  leading: const Icon(LucideIcons.search, size: 16),
-                  trailing:
-                      _query.isEmpty
-                          ? null
-                          : ProjectIconAction(
-                            label: copy.close,
-                            onPressed: () {
-                              _search.clear();
-                              setState(() => _query = '');
-                            },
-                            icon: LucideIcons.x,
+                const SizedBox(height: 20),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxWidth < projectCompactWidth;
+                    final search = ProjectTextInput(
+                      key: const ValueKey<String>('project-member-search'),
+                      controller: _search,
+                      label: copy.searchAgents,
+                      leading: const Icon(LucideIcons.search, size: 16),
+                      trailing:
+                          _query.isEmpty
+                              ? null
+                              : ProjectIconAction(
+                                label: copy.close,
+                                onPressed: () {
+                                  _search.clear();
+                                  setState(() => _query = '');
+                                },
+                                icon: LucideIcons.x,
+                              ),
+                      onChanged: (value) => setState(() => _query = value),
+                    );
+                    final add = Column(
+                      key: const ValueKey<String>('project-member-add'),
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (shadTheme != null) ...<Widget>[
+                          Text(
+                            copy.addAgent,
+                            key: const ValueKey<String>(
+                              'project-member-add-label',
+                            ),
+                            style: shadTheme.textTheme.small,
                           ),
-                  onChanged: (value) => setState(() => _query = value),
-                ),
-                const SizedBox(height: 10),
-                Column(
-                  key: const ValueKey<String>('project-member-add'),
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    if (hasShadProjectTheme(context)) ...<Widget>[
-                      Text(
-                        copy.addAgent,
-                        key: const ValueKey<String>('project-member-add-label'),
-                        style: ShadTheme.of(context).textTheme.small,
-                      ),
-                      const SizedBox(height: 6),
-                    ],
-                    ProjectSelect<String>(
-                      key: ValueKey<String>(
-                        'project-member-add-options-${available.map((item) => item.id).join('-')}',
-                      ),
-                      placeholder:
-                          available.isEmpty
-                              ? copy.noAvailableAgents
-                              : copy.addAgent,
-                      options: <ProjectSelectOption<String>>[
-                        for (final agent in available)
-                          ProjectSelectOption<String>(
-                            value: agent.id,
-                            label: agent.name,
+                          const SizedBox(height: 6),
+                        ],
+                        ProjectSelect<String>(
+                          key: ValueKey<String>(
+                            'project-member-add-options-${available.map((item) => item.id).join('-')}',
                           ),
+                          placeholder:
+                              available.isEmpty
+                                  ? copy.noAvailableAgents
+                                  : copy.addAgent,
+                          options: <ProjectSelectOption<String>>[
+                            for (final agent in available)
+                              ProjectSelectOption<String>(
+                                value: agent.id,
+                                label: agent.name,
+                              ),
+                          ],
+                          enabled:
+                              !widget.viewModel.mutating &&
+                              available.isNotEmpty,
+                          onChanged: (agentId) {
+                            if (agentId != null) {
+                              unawaited(widget.viewModel.add(agentId));
+                            }
+                          },
+                        ),
                       ],
-                      enabled:
-                          !widget.viewModel.mutating && available.isNotEmpty,
-                      onChanged: (agentId) {
-                        if (agentId != null) {
-                          unawaited(widget.viewModel.add(agentId));
-                        }
-                      },
-                    ),
-                  ],
+                    );
+                    if (compact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          search,
+                          const SizedBox(height: 12),
+                          add,
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Expanded(child: search),
+                        const SizedBox(width: 12),
+                        SizedBox(width: 240, child: add),
+                      ],
+                    );
+                  },
                 ),
                 if (widget.viewModel.errorCode.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Semantics(
                       liveRegion: true,
-                      child: Text(
-                        copy.memberError(widget.viewModel.errorCode),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
+                      child:
+                          shadTheme == null
+                              ? Text(
+                                copy.memberError(widget.viewModel.errorCode),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              )
+                              : ShadAlert.destructive(
+                                icon: const Icon(LucideIcons.circleAlert),
+                                title: Text(
+                                  copy.memberError(widget.viewModel.errorCode),
+                                ),
+                              ),
                     ),
                   ),
                 if (widget.viewModel.loading || widget.viewModel.mutating)
-                  const LinearProgressIndicator(
-                    key: ValueKey<String>('project-members-progress'),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child:
+                        shadTheme == null
+                            ? const LinearProgressIndicator(
+                              key: ValueKey<String>('project-members-progress'),
+                            )
+                            : const ShadProgress(
+                              key: ValueKey<String>('project-members-progress'),
+                            ),
                   ),
                 const SizedBox(height: 12),
                 Expanded(
@@ -219,7 +300,9 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                                 ),
                                 member: member,
                                 index: index,
+                                enabled: !widget.viewModel.mutating,
                                 dragEnabled:
+                                    members.length > 1 &&
                                     normalized.isEmpty &&
                                     !widget.viewModel.mutating,
                                 onPauseChanged:
@@ -256,6 +339,7 @@ final class _MemberCard extends StatelessWidget {
     super.key,
     required this.member,
     required this.index,
+    required this.enabled,
     required this.dragEnabled,
     required this.onPauseChanged,
     required this.onAccessChanged,
@@ -264,6 +348,7 @@ final class _MemberCard extends StatelessWidget {
 
   final ProjectMemberSnapshot member;
   final int index;
+  final bool enabled;
   final bool dragEnabled;
   final ValueChanged<bool> onPauseChanged;
   final ValueChanged<ProjectStorageAccess> onAccessChanged;
@@ -275,114 +360,164 @@ final class _MemberCard extends StatelessWidget {
     final membership = member.membership;
     final paused = membership.status == ProjectMembershipStatus.paused;
     final name = member.agent?.name ?? copy.deletedAgent;
-    final controls = <Widget>[
-      SizedBox(
-        width: 180,
-        key: ValueKey<String>('member-access-${membership.agentId}'),
-        child: ProjectSelect<ProjectStorageAccess>(
-          initialValue: membership.projectStorageAccess,
-          placeholder: copy.storageAccess,
-          options: <ProjectSelectOption<ProjectStorageAccess>>[
-            for (final access in ProjectStorageAccess.values)
-              ProjectSelectOption<ProjectStorageAccess>(
-                value: access,
-                label: copy.storageAccessName(access),
+    final shadTheme = ShadTheme.maybeOf(context);
+
+    Widget accessControl() => KeyedSubtree(
+      key: ValueKey<String>('member-access-${membership.agentId}'),
+      child: ProjectSelect<ProjectStorageAccess>(
+        initialValue: membership.projectStorageAccess,
+        placeholder: copy.storageAccess,
+        options: <ProjectSelectOption<ProjectStorageAccess>>[
+          for (final access in ProjectStorageAccess.values)
+            ProjectSelectOption<ProjectStorageAccess>(
+              value: access,
+              label: copy.storageAccessName(access),
+            ),
+        ],
+        enabled: enabled,
+        onChanged: (value) {
+          if (value != null) onAccessChanged(value);
+        },
+      ),
+    );
+    final pauseAction = ProjectIconAction(
+      key: ValueKey<String>('member-pause-${membership.agentId}'),
+      label: paused ? copy.resume : copy.pause,
+      onPressed: enabled ? () => onPauseChanged(!paused) : null,
+      icon: paused ? LucideIcons.play : LucideIcons.pause,
+    );
+    final removeAction = ProjectIconAction(
+      key: ValueKey<String>('member-remove-${membership.agentId}'),
+      label: copy.remove,
+      onPressed: enabled ? onRemove : null,
+      icon: LucideIcons.trash2,
+      destructive: true,
+    );
+    final identity = Row(
+      children: <Widget>[
+        if (dragEnabled) ...<Widget>[
+          Semantics(
+            container: true,
+            label: copy.reorderMember(name),
+            child: ReorderableDragStartListener(
+              key: ValueKey<String>('member-reorder-${membership.agentId}'),
+              index: index,
+              child: ExcludeSemantics(
+                child:
+                    shadTheme == null
+                        ? Tooltip(
+                          message: copy.reorderMember(name),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.grab,
+                            child: const SizedBox.square(
+                              dimension: 36,
+                              child: Icon(LucideIcons.gripVertical, size: 18),
+                            ),
+                          ),
+                        )
+                        : ShadTooltip(
+                          builder: (_) => Text(copy.reorderMember(name)),
+                          child: ShadGestureDetector(
+                            cursor: SystemMouseCursors.grab,
+                            child: SizedBox.square(
+                              dimension: 36,
+                              child: Icon(
+                                LucideIcons.gripVertical,
+                                size: 18,
+                                color: shadTheme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                          ),
+                        ),
               ),
-          ],
-          onChanged: (value) {
-            if (value != null) onAccessChanged(value);
-          },
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+        if (shadTheme != null)
+          ShadAvatar(
+            null,
+            size: const Size.square(40),
+            placeholder:
+                member.agent == null
+                    ? const Icon(LucideIcons.circleSlash, size: 18)
+                    : Text(name.characters.first.toUpperCase()),
+          )
+        else
+          CircleAvatar(
+            child:
+                member.agent == null
+                    ? const Icon(Icons.person_off_outlined)
+                    : Text(name.characters.first.toUpperCase()),
+          ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    shadTheme == null
+                        ? Theme.of(context).textTheme.titleSmall
+                        : shadTheme.textTheme.small.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+              ),
+              const SizedBox(height: 6),
+              ProjectBadge(
+                key: ValueKey<String>('member-status-${membership.agentId}'),
+                label: paused ? copy.pausedStatus : copy.active,
+                icon:
+                    paused ? LucideIcons.circlePause : LucideIcons.circleCheck,
+                variant:
+                    paused
+                        ? ProjectBadgeVariant.secondary
+                        : ProjectBadgeVariant.outline,
+              ),
+            ],
+          ),
         ),
-      ),
-      ProjectIconAction(
-        key: ValueKey<String>('member-pause-${membership.agentId}'),
-        label: paused ? copy.resume : copy.pause,
-        onPressed: () => onPauseChanged(!paused),
-        icon: paused ? LucideIcons.play : LucideIcons.pause,
-      ),
-      ProjectIconAction(
-        key: ValueKey<String>('member-remove-${membership.agentId}'),
-        label: copy.remove,
-        onPressed: onRemove,
-        icon: LucideIcons.trash2,
-        destructive: true,
-      ),
-    ];
+      ],
+    );
     return Semantics(
       container: true,
       label:
           '$name, ${paused ? copy.pausedStatus : copy.active}, '
           '${copy.storageAccess}: ${copy.storageAccessName(membership.projectStorageAccess)}',
       child: ProjectSurfaceCard(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < projectCompactWidth;
-              final identity = Row(
+        padding: const EdgeInsets.all(12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < projectCompactWidth;
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  ReorderableDragStartListener(
-                    index: index,
-                    enabled: dragEnabled,
-                    child: const SizedBox.square(
-                      dimension: 48,
-                      child: Icon(LucideIcons.ellipsis),
-                    ),
-                  ),
-                  if (hasShadProjectTheme(context))
-                    ShadAvatar(
-                      null,
-                      size: const Size.square(40),
-                      placeholder:
-                          member.agent == null
-                              ? const Icon(LucideIcons.circleSlash, size: 18)
-                              : Text(name.characters.first.toUpperCase()),
-                    )
-                  else
-                    CircleAvatar(
-                      child:
-                          member.agent == null
-                              ? const Icon(Icons.person_off_outlined)
-                              : Text(name.characters.first.toUpperCase()),
-                    ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          paused ? copy.pausedStatus : copy.active,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+                  identity,
+                  const SizedBox(height: 12),
+                  accessControl(),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[pauseAction, removeAction],
                   ),
                 ],
               );
-              if (compact) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    identity,
-                    Wrap(
-                      alignment: WrapAlignment.end,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: controls,
-                    ),
-                  ],
-                );
-              }
-              return Row(
-                children: <Widget>[Expanded(child: identity), ...controls],
-              );
-            },
-          ),
+            }
+            return Row(
+              children: <Widget>[
+                Expanded(child: identity),
+                const SizedBox(width: 16),
+                SizedBox(width: 180, child: accessControl()),
+                const SizedBox(width: 4),
+                pauseAction,
+                removeAction,
+              ],
+            );
+          },
         ),
       ),
     );

@@ -69,6 +69,8 @@ void main() {
       find.byKey(const ValueKey<String>('project-member-list')),
       findsOneWidget,
     );
+    expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
+    expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey<String>('project-member-add')));
     await tester.pumpAndSettle();
@@ -143,6 +145,7 @@ void main() {
       await tester.pumpWidget(
         shadHarness(
           brightness: Brightness.light,
+          locale: const Locale('en'),
           homeBuilder:
               (_) => Scaffold(
                 body: ProjectMembersSheet(
@@ -163,6 +166,13 @@ void main() {
       expect(find.byType(ShadSelect<String>), findsOneWidget);
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);
       expect(find.byType(ShadCard), findsOneWidget);
+      expect(find.byType(ShadAvatar), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('member-status-agent-1')),
+        findsOneWidget,
+      );
+      expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
+      expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
 
       await tester.enterText(
         find.byKey(const ValueKey<String>('project-member-search')),
@@ -171,6 +181,74 @@ void main() {
       await tester.pump();
 
       expect(find.text('Researcher'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('multiple members expose an explicit reorder handle', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 760);
+    addTearDown(tester.view.reset);
+    final now = DateTime.utc(2026, 8, 22);
+    final agents = _AgentRepository(<Agent>[
+      _agent('agent-1', 'Researcher', now),
+      _agent('agent-2', 'Writer', now),
+    ]);
+    final memberships = _MembershipRepository(<ProjectMembership>[
+      _membership('agent-1', now, position: 0),
+      _membership('agent-2', now, position: 1),
+    ]);
+    final cursors = _CursorRepository(now);
+    final viewModel = ProjectMembersViewModel(
+      projectId: 'project-1',
+      agentRepository: agents,
+      membershipRepository: memberships,
+      cursorRepository: cursors,
+      manageMembers: ManageProjectMembers(
+        projectRepository: _ProjectRepository(now),
+        agentRepository: agents,
+        membershipRepository: memberships,
+        cursorRepository: cursors,
+        wakeup: (_, _) async {},
+        cancelRun: (_) => true,
+        clock: () => now,
+      ),
+    );
+    addTearDown(viewModel.dispose);
+
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          locale: const Locale('en'),
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectMembersSheet(
+                  viewModel: viewModel,
+                  embedded: true,
+                  disposeViewModel: false,
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
+      expect(find.byIcon(LucideIcons.gripVertical), findsNWidgets(2));
+      expect(
+        find.byKey(const ValueKey<String>('member-reorder-agent-1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label == 'Drag to reorder Researcher',
+        ),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -190,14 +268,17 @@ Agent _agent(String id, String name, DateTime now) => Agent(
   updatedAt: now,
 );
 
-ProjectMembership _membership(String agentId, DateTime now) =>
-    ProjectMembership(
-      projectId: 'project-1',
-      agentId: agentId,
-      position: 0,
-      joinedAt: now,
-      updatedAt: now,
-    );
+ProjectMembership _membership(
+  String agentId,
+  DateTime now, {
+  int position = 0,
+}) => ProjectMembership(
+  projectId: 'project-1',
+  agentId: agentId,
+  position: position,
+  joinedAt: now,
+  updatedAt: now,
+);
 
 final class _ProjectRepository implements ProjectRepository {
   const _ProjectRepository(this.now);

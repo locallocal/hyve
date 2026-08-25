@@ -1,7 +1,7 @@
 # Hyve
 
 <p align="center">
-  <img src="../assets/icon/app_icon.png" alt="Hyve 标志" width="112" height="112">
+  <img src="../assets/icon/app_icon_readme.png" alt="Hyve 标志" width="112" height="112">
 </p>
 
 <p align="center">

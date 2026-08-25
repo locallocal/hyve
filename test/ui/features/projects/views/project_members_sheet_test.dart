@@ -7,6 +7,7 @@ import 'package:hyve/domain/repositories/project_agent_cursor_repository.dart';
 import 'package:hyve/domain/repositories/project_membership_repository.dart';
 import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/use_cases/manage_project_members.dart';
+import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_members_sheet.dart';
 
@@ -124,6 +125,19 @@ void main() {
       _membership('agent-1', now),
     ]);
     final cursors = _CursorRepository(now);
+    final statuses = ValueNotifier<List<ProjectAgentStatusSnapshot>>(
+      const <ProjectAgentStatusSnapshot>[
+        ProjectAgentStatusSnapshot(
+          agentId: 'agent-1',
+          activity: ProjectAgentActivity.replying,
+          lastProcessedMessageSequence: 1,
+          latestMessageSequence: 3,
+          backlog: 2,
+          activeRunId: 'run-1',
+        ),
+      ],
+    );
+    addTearDown(statuses.dispose);
     final viewModel = ProjectMembersViewModel(
       projectId: 'project-1',
       agentRepository: agents,
@@ -147,12 +161,17 @@ void main() {
           brightness: Brightness.light,
           locale: const Locale('en'),
           homeBuilder:
-              (_) => Scaffold(
-                body: ProjectMembersSheet(
-                  viewModel: viewModel,
-                  embedded: true,
-                  disposeViewModel: false,
-                ),
+              (_) => ValueListenableBuilder<List<ProjectAgentStatusSnapshot>>(
+                valueListenable: statuses,
+                builder:
+                    (_, agentStatuses, _) => Scaffold(
+                      body: ProjectMembersSheet(
+                        viewModel: viewModel,
+                        agentStatuses: agentStatuses,
+                        embedded: true,
+                        disposeViewModel: false,
+                      ),
+                    ),
               ),
         ),
       );
@@ -168,11 +187,30 @@ void main() {
       expect(find.byType(ShadCard), findsOneWidget);
       expect(find.byType(ShadAvatar), findsOneWidget);
       expect(
-        find.byKey(const ValueKey<String>('member-status-agent-1')),
+        find.byKey(const ValueKey<String>('member-activity-agent-1')),
         findsOneWidget,
       );
+      expect(find.text('Replying'), findsOneWidget);
+      expect(find.text('Processed 1 / latest 3'), findsOneWidget);
+      expect(find.text('2 pending'), findsOneWidget);
       expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
       expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
+
+      statuses.value = const <ProjectAgentStatusSnapshot>[
+        ProjectAgentStatusSnapshot(
+          agentId: 'agent-1',
+          activity: ProjectAgentActivity.idle,
+          lastProcessedMessageSequence: 3,
+          latestMessageSequence: 3,
+          backlog: 0,
+        ),
+      ];
+      await tester.pump();
+
+      expect(find.text('Replying'), findsNothing);
+      expect(find.text('Caught up'), findsOneWidget);
+      expect(find.text('Processed 3 / latest 3'), findsOneWidget);
+      expect(find.text('2 pending'), findsNothing);
 
       await tester.enterText(
         find.byKey(const ValueKey<String>('project-member-search')),

@@ -5,7 +5,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
-import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/view_models/project_workspace_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
@@ -126,11 +125,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     if (hasShadProjectTheme(context)) {
       await showProjectDialog<void>(
         context: context,
-        builder:
-            (_) => ProjectMembersSheet(
-              viewModel: viewModel,
-              disposeViewModel: false,
-            ),
+        builder: (_) => _membersSheet(viewModel),
       );
       return;
     }
@@ -141,20 +136,29 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
         builder:
             (_) => FractionallySizedBox(
               heightFactor: 0.9,
-              child: ProjectMembersSheet(
-                viewModel: viewModel,
-                embedded: true,
-                disposeViewModel: false,
-              ),
+              child: _membersSheet(viewModel, embedded: true),
             ),
       );
       return;
     }
     await showProjectDialog<void>(
       context: context,
+      builder: (_) => _membersSheet(viewModel),
+    );
+  }
+
+  Widget _membersSheet(
+    ProjectMembersViewModel membersViewModel, {
+    bool embedded = false,
+  }) {
+    final workspaceViewModel = _viewModel!;
+    return ListenableBuilder(
+      listenable: workspaceViewModel,
       builder:
-          (_) => ProjectMembersSheet(
-            viewModel: viewModel,
+          (_, _) => ProjectMembersSheet(
+            viewModel: membersViewModel,
+            agentStatuses: workspaceViewModel.agentStatuses,
+            embedded: embedded,
             disposeViewModel: false,
           ),
     );
@@ -302,12 +306,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       loadingLabel: copy.loadingWorkspace,
       child: Column(
         children: <Widget>[
-          ProjectContentBounds(
-            child: _AgentStatusStrip(
-              statuses: viewModel.agentStatuses,
-              agents: viewModel.activeAgents,
-            ),
-          ),
           if (!hasActiveAgents && hasTimelineEntries)
             ProjectContentBounds(
               child: _NoAgentsNotice(message: copy.noAgentsNotice),
@@ -459,57 +457,6 @@ final class _PersistentProjectInspectorState
   }
 }
 
-final class _AgentStatusStrip extends StatelessWidget {
-  const _AgentStatusStrip({required this.statuses, required this.agents});
-
-  final List<ProjectAgentStatusSnapshot> statuses;
-  final List<Agent> agents;
-
-  @override
-  Widget build(BuildContext context) {
-    if (statuses.isEmpty) return const SizedBox.shrink();
-    final copy = ProjectLocalizations.of(context);
-    final names = <String, String>{
-      for (final agent in agents) agent.id: agent.name,
-    };
-    return SingleChildScrollView(
-      key: const ValueKey<String>('project-agent-statuses'),
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Row(
-        children: <Widget>[
-          for (final status in statuses)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Semantics(
-                label:
-                    '${names[status.agentId] ?? status.agentId}, '
-                    '${copy.activity(status.activity)}, '
-                    '${copy.processed(status.lastProcessedMessageSequence, status.latestMessageSequence)}'
-                    '${status.errorCode.isEmpty ? '' : ', ${copy.errorCode(status.errorCode)}'}',
-                child: ProjectBadge(
-                  icon: _activityIcon(status.activity),
-                  variant:
-                      status.activity == ProjectAgentActivity.failed
-                          ? ProjectBadgeVariant.destructive
-                          : status.activeRunId.isNotEmpty
-                          ? ProjectBadgeVariant.secondary
-                          : ProjectBadgeVariant.outline,
-                  label:
-                      '${names[status.agentId] ?? status.agentId} · '
-                      '${copy.activity(status.activity)} · '
-                      '${copy.processed(status.lastProcessedMessageSequence, status.latestMessageSequence)}'
-                      '${status.backlog > 0 ? ' · ${copy.backlog(status.backlog)}' : ''}'
-                      '${status.errorCode.isEmpty ? '' : ' · ${copy.errorCode(status.errorCode)}'}',
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 final class _NoAgentsNotice extends StatelessWidget {
   const _NoAgentsNotice({required this.message});
 
@@ -535,14 +482,3 @@ final class _NoAgentsNotice extends StatelessWidget {
     );
   }
 }
-
-IconData _activityIcon(ProjectAgentActivity activity) => switch (activity) {
-  ProjectAgentActivity.idle => Icons.check_circle_outline,
-  ProjectAgentActivity.deciding => Icons.psychology_outlined,
-  ProjectAgentActivity.willReply => Icons.pending_outlined,
-  ProjectAgentActivity.skipped => Icons.next_plan_outlined,
-  ProjectAgentActivity.replying => Icons.chat_bubble_outline,
-  ProjectAgentActivity.catchingUp => Icons.sync,
-  ProjectAgentActivity.paused => Icons.pause_circle_outline,
-  ProjectAgentActivity.failed => Icons.error_outline,
-};

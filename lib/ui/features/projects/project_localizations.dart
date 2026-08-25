@@ -198,8 +198,8 @@ final class ProjectLocalizations {
   String get searchAgents => _text('Search agents', '搜索智能体');
   String get addAgent => _text('Add agent', '添加智能体');
   String get membersDescription => _text(
-    'Manage agent order, artifact access, and project participation.',
-    '管理智能体顺序、产物权限和项目参与状态。',
+    'Monitor processing and manage agent order, artifact access, and participation.',
+    '查看消息处理状态，并管理智能体顺序、产物权限和项目参与状态。',
   );
   String get noMembers => _text('No project members yet', '项目暂无成员');
   String get noAvailableAgents =>

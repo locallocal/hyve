@@ -4336,6 +4336,11 @@ class S {
     );
   }
 
+  /// `Memory`
+  String get memory {
+    return Intl.message('Memory', name: 'memory', desc: '', args: []);
+  }
+
   /// `Context window`
   String get contextWindow {
     return Intl.message(

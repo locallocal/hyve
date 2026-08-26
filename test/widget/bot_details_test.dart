@@ -103,7 +103,7 @@ void main() {
       (basicSection, '基本信息'),
       (providerSection, '提供商信息'),
       (modelSection, '模型配置'),
-      (contextMemorySection, '上下文与记忆'),
+      (contextMemorySection, '记忆'),
       (tokenUsageSection, 'Token 用量'),
     ]) {
       final titleText = tester.widget<Text>(
@@ -159,7 +159,7 @@ void main() {
       lessThan(tester.getRect(tokenUsageSection).top),
     );
     expect(
-      find.byKey(const ValueKey<String>('agent-context-memory-unavailable')),
+      find.byKey(const ValueKey<String>('agent-memory-unavailable')),
       findsOneWidget,
     );
     expect(

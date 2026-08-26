@@ -676,6 +676,7 @@
     "noAgentMemory": "이 에이전트에는 아직 장기 메모리가 없습니다.",
     "agentContextMemoryUnavailable": "이 에이전트를 사용하는 프로젝트를 열어 컨텍스트와 메모리를 확인하고 관리하세요.",
     "contextAndMemory": "컨텍스트와 메모리",
+    "memory": "메모리",
     "contextWindow": "컨텍스트 창",
     "estimatedContextUsage": "예상 사용량",
     "retainedRecentTurns": "유지된 최근 턴",

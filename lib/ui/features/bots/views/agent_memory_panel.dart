@@ -129,24 +129,83 @@ final class _AgentMemoryPanelState extends State<AgentMemoryPanel> {
           ),
         ],
         const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 480;
-            return Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: ShadButton.outline(
-                key: const ValueKey<String>('manage-agent-memory'),
-                width: compact ? double.infinity : null,
-                leading: const Icon(LucideIcons.brain, size: 16),
-                onPressed: () => _showManager(context),
-                child: Text(
-                  '${S.of(context).manageMemory} (${viewModel.items.length})',
-                ),
-              ),
-            );
-          },
+        _AgentMemoryActions(
+          compacting: viewModel.compacting,
+          onViewSummary: () => _showSummary(context),
+          onManage: () => _showManager(context),
+          onCompact: () => unawaited(_compact(context)),
         ),
       ],
+    );
+  }
+
+  Future<void> _compact(BuildContext context) async {
+    try {
+      final compacted = await widget.viewModel.compactNow();
+      if (!context.mounted) return;
+      showHyveNotice(
+        context,
+        compacted == 0
+            ? S.of(context).nothingToCompact
+            : S.of(context).contextCompacted,
+      );
+    } on Object catch (error) {
+      if (!context.mounted) return;
+      showHyveNotice(
+        context,
+        safeFailureMessage(context, error),
+        tone: HyveNoticeTone.error,
+      );
+    }
+  }
+
+  void _showSummary(BuildContext context) {
+    final items = widget.viewModel.summaryItems;
+    unawaited(
+      showChatShadDialog<void>(
+        context: context,
+        builder:
+            (dialogContext) => ShadDialog(
+              key: const ValueKey<String>('agent-memory-summary-dialog'),
+              title: Text(
+                S.of(dialogContext).agentMemory,
+                style: HyveDesktopThemeSpec.pageTitleStyle(dialogContext),
+              ),
+              description: Text(S.of(dialogContext).agentMemoryDescription),
+              constraints: const BoxConstraints(maxWidth: 720),
+              actions: <Widget>[
+                ShadButton.outline(
+                  key: const ValueKey<String>('agent-memory-summary-close'),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(
+                    MaterialLocalizations.of(dialogContext).closeButtonLabel,
+                  ),
+                ),
+              ],
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: SizedBox(
+                  height: math.min(
+                    420,
+                    MediaQuery.sizeOf(dialogContext).height * 0.52,
+                  ),
+                  child:
+                      items.isEmpty
+                          ? Center(child: Text(S.of(context).noAgentMemory))
+                          : SingleChildScrollView(
+                            child: SelectableText(
+                              items
+                                  .map((memory) => '• ${memory.content}')
+                                  .join('\n\n'),
+                              key: const ValueKey<String>(
+                                'agent-memory-summary-content',
+                              ),
+                            ),
+                          ),
+                ),
+              ),
+            ),
+      ),
     );
   }
 
@@ -159,6 +218,79 @@ final class _AgentMemoryPanelState extends State<AgentMemoryPanel> {
       ),
     );
   }
+}
+
+final class _AgentMemoryActions extends StatelessWidget {
+  const _AgentMemoryActions({
+    required this.compacting,
+    required this.onViewSummary,
+    required this.onManage,
+    required this.onCompact,
+  });
+
+  final bool compacting;
+  final VoidCallback onViewSummary;
+  final VoidCallback onManage;
+  final VoidCallback onCompact;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      const spacing = 8.0;
+      final compactLayout = constraints.maxWidth < 320;
+      final buttonWidth =
+          ((constraints.maxWidth - spacing * 2) / 3)
+              .clamp(0.0, double.infinity)
+              .toDouble();
+      final padding = EdgeInsets.symmetric(horizontal: compactLayout ? 3 : 8);
+      final iconSize = compactLayout ? 14.0 : 15.0;
+      Widget label(String value) => Flexible(
+        child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
+      );
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          ShadButton.outline(
+            key: const ValueKey<String>('memory-view-summary'),
+            size: ShadButtonSize.sm,
+            width: buttonWidth,
+            padding: padding,
+            gap: hyveInspectorIconLabelGap,
+            onPressed: onViewSummary,
+            leading: Icon(LucideIcons.fileText, size: iconSize),
+            child: label(S.of(context).viewSummary),
+          ),
+          ShadButton.outline(
+            key: const ValueKey<String>('memory-manage'),
+            size: ShadButtonSize.sm,
+            width: buttonWidth,
+            padding: padding,
+            gap: hyveInspectorIconLabelGap,
+            onPressed: onManage,
+            leading: Icon(LucideIcons.brain, size: iconSize),
+            child: label(S.of(context).manageMemory),
+          ),
+          ShadButton.outline(
+            key: const ValueKey<String>('memory-compact-now'),
+            size: ShadButtonSize.sm,
+            width: buttonWidth,
+            padding: padding,
+            gap: hyveInspectorIconLabelGap,
+            onPressed: compacting ? null : onCompact,
+            leading:
+                compacting
+                    ? const SizedBox.square(
+                      dimension: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : Icon(LucideIcons.minimize2, size: iconSize),
+            child: label(S.of(context).compactNow),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 final class _AgentMemoryDialog extends StatefulWidget {

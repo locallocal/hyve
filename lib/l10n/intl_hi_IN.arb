@@ -676,6 +676,7 @@
     "noAgentMemory": "इस एजेंट के पास अभी कोई दीर्घकालिक मेमोरी नहीं है।",
     "agentContextMemoryUnavailable": "इस एजेंट का उपयोग करने वाला प्रोजेक्ट खोलें, ताकि उसका संदर्भ और मेमोरी देखी और प्रबंधित की जा सके।",
     "contextAndMemory": "संदर्भ और स्मृति",
+    "memory": "स्मृति",
     "contextWindow": "संदर्भ विंडो",
     "estimatedContextUsage": "अनुमानित उपयोग",
     "retainedRecentTurns": "हाल के रखे गए चरण",

@@ -6,44 +6,28 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/agent_memory_evolution_repository.dart';
 import 'package:hyve/domain/repositories/agent_memory_repository.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
-import 'package:hyve/domain/repositories/context_summarizer.dart';
-import 'package:hyve/domain/repositories/conversation_memory_repository.dart';
-import 'package:hyve/domain/repositories/message_repository.dart';
-import 'package:hyve/domain/use_cases/compact_conversation.dart';
 import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
-import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../../../support/widget_test_support.dart';
 
 void main() {
-  testWidgets('agent details host context and long-term memory Shad sections', (
+  testWidgets('agent details use AgentMemory for all memory actions', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 1100);
     addTearDown(tester.view.reset);
 
-    final conversationRepository = _ConversationMemoryRepository();
-    final conversationViewModel = ConversationMemoryViewModel(
-      chatId: 'project-1',
-      bot: _bot,
-      repository: conversationRepository,
-      compactConversation: CompactConversation(
-        messageRepository: _MessageRepository(),
-        memoryRepository: conversationRepository,
-        summarizerFactory: (_) => const _ContextSummarizer(),
-      ),
-    );
     final agentRepository = _AgentRepository(_agent);
+    final memoryRepository = _AgentMemoryRepository(_memory);
     final agentViewModel = AgentMemoryViewModel(
       agentId: _agent.id,
       agentRepository: agentRepository,
-      memoryRepository: _AgentMemoryRepository(_memory),
+      memoryRepository: memoryRepository,
       evolutionRepository: const _AgentMemoryEvolutionRepository(),
     );
-    addTearDown(conversationViewModel.dispose);
     addTearDown(agentViewModel.dispose);
 
     await tester.pumpWidget(
@@ -55,7 +39,6 @@ void main() {
                 bot: _bot,
                 embedded: true,
                 readOnly: true,
-                conversationMemoryViewModel: conversationViewModel,
                 agentMemoryViewModel: agentViewModel,
                 onBotUpdated: (_) async {},
                 onBotDeleted: () async {},
@@ -68,13 +51,12 @@ void main() {
     final contextSection = find.byKey(
       const ValueKey<String>('desktop-bot-context-memory-section'),
     );
-    final agentSection = find.byKey(
-      const ValueKey<String>('desktop-bot-agent-memory-section'),
-    );
     expect(contextSection, findsOneWidget);
-    expect(agentSection, findsOneWidget);
     expect(tester.widget(contextSection), isA<ShadCard>());
-    expect(tester.widget(agentSection), isA<ShadCard>());
+    expect(
+      find.byKey(const ValueKey<String>('desktop-bot-agent-memory-section')),
+      findsNothing,
+    );
     expect(
       find.byKey(const ValueKey<String>('conversation-memory-section-title')),
       findsNothing,
@@ -84,8 +66,17 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(SwitchListTile), findsNothing);
-    expect(find.text('上下文与记忆'), findsOneWidget);
-    expect(find.text('智能体记忆'), findsOneWidget);
+    expect(find.text('记忆'), findsOneWidget);
+    expect(find.text('智能体记忆'), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>('memory-view-summary')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey<String>('memory-manage')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('memory-compact-now')),
+      findsOneWidget,
+    );
 
     final autoEvolutionSwitch = find.byKey(
       const ValueKey<String>('agent-memory-auto-evolution-switch'),
@@ -95,9 +86,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(agentRepository.agent.memoryPolicy.autoEvolutionEnabled, isFalse);
 
-    final manageButton = find.byKey(
-      const ValueKey<String>('manage-agent-memory'),
+    final summaryButton = find.byKey(
+      const ValueKey<String>('memory-view-summary'),
     );
+    await tester.ensureVisible(summaryButton);
+    await tester.tap(summaryButton);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('agent-memory-summary-dialog')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('agent-memory-summary-content')),
+      findsOneWidget,
+    );
+    expect(find.textContaining(_memory.content), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('agent-memory-summary-close')),
+    );
+    await tester.pumpAndSettle();
+
+    final compactButton = find.byKey(
+      const ValueKey<String>('memory-compact-now'),
+    );
+    await tester.ensureVisible(compactButton);
+    await tester.tap(compactButton);
+    await tester.pumpAndSettle();
+    expect(memoryRepository.requestedAgentIds, everyElement(_agent.id));
+    expect(memoryRepository.forgottenIds, isEmpty);
+
+    final manageButton = find.byKey(const ValueKey<String>('memory-manage'));
     await tester.ensureVisible(manageButton);
     await tester.tap(manageButton);
     await tester.pumpAndSettle();
@@ -176,9 +194,11 @@ final class _AgentRepository implements AgentRepository {
 }
 
 final class _AgentMemoryRepository implements AgentMemoryRepository {
-  const _AgentMemoryRepository(this.memory);
+  _AgentMemoryRepository(this.memory);
 
   final AgentMemory memory;
+  final List<String> requestedAgentIds = <String>[];
+  final List<String> forgottenIds = <String>[];
 
   @override
   Stream<String> get changes => const Stream<String>.empty();
@@ -187,7 +207,21 @@ final class _AgentMemoryRepository implements AgentMemoryRepository {
   Future<List<AgentMemory>> list(
     String agentId, {
     bool includeHistory = false,
-  }) async => <AgentMemory>[memory];
+  }) async {
+    requestedAgentIds.add(agentId);
+    return <AgentMemory>[memory];
+  }
+
+  @override
+  Future<AgentMemoryMutationResult> forget({
+    required String agentId,
+    required String memoryId,
+    int? expectedRevision,
+  }) async {
+    requestedAgentIds.add(agentId);
+    forgottenIds.add(memoryId);
+    return AgentMemoryMutationResult(memory: memory, revision: 1);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -205,44 +239,4 @@ final class _AgentMemoryEvolutionRepository
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final class _ConversationMemoryRepository
-    implements ConversationMemoryRepository {
-  @override
-  Stream<String> get changes => const Stream<String>.empty();
-
-  @override
-  Future<ConversationSummaryDocument?> getActiveSummary(String chatId) async =>
-      null;
-
-  @override
-  Future<List<ConversationMemoryItem>> getItems(String chatId) async =>
-      const <ConversationMemoryItem>[];
-
-  @override
-  Future<ConversationMemoryState> getState(String chatId) async =>
-      ConversationMemoryState(chatId: chatId, updatedAt: DateTime(2026));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final class _MessageRepository implements MessageRepository {
-  @override
-  Stream<void> get changes => const Stream<void>.empty();
-
-  @override
-  Future<List<Message>> getMessages(String chatId) async => const <Message>[];
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final class _ContextSummarizer implements ContextSummarizer {
-  const _ContextSummarizer();
-
-  @override
-  Future<ContextSummaryResult> summarize(ContextSummaryRequest request) =>
-      throw UnsupportedError('Compaction is not used by this test.');
 }

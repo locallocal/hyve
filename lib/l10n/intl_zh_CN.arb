@@ -1014,6 +1014,7 @@
     "noAgentMemory": "此智能体还没有长期记忆。",
     "agentContextMemoryUnavailable": "打开一个使用此智能体的项目后，即可查看并管理其上下文与记忆。",
     "contextAndMemory": "上下文与记忆",
+    "memory": "记忆",
     "contextWindow": "上下文窗口",
     "estimatedContextUsage": "预计本轮占用",
     "retainedRecentTurns": "保留的最近轮次",

@@ -5,12 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/generated/l10n.dart';
-import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
-import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
-import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
-import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
@@ -98,9 +94,6 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   GlobalKey<ChatPageState>? _chatPageKey;
   final ProjectWorkspaceController _projectWorkspaceController =
       ProjectWorkspaceController();
-  AppDependencies? _dependencies;
-  ConversationMemoryViewModel? _memoryViewModel;
-  AgentMemoryViewModel? _agentMemoryViewModel;
 
   Bot? get _activeBot => switch (widget.currentIndex) {
     0 => widget.selectedChatBot,
@@ -109,35 +102,10 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   };
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final dependencies = AppScope.maybeOf(context);
-    if (_dependencies == dependencies) return;
-    _memoryViewModel?.dispose();
-    _agentMemoryViewModel?.dispose();
-    _memoryViewModel = null;
-    _agentMemoryViewModel = null;
-    _dependencies = dependencies;
-    _replaceMemoryViewModel();
-    _replaceAgentMemoryViewModel();
-  }
-
-  @override
   void didUpdateWidget(covariant DesktopLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
     final chatChanged = oldWidget.selectedChatId != widget.selectedChatId;
-    final chatBotChanged = oldWidget.selectedChatBot != widget.selectedChatBot;
-    final projectBotsChanged =
-        oldWidget.selectedChatBots != widget.selectedChatBots;
-    final selectedBotChanged = oldWidget.selectedBot != widget.selectedBot;
     if (chatChanged) _chatPageKey = null;
-    if (chatChanged ||
-        chatBotChanged ||
-        projectBotsChanged ||
-        selectedBotChanged) {
-      _replaceMemoryViewModel();
-    }
-    if (selectedBotChanged) _replaceAgentMemoryViewModel();
     if (oldWidget.currentIndex == 0 && widget.currentIndex != 0) {
       _preserveChatOverlayIntent = false;
       unawaited(_dismissActiveChatOverlay());
@@ -161,36 +129,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         }),
       );
     }
-    _memoryViewModel?.dispose();
-    _agentMemoryViewModel?.dispose();
     super.dispose();
-  }
-
-  void _replaceMemoryViewModel() {
-    _memoryViewModel?.dispose();
-    final chatId = widget.selectedChatId;
-    final bot = widget.selectedBot;
-    final dependencies = _dependencies;
-    final botBelongsToProject = widget.selectedChatBots.any(
-      (projectBot) => projectBot.id == bot?.id,
-    );
-    _memoryViewModel =
-        chatId == null ||
-                bot == null ||
-                !botBelongsToProject ||
-                dependencies == null
-            ? null
-            : dependencies.createConversationMemoryViewModel(chatId, bot);
-  }
-
-  void _replaceAgentMemoryViewModel() {
-    _agentMemoryViewModel?.dispose();
-    final agentId = widget.selectedBot?.id;
-    final dependencies = _dependencies;
-    _agentMemoryViewModel =
-        agentId == null || dependencies == null
-            ? null
-            : dependencies.createAgentMemoryViewModel(agentId);
   }
 
   @override

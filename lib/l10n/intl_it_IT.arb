@@ -676,6 +676,7 @@
     "noAgentMemory": "Questo agente non ha ancora una memoria a lungo termine.",
     "agentContextMemoryUnavailable": "Apri un progetto che utilizza questo agente per visualizzarne e gestirne il contesto e la memoria.",
     "contextAndMemory": "Contesto e memoria",
+    "memory": "Memoria",
     "contextWindow": "Finestra di contesto",
     "estimatedContextUsage": "Utilizzo stimato",
     "retainedRecentTurns": "Turni recenti mantenuti",

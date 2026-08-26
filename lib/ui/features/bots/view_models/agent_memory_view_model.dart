@@ -31,6 +31,7 @@ final class AgentMemoryViewModel extends DisposableChangeNotifier {
   List<AgentMemoryEvolutionRun> _evolutionRuns =
       const <AgentMemoryEvolutionRun>[];
   bool _loading = false;
+  bool _compacting = false;
   AppFailure? _error;
   int _generation = 0;
 
@@ -38,9 +39,13 @@ final class AgentMemoryViewModel extends DisposableChangeNotifier {
   List<AgentMemory> get items => _items;
   List<AgentMemoryEvolutionRun> get evolutionRuns => _evolutionRuns;
   bool get loading => _loading;
+  bool get compacting => _compacting;
   AppFailure? get error => _error;
   bool get autoEvolutionEnabled =>
       _agent?.memoryPolicy.autoEvolutionEnabled ?? false;
+  List<AgentMemory> get summaryItems => List<AgentMemory>.unmodifiable(
+    _items.where((memory) => memory.isRecallable),
+  );
 
   Future<void> load() async {
     if (isDisposed) return;
@@ -110,8 +115,80 @@ final class AgentMemoryViewModel extends DisposableChangeNotifier {
     if (!isDisposed) await load();
   }
 
+  /// Removes redundant current memories without crossing kind, privacy, or
+  /// project-scope boundaries.
+  Future<int> compactNow() async {
+    if (isDisposed || _compacting) return 0;
+    _compacting = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final memories = await _memoryRepository.list(agentId);
+      final candidates = memories
+        .where((memory) => memory.state != AgentMemoryState.forgotten)
+        .toList(growable: false)..sort(_compareCompactionPriority);
+      final fingerprints = <String>{};
+      var compacted = 0;
+      for (final memory in candidates) {
+        if (fingerprints.add(_compactionFingerprint(memory))) continue;
+        await _memoryRepository.forget(agentId: agentId, memoryId: memory.id);
+        compacted++;
+      }
+      if (!isDisposed) await load();
+      return compacted;
+    } on Object catch (error) {
+      if (!isDisposed) {
+        _error = AppFailure.from(error, code: 'agent_memory_compaction_failed');
+        notifyListeners();
+      }
+      rethrow;
+    } finally {
+      if (!isDisposed) {
+        _compacting = false;
+        notifyListeners();
+      }
+    }
+  }
+
   @override
   void disposeResources() {
     unawaited(_subscription?.cancel());
   }
+}
+
+int _compareCompactionPriority(AgentMemory left, AgentMemory right) {
+  final state = _memoryStatePriority(
+    left.state,
+  ).compareTo(_memoryStatePriority(right.state));
+  if (state != 0) return state;
+  final confidence = right.confidence.compareTo(left.confidence);
+  if (confidence != 0) return confidence;
+  final importance = right.importance.compareTo(left.importance);
+  if (importance != 0) return importance;
+  return right.updatedAt.compareTo(left.updatedAt);
+}
+
+int _memoryStatePriority(AgentMemoryState state) => switch (state) {
+  AgentMemoryState.active => 0,
+  AgentMemoryState.candidate => 1,
+  AgentMemoryState.superseded => 2,
+  AgentMemoryState.forgotten => 3,
+};
+
+String _compactionFingerprint(AgentMemory memory) {
+  final normalizedContent = memory.content.trim().toLowerCase().replaceAll(
+    RegExp(r'\s+'),
+    ' ',
+  );
+  final scopedProject =
+      memory.reuseScope == AgentMemoryReuseScope.sourceProjectOnly
+          ? memory.sourceProjectId
+          : '';
+  return <Object>[
+    memory.kind.name,
+    memory.reuseScope.name,
+    memory.sensitivity.name,
+    scopedProject,
+    normalizedContent,
+  ].join('\u0000');
 }

@@ -746,6 +746,7 @@
     "noAgentMemory": "此智慧體還沒有長期記憶。",
     "agentContextMemoryUnavailable": "開啟一個使用此智慧體的專案後，即可檢視並管理其上下文與記憶。",
     "contextAndMemory": "上下文與記憶",
+    "memory": "記憶",
     "contextWindow": "上下文視窗",
     "estimatedContextUsage": "預計本輪占用",
     "retainedRecentTurns": "保留的最近輪次",

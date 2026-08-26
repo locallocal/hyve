@@ -211,15 +211,6 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
         bot: widget.selectedBot!,
         embedded: true,
         readOnly: !widget.isEditingBot,
-        conversationMemoryViewModel: _memoryViewModel,
-        conversationGenerationViewModel:
-            _memoryViewModel == null ||
-                    widget.selectedBot?.id != widget.selectedChatBot?.id
-                ? null
-                : _dependencies?.generationRegistry.maybeViewModel(
-                  widget.selectedChatId,
-                ),
-        agentMemoryViewModel: _agentMemoryViewModel,
         avatarPicker: widget.avatarPicker,
         onBotUpdated: widget.onBotUpdated,
         onBotDeleted: widget.onBotDeleted,

@@ -38,7 +38,18 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
   final FocusNode _cardFocusNode = FocusNode(debugLabel: 'desktop-bot-card');
 
   @override
+  void initState() {
+    super.initState();
+    _menuController.addListener(_handleMenuVisibilityChange);
+  }
+
+  void _handleMenuVisibilityChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    _menuController.removeListener(_handleMenuVisibilityChange);
     _menuController.dispose();
     _menuFocusNode.dispose();
     _cardFocusNode.dispose();
@@ -130,6 +141,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
         focusNode: _menuFocusNode,
         onPressed: _menuController.toggle,
         hoverBackgroundColor: Colors.transparent,
+        showFocusRing: !_menuController.isOpen,
       ),
     );
   }
@@ -171,6 +183,7 @@ class _DesktopBotCardState extends State<_DesktopBotCard> {
         label: widget.bot.name,
         hint: S.of(context).selectBot,
         onPressed: widget.onOpen,
+        highlightEnabled: !_menuController.isOpen,
         builder:
             (context, highlighted) => ShadCard(
               key: ValueKey<String>('desktop-bot-card-${widget.bot.id}'),

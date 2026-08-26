@@ -14,6 +14,7 @@ class HyveDesktopActionSurface extends StatefulWidget {
     this.hint,
     this.focusNode,
     this.liftOnHover = true,
+    this.highlightEnabled = true,
   });
 
   final String label;
@@ -22,6 +23,7 @@ class HyveDesktopActionSurface extends StatefulWidget {
   final Widget Function(BuildContext context, bool highlighted) builder;
   final FocusNode? focusNode;
   final bool liftOnHover;
+  final bool highlightEnabled;
 
   @override
   State<HyveDesktopActionSurface> createState() =>
@@ -38,24 +40,47 @@ class _HyveDesktopActionSurfaceState extends State<HyveDesktopActionSurface> {
   void initState() {
     super.initState();
     _setFocusNode(widget.focusNode);
+    FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
+    _focused = _shouldShowFocusHighlight;
   }
 
   @override
   void didUpdateWidget(covariant HyveDesktopActionSurface oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
+      _focusNode.removeListener(_handleFocusChange);
       if (_ownsFocusNode) _focusNode.dispose();
       _setFocusNode(widget.focusNode);
+      _focused = _shouldShowFocusHighlight;
     }
   }
 
   void _setFocusNode(FocusNode? focusNode) {
     _ownsFocusNode = focusNode == null;
     _focusNode = focusNode ?? FocusNode(debugLabel: 'HyveDesktopActionSurface');
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  bool get _shouldShowFocusHighlight =>
+      _focusNode.hasPrimaryFocus &&
+      FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+
+  void _handleFocusChange() => _updateFocusHighlight();
+
+  void _handleHighlightModeChange(FocusHighlightMode _) =>
+      _updateFocusHighlight();
+
+  void _updateFocusHighlight() {
+    final focused = _shouldShowFocusHighlight;
+    if (_focused != focused) setState(() => _focused = focused);
   }
 
   @override
   void dispose() {
+    FocusManager.instance.removeHighlightModeListener(
+      _handleHighlightModeChange,
+    );
+    _focusNode.removeListener(_handleFocusChange);
     if (_ownsFocusNode) _focusNode.dispose();
     super.dispose();
   }
@@ -64,7 +89,7 @@ class _HyveDesktopActionSurfaceState extends State<HyveDesktopActionSurface> {
   Widget build(BuildContext context) {
     final tokens = HyveDesktopTokens.of(context);
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    final highlighted = _hovered || _focused;
+    final highlighted = widget.highlightEnabled && (_hovered || _focused);
     return Semantics(
       container: true,
       button: true,
@@ -89,9 +114,6 @@ class _HyveDesktopActionSurfaceState extends State<HyveDesktopActionSurface> {
         onShowHoverHighlight: (value) {
           if (_hovered != value) setState(() => _hovered = value);
         },
-        onShowFocusHighlight: (value) {
-          if (_focused != value) setState(() => _focused = value);
-        },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onPressed,
@@ -105,8 +127,8 @@ class _HyveDesktopActionSurfaceState extends State<HyveDesktopActionSurface> {
                 widget.liftOnHover && _hovered
                     ? (Matrix4.identity()..translateByDouble(0, -2, 0, 1))
                     : Matrix4.identity(),
-            decoration:
-                _focused
+            foregroundDecoration:
+                widget.highlightEnabled && _focused
                     ? BoxDecoration(
                       border: Border.all(
                         color: tokens.focusRing,

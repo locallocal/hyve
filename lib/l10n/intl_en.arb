@@ -1025,6 +1025,7 @@
     "noAgentMemory": "This agent has no long-term memory yet.",
     "agentContextMemoryUnavailable": "Open a project that uses this agent to view and manage its context and memory.",
     "contextAndMemory": "Context and memory",
+    "memory": "Memory",
     "contextWindow": "Context window",
     "estimatedContextUsage": "Estimated usage",
     "retainedRecentTurns": "Recent turns retained",

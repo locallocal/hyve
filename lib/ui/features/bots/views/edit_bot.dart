@@ -7,6 +7,7 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/models/provider_catalog.dart';
 import 'package:hyve/domain/use_cases/bot_commands.dart';
 import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/dependency_injection/app_dependencies.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
 import 'package:hyve/ui/core/widgets/common.dart';
@@ -22,9 +23,6 @@ import 'package:hyve/ui/features/bots/views/agent_memory_panel.dart';
 import 'package:hyve/ui/features/bots/views/bot_mcp_tool_picker.dart';
 import 'package:hyve/ui/features/bots/views/bot_token_usage.dart';
 import 'package:hyve/ui/features/bots/views/skill_description_test_dialog.dart';
-import 'package:hyve/ui/features/chat/view_models/chat_generation_view_model.dart';
-import 'package:hyve/ui/features/chat/view_models/conversation_memory_view_model.dart';
-import 'package:hyve/ui/features/chat/views/conversation_memory_panel.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:hyve/utils/utils.dart';
 
@@ -41,8 +39,6 @@ class EditBotPage extends StatefulWidget {
   final bool readOnly;
   final BotSkillViewModel? skillViewModel;
   final Future<BotMcpCatalog> Function()? mcpCatalogLoader;
-  final ConversationMemoryViewModel? conversationMemoryViewModel;
-  final ChatGenerationViewModel? conversationGenerationViewModel;
   final AgentMemoryViewModel? agentMemoryViewModel;
 
   const EditBotPage({
@@ -55,8 +51,6 @@ class EditBotPage extends StatefulWidget {
     this.readOnly = false,
     this.skillViewModel,
     this.mcpCatalogLoader,
-    this.conversationMemoryViewModel,
-    this.conversationGenerationViewModel,
     this.agentMemoryViewModel,
   });
 
@@ -84,7 +78,9 @@ class _EditAIBotPageState extends State<EditBotPage> {
   int _editRevision = 0;
   File? avatarImage;
   BotTokenUsageViewModel? _tokenUsageViewModel;
+  AgentMemoryViewModel? _agentMemoryViewModel;
   BotSkillViewModel? _skillViewModel;
+  bool _ownsAgentMemoryViewModel = false;
   bool _ownsSkillViewModel = false;
   List<McpServer> _mcpServers = const [];
   Map<String, List<McpToolDescriptor>> _mcpToolsByServer = const {};
@@ -138,6 +134,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
           _modelSupportsAutomaticSkillActivation;
       unawaited(injectedSkillViewModel.load());
     }
+    _agentMemoryViewModel = widget.agentMemoryViewModel;
   }
 
   @override
@@ -196,6 +193,12 @@ class _EditAIBotPageState extends State<EditBotPage> {
         widget.bot.id,
       )..addListener(_handleTokenUsageChanged);
       unawaited(_tokenUsageViewModel!.load());
+    }
+    if (widget.readOnly && _agentMemoryViewModel == null) {
+      _ownsAgentMemoryViewModel = true;
+      _agentMemoryViewModel = dependencies.createAgentMemoryViewModel(
+        widget.bot.id,
+      );
     }
     if (_skillViewModel == null) {
       _ownsSkillViewModel = true;
@@ -278,6 +281,7 @@ class _EditAIBotPageState extends State<EditBotPage> {
     _tokenUsageViewModel
       ?..removeListener(_handleTokenUsageChanged)
       ..dispose();
+    if (_ownsAgentMemoryViewModel) _agentMemoryViewModel?.dispose();
     _skillViewModel?.removeListener(_handleSkillChanged);
     if (_ownsSkillViewModel) _skillViewModel?.dispose();
     super.dispose();
@@ -571,62 +575,38 @@ class _EditAIBotPageState extends State<EditBotPage> {
                   SizedBox(height: widget.embedded ? 20 : 16),
                   _buildFormSection(
                     context,
-                    S.of(context).contextAndMemory,
+                    S.of(context).memory,
                     [
-                      if (widget.conversationMemoryViewModel
-                          case final viewModel?)
-                        ConversationMemoryPanel(
+                      if (_agentMemoryViewModel case final viewModel?)
+                        AgentMemoryPanel(
                           viewModel: viewModel,
-                          generationViewModel:
-                              widget.conversationGenerationViewModel,
                           showSectionHeader: false,
-                          showSystemPrompt: false,
                         )
                       else
                         widget.embedded
                             ? ShadAlert(
                               key: const ValueKey<String>(
-                                'agent-context-memory-unavailable',
+                                'agent-memory-unavailable',
                               ),
                               icon: const Icon(LucideIcons.info),
-                              description: Text(
-                                S.of(context).agentContextMemoryUnavailable,
-                              ),
+                              description: Text(S.of(context).noAgentMemory),
                             )
                             : Row(
                               key: const ValueKey<String>(
-                                'agent-context-memory-unavailable',
+                                'agent-memory-unavailable',
                               ),
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(Icons.info_outline, size: 20),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Text(
-                                    S.of(context).agentContextMemoryUnavailable,
-                                  ),
+                                  child: Text(S.of(context).noAgentMemory),
                                 ),
                               ],
                             ),
                     ],
                     sectionKey: const ValueKey<String>(
                       'desktop-bot-context-memory-section',
-                    ),
-                  ),
-                ],
-                if (widget.readOnly && widget.agentMemoryViewModel != null) ...[
-                  SizedBox(height: widget.embedded ? 20 : 16),
-                  _buildFormSection(
-                    context,
-                    S.of(context).agentMemory,
-                    [
-                      AgentMemoryPanel(
-                        viewModel: widget.agentMemoryViewModel!,
-                        showSectionHeader: false,
-                      ),
-                    ],
-                    sectionKey: const ValueKey<String>(
-                      'desktop-bot-agent-memory-section',
                     ),
                   ),
                 ],

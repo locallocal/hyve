@@ -676,6 +676,7 @@
     "noAgentMemory": "У этого агента пока нет долговременной памяти.",
     "agentContextMemoryUnavailable": "Откройте проект, использующий этого агента, чтобы просматривать и управлять его контекстом и памятью.",
     "contextAndMemory": "Контекст и память",
+    "memory": "Память",
     "contextWindow": "Окно контекста",
     "estimatedContextUsage": "Оценка использования",
     "retainedRecentTurns": "Сохранённые последние ходы",

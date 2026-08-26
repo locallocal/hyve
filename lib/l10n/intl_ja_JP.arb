@@ -676,6 +676,7 @@
     "noAgentMemory": "このエージェントにはまだ長期メモリがありません。",
     "agentContextMemoryUnavailable": "このエージェントを使用するプロジェクトを開くと、コンテキストとメモリを表示・管理できます。",
     "contextAndMemory": "コンテキストとメモリ",
+    "memory": "メモリ",
     "contextWindow": "コンテキストウィンドウ",
     "estimatedContextUsage": "推定使用量",
     "retainedRecentTurns": "保持された最近のターン",

@@ -472,6 +472,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
       "MCP 伺服器使用不支援的協定版本。",
     ),
+    "memory": MessageLookupByLibrary.simpleMessage("記憶"),
     "memoryArtifact": MessageLookupByLibrary.simpleMessage("重要引用"),
     "memoryChangedRetry": MessageLookupByLibrary.simpleMessage("記憶已發生變化，請重試"),
     "memoryCorrection": MessageLookupByLibrary.simpleMessage("修正"),

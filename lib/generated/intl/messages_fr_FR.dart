@@ -605,6 +605,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "mcpUnsupportedProtocol": MessageLookupByLibrary.simpleMessage(
       "The MCP server uses an unsupported protocol version.",
     ),
+    "memory": MessageLookupByLibrary.simpleMessage("Mémoire"),
     "memoryArtifact": MessageLookupByLibrary.simpleMessage("Artefact"),
     "memoryChangedRetry": MessageLookupByLibrary.simpleMessage(
       "La mémoire a changé ; réessayez",

@@ -651,11 +651,14 @@ void main() {
         shadHarness(
           brightness: Brightness.light,
           homeBuilder:
-              (context) => Scaffold(
-                body: ContactsPage(
-                  viewModel: viewModel,
-                  onBotSelected: (bot) => selectedDetailBot = bot,
-                  onBotEditSelected: (bot) => selectedEditBot = bot,
+              (context) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(highContrast: true),
+                child: Scaffold(
+                  body: ContactsPage(
+                    viewModel: viewModel,
+                    onBotSelected: (bot) => selectedDetailBot = bot,
+                    onBotEditSelected: (bot) => selectedEditBot = bot,
+                  ),
                 ),
               ),
         ),
@@ -668,8 +671,18 @@ void main() {
       final menuButton = find.byKey(
         const ValueKey<String>('desktop-bot-menu-button-bot-menu'),
       );
+      final actionSurface = find.ancestor(
+        of: card,
+        matching: find.byType(HyveDesktopActionSurface),
+      );
+      final actionSurfaceContainer = find.descendant(
+        of: actionSurface,
+        matching: find.byType(AnimatedContainer),
+      );
       expect(card, findsOneWidget);
       expect(menuButton, findsOneWidget);
+      expect(actionSurface, findsOneWidget);
+      expect(actionSurfaceContainer, findsOneWidget);
       expect(
         tester.getCenter(menuButton).dx,
         greaterThan(tester.getCenter(card).dx),
@@ -685,7 +698,12 @@ void main() {
       expect(selectedEditBot, isNull);
       selectedDetailBot = null;
 
-      await tester.tap(menuButton);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(tester.getCenter(menuButton));
+      await mouse.down(tester.getCenter(menuButton));
+      await mouse.up();
       await tester.pumpAndSettle();
 
       final actionMenu = find.byKey(
@@ -704,6 +722,15 @@ void main() {
         matching: find.byType(ShadButton),
       );
       expect(actionMenu, findsOneWidget);
+      expect(tester.widget<ShadCard>(card).backgroundColor, isNull);
+      expect(
+        tester
+            .widget<AnimatedContainer>(actionSurfaceContainer)
+            .foregroundDecoration,
+        isNull,
+      );
+      await mouse.moveTo(tester.getCenter(actionMenu));
+      await tester.pump();
       expect(detailsAction, findsOneWidget);
       expect(startChatAction, findsOneWidget);
       expect(
@@ -729,6 +756,24 @@ void main() {
         find.descendant(of: actionMenu, matching: find.byType(ShadButton)),
         findsNWidgets(4),
       );
+
+      await mouse.moveTo(const Offset(4, 4));
+      await mouse.down(const Offset(4, 4));
+      await mouse.up();
+      await tester.pumpAndSettle();
+      expect(actionMenu, findsNothing);
+      expect(selectedDetailBot, isNull);
+      expect(selectedEditBot, isNull);
+      expect(tester.widget<ShadCard>(card).backgroundColor, isNull);
+      expect(
+        tester
+            .widget<AnimatedContainer>(actionSurfaceContainer)
+            .foregroundDecoration,
+        isNull,
+      );
+
+      await tester.tap(menuButton, kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
 
       await tester.tap(detailsAction);
       await tester.pumpAndSettle();

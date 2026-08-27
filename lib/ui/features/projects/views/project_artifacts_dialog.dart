@@ -220,41 +220,44 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
         return ProjectSurfaceCard(
           key: ValueKey<String>('project-artifact-${artifact.id}'),
           padding: EdgeInsets.zero,
-          child: ListTile(
-            leading: Icon(_kindIcon(artifact.kind)),
-            title: Text(artifact.relativePath),
-            subtitle: Text(
-              '${copy.artifactKind(artifact.kind)} · '
-              '${version.byteLength} B · '
-              'v${version.versionNumber} · '
-              '${copy.actorSource(artifact)}\n'
-              '${version.contentDigest.substring(0, 12)}'
-              '${entry.snippet.isEmpty ? '' : ' · ${entry.snippet}'}',
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            isThreeLine: true,
-            onTap: () => _preview(entry),
-            trailing: ProjectOverflowMenu<_ArtifactAction>(
-              onSelected: (action) => _handleAction(action, entry),
-              items: [
-                ProjectMenuItem<_ArtifactAction>(
-                  value: _ArtifactAction.preview,
-                  label: copy.previewAndHistory,
-                  icon: LucideIcons.eye,
-                ),
-                ProjectMenuItem<_ArtifactAction>(
-                  value: _ArtifactAction.rename,
-                  label: copy.moveOrRename,
-                  icon: LucideIcons.pencil,
-                ),
-                ProjectMenuItem<_ArtifactAction>(
-                  value: _ArtifactAction.delete,
-                  label: copy.delete,
-                  icon: LucideIcons.trash2,
-                  destructive: true,
-                ),
-              ],
+          child: Material(
+            type: MaterialType.transparency,
+            child: ListTile(
+              leading: Icon(_kindIcon(artifact.kind)),
+              title: Text(artifact.relativePath),
+              subtitle: Text(
+                '${copy.artifactKind(artifact.kind)} · '
+                '${version.byteLength} B · '
+                'v${version.versionNumber} · '
+                '${copy.actorSource(artifact)}\n'
+                '${version.contentDigest.substring(0, 12)}'
+                '${entry.snippet.isEmpty ? '' : ' · ${entry.snippet}'}',
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              isThreeLine: true,
+              onTap: () => _preview(entry),
+              trailing: ProjectOverflowMenu<_ArtifactAction>(
+                onSelected: (action) => _handleAction(action, entry),
+                items: [
+                  ProjectMenuItem<_ArtifactAction>(
+                    value: _ArtifactAction.preview,
+                    label: copy.previewAndHistory,
+                    icon: LucideIcons.eye,
+                  ),
+                  ProjectMenuItem<_ArtifactAction>(
+                    value: _ArtifactAction.rename,
+                    label: copy.moveOrRename,
+                    icon: LucideIcons.pencil,
+                  ),
+                  ProjectMenuItem<_ArtifactAction>(
+                    value: _ArtifactAction.delete,
+                    label: copy.delete,
+                    icon: LucideIcons.trash2,
+                    destructive: true,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -635,15 +638,18 @@ final class _ProjectArtifactPreviewDialogState
                               reference.actorName.isEmpty
                                   ? reference.actorId
                                   : reference.actorName;
-                          return ListTile(
-                            dense: true,
-                            title: Text(
-                              '#${reference.messageSequence} · $actor',
-                            ),
-                            subtitle: Text(
-                              reference.content,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          return Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              dense: true,
+                              title: Text(
+                                '#${reference.messageSequence} · $actor',
+                              ),
+                              subtitle: Text(
+                                reference.content,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           );
                         },

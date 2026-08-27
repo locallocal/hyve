@@ -335,7 +335,7 @@ extension _EditBotSkills on _EditAIBotPageState {
           builder:
               (dialogContext) => StatefulBuilder(
                 builder:
-                    (dialogContext, setDialogState) => ShadDialog(
+                    (dialogContext, setDialogState) => HyveDialog(
                       title: Text(S.of(context).addSkill),
                       description: Text(S.of(context).botSkillsDescription),
                       constraints: const BoxConstraints(maxWidth: 620),

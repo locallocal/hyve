@@ -53,13 +53,9 @@ extension _ProfileDialogs on _ProfilePageState {
       showShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: const ValueKey<String>('profile-edit-name-dialog'),
-              closeIcon: _buildDesktopDialogClose(
-                dialogContext,
-                key: const ValueKey<String>('profile-edit-name-close'),
-              ),
-              closeIconPosition: _desktopDialogClosePosition(dialogContext),
+              closeButtonKey: const ValueKey<String>('profile-edit-name-close'),
               title: Text(S.of(dialogContext).editName),
               description: Text(S.of(dialogContext).enterDisplayName),
               actions: [
@@ -161,13 +157,9 @@ extension _ProfileDialogs on _ProfilePageState {
         context: context,
         builder: (dialogContext) {
           final tokens = HyveDesktopTokens.of(dialogContext);
-          return ShadDialog(
+          return HyveDialog(
             key: const ValueKey<String>('profile-theme-dialog'),
-            closeIcon: _buildDesktopDialogClose(
-              dialogContext,
-              key: const ValueKey<String>('profile-theme-close'),
-            ),
-            closeIconPosition: _desktopDialogClosePosition(dialogContext),
+            closeButtonKey: const ValueKey<String>('profile-theme-close'),
             title: Text(S.of(dialogContext).selectTheme),
             description: Text(
               S.of(dialogContext).desktopSavedImmediatelyDescription,

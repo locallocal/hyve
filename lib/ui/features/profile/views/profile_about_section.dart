@@ -131,13 +131,9 @@ extension _ProfileAboutSection on _ProfilePageState {
       showShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: const ValueKey<String>('profile-about-dialog'),
-              closeIcon: _buildDesktopDialogClose(
-                dialogContext,
-                key: const ValueKey<String>('profile-about-close'),
-              ),
-              closeIconPosition: _desktopDialogClosePosition(dialogContext),
+              closeButtonKey: const ValueKey<String>('profile-about-close'),
               title: Text(S.of(dialogContext).aboutApp),
               actions: [
                 ShadButton(
@@ -204,13 +200,9 @@ extension _ProfileAboutSection on _ProfilePageState {
         context: context,
         builder: (dialogContext) {
           final tokens = HyveDesktopTokens.of(dialogContext);
-          return ShadDialog(
+          return HyveDialog(
             key: const ValueKey<String>('profile-language-dialog'),
-            closeIcon: _buildDesktopDialogClose(
-              dialogContext,
-              key: const ValueKey<String>('profile-language-close'),
-            ),
-            closeIconPosition: _desktopDialogClosePosition(dialogContext),
+            closeButtonKey: const ValueKey<String>('profile-language-close'),
             title: Text(S.of(dialogContext).selectLanguage),
             description: Text(
               S.of(dialogContext).desktopSavedImmediatelyDescription,

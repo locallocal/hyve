@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/utils/theme.dart';
 
+part 'dialog_primitives.dart';
+
 // Shared desktop interaction primitives used by multiple feature views.
 const IconData desktopProjectIcon = LucideIcons.folderKanban;
 const IconData desktopBotIcon = LucideIcons.bot;

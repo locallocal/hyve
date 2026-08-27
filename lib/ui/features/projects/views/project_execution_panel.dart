@@ -94,12 +94,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
-                if (!embedded)
-                  ProjectIconAction(
-                    label: copy.close,
-                    onPressed: () => Navigator.pop(context),
-                    icon: LucideIcons.x,
-                  ),
+                if (!embedded) const SizedBox.square(dimension: 44),
               ],
             ),
             const SizedBox(height: 12),

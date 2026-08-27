@@ -116,14 +116,18 @@ void _showImageDialog(
                 icon: isDesktop ? LucideIcons.share2 : Icons.share_rounded,
                 onPressed: () => shareImage(dialogContext),
               ),
-              const SizedBox(width: 8),
-              actionButton(
-                dialogContext: dialogContext,
-                tooltip:
-                    MaterialLocalizations.of(dialogContext).closeButtonTooltip,
-                icon: isDesktop ? LucideIcons.x : Icons.close_rounded,
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
+              if (!isDesktop) ...<Widget>[
+                const SizedBox(width: 8),
+                actionButton(
+                  dialogContext: dialogContext,
+                  tooltip:
+                      MaterialLocalizations.of(
+                        dialogContext,
+                      ).closeButtonTooltip,
+                  icon: Icons.close_rounded,
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                ),
+              ],
             ],
           ),
         ),
@@ -138,13 +142,17 @@ void _showImageDialog(
     showChatShadDialog<void>(
       context: context,
       builder:
-          (dialogContext) => ShadDialog(
+          (dialogContext) => HyveDialog(
             key: const ValueKey<String>('message-image-dialog'),
             constraints: BoxConstraints.tightFor(width: width, height: height),
             scrollable: false,
             padding: EdgeInsets.zero,
             gap: 0,
-            closeIcon: const SizedBox.shrink(),
+            closeButtonKey: const ValueKey<String>(
+              'message-image-dialog-close',
+            ),
+            closeButtonVariant: ShadButtonVariant.secondary,
+            closeButtonForegroundColor: Colors.white,
             child: preview(dialogContext),
           ),
     );

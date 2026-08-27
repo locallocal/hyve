@@ -337,7 +337,7 @@ class _McpServerDetailsDialogState extends State<_McpServerDetailsDialog> {
       McpConnectionStatus.disconnected => tokens.secondaryText,
     };
 
-    return ShadDialog(
+    return HyveDialog(
       key: ValueKey<String>('desktop-mcp-server-details-dialog-${server.id}'),
       title: Text(
         server.name,

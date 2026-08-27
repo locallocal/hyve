@@ -156,12 +156,7 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                         ],
                       ),
                     ),
-                    if (!widget.embedded)
-                      ProjectIconAction(
-                        label: copy.close,
-                        onPressed: () => Navigator.pop(context),
-                        icon: LucideIcons.x,
-                      ),
+                    if (!widget.embedded) const SizedBox.square(dimension: 44),
                   ],
                 ),
                 const SizedBox(height: 20),

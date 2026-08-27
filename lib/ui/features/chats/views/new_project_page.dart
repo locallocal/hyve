@@ -83,7 +83,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
     final dialogHeight =
         (windowSize.height - inset * 2).clamp(0.0, 720.0).toDouble();
 
-    return ShadDialog(
+    return HyveDialog(
       constraints: BoxConstraints.tightFor(
         width: dialogWidth,
         height: dialogHeight,
@@ -93,7 +93,7 @@ class _NewProjectPageState extends State<NewProjectPage> {
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
-      closeIcon: const SizedBox.shrink(),
+      showCloseButton: false,
       child: SizedBox(
         key: const ValueKey<String>('new-project-dialog-content'),
         width: dialogWidth,
@@ -181,16 +181,13 @@ class _NewProjectPageState extends State<NewProjectPage> {
               ],
             ),
           ),
-          HyveDesktopIconAction(
+          HyveDialogCloseButton(
             key: const ValueKey<String>('new-project-close'),
-            icon: LucideIcons.x,
-            label: MaterialLocalizations.of(context).closeButtonTooltip,
             enabled: !widget.viewModel.isSaving,
             onPressed:
                 widget.viewModel.isSaving
                     ? null
                     : () => Navigator.of(context).pop(),
-            iconSize: 17,
           ),
         ],
       ),

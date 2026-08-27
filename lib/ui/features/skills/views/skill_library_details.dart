@@ -28,7 +28,7 @@ class _SkillDetailsDialogState extends State<_SkillDetailsDialog> {
   Widget build(BuildContext context) {
     final strings = S.of(context);
     final skill = widget.content.descriptor;
-    return ShadDialog(
+    return HyveDialog(
       title: Text(
         skill.name,
         key: ValueKey<String>('skill-details-title-${skill.id}'),

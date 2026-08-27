@@ -198,11 +198,8 @@ extension _AddBotDesktopForm on _AddBotPageState {
             ),
           ),
           const SizedBox(width: 8),
-          HyveDesktopIconAction(
+          HyveDialogCloseButton(
             key: const ValueKey<String>('add-bot-close'),
-            icon: LucideIcons.x,
-            iconSize: 18,
-            label: MaterialLocalizations.of(context).closeButtonTooltip,
             enabled: !_isSubmitting,
             onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
           ),

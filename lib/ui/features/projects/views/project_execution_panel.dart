@@ -4,6 +4,8 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
+const int _executionHistoryPageSize = 10;
+
 final class ProjectExecutionPanel extends StatelessWidget {
   const ProjectExecutionPanel({
     super.key,
@@ -63,46 +65,18 @@ final class ProjectExecutionPanel extends StatelessWidget {
         .where((event) => event.messageSequence == null)
         .take(50)
         .toList(growable: false);
-    final history =
-        sortedTurns.isEmpty && audits.isEmpty
-            ? ProjectEmptyState(
-              icon: LucideIcons.activity,
-              title: copy.noExecutions,
-            )
-            : ListView(
-              primary: hasBoundedHeight ? null : false,
-              shrinkWrap: !hasBoundedHeight,
-              physics:
-                  hasBoundedHeight
-                      ? null
-                      : const NeverScrollableScrollPhysics(),
-              key: const ValueKey<String>('project-execution-list'),
-              children: <Widget>[
-                for (final turn in sortedTurns)
-                  _TurnCard(
-                    turn: turn,
-                    runs: runs.values
-                        .where((run) => run.turnId == turn.id)
-                        .toList(growable: false),
-                    decisions: decisions,
-                    usageRecords: usageRecords,
-                    agentNames: agentNames,
-                    onCancelRun: onCancelRun,
-                    onCancelTurn: onCancelTurn,
-                    onCancelRootChain: onCancelRootChain,
-                  ),
-                if (audits.isNotEmpty) ...<Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                    child: Text(
-                      copy.auditEvents,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  for (final event in audits) _AuditEventTile(event: event),
-                ],
-              ],
-            );
+    final history = _ExecutionHistory(
+      turns: sortedTurns,
+      runs: runs,
+      decisions: decisions,
+      usageRecords: usageRecords,
+      audits: audits,
+      agentNames: agentNames,
+      onCancelRun: onCancelRun,
+      onCancelTurn: onCancelTurn,
+      onCancelRootChain: onCancelRootChain,
+      hasBoundedHeight: hasBoundedHeight,
+    );
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -160,6 +134,199 @@ final class ProjectExecutionPanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+final class _ExecutionHistory extends StatefulWidget {
+  const _ExecutionHistory({
+    required this.turns,
+    required this.runs,
+    required this.decisions,
+    required this.usageRecords,
+    required this.audits,
+    required this.agentNames,
+    required this.onCancelRun,
+    required this.onCancelTurn,
+    required this.onCancelRootChain,
+    required this.hasBoundedHeight,
+  });
+
+  final List<ProjectTurn> turns;
+  final Map<String, AgentRun> runs;
+  final Map<String, ParticipationDecision> decisions;
+  final List<ModelTokenUsageRecord> usageRecords;
+  final List<ProjectEvent> audits;
+  final Map<String, String> agentNames;
+  final ValueChanged<String> onCancelRun;
+  final ValueChanged<String> onCancelTurn;
+  final ValueChanged<String> onCancelRootChain;
+  final bool hasBoundedHeight;
+
+  int get itemCount => turns.length + audits.length;
+
+  @override
+  State<_ExecutionHistory> createState() => _ExecutionHistoryState();
+}
+
+final class _ExecutionHistoryState extends State<_ExecutionHistory> {
+  final ScrollController _scrollController = ScrollController();
+  int _pageIndex = 0;
+
+  int get _totalPages =>
+      (widget.itemCount + _executionHistoryPageSize - 1) ~/
+      _executionHistoryPageSize;
+
+  @override
+  void didUpdateWidget(covariant _ExecutionHistory oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_totalPages == 0) {
+      _pageIndex = 0;
+    } else if (_pageIndex >= _totalPages) {
+      _pageIndex = _totalPages - 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _showPage(int pageIndex) {
+    if (pageIndex < 0 || pageIndex >= _totalPages || pageIndex == _pageIndex) {
+      return;
+    }
+    setState(() => _pageIndex = pageIndex);
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = ProjectLocalizations.of(context);
+    if (widget.itemCount == 0) {
+      return ProjectEmptyState(
+        icon: LucideIcons.activity,
+        title: copy.noExecutions,
+      );
+    }
+
+    final pageStart = _pageIndex * _executionHistoryPageSize;
+    final pageEnd = (pageStart + _executionHistoryPageSize).clamp(
+      pageStart,
+      widget.itemCount,
+    );
+    final turnStart = pageStart.clamp(0, widget.turns.length);
+    final turnEnd = pageEnd.clamp(turnStart, widget.turns.length);
+    final auditStart = (pageStart - widget.turns.length).clamp(
+      0,
+      widget.audits.length,
+    );
+    final auditEnd = (pageEnd - widget.turns.length).clamp(
+      auditStart,
+      widget.audits.length,
+    );
+    final pageTurns = widget.turns.sublist(turnStart, turnEnd);
+    final pageAudits = widget.audits.sublist(auditStart, auditEnd);
+    final list = ListView(
+      controller: _scrollController,
+      primary: false,
+      shrinkWrap: !widget.hasBoundedHeight,
+      physics:
+          widget.hasBoundedHeight ? null : const NeverScrollableScrollPhysics(),
+      key: const ValueKey<String>('project-execution-list'),
+      children: <Widget>[
+        for (final turn in pageTurns)
+          _TurnCard(
+            turn: turn,
+            runs: widget.runs.values
+                .where((run) => run.turnId == turn.id)
+                .toList(growable: false),
+            decisions: widget.decisions,
+            usageRecords: widget.usageRecords,
+            agentNames: widget.agentNames,
+            onCancelRun: widget.onCancelRun,
+            onCancelTurn: widget.onCancelTurn,
+            onCancelRootChain: widget.onCancelRootChain,
+          ),
+        if (pageAudits.isNotEmpty) ...<Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+            child: Text(
+              copy.auditEvents,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          for (final event in pageAudits) _AuditEventTile(event: event),
+        ],
+      ],
+    );
+    return Column(
+      mainAxisSize:
+          widget.hasBoundedHeight ? MainAxisSize.max : MainAxisSize.min,
+      children: <Widget>[
+        if (widget.hasBoundedHeight) Expanded(child: list) else list,
+        if (_totalPages > 1) ...<Widget>[
+          const SizedBox(height: 12),
+          _ExecutionPagination(
+            currentPage: _pageIndex + 1,
+            totalPages: _totalPages,
+            onPrevious:
+                _pageIndex == 0 ? null : () => _showPage(_pageIndex - 1),
+            onNext:
+                _pageIndex == _totalPages - 1
+                    ? null
+                    : () => _showPage(_pageIndex + 1),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+final class _ExecutionPagination extends StatelessWidget {
+  const _ExecutionPagination({
+    required this.currentPage,
+    required this.totalPages,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final int currentPage;
+  final int totalPages;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        ProjectIconAction(
+          key: const ValueKey<String>('project-execution-previous-page'),
+          icon: LucideIcons.chevronLeft,
+          label: localizations.previousPageTooltip,
+          variant: ShadButtonVariant.outline,
+          onPressed: onPrevious,
+        ),
+        const SizedBox(width: 12),
+        Semantics(
+          label: '$currentPage / $totalPages',
+          child: Text(
+            '$currentPage / $totalPages',
+            key: const ValueKey<String>('project-execution-page-indicator'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        ProjectIconAction(
+          key: const ValueKey<String>('project-execution-next-page'),
+          icon: LucideIcons.chevronRight,
+          label: localizations.nextPageTooltip,
+          variant: ShadButtonVariant.outline,
+          onPressed: onNext,
+        ),
+      ],
     );
   }
 }

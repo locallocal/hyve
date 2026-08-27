@@ -122,6 +122,87 @@ void main() {
     expect(find.text('暂无执行记录'), findsOneWidget);
   });
 
+  testWidgets('paginates execution history and navigates between pages', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 24);
+    final turns = <String, ProjectTurn>{
+      for (var index = 1; index <= 11; index += 1)
+        'turn-$index': _turn(
+          now.add(Duration(minutes: index)),
+          id: 'turn-$index',
+          sourceMessageSequence: index,
+        ),
+    };
+    final turnsNotifier = ValueNotifier<Map<String, ProjectTurn>>(turns);
+    addTearDown(turnsNotifier.dispose);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('en'),
+        homeBuilder:
+            (_) => SizedBox(
+              width: 900,
+              height: 700,
+              child: ValueListenableBuilder<Map<String, ProjectTurn>>(
+                valueListenable: turnsNotifier,
+                builder:
+                    (context, currentTurns, _) => ProjectExecutionPanel(
+                      embedded: true,
+                      turns: currentTurns,
+                      runs: const <String, AgentRun>{},
+                      decisions: const <String, ParticipationDecision>{},
+                      usageRecords: const <ModelTokenUsageRecord>[],
+                      events: const <ProjectEvent>[],
+                      agentNames: const <String, String>{},
+                      onCancelRun: _ignore,
+                      onCancelTurn: _ignore,
+                      onCancelRootChain: _ignore,
+                    ),
+              ),
+            ),
+      ),
+    );
+
+    expect(find.text('1 / 2'), findsOneWidget);
+    expect(find.text('#11 · broadcast'), findsOneWidget);
+    expect(find.text('#1 · broadcast'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-next-page')),
+    );
+    await tester.pump();
+
+    expect(find.text('2 / 2'), findsOneWidget);
+    expect(find.text('#11 · broadcast'), findsNothing);
+    expect(find.text('#1 · broadcast'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-previous-page')),
+    );
+    await tester.pump();
+
+    expect(find.text('1 / 2'), findsOneWidget);
+    expect(find.text('#11 · broadcast'), findsOneWidget);
+    expect(find.text('#1 · broadcast'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-next-page')),
+    );
+    await tester.pump();
+
+    turnsNotifier.value = <String, ProjectTurn>{'turn-11': turns['turn-11']!};
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey<String>('project-execution-page-indicator')),
+      findsNothing,
+    );
+    expect(find.text('#11 · broadcast'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('renders execution details without a Material ancestor', (
     tester,
   ) async {
@@ -234,16 +315,20 @@ void main() {
 
 void _ignore(String _) {}
 
-ProjectTurn _turn(DateTime now) => ProjectTurn(
-  id: 'turn-1',
+ProjectTurn _turn(
+  DateTime now, {
+  String id = 'turn-1',
+  int sourceMessageSequence = 1,
+}) => ProjectTurn(
+  id: id,
   projectId: 'project-1',
-  rootEventId: 'event-1',
+  rootEventId: 'event-$sourceMessageSequence',
   initiatorType: ProjectTurnInitiatorType.user,
   routingMode: ProjectTurnRoutingMode.broadcast,
-  sourceMessageId: 'event-1',
-  sourceMessageSequence: 1,
+  sourceMessageId: 'event-$sourceMessageSequence',
+  sourceMessageSequence: sourceMessageSequence,
   recipientCount: 1,
-  rootTurnId: 'turn-1',
+  rootTurnId: id,
   status: ProjectTurnStatus.replying,
   createdAt: now,
 );

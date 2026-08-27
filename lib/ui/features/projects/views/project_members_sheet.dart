@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
@@ -445,22 +447,10 @@ final class _MemberCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
         ],
-        if (shadTheme != null)
-          ShadAvatar(
-            null,
-            size: const Size.square(40),
-            placeholder:
-                member.agent == null
-                    ? const Icon(LucideIcons.circleSlash, size: 18)
-                    : Text(name.characters.first.toUpperCase()),
-          )
-        else
-          CircleAvatar(
-            child:
-                member.agent == null
-                    ? const Icon(Icons.person_off_outlined)
-                    : Text(name.characters.first.toUpperCase()),
-          ),
+        _MemberAvatar(
+          key: ValueKey<String>('member-avatar-${membership.agentId}'),
+          agent: member.agent,
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -537,6 +527,54 @@ final class _MemberCard extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+final class _MemberAvatar extends StatelessWidget {
+  const _MemberAvatar({super.key, required this.agent});
+
+  final Agent? agent;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentAgent = agent;
+    final shadTheme = ShadTheme.maybeOf(context);
+    if (currentAgent == null) {
+      return shadTheme == null
+          ? const CircleAvatar(child: Icon(Icons.person_off_outlined))
+          : const ShadAvatar(
+            null,
+            size: Size.square(40),
+            placeholder: Icon(LucideIcons.circleSlash, size: 18),
+          );
+    }
+
+    final hasAvatar = currentAgent.avatar.isNotEmpty;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final backgroundColor =
+        hasAvatar
+            ? primaryColor
+            : getFrostedProviderColor(currentAgent.provider, primaryColor);
+    final placeholder = buildProviderLogo(
+      context,
+      '',
+      currentAgent.provider,
+      20,
+    );
+    if (shadTheme != null) {
+      return ShadAvatar(
+        hasAvatar ? currentAgent.avatar : null,
+        size: const Size.square(40),
+        backgroundColor: backgroundColor,
+        placeholder: placeholder,
+      );
+    }
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: backgroundColor,
+      backgroundImage: hasAvatar ? FileImage(File(currentAgent.avatar)) : null,
+      child: hasAvatar ? null : placeholder,
     );
   }
 }

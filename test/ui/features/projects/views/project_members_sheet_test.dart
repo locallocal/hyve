@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -21,8 +23,9 @@ void main() {
     tester.view.physicalSize = const Size(480, 760);
     addTearDown(tester.view.reset);
     final now = DateTime.utc(2026, 8, 22);
+    final avatarPath = File('assets/images/profile/avatar.png').absolute.path;
     final agents = _AgentRepository(<Agent>[
-      _agent('agent-1', 'Researcher', now),
+      _agent('agent-1', 'Researcher', now, avatar: avatarPath),
       _agent('agent-2', 'Writer', now),
     ]);
     final memberships = _MembershipRepository(<ProjectMembership>[
@@ -72,6 +75,15 @@ void main() {
     );
     expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
     expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
+    final memberAvatar = tester.widget<CircleAvatar>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('member-avatar-agent-1')),
+        matching: find.byType(CircleAvatar),
+      ),
+    );
+    expect(memberAvatar.backgroundImage, isA<FileImage>());
+    expect((memberAvatar.backgroundImage! as FileImage).file.path, avatarPath);
+    expect(memberAvatar.child, isNull);
 
     await tester.tap(find.byKey(const ValueKey<String>('project-member-add')));
     await tester.pumpAndSettle();
@@ -117,8 +129,9 @@ void main() {
     tester.view.physicalSize = const Size(1000, 760);
     addTearDown(tester.view.reset);
     final now = DateTime.utc(2026, 8, 22);
+    final avatarPath = File('assets/images/profile/avatar.png').absolute.path;
     final agents = _AgentRepository(<Agent>[
-      _agent('agent-1', 'Researcher', now),
+      _agent('agent-1', 'Researcher', now, avatar: avatarPath),
       _agent('agent-2', 'Writer', now),
     ]);
     final memberships = _MembershipRepository(<ProjectMembership>[
@@ -186,6 +199,13 @@ void main() {
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);
       expect(find.byType(ShadCard), findsOneWidget);
       expect(find.byType(ShadAvatar), findsOneWidget);
+      final memberAvatar = tester.widget<ShadAvatar>(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('member-avatar-agent-1')),
+          matching: find.byType(ShadAvatar),
+        ),
+      );
+      expect(memberAvatar.src, avatarPath);
       expect(
         find.byKey(const ValueKey<String>('member-activity-agent-1')),
         findsOneWidget,
@@ -292,19 +312,20 @@ void main() {
   });
 }
 
-Agent _agent(String id, String name, DateTime now) => Agent(
-  id: id,
-  name: name,
-  avatar: '',
-  provider: 'test',
-  baseUrl: '',
-  apiKey: '',
-  apiType: Bot.apiTypeOpenAI,
-  model: 'model',
-  systemPrompt: '',
-  createdAt: now,
-  updatedAt: now,
-);
+Agent _agent(String id, String name, DateTime now, {String avatar = ''}) =>
+    Agent(
+      id: id,
+      name: name,
+      avatar: avatar,
+      provider: 'test',
+      baseUrl: '',
+      apiKey: '',
+      apiType: Bot.apiTypeOpenAI,
+      model: 'model',
+      systemPrompt: '',
+      createdAt: now,
+      updatedAt: now,
+    );
 
 ProjectMembership _membership(
   String agentId,

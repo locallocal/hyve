@@ -48,7 +48,7 @@ class AddBotDialog extends StatelessWidget {
     final dialogHeight =
         (windowSize.height - inset * 2).clamp(0.0, 720.0).toDouble();
 
-    return ShadDialog(
+    return HyveDialog(
       constraints: BoxConstraints.tightFor(
         width: dialogWidth,
         height: dialogHeight,
@@ -58,7 +58,7 @@ class AddBotDialog extends StatelessWidget {
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
-      closeIcon: const SizedBox.shrink(),
+      showCloseButton: false,
       child: SizedBox(
         key: const ValueKey<String>('add-bot-dialog-content'),
         width: dialogWidth,

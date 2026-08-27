@@ -3,11 +3,77 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/utils/theme.dart';
 
 import '../../../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('Hyve dialog close matches Theme Settings and dismisses', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: Center(
+                child: Builder(
+                  builder:
+                      (context) => FilledButton(
+                        onPressed:
+                            () => showChatShadDialog<void>(
+                              context: context,
+                              builder:
+                                  (_) => const HyveDialog(
+                                    key: ValueKey<String>('test-hyve-dialog'),
+                                    closeButtonKey: ValueKey<String>(
+                                      'test-hyve-dialog-close',
+                                    ),
+                                    title: Text('Dialog title'),
+                                    child: SizedBox(width: 320, height: 120),
+                                  ),
+                            ),
+                        child: const Text('Open dialog'),
+                      ),
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Open dialog'));
+    await tester.pumpAndSettle();
+
+    final close = find.byKey(const ValueKey<String>('test-hyve-dialog-close'));
+    final dialogSurface =
+        find.ancestor(of: close, matching: find.byType(Stack)).first;
+    expect(find.byType(ShadDialog), findsOneWidget);
+    expect(tester.getSize(close), const Size.square(44));
+    expect(
+      find.descendant(of: close, matching: find.byIcon(LucideIcons.x)),
+      findsOneWidget,
+    );
+    expect(
+      tester.getRect(dialogSurface).right - tester.getRect(close).right,
+      closeTo(8, 0.01),
+    );
+    expect(
+      tester.getRect(close).top - tester.getRect(dialogSurface).top,
+      closeTo(12, 0.01),
+    );
+
+    await tester.tap(close);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('test-hyve-dialog')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('desktop action surface supports Enter and Space activation', (
     tester,
   ) async {

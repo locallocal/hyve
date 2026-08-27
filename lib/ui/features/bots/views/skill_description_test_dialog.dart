@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/utils/theme.dart';
 
 Future<SkillDescriptionTestCase?> showSkillDescriptionTestDialog({
@@ -54,7 +55,7 @@ class _SkillDescriptionTestDialogState
   Widget build(BuildContext context) {
     final strings = S.of(context);
     if (widget.desktopMode) {
-      return ShadDialog(
+      return HyveDialog(
         key: const ValueKey<String>('skill-description-test-dialog'),
         title: Text(strings.testSkillDescription),
         description: Text(strings.autoActivationDescription),

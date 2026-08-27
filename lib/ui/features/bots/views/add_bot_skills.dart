@@ -279,7 +279,7 @@ class _AddBotSkillsState extends State<AddBotSkills> {
         builder:
             (dialogContext) => StatefulBuilder(
               builder:
-                  (dialogContext, refresh) => ShadDialog(
+                  (dialogContext, refresh) => HyveDialog(
                     title: Text(S.of(context).addSkill),
                     description: Text(S.of(context).botSkillsDescription),
                     constraints: const BoxConstraints(maxWidth: 620),

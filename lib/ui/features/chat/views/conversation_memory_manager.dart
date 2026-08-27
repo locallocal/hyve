@@ -40,7 +40,7 @@ final class _MemoryManagerDialogState extends State<_MemoryManagerDialog> {
         )
         .toList(growable: false);
     final tokens = HyveDesktopTokens.of(context);
-    return ShadDialog(
+    return HyveDialog(
       key: const ValueKey<String>('conversation-memory-manager-dialog'),
       title: Text(
         S.of(context).manageMemory,
@@ -295,7 +295,7 @@ final class _MemoryItemTile extends StatelessWidget {
     final value = await showChatShadDialog<String>(
       context: context,
       builder:
-          (dialogContext) => ShadDialog(
+          (dialogContext) => HyveDialog(
             title: Text(
               S.of(dialogContext).editMemory,
               style: HyveDesktopThemeSpec.pageTitleStyle(dialogContext),

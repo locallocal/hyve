@@ -276,7 +276,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       await showShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: const ValueKey<String>('bot-add-mcp-server-dialog'),
               title: Text(S.of(context).addMcpServer),
               description: Text(S.of(context).botMcpToolsDescription),
@@ -332,7 +332,7 @@ class _BotMcpToolPickerState extends State<BotMcpToolPicker> {
       await showShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: ValueKey<String>('bot-mcp-tools-dialog-$serverId'),
               title: Text(title),
               description: Text(description),

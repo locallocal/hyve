@@ -212,7 +212,7 @@ final class _ConversationMemoryPanelState
       showChatShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: const ValueKey<String>('conversation-summary-dialog'),
               title: Text(
                 S.of(dialogContext).conversationSummary,

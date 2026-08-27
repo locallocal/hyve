@@ -165,7 +165,7 @@ final class _AgentMemoryPanelState extends State<AgentMemoryPanel> {
       showChatShadDialog<void>(
         context: context,
         builder:
-            (dialogContext) => ShadDialog(
+            (dialogContext) => HyveDialog(
               key: const ValueKey<String>('agent-memory-summary-dialog'),
               title: Text(
                 S.of(dialogContext).agentMemory,
@@ -326,7 +326,7 @@ final class _AgentMemoryDialogState extends State<_AgentMemoryDialog> {
       500.0,
       MediaQuery.sizeOf(context).height * 0.62,
     );
-    return ShadDialog(
+    return HyveDialog(
       key: const ValueKey<String>('agent-memory-manager-dialog'),
       title: Text(
         S.of(context).agentMemory,
@@ -439,7 +439,7 @@ final class _AgentMemoryTile extends StatelessWidget {
     final value = await showChatShadDialog<String>(
       context: context,
       builder:
-          (dialogContext) => ShadDialog(
+          (dialogContext) => HyveDialog(
             title: Text(
               S.of(dialogContext).editMemory,
               style: HyveDesktopThemeSpec.pageTitleStyle(dialogContext),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_file_drop_target.dart';
@@ -314,11 +315,7 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                             ),
                             const Spacer(),
                             if (!widget.embedded)
-                              ProjectIconAction(
-                                label: copy.close,
-                                onPressed: () => Navigator.pop(context),
-                                icon: LucideIcons.x,
-                              ),
+                              const SizedBox.square(dimension: 44),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -696,7 +693,7 @@ final class _ProjectArtifactPreviewDialogState
       ),
     ];
     if (hasShadProjectTheme(context)) {
-      return ShadDialog(
+      return HyveDialog(
         title: Text(_entry.artifact.relativePath),
         actions: actions,
         child: content,

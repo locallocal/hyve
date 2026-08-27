@@ -106,7 +106,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
     final dialogHeight =
         (windowSize.height - inset * 2).clamp(0.0, 720.0).toDouble();
 
-    return ShadDialog(
+    return HyveDialog(
       constraints: BoxConstraints.tightFor(
         width: dialogWidth,
         height: dialogHeight,
@@ -116,7 +116,7 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
-      closeIcon: const SizedBox.shrink(),
+      showCloseButton: false,
       child: SizedBox(
         key: const ValueKey<String>('mcp-server-dialog-content'),
         width: dialogWidth,
@@ -350,11 +350,9 @@ class _McpServerEditorDialogState extends State<_McpServerEditorDialog> {
             ),
           ),
           const SizedBox(width: 8),
-          HyveDesktopIconAction(
-            icon: LucideIcons.x,
-            label: MaterialLocalizations.of(context).closeButtonTooltip,
+          HyveDialogCloseButton(
+            key: const ValueKey<String>('mcp-server-dialog-close'),
             onPressed: () => Navigator.of(context).pop(),
-            iconSize: 17,
           ),
         ],
       ),

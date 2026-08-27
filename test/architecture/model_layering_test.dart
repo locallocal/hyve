@@ -493,6 +493,29 @@ void main() {
     expect(audioPlayer, isNot(contains('height: 48')));
   });
 
+  test('primary dialogs share the Theme Settings close action', () {
+    final violations = <String>[];
+    final uiFiles = Directory('lib/ui')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+
+    for (final file in uiFiles) {
+      if (file.path.endsWith('lib/ui/core/widgets/dialog_primitives.dart')) {
+        continue;
+      }
+      if (file.readAsStringSync().contains('ShadDialog(')) {
+        violations.add(file.path);
+      }
+    }
+
+    expect(
+      violations,
+      isEmpty,
+      reason: 'Use HyveDialog so primary dialogs share one close action.',
+    );
+  });
+
   test('legacy desktop theme and platform aliases stay removed', () {
     final production = Directory('lib')
         .listSync(recursive: true)

@@ -78,7 +78,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
       math.min(560.0, windowSize.height - inset * 2),
     );
 
-    return ShadDialog(
+    return HyveDialog(
       constraints: BoxConstraints(
         maxWidth: dialogWidth,
         maxHeight: dialogMaxHeight,
@@ -88,7 +88,7 @@ class _NewChatDialogState extends State<NewChatDialog> {
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
-      closeIcon: const SizedBox.shrink(),
+      showCloseButton: false,
       child: SizedBox(
         key: const ValueKey<String>('new-chat-dialog-content'),
         width: dialogWidth,
@@ -108,9 +108,8 @@ class _NewChatDialogState extends State<NewChatDialog> {
   }
 
   Widget _buildDesktopHeader(BuildContext context) {
-    final closeLabel = MaterialLocalizations.of(context).closeButtonTooltip;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
       child: Row(
         children: [
           Expanded(
@@ -134,9 +133,8 @@ class _NewChatDialogState extends State<NewChatDialog> {
             ),
           ),
           const SizedBox(width: 8),
-          HyveDesktopIconAction(
-            icon: LucideIcons.x,
-            label: closeLabel,
+          HyveDialogCloseButton(
+            key: const ValueKey<String>('new-chat-close'),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],

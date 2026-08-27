@@ -617,11 +617,11 @@ final class ProjectDialogSurface extends StatelessWidget {
     final content = ConstrainedBox(constraints: constraints, child: child);
     if (embedded) return content;
     if (hasShadProjectTheme(context)) {
-      return ShadDialog(
+      return HyveDialog(
         padding: EdgeInsets.zero,
         gap: 0,
         scrollable: false,
-        closeIcon: const SizedBox.shrink(),
+        closeButtonKey: const ValueKey<String>('project-dialog-close'),
         constraints: constraints,
         child: content,
       );
@@ -725,7 +725,7 @@ Future<bool> showProjectFormDialog({
     builder: (dialogContext) {
       final content = contentBuilder(dialogContext);
       if (hasShadProjectTheme(dialogContext)) {
-        return ShadDialog(
+        return HyveDialog(
           title: Text(title),
           actions: [
             ShadButton.outline(

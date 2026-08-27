@@ -496,27 +496,6 @@ extension _ProfileSettingsControls on _ProfilePageState {
     ),
   ];
 
-  Widget _buildDesktopDialogClose(
-    BuildContext dialogContext, {
-    required Key key,
-  }) {
-    return HyveDesktopIconAction(
-      key: key,
-      icon: LucideIcons.x,
-      iconSize: 18,
-      label: MaterialLocalizations.of(dialogContext).closeButtonTooltip,
-      onPressed: () => Navigator.pop(dialogContext),
-    );
-  }
-
-  ShadPosition _desktopDialogClosePosition(BuildContext dialogContext) {
-    return ShadPosition.directional(
-      top: 12,
-      end: 8,
-      textDirection: Directionality.of(dialogContext),
-    );
-  }
-
   ImageProvider _buildAvatarImageProvider() {
     if (_avatar.isNotEmpty) {
       return FileImage(File(_avatar));

@@ -121,6 +121,32 @@ void main() {
     });
   });
 
+  testWidgets('artifact tiles provide a Material ancestor in Shad surfaces', (
+    tester,
+  ) async {
+    final controller = _SynchronousArtifactsController(
+      artifacts: <ProjectArtifactEntry>[_artifactEntry()],
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) =>
+                ProjectArtifactsDialog(viewModel: controller, embedded: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ListTile), findsOneWidget);
+    expect(
+      find.ancestor(of: find.byType(ListTile), matching: find.byType(Material)),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('supports retained offstage layout in expanding Shad tabs', (
     tester,
   ) async {
@@ -166,10 +192,14 @@ void main() {
 
 final class _SynchronousArtifactsController extends ChangeNotifier
     implements ProjectArtifactsController {
+  _SynchronousArtifactsController({
+    this.artifacts = const <ProjectArtifactEntry>[],
+  });
+
   int refreshCount = 0;
 
   @override
-  List<ProjectArtifactEntry> get artifacts => const <ProjectArtifactEntry>[];
+  final List<ProjectArtifactEntry> artifacts;
 
   @override
   bool get artifactBusy => false;
@@ -189,4 +219,40 @@ final class _SynchronousArtifactsController extends ChangeNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+ProjectArtifactEntry _artifactEntry() {
+  final createdAt = DateTime(2026, 8, 22);
+  final artifact = ProjectArtifact(
+    id: 'artifact-1',
+    projectId: 'project-1',
+    name: 'result.md',
+    relativePath: 'reports/result.md',
+    kind: ProjectArtifactKind.document,
+    mimeType: 'text/markdown',
+    currentVersionId: 'version-1',
+    searchStatus: ProjectArtifactSearchStatus.indexed,
+    createdByType: ProjectArtifactActorType.agent,
+    createdById: 'agent-1',
+    sourceRunId: 'run-1',
+    createdAt: createdAt,
+    updatedAt: createdAt,
+  );
+  return ProjectArtifactEntry(
+    artifact: artifact,
+    currentVersion: ProjectArtifactVersion(
+      id: 'version-1',
+      artifactId: artifact.id,
+      versionNumber: 1,
+      relativeBlobPath: 'artifacts/artifact-1/version-1',
+      contentDigest:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      byteLength: 15,
+      mimeType: artifact.mimeType,
+      createdByType: ProjectArtifactActorType.agent,
+      createdById: 'agent-1',
+      sourceRunId: 'run-1',
+      createdAt: createdAt,
+    ),
+  );
 }

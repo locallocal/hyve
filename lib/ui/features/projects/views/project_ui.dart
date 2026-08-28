@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/logo.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/utils/theme.dart';
 
@@ -9,6 +13,95 @@ const double projectCompactWidth = 560;
 
 bool hasShadProjectTheme(BuildContext context) =>
     ShadTheme.maybeOf(context) != null;
+
+/// Keeps an actor's avatar presentation consistent across project surfaces.
+///
+/// For agent actors, the current [agent] is authoritative. Snapshot values
+/// also support user and historical actors that have no current agent record.
+final class ProjectActorAvatar extends StatelessWidget {
+  const ProjectActorAvatar({
+    super.key,
+    this.agent,
+    this.fallbackName = '',
+    this.fallbackAvatar = '',
+    this.size = 40,
+  });
+
+  final Agent? agent;
+  final String fallbackName;
+  final String fallbackAvatar;
+  final double size;
+
+  String get _avatarPath {
+    final currentAgent = agent;
+    return (currentAgent == null ? fallbackAvatar : currentAgent.avatar).trim();
+  }
+
+  String get _initial {
+    final currentName = agent?.name.trim();
+    final normalized =
+        currentName == null || currentName.isEmpty
+            ? fallbackName.trim()
+            : currentName;
+    return normalized.isEmpty
+        ? '?'
+        : String.fromCharCode(normalized.runes.first).toUpperCase();
+  }
+
+  ImageProvider<Object>? _materialImage(String avatarPath) {
+    if (avatarPath.isEmpty) return null;
+    if (avatarPath.startsWith('assets/')) return AssetImage(avatarPath);
+    final uri = Uri.tryParse(avatarPath);
+    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+      return NetworkImage(avatarPath);
+    }
+    return FileImage(File(avatarPath));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentAgent = agent;
+    final avatarPath = _avatarPath;
+    final hasAvatar = avatarPath.isNotEmpty;
+    final shadTheme = ShadTheme.maybeOf(context);
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final backgroundColor =
+        hasAvatar
+            ? primaryColor
+            : currentAgent == null
+            ? shadTheme?.colorScheme.muted ??
+                Theme.of(context).colorScheme.surfaceContainerHighest
+            : getFrostedProviderColor(currentAgent.provider, primaryColor);
+    final placeholder =
+        currentAgent == null
+            ? Text(
+              _initial,
+              style:
+                  shadTheme?.textTheme.small.copyWith(
+                    color: shadTheme.colorScheme.mutedForeground,
+                    fontWeight: FontWeight.w600,
+                  ) ??
+                  Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            )
+            : buildProviderLogo(context, '', currentAgent.provider, size / 2);
+    if (shadTheme != null) {
+      return ShadAvatar(
+        hasAvatar ? avatarPath : null,
+        size: Size.square(size),
+        backgroundColor: backgroundColor,
+        placeholder: placeholder,
+      );
+    }
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: backgroundColor,
+      backgroundImage: _materialImage(avatarPath),
+      child: hasAvatar ? null : placeholder,
+    );
+  }
+}
 
 /// Keeps every primary project workspace section on the same responsive axis.
 final class ProjectContentBounds extends StatelessWidget {

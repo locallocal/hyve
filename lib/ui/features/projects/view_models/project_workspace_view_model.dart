@@ -15,6 +15,7 @@ import 'package:hyve/domain/repositories/project_event_repository.dart';
 import 'package:hyve/domain/repositories/project_membership_repository.dart';
 import 'package:hyve/domain/repositories/model_usage_repository.dart';
 import 'package:hyve/domain/repositories/participation_decision_repository.dart';
+import 'package:hyve/domain/repositories/profile_repository.dart';
 import 'package:hyve/domain/repositories/project_repository.dart';
 import 'package:hyve/domain/repositories/project_turn_repository.dart';
 import 'package:hyve/domain/repositories/project_temporary_attachment_repository.dart';
@@ -44,6 +45,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     required ProjectArtifactRepository artifactRepository,
     required AttachmentRepository attachmentRepository,
     required ProjectTemporaryAttachmentRepository temporaryAttachmentRepository,
+    required ProfileRepository profileRepository,
   }) : _routeProjectMessage = routeProjectMessage,
        _projectRepository = projectRepository,
        _membershipRepository = membershipRepository,
@@ -59,6 +61,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
        _artifactRepository = artifactRepository,
        _attachmentRepository = attachmentRepository,
        _temporaryAttachmentRepository = temporaryAttachmentRepository,
+       _profileRepository = profileRepository,
        _inboxCoordinator = inboxCoordinator {
     _cursorSubscription = _cursorRepository.changes.listen((key) {
       if (key.projectId == projectId) unawaited(refresh());
@@ -83,6 +86,11 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     _artifactSubscription = _artifactRepository.changes.listen((id) {
       if (id == projectId) unawaited(refreshArtifacts());
     });
+    _profileSubscription = _profileRepository.changes.listen((profile) {
+      if (isDisposed) return;
+      _currentUserProfile = profile;
+      notifyListeners();
+    });
   }
 
   final String projectId;
@@ -101,6 +109,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   final ProjectArtifactRepository _artifactRepository;
   final AttachmentRepository _attachmentRepository;
   final ProjectTemporaryAttachmentRepository _temporaryAttachmentRepository;
+  final ProfileRepository _profileRepository;
   final AgentInboxCoordinator _inboxCoordinator;
   late final StreamSubscription<ProjectAgentInboxKey> _cursorSubscription;
   late final StreamSubscription<String> _membershipSubscription;
@@ -109,6 +118,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   late final StreamSubscription<List<Project>> _projectSubscription;
   late final StreamSubscription<String> _deliverySubscription;
   late final StreamSubscription<String> _artifactSubscription;
+  late final StreamSubscription<Profile> _profileSubscription;
 
   List<ProjectAgentStatusSnapshot> _agentStatuses = const [];
   Project? _project;
@@ -120,6 +130,8 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   Map<String, ParticipationDecision> _decisions = const {};
   List<ModelTokenUsageRecord> _usageRecords = const [];
   Map<String, String> _agentNames = const {};
+  Map<String, Agent> _agentsById = const {};
+  Profile? _currentUserProfile;
   List<ProjectArtifactEntry> _artifacts = const [];
   String _artifactQuery = '';
   Set<ProjectArtifactKind> _artifactKinds = const <ProjectArtifactKind>{};
@@ -139,6 +151,8 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   Map<String, ParticipationDecision> get decisions => _decisions;
   List<ModelTokenUsageRecord> get usageRecords => _usageRecords;
   Map<String, String> get agentNames => _agentNames;
+  Map<String, Agent> get agentsById => _agentsById;
+  Profile? get currentUserProfile => _currentUserProfile;
   @override
   List<ProjectArtifactEntry> get artifacts => _artifacts;
   String get artifactQuery => _artifactQuery;
@@ -154,6 +168,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   Future<void> refresh() async {
     final project = await _projectRepository.getProject(projectId);
     if (project == null || isDisposed) return;
+    final currentUserProfile = await _profileRepository.getProfile();
     final memberships = await _membershipRepository.getForProject(projectId);
     if (_artifacts.isEmpty && !_artifactBusy) {
       unawaited(refreshArtifacts());
@@ -265,6 +280,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     }
     if (isDisposed) return;
     _project = project;
+    _currentUserProfile = currentUserProfile;
     _activeAgents = List<Agent>.unmodifiable([
       for (final membership in activeMemberships)
         if (agentsById[membership.agentId] case final agent?) agent,
@@ -290,6 +306,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     _agentNames = Map<String, String>.unmodifiable({
       for (final entry in agentsById.entries) entry.key: entry.value.name,
     });
+    _agentsById = Map<String, Agent>.unmodifiable(agentsById);
     _agentStatuses = List<ProjectAgentStatusSnapshot>.unmodifiable(statuses);
     notifyListeners();
   }
@@ -622,8 +639,13 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
             ),
         ];
       }
+      final currentUserProfile =
+          _currentUserProfile ?? await _profileRepository.getProfile();
+      _currentUserProfile = currentUserProfile;
       return await _routeProjectMessage(
         projectId: projectId,
+        currentUserName: currentUserProfile.name,
+        currentUserAvatar: currentUserProfile.avatar,
         draft: ProjectMessageDraft(
           text: draft.text,
           mentions: draft.mentions,
@@ -680,6 +702,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     _projectSubscription.cancel();
     _deliverySubscription.cancel();
     _artifactSubscription.cancel();
+    _profileSubscription.cancel();
     super.dispose();
   }
 }

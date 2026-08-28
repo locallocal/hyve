@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/profile_avatar.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';

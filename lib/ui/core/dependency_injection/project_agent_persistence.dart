@@ -299,26 +299,29 @@ final class ProjectAgentPersistence {
   final AgentInboxCoordinator inboxCoordinator;
   final CreateProject createProject;
 
-  ProjectWorkspaceViewModel createWorkspaceViewModel(String projectId) =>
-      ProjectWorkspaceViewModel(
-        projectId: projectId,
-        routeProjectMessage: routeProjectMessage,
-        projectRepository: projectRepository,
-        membershipRepository: membershipRepository,
-        eventRepository: eventRepository,
-        turnRepository: turnRepository,
-        agentRepository: agentRepository,
-        cursorRepository: cursorRepository,
-        runRepository: runRepository,
-        deliveryRepository: deliveryRepository,
-        receiptRepository: receiptRepository,
-        decisionRepository: decisionRepository,
-        modelUsageRepository: modelUsageRepository,
-        inboxCoordinator: inboxCoordinator,
-        artifactRepository: artifactRepository,
-        attachmentRepository: attachmentRepository,
-        temporaryAttachmentRepository: temporaryAttachmentRepository,
-      );
+  ProjectWorkspaceViewModel createWorkspaceViewModel(
+    String projectId, {
+    required ProfileRepository profileRepository,
+  }) => ProjectWorkspaceViewModel(
+    projectId: projectId,
+    routeProjectMessage: routeProjectMessage,
+    projectRepository: projectRepository,
+    membershipRepository: membershipRepository,
+    eventRepository: eventRepository,
+    turnRepository: turnRepository,
+    agentRepository: agentRepository,
+    cursorRepository: cursorRepository,
+    runRepository: runRepository,
+    deliveryRepository: deliveryRepository,
+    receiptRepository: receiptRepository,
+    decisionRepository: decisionRepository,
+    modelUsageRepository: modelUsageRepository,
+    inboxCoordinator: inboxCoordinator,
+    artifactRepository: artifactRepository,
+    attachmentRepository: attachmentRepository,
+    temporaryAttachmentRepository: temporaryAttachmentRepository,
+    profileRepository: profileRepository,
+  );
 
   ProjectMembersViewModel createMembersViewModel(String projectId) =>
       ProjectMembersViewModel(

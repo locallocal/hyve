@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/ui/core/widgets/profile_avatar.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
@@ -12,6 +13,8 @@ final class ProjectEventList extends StatefulWidget {
     required this.deliveries,
     required this.runs,
     required this.agentNames,
+    this.agentsById = const <String, Agent>{},
+    this.currentUserProfile,
     this.hasEarlier = false,
     this.loadingEarlier = false,
     this.onLoadEarlier,
@@ -27,6 +30,8 @@ final class ProjectEventList extends StatefulWidget {
   final Map<String, AgentDelivery> deliveries;
   final Map<String, AgentRun> runs;
   final Map<String, String> agentNames;
+  final Map<String, Agent> agentsById;
+  final Profile? currentUserProfile;
   final bool hasEarlier;
   final bool loadingEarlier;
   final VoidCallback? onLoadEarlier;
@@ -173,70 +178,160 @@ final class _ProjectEventListState extends State<ProjectEventList> {
             ),
           );
         }
+        final currentUserProfile = widget.currentUserProfile;
+        final currentUserName = currentUserProfile?.name.trim() ?? '';
         final actorName =
-            event.actorNameSnapshot.isNotEmpty
+            fromUser && currentUserName.isNotEmpty
+                ? currentUserName
+                : event.actorNameSnapshot.isNotEmpty
                 ? event.actorNameSnapshot
+                : fromUser
+                ? copy.user
                 : widget.agentNames[event.actorId] ?? event.actorId;
+        final actorAvatar =
+            fromUser && currentUserProfile != null
+                ? currentUserProfile.avatar.trim().isEmpty
+                    ? defaultProfileAvatarAsset
+                    : currentUserProfile.avatar.trim()
+                : event.actorAvatarSnapshot;
+        final messageBubble = _ProjectMessageBubble(
+          key: ValueKey<String>('project-message-bubble-${event.id}'),
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              if (event.replyToEventId.isNotEmpty ||
+                  event.replyToMessageSequence != null) ...<Widget>[
+                ProjectBadge(
+                  key: ValueKey<String>('project-reply-link-${event.id}'),
+                  icon: LucideIcons.reply,
+                  label: copy.replyingTo(event.replyToMessageSequence ?? 0),
+                  onPressed: () => _scrollTo(event),
+                ),
+                const SizedBox(height: 8),
+              ],
+              SelectableText(event.content),
+              if (turn?.noParticipant == true)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    copy.noParticipant,
+                    key: ValueKey<String>('no-participant-${event.id}'),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color:
+                          ShadTheme.maybeOf(
+                            context,
+                          )?.colorScheme.mutedForeground ??
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              if (event.terminalState != ProjectEventTerminalState.completed)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    event.terminalState.name,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
         return Align(
           key: ValueKey<String>('project-event-${event.id}'),
           alignment: fromUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Semantics(
             container: true,
-            label: '${fromUser ? copy.user : actorName}: ${event.content}',
-            child: _ProjectMessageBubble(
-              key: ValueKey<String>('project-message-bubble-${event.id}'),
-              fromUser: fromUser,
-              constraints: const BoxConstraints(maxWidth: 680),
-              margin: const EdgeInsets.symmetric(vertical: 5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  if (!fromUser)
-                    Text(
-                      actorName,
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  if (event.replyToEventId.isNotEmpty ||
-                      event.replyToMessageSequence != null)
-                    ProjectBadge(
-                      key: ValueKey<String>('project-reply-link-${event.id}'),
-                      icon: LucideIcons.reply,
-                      label: copy.replyingTo(event.replyToMessageSequence ?? 0),
-                      onPressed: () => _scrollTo(event),
-                    ),
-                  SelectableText(event.content),
-                  if (turn?.noParticipant == true)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        copy.noParticipant,
-                        key: ValueKey<String>('no-participant-${event.id}'),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color:
-                              ShadTheme.maybeOf(
-                                context,
-                              )?.colorScheme.mutedForeground ??
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  if (event.terminalState !=
-                      ProjectEventTerminalState.completed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        event.terminalState.name,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+            label: '$actorName: ${event.content}',
+            child: _ProjectActorMessage(
+              key: ValueKey<String>('project-actor-message-${event.id}'),
+              eventId: event.id,
+              name: actorName,
+              avatarOnRight: fromUser,
+              agent: fromUser ? null : widget.agentsById[event.actorId],
+              fallbackAvatar: actorAvatar,
+              child: messageBubble,
             ),
           ),
         );
       },
+    );
+  }
+}
+
+final class _ProjectActorMessage extends StatelessWidget {
+  const _ProjectActorMessage({
+    super.key,
+    required this.eventId,
+    required this.name,
+    required this.avatarOnRight,
+    required this.agent,
+    required this.fallbackAvatar,
+    required this.child,
+  });
+
+  final String eventId;
+  final String name;
+  final bool avatarOnRight;
+  final Agent? agent;
+  final String fallbackAvatar;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final nameStyle =
+        shadTheme == null
+            ? Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)
+            : shadTheme.textTheme.small.copyWith(
+              color: shadTheme.colorScheme.foreground,
+              fontWeight: FontWeight.w600,
+            );
+    final avatar = Semantics(
+      image: true,
+      label: name,
+      child: ProjectActorAvatar(
+        key: ValueKey<String>('project-message-avatar-$eventId'),
+        agent: agent,
+        fallbackName: name,
+        fallbackAvatar: fallbackAvatar,
+      ),
+    );
+    final content = Flexible(
+      child: Column(
+        crossAxisAlignment:
+            avatarOnRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            name,
+            key: ValueKey<String>('project-message-actor-$eventId'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: avatarOnRight ? TextAlign.end : TextAlign.start,
+            style: nameStyle,
+          ),
+          const SizedBox(height: 6),
+          child,
+        ],
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 730),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:
+              avatarOnRight
+                  ? <Widget>[content, const SizedBox(width: 10), avatar]
+                  : <Widget>[avatar, const SizedBox(width: 10), content],
+        ),
+      ),
     );
   }
 }
@@ -355,56 +450,48 @@ final class ProjectDeliveryCard extends StatelessWidget {
 final class _ProjectMessageBubble extends StatelessWidget {
   const _ProjectMessageBubble({
     super.key,
-    required this.fromUser,
     required this.constraints,
-    required this.margin,
     required this.child,
   });
 
-  final bool fromUser;
   final BoxConstraints constraints;
-  final EdgeInsetsGeometry margin;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
     final materialScheme = Theme.of(context).colorScheme;
-    final background =
-        shadTheme?.colorScheme.background ?? materialScheme.surface;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final color = Color.alphaBlend(
-      (shadTheme == null
-              ? fromUser
-                  ? materialScheme.primaryContainer
-                  : materialScheme.surfaceContainerHighest
-              : fromUser
-              ? shadTheme.colorScheme.primary
-              : shadTheme.colorScheme.muted)
-          .withValues(
-            alpha:
-                fromUser
-                    ? dark
-                        ? 0.14
-                        : 0.06
-                    : 0.42,
+    if (shadTheme != null) {
+      final foreground = shadTheme.colorScheme.cardForeground;
+      return ConstrainedBox(
+        constraints: constraints,
+        child: ShadCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          backgroundColor: shadTheme.colorScheme.muted,
+          radius: shadTheme.radius,
+          border: ShadBorder.none,
+          shadows: const <BoxShadow>[],
+          child: DefaultTextStyle.merge(
+            style: TextStyle(color: foreground),
+            child: IconTheme.merge(
+              data: IconThemeData(color: foreground),
+              child: child,
+            ),
           ),
-      background,
-    );
-    final foreground =
-        shadTheme?.colorScheme.foreground ?? materialScheme.onSurface;
+        ),
+      );
+    }
     return Container(
       constraints: constraints,
-      margin: margin,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: shadTheme?.radius ?? BorderRadius.circular(14),
+        color: materialScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: DefaultTextStyle.merge(
-        style: TextStyle(color: foreground),
+        style: TextStyle(color: materialScheme.onSurface),
         child: IconTheme.merge(
-          data: IconThemeData(color: foreground),
+          data: IconThemeData(color: materialScheme.onSurface),
           child: child,
         ),
       ),

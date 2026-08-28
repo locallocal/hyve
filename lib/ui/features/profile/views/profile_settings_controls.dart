@@ -501,7 +501,7 @@ extension _ProfileSettingsControls on _ProfilePageState {
       return FileImage(File(_avatar));
     }
     return const ResizeImage(
-      AssetImage('assets/images/profile/avatar.png'),
+      AssetImage(defaultProfileAvatarAsset),
       width: 256,
       height: 256,
     );

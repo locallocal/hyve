@@ -9,6 +9,7 @@ import 'package:hyve/l10n/app_localizations.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
+import 'package:hyve/ui/core/widgets/profile_avatar.dart';
 import 'package:hyve/ui/features/feedback/views/feedback_page.dart';
 import 'package:hyve/ui/features/profile/view_models/profile_view_model.dart';
 import 'package:hyve/ui/features/profile/views/privacy_policy.dart';

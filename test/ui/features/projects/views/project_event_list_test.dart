@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -183,10 +185,67 @@ void main() {
     },
   );
 
+  testWidgets('user without custom avatar matches the profile default avatar', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 23);
+    final event = _message(
+      id: 'user-message',
+      turnId: 'user-turn',
+      sequence: 1,
+      messageSequence: 1,
+      actorType: ProjectEventActorType.user,
+      content: 'Message from current profile',
+      now: now,
+      actorAvatarSnapshot: '/stale/user-avatar.png',
+    );
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('zh', 'CN'),
+        homeBuilder:
+            (_) => Scaffold(
+              body: ProjectEventList(
+                events: <ProjectEvent>[event],
+                turns: const <String, ProjectTurn>{},
+                deliveries: const <String, AgentDelivery>{},
+                runs: const <String, AgentRun>{},
+                agentNames: const <String, String>{},
+                currentUserProfile: _profile('我的名字', '', now),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final avatar = tester.widget<ShadAvatar>(
+      find.descendant(
+        of: find.byKey(
+          const ValueKey<String>('project-message-avatar-user-message'),
+        ),
+        matching: find.byType(ShadAvatar),
+      ),
+    );
+    expect(avatar.src, 'assets/images/profile/avatar.png');
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              const ValueKey<String>('project-message-actor-user-message'),
+            ),
+          )
+          .data,
+      '我的名字',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
-    'message backgrounds are subtle and current-message hint is visible',
+    'user avatar is right and agent avatar is left in shadcn layout',
     (tester) async {
       final now = DateTime.utc(2026, 8, 23);
+      final avatarPath = File('assets/images/profile/avatar.png').absolute.path;
       final event = _message(
         id: 'current-message',
         turnId: 'current-turn',
@@ -195,6 +254,7 @@ void main() {
         actorType: ProjectEventActorType.user,
         content: 'Current project message',
         now: now,
+        actorAvatarSnapshot: '/stale/user-avatar.png',
       );
       final agentEvent = _message(
         id: 'agent-message',
@@ -204,6 +264,7 @@ void main() {
         actorType: ProjectEventActorType.agent,
         content: 'Agent response',
         now: now,
+        actorAvatarSnapshot: '/stale/agent-avatar.png',
       );
       final turn = ProjectTurn(
         id: 'current-turn',
@@ -235,6 +296,19 @@ void main() {
                     deliveries: const <String, AgentDelivery>{},
                     runs: const <String, AgentRun>{},
                     agentNames: const <String, String>{'agent-1': 'Researcher'},
+                    agentsById: <String, Agent>{
+                      'agent-1': _agent(
+                        'agent-1',
+                        'Researcher',
+                        avatarPath,
+                        now,
+                      ),
+                    },
+                    currentUserProfile: _profile(
+                      'Current User',
+                      avatarPath,
+                      now,
+                    ),
                   ),
                 ),
           ),
@@ -244,52 +318,124 @@ void main() {
         final bubbleFinder = find.byKey(
           const ValueKey<String>('project-message-bubble-current-message'),
         );
-        final bubble = tester.widget<Container>(
-          find
-              .descendant(of: bubbleFinder, matching: find.byType(Container))
-              .first,
+        final userCard = tester.widget<ShadCard>(
+          find.descendant(of: bubbleFinder, matching: find.byType(ShadCard)),
         );
-        final decoration = bubble.decoration! as BoxDecoration;
         final shadTheme = ShadTheme.of(tester.element(bubbleFinder));
-        expect(decoration.border, isNull, reason: brightness.name);
         expect(
-          _colorDistance(decoration.color!, shadTheme.colorScheme.background),
-          lessThan(
-            _colorDistance(
-                  shadTheme.colorScheme.primary,
-                  shadTheme.colorScheme.background,
-                ) *
-                0.025,
-          ),
+          userCard.backgroundColor,
+          shadTheme.colorScheme.muted,
           reason: brightness.name,
         );
+        expect(userCard.border, same(ShadBorder.none));
+        expect(userCard.shadows, isEmpty, reason: brightness.name);
 
         final agentBubbleFinder = find.byKey(
           const ValueKey<String>('project-message-bubble-agent-message'),
         );
-        final agentBubble = tester.widget<Container>(
-          find
-              .descendant(
-                of: agentBubbleFinder,
-                matching: find.byType(Container),
-              )
-              .first,
+        final agentCard = tester.widget<ShadCard>(
+          find.descendant(
+            of: agentBubbleFinder,
+            matching: find.byType(ShadCard),
+          ),
         );
-        final agentDecoration = agentBubble.decoration! as BoxDecoration;
-        expect(agentDecoration.border, isNull, reason: brightness.name);
         expect(
-          _colorDistance(
-            agentDecoration.color!,
-            shadTheme.colorScheme.background,
-          ),
-          lessThan(
-            _colorDistance(
-                  shadTheme.colorScheme.muted,
-                  shadTheme.colorScheme.background,
-                ) *
-                0.20,
-          ),
+          agentCard.backgroundColor,
+          shadTheme.colorScheme.muted,
           reason: brightness.name,
+        );
+        expect(agentCard.border, same(ShadBorder.none));
+        expect(agentCard.shadows, isEmpty, reason: brightness.name);
+
+        final userMessage = find.byKey(
+          const ValueKey<String>('project-actor-message-current-message'),
+        );
+        final agentMessage = find.byKey(
+          const ValueKey<String>('project-actor-message-agent-message'),
+        );
+        final userEventFinder = find.byKey(
+          const ValueKey<String>('project-event-current-message'),
+        );
+        final agentEventFinder = find.byKey(
+          const ValueKey<String>('project-event-agent-message'),
+        );
+        final userAvatarFinder = find.byKey(
+          const ValueKey<String>('project-message-avatar-current-message'),
+        );
+        final agentAvatarFinder = find.byKey(
+          const ValueKey<String>('project-message-avatar-agent-message'),
+        );
+        final userAvatar = tester.widget<ShadAvatar>(
+          find.descendant(
+            of: userAvatarFinder,
+            matching: find.byType(ShadAvatar),
+          ),
+        );
+        final agentAvatar = tester.widget<ShadAvatar>(
+          find.descendant(
+            of: agentAvatarFinder,
+            matching: find.byType(ShadAvatar),
+          ),
+        );
+        final userName = find.byKey(
+          const ValueKey<String>('project-message-actor-current-message'),
+        );
+        final agentName = find.byKey(
+          const ValueKey<String>('project-message-actor-agent-message'),
+        );
+        expect(userAvatar.src, avatarPath);
+        expect(userAvatar.size, const Size.square(40));
+        expect(agentAvatar.src, avatarPath);
+        expect(agentAvatar.size, const Size.square(40));
+        expect(tester.widget<Text>(userName).data, 'Current User');
+        expect(tester.widget<Text>(agentName).data, 'Researcher');
+        expect(
+          tester.widget<Text>(userName).style?.fontWeight,
+          FontWeight.w600,
+        );
+        expect(
+          tester.widget<Text>(agentName).style?.fontWeight,
+          FontWeight.w600,
+        );
+        expect(
+          find.descendant(of: userMessage, matching: userName),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: agentMessage, matching: agentName),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: bubbleFinder, matching: userName),
+          findsNothing,
+        );
+        expect(
+          find.descendant(of: agentBubbleFinder, matching: agentName),
+          findsNothing,
+        );
+        expect(
+          tester.getTopRight(userMessage).dx,
+          tester.getTopRight(userEventFinder).dx,
+        );
+        expect(
+          tester.getTopLeft(agentMessage).dx,
+          tester.getTopLeft(agentEventFinder).dx,
+        );
+        expect(
+          tester.getTopLeft(userMessage).dx,
+          greaterThan(tester.getTopLeft(agentMessage).dx),
+        );
+        expect(
+          tester.getTopRight(bubbleFinder).dx,
+          lessThan(tester.getTopLeft(userAvatarFinder).dx),
+        );
+        expect(
+          tester.getTopRight(agentAvatarFinder).dx,
+          lessThan(tester.getTopLeft(agentBubbleFinder).dx),
+        );
+        expect(
+          tester.getTopRight(userName).dx,
+          tester.getTopRight(bubbleFinder).dx,
         );
 
         final hint = tester.widget<Text>(
@@ -303,12 +449,29 @@ void main() {
   );
 }
 
-double _colorDistance(Color left, Color right) {
-  final red = left.r - right.r;
-  final green = left.g - right.g;
-  final blue = left.b - right.b;
-  return red * red + green * green + blue * blue;
-}
+Agent _agent(String id, String name, String avatar, DateTime now) => Agent(
+  id: id,
+  name: name,
+  avatar: avatar,
+  provider: 'test',
+  baseUrl: '',
+  apiKey: '',
+  apiType: Bot.apiTypeOpenAI,
+  model: 'model',
+  systemPrompt: '',
+  createdAt: now,
+  updatedAt: now,
+);
+
+Profile _profile(String name, String avatar, DateTime now) => Profile(
+  name: name,
+  avatar: avatar,
+  fontSize: 16,
+  themeMode: 0,
+  language: 'zh_CN',
+  createTimestamp: now,
+  modifyTimestamp: now,
+);
 
 ProjectEvent _message({
   required String id,
@@ -320,6 +483,7 @@ ProjectEvent _message({
   required DateTime now,
   String replyToEventId = '',
   int? replyToMessageSequence,
+  String actorAvatarSnapshot = '',
 }) => ProjectEvent(
   id: id,
   projectId: 'project-1',
@@ -334,6 +498,7 @@ ProjectEvent _message({
   actorId: actorType == ProjectEventActorType.user ? 'user' : 'agent-1',
   actorNameSnapshot:
       actorType == ProjectEventActorType.user ? 'User' : 'Researcher',
+  actorAvatarSnapshot: actorAvatarSnapshot,
   replyToEventId: replyToEventId,
   replyToMessageSequence: replyToMessageSequence,
   content: content,

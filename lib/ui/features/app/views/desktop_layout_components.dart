@@ -221,7 +221,7 @@ class _AccountButton extends StatelessWidget {
           const CircleAvatar(
             radius: 15,
             backgroundImage: ResizeImage(
-              AssetImage('assets/images/profile/avatar.png'),
+              AssetImage(defaultProfileAvatarAsset),
               width: 60,
               height: 60,
             ),

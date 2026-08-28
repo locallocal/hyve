@@ -82,8 +82,12 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_viewModel != null) return;
-    final dependencies = AppScope.of(context).projectAgents;
-    _viewModel = dependencies.createWorkspaceViewModel(widget.projectId);
+    final appDependencies = AppScope.of(context);
+    final dependencies = appDependencies.projectAgents;
+    _viewModel = dependencies.createWorkspaceViewModel(
+      widget.projectId,
+      profileRepository: appDependencies.profileRepository,
+    );
     _membersViewModel = dependencies.createMembersViewModel(widget.projectId);
     unawaited(_viewModel!.refresh());
     unawaited(_membersViewModel!.load());
@@ -318,6 +322,8 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 deliveries: viewModel.deliveries,
                 runs: viewModel.runs,
                 agentNames: viewModel.agentNames,
+                agentsById: viewModel.agentsById,
+                currentUserProfile: viewModel.currentUserProfile,
                 hasEarlier: viewModel.hasEarlierEvents,
                 loadingEarlier: viewModel.eventPageBusy,
                 onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),

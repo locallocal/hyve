@@ -315,6 +315,21 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        final scrollConfigurationFinder = find.byKey(
+          const ValueKey<String>('project-event-scroll-configuration'),
+        );
+        final scrollConfiguration = tester.widget<ScrollConfiguration>(
+          scrollConfigurationFinder,
+        );
+        const scrollChild = SizedBox();
+        final decoratedScrollChild = scrollConfiguration.behavior
+            .buildScrollbar(
+              tester.element(scrollConfigurationFinder),
+              scrollChild,
+              const ScrollableDetails(direction: AxisDirection.down),
+            );
+        expect(decoratedScrollChild, same(scrollChild));
+
         final bubbleFinder = find.byKey(
           const ValueKey<String>('project-message-bubble-current-message'),
         );

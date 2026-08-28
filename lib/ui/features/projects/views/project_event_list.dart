@@ -97,7 +97,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
         action: widget.emptyAction,
       );
     }
-    return ListView.builder(
+    final timeline = ListView.builder(
       key: const ValueKey<String>('project-event-timeline'),
       controller: _scrollController,
       padding: widget.padding,
@@ -257,6 +257,11 @@ final class _ProjectEventListState extends State<ProjectEventList> {
           ),
         );
       },
+    );
+    return ScrollConfiguration(
+      key: const ValueKey<String>('project-event-scroll-configuration'),
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: timeline,
     );
   }
 }

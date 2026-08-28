@@ -9,6 +9,7 @@ import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
+import 'package:hyve/utils/theme.dart';
 
 final class ProjectMembersSheet extends StatefulWidget {
   const ProjectMembersSheet({
@@ -195,29 +196,38 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                           ),
                           const SizedBox(height: 6),
                         ],
-                        ProjectSelect<String>(
-                          key: ValueKey<String>(
-                            'project-member-add-options-${available.map((item) => item.id).join('-')}',
+                        SizedBox(
+                          key: const ValueKey<String>(
+                            'project-member-add-select',
                           ),
-                          placeholder:
-                              available.isEmpty
-                                  ? copy.noAvailableAgents
-                                  : copy.addAgent,
-                          options: <ProjectSelectOption<String>>[
-                            for (final agent in available)
-                              ProjectSelectOption<String>(
-                                value: agent.id,
-                                label: agent.name,
-                              ),
-                          ],
-                          enabled:
-                              !widget.viewModel.mutating &&
-                              available.isNotEmpty,
-                          onChanged: (agentId) {
-                            if (agentId != null) {
-                              unawaited(widget.viewModel.add(agentId));
-                            }
-                          },
+                          height:
+                              shadTheme == null
+                                  ? null
+                                  : HyveDesktopThemeSpec.botFormFieldHeight,
+                          child: ProjectSelect<String>(
+                            key: ValueKey<String>(
+                              'project-member-add-options-${available.map((item) => item.id).join('-')}',
+                            ),
+                            placeholder:
+                                available.isEmpty
+                                    ? copy.noAvailableAgents
+                                    : copy.addAgent,
+                            options: <ProjectSelectOption<String>>[
+                              for (final agent in available)
+                                ProjectSelectOption<String>(
+                                  value: agent.id,
+                                  label: agent.name,
+                                ),
+                            ],
+                            enabled:
+                                !widget.viewModel.mutating &&
+                                available.isNotEmpty,
+                            onChanged: (agentId) {
+                              if (agentId != null) {
+                                unawaited(widget.viewModel.add(agentId));
+                              }
+                            },
+                          ),
                         ),
                       ],
                     );

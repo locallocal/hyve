@@ -446,10 +446,16 @@ final class ProjectTextInput extends StatelessWidget {
       final input = ShadInput(
         controller: controller,
         focusNode: focusNode,
+        padding: HyveDesktopThemeSpec.formFieldPadding,
         placeholder: Text(label),
-        leading: leading,
+        leading:
+            leading != null
+                ? SizedBox(height: 44, child: Center(child: leading))
+                : leading,
         trailing: trailing,
         enabled: enabled,
+        alignment: AlignmentDirectional.centerStart,
+        placeholderAlignment: AlignmentDirectional.centerStart,
         onChanged: onChanged,
         onSubmitted: onSubmitted,
       );
@@ -467,6 +473,7 @@ final class ProjectTextInput extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       enabled: enabled,
+      textAlignVertical: TextAlignVertical.center,
       decoration: InputDecoration(
         labelText: showLabel ? label : null,
         hintText: showLabel ? null : label,

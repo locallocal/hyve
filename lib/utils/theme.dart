@@ -316,6 +316,11 @@ ShadThemeData buildHyveShadTheme({
     colorScheme: colorScheme,
     radius: const BorderRadius.all(Radius.circular(6)),
     textTheme: baseTextTheme,
+    inputTheme: const ShadInputTheme(
+      constraints: BoxConstraints(
+        minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
+      ),
+    ),
   );
 }
 
@@ -635,6 +640,9 @@ ThemeData buildAppTheme({
       filled: true,
       fillColor: tokens.contentBackground,
       isDense: true,
+      constraints: const BoxConstraints(
+        minHeight: HyveDesktopThemeSpec.botFormFieldHeight,
+      ),
       hintStyle: TextStyle(color: tokens.tertiaryText),
       border: OutlineInputBorder(
         borderRadius: HyveDesktopThemeSpec.controlRadius,

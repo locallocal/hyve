@@ -12,6 +12,7 @@ import 'package:hyve/domain/use_cases/manage_project_members.dart';
 import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
 import 'package:hyve/ui/features/projects/views/project_members_sheet.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../../../../support/widget_test_support.dart';
 
@@ -197,6 +198,52 @@ void main() {
       expect(find.byType(ShadInput), findsOneWidget);
       expect(find.byType(ShadSelect<String>), findsOneWidget);
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);
+      final memberSearch = find.descendant(
+        of: find.byKey(const ValueKey<String>('project-member-search')),
+        matching: find.byType(ShadInput),
+      );
+      final memberSearchInput = tester.widget<ShadInput>(memberSearch);
+      final memberAddSelect = find.descendant(
+        of: find.byKey(const ValueKey<String>('project-member-add-select')),
+        matching: find.byType(ShadSelect<String>),
+      );
+      expect(
+        tester.getSize(memberAddSelect).height,
+        HyveDesktopThemeSpec.botFormFieldHeight,
+      );
+      expect(
+        tester.getSize(memberAddSelect).height,
+        tester.getSize(memberSearch).height,
+      );
+      expect(memberSearchInput.alignment, AlignmentDirectional.centerStart);
+      expect(
+        memberSearchInput.placeholderAlignment,
+        AlignmentDirectional.centerStart,
+      );
+      expect(
+        tester
+            .getRect(
+              find.descendant(
+                of: memberSearch,
+                matching: find.text('Search agents'),
+              ),
+            )
+            .center
+            .dy,
+        closeTo(tester.getRect(memberSearch).center.dy, 0.5),
+      );
+      expect(
+        tester
+            .getRect(
+              find.descendant(
+                of: memberSearch,
+                matching: find.byType(EditableText),
+              ),
+            )
+            .center
+            .dy,
+        closeTo(tester.getRect(memberSearch).center.dy, 0.5),
+      );
       expect(find.byType(ShadCard), findsOneWidget);
       expect(find.byType(ShadAvatar), findsOneWidget);
       final memberAvatar = tester.widget<ShadAvatar>(

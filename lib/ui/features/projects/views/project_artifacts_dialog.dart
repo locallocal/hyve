@@ -8,6 +8,7 @@ import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_file_drop_target.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
+import 'package:hyve/utils/theme.dart';
 
 final class ProjectArtifactsPanel extends StatelessWidget {
   const ProjectArtifactsPanel({super.key, required this.viewModel});
@@ -331,7 +332,7 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                               scrollDirection: Axis.horizontal,
                               child: SizedBox(
                                 width: toolbarWidth,
-                                height: 36,
+                                height: HyveDesktopThemeSpec.botFormFieldHeight,
                                 child: Row(
                                   key: const ValueKey<String>(
                                     'artifact-primary-toolbar',
@@ -344,7 +345,9 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                                         key: const ValueKey<String>(
                                           'artifact-search-container',
                                         ),
-                                        height: 36,
+                                        height:
+                                            HyveDesktopThemeSpec
+                                                .botFormFieldHeight,
                                         child: ProjectTextInput(
                                           key: const ValueKey<String>(
                                             'artifact-search-field',
@@ -364,7 +367,9 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                                     const SizedBox(width: 10),
                                     SizedBox(
                                       width: 160,
-                                      height: 36,
+                                      height:
+                                          HyveDesktopThemeSpec
+                                              .botFormFieldHeight,
                                       key: const ValueKey<String>(
                                         'artifact-kind-filter',
                                       ),

@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
+import 'package:hyve/utils/theme.dart';
 
 import '../../../../support/widget_test_support.dart';
 
@@ -91,6 +92,10 @@ void main() {
             matching: find.byType(ShadButton),
           ),
         );
+        final artifactSearch = find.descendant(
+          of: find.byKey(const ValueKey<String>('artifact-search-field')),
+          matching: find.byType(ShadInput),
+        );
 
         expect(searchContainer.left, primaryRow.left);
         expect(searchContainer.width, greaterThan(250));
@@ -106,9 +111,45 @@ void main() {
               'create': createButton,
             }.entries) {
           expect(control.value.top, primaryRow.top, reason: control.key);
-          expect(control.value.height, 36, reason: control.key);
+          expect(
+            control.value.height,
+            HyveDesktopThemeSpec.botFormFieldHeight,
+            reason: control.key,
+          );
         }
-        expect(primaryRow.height, 36);
+        expect(primaryRow.height, HyveDesktopThemeSpec.botFormFieldHeight);
+        expect(
+          tester.widget<ShadInput>(artifactSearch).alignment,
+          AlignmentDirectional.centerStart,
+        );
+        expect(
+          tester.widget<ShadInput>(artifactSearch).placeholderAlignment,
+          AlignmentDirectional.centerStart,
+        );
+        expect(
+          tester
+              .getRect(
+                find.descendant(
+                  of: artifactSearch,
+                  matching: find.byType(Text),
+                ),
+              )
+              .center
+              .dy,
+          closeTo(tester.getRect(artifactSearch).center.dy, 0.5),
+        );
+        expect(
+          tester
+              .getRect(
+                find.descendant(
+                  of: artifactSearch,
+                  matching: find.byType(EditableText),
+                ),
+              )
+              .center
+              .dy,
+          closeTo(tester.getRect(artifactSearch).center.dy, 0.5),
+        );
       }
 
       expectAlignedRow();

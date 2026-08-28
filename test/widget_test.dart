@@ -371,6 +371,58 @@ void main() {
     }
   });
 
+  testWidgets('desktop Shad inputs use the search field height by default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => Scaffold(
+              body: Column(
+                children: [
+                  const HyveSearchField(
+                    key: ValueKey<String>('search-input'),
+                    hintText: '搜索项目',
+                  ),
+                  const ShadInput(
+                    key: ValueKey<String>('plain-input'),
+                    placeholder: Text('输入内容'),
+                  ),
+                  ShadInputFormField(
+                    key: ValueKey<String>('form-input'),
+                    id: 'content',
+                    placeholder: Text('输入内容'),
+                  ),
+                ],
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final searchHeight =
+        tester
+            .getSize(find.byKey(const ValueKey<String>('search-input')))
+            .height;
+    expect(searchHeight, HyveDesktopThemeSpec.botFormFieldHeight);
+    expect(
+      tester.getSize(find.byKey(const ValueKey<String>('plain-input'))).height,
+      searchHeight,
+    );
+    expect(
+      tester
+          .getSize(
+            find.descendant(
+              of: find.byKey(const ValueKey<String>('form-input')),
+              matching: find.byType(ShadInput),
+            ),
+          )
+          .height,
+      searchHeight,
+    );
+  });
+
   testWidgets('desktop list panel can match the settings content width', (
     tester,
   ) async {

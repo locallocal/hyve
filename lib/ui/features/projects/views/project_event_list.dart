@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
@@ -54,10 +56,63 @@ final class ProjectEventList extends StatefulWidget {
 
 final class _ProjectEventListState extends State<ProjectEventList> {
   final ScrollController _scrollController = ScrollController();
+  bool _autoScrollScheduled = false;
 
   List<ProjectEvent> get _messages => widget.events
       .where(ProjectEventList._isTimelineEntry)
       .toList(growable: false);
+
+  Object? _latestMessageState(Iterable<ProjectEvent> events) {
+    final messages = events.where(ProjectEventList._isTimelineEntry);
+    if (messages.isEmpty) return null;
+    final latest = messages.last;
+    return (latest.id, latest.content, latest.updatedAt, latest.terminalState);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (_messages.isNotEmpty) _scheduleScrollToLatest(animate: false);
+  }
+
+  @override
+  void didUpdateWidget(covariant ProjectEventList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final previousLatest = _latestMessageState(oldWidget.events);
+    final currentLatest = _latestMessageState(widget.events);
+    if (currentLatest != null && currentLatest != previousLatest) {
+      _scheduleScrollToLatest();
+    }
+  }
+
+  void _scheduleScrollToLatest({bool animate = true}) {
+    if (_autoScrollScheduled) return;
+    _autoScrollScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoScrollScheduled = false;
+      if (!mounted || !_scrollController.hasClients) return;
+      final position = _scrollController.position;
+      final target = position.minScrollExtent;
+      if ((target - position.pixels).abs() < 0.5) return;
+      final disableAnimations =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      if (!animate || disableAnimations) {
+        _scrollController.jumpTo(target);
+        return;
+      }
+      unawaited(
+        _scrollController
+            .animateTo(
+              target,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+            )
+            .whenComplete(() {
+              if (mounted) _scheduleScrollToLatest();
+            }),
+      );
+    });
+  }
 
   @override
   void dispose() {
@@ -74,7 +129,8 @@ final class _ProjectEventListState extends State<ProjectEventList> {
       return candidate.messageSequence == event.replyToMessageSequence;
     });
     if (targetIndex < 0 || !_scrollController.hasClients) return;
-    final target = (targetIndex * 104.0).clamp(
+    final reverseIndex = messages.length - targetIndex - 1;
+    final target = (reverseIndex * 104.0).clamp(
       0.0,
       _scrollController.position.maxScrollExtent,
     );
@@ -100,10 +156,11 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     final timeline = ListView.builder(
       key: const ValueKey<String>('project-event-timeline'),
       controller: _scrollController,
+      reverse: true,
       padding: widget.padding,
       itemCount: messages.length + (widget.hasEarlier ? 1 : 0),
       itemBuilder: (context, index) {
-        if (widget.hasEarlier && index == 0) {
+        if (widget.hasEarlier && index == messages.length) {
           return Center(
             child: ProjectActionButton(
               key: const ValueKey<String>('project-load-earlier-events'),
@@ -120,7 +177,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
             ),
           );
         }
-        final event = messages[index - (widget.hasEarlier ? 1 : 0)];
+        final event = messages[messages.length - index - 1];
         final fromUser = event.actorType == ProjectEventActorType.user;
         final turn = widget.turns[event.turnId];
         if (event.eventType == ProjectEventType.systemNotice) {

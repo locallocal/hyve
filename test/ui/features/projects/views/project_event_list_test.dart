@@ -95,6 +95,128 @@ void main() {
     expect(tapped, isTrue);
   });
 
+  testWidgets('timeline anchors user sends and follows new agent messages', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 24);
+    final initialEvents = <ProjectEvent>[
+      for (var sequence = 2; sequence <= 13; sequence++)
+        _message(
+          id: 'event-$sequence',
+          turnId: 'turn-$sequence',
+          sequence: sequence,
+          messageSequence: sequence,
+          actorType: ProjectEventActorType.user,
+          content: 'Project message $sequence',
+          now: now.add(Duration(seconds: sequence)),
+        ),
+    ];
+    final events = ValueNotifier<List<ProjectEvent>>(initialEvents);
+    addTearDown(events.dispose);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: SizedBox(
+                height: 240,
+                child: ValueListenableBuilder<List<ProjectEvent>>(
+                  valueListenable: events,
+                  builder:
+                      (_, value, _) => ProjectEventList(
+                        events: value,
+                        turns: const <String, ProjectTurn>{},
+                        deliveries: const <String, AgentDelivery>{},
+                        runs: const <String, AgentRun>{},
+                        agentNames: const <String, String>{},
+                      ),
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final timeline = find.byKey(
+      const ValueKey<String>('project-event-timeline'),
+    );
+    final scrollable = find.descendant(
+      of: timeline,
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable.first).position;
+    expect(position.maxScrollExtent, greaterThan(0));
+    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+
+    events.value = <ProjectEvent>[
+      ...events.value,
+      _message(
+        id: 'event-14',
+        turnId: 'turn-14',
+        sequence: 14,
+        messageSequence: 14,
+        actorType: ProjectEventActorType.user,
+        content: 'New user message',
+        now: now.add(const Duration(seconds: 14)),
+      ),
+    ];
+    await tester.pump();
+    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+    expect(position.isScrollingNotifier.value, isFalse);
+    await tester.pumpAndSettle();
+    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump();
+    final positionBeforeEarlierHistory = position.pixels;
+    events.value = <ProjectEvent>[
+      _message(
+        id: 'event-1',
+        turnId: 'turn-1',
+        sequence: 1,
+        messageSequence: 1,
+        actorType: ProjectEventActorType.user,
+        content: 'Earlier project message',
+        now: now,
+      ),
+      ...events.value,
+    ];
+    await tester.pumpAndSettle();
+    expect(position.pixels, closeTo(positionBeforeEarlierHistory, 0.5));
+
+    events.value = <ProjectEvent>[
+      ...events.value,
+      _message(
+        id: 'event-15',
+        turnId: 'turn-15',
+        sequence: 15,
+        messageSequence: 15,
+        actorType: ProjectEventActorType.agent,
+        content: 'Latest agent response',
+        now: now.add(const Duration(seconds: 15)),
+      ),
+    ];
+    await tester.pumpAndSettle();
+    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+
+    events.value = <ProjectEvent>[
+      ...events.value.take(events.value.length - 1),
+      _message(
+        id: 'event-15',
+        turnId: 'turn-15',
+        sequence: 15,
+        messageSequence: 15,
+        actorType: ProjectEventActorType.agent,
+        content: 'Latest agent response is still being generated',
+        now: now.add(const Duration(seconds: 16)),
+      ),
+    ];
+    await tester.pumpAndSettle();
+    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'shows reply navigation and keeps pass decisions out of bubbles',
     (tester) async {

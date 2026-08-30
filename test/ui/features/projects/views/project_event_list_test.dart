@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/views/project_event_list.dart';
@@ -9,6 +12,120 @@ import 'package:hyve/ui/features/projects/views/project_event_list.dart';
 import '../../../../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('reveals the time and copy action when hovering a message', (
+    tester,
+  ) async {
+    final clipboardWrites = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') clipboardWrites.add(call);
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final createdAt = DateTime(2026, 8, 31, 14, 5, 9);
+    final event = _message(
+      id: 'copyable-message',
+      turnId: 'copyable-turn',
+      sequence: 1,
+      messageSequence: 1,
+      actorType: ProjectEventActorType.user,
+      content: '需要复制的项目消息',
+      now: createdAt,
+      updatedAt: createdAt.add(const Duration(minutes: 5)),
+    );
+
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          locale: const Locale('zh', 'CN'),
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectEventList(
+                  events: <ProjectEvent>[event],
+                  turns: const <String, ProjectTurn>{},
+                  deliveries: const <String, AgentDelivery>{},
+                  runs: const <String, AgentRun>{},
+                  agentNames: const <String, String>{},
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final expectedTimestamp = intl.DateFormat.yMd(
+        'zh_CN',
+      ).add_Hms().format(createdAt);
+      final timestampFinder = find.byKey(
+        const ValueKey<String>('project-message-time-copyable-message'),
+      );
+      final metadataOpacityFinder = find.byKey(
+        const ValueKey<String>(
+          'project-message-metadata-opacity-copyable-message',
+        ),
+      );
+      final copyAction = find.byKey(
+        const ValueKey<String>('project-message-copy-copyable-message'),
+      );
+      final bubbleFinder = find.byKey(
+        const ValueKey<String>('project-message-bubble-copyable-message'),
+      );
+
+      expect(tester.widget<Text>(timestampFinder).data, expectedTimestamp);
+      expect(find.textContaining('写入于'), findsNothing);
+      expect(
+        find.descendant(of: bubbleFinder, matching: timestampFinder),
+        findsNothing,
+      );
+      expect(tester.widget<AnimatedOpacity>(metadataOpacityFinder).opacity, 0);
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(tester.getCenter(bubbleFinder));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<AnimatedOpacity>(metadataOpacityFinder).opacity, 1);
+      expect(copyAction, findsOneWidget);
+      expect(find.byIcon(LucideIcons.copy), findsOneWidget);
+      expect(
+        tester.getSemantics(copyAction),
+        matchesSemantics(
+          label: '复制',
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          hasTapAction: true,
+        ),
+      );
+
+      await mouse.moveTo(Offset.zero);
+      await tester.pumpAndSettle();
+      expect(tester.widget<AnimatedOpacity>(metadataOpacityFinder).opacity, 0);
+
+      await mouse.moveTo(tester.getCenter(bubbleFinder));
+      await tester.pumpAndSettle();
+      expect(tester.widget<AnimatedOpacity>(metadataOpacityFinder).opacity, 1);
+
+      await tester.tap(copyAction);
+      await tester.pump();
+
+      expect(clipboardWrites, hasLength(1));
+      expect(clipboardWrites.single.arguments, <String, dynamic>{
+        'text': '需要复制的项目消息',
+      });
+      expect(find.text('消息已复制到剪贴板'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   testWidgets('empty timeline matches the desktop shadcn empty state', (
     tester,
   ) async {
@@ -618,6 +735,7 @@ ProjectEvent _message({
   required ProjectEventActorType actorType,
   required String content,
   required DateTime now,
+  DateTime? updatedAt,
   String replyToEventId = '',
   int? replyToMessageSequence,
   String actorAvatarSnapshot = '',
@@ -641,5 +759,5 @@ ProjectEvent _message({
   content: content,
   payload: ProjectMessagePayload(),
   createdAt: now,
-  updatedAt: now,
+  updatedAt: updatedAt ?? now,
 );

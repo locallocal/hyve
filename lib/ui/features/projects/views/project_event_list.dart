@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/generated/l10n.dart';
+import 'package:hyve/ui/core/widgets/common.dart';
 import 'package:hyve/ui/core/widgets/profile_avatar.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
@@ -309,6 +313,12 @@ final class _ProjectEventListState extends State<ProjectEventList> {
               avatarOnRight: fromUser,
               agent: fromUser ? null : widget.agentsById[event.actorId],
               fallbackAvatar: actorAvatar,
+              metadata: _ProjectMessageMetadata(
+                key: ValueKey<String>('project-message-metadata-${event.id}'),
+                eventId: event.id,
+                content: event.content,
+                createdAt: event.createdAt,
+              ),
               child: messageBubble,
             ),
           ),
@@ -323,7 +333,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
   }
 }
 
-final class _ProjectActorMessage extends StatelessWidget {
+final class _ProjectActorMessage extends StatefulWidget {
   const _ProjectActorMessage({
     super.key,
     required this.eventId,
@@ -331,6 +341,7 @@ final class _ProjectActorMessage extends StatelessWidget {
     required this.avatarOnRight,
     required this.agent,
     required this.fallbackAvatar,
+    required this.metadata,
     required this.child,
   });
 
@@ -339,11 +350,36 @@ final class _ProjectActorMessage extends StatelessWidget {
   final bool avatarOnRight;
   final Agent? agent;
   final String fallbackAvatar;
+  final Widget metadata;
   final Widget child;
+
+  @override
+  State<_ProjectActorMessage> createState() => _ProjectActorMessageState();
+}
+
+final class _ProjectActorMessageState extends State<_ProjectActorMessage> {
+  bool _hovered = false;
+  bool _focused = false;
+
+  bool get _showMetadata => _hovered || _focused;
+
+  void _setHovered(bool value) {
+    if (_hovered == value) return;
+    setState(() => _hovered = value);
+  }
+
+  void _setFocused(bool value) {
+    if (_focused == value) return;
+    setState(() => _focused = value);
+  }
 
   @override
   Widget build(BuildContext context) {
     final shadTheme = ShadTheme.maybeOf(context);
+    final animationDuration =
+        MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 100);
     final nameStyle =
         shadTheme == null
             ? Theme.of(
@@ -355,45 +391,127 @@ final class _ProjectActorMessage extends StatelessWidget {
             );
     final avatar = Semantics(
       image: true,
-      label: name,
+      label: widget.name,
       child: ProjectActorAvatar(
-        key: ValueKey<String>('project-message-avatar-$eventId'),
-        agent: agent,
-        fallbackName: name,
-        fallbackAvatar: fallbackAvatar,
+        key: ValueKey<String>('project-message-avatar-${widget.eventId}'),
+        agent: widget.agent,
+        fallbackName: widget.name,
+        fallbackAvatar: widget.fallbackAvatar,
       ),
     );
     final content = Flexible(
       child: Column(
         crossAxisAlignment:
-            avatarOnRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            widget.avatarOnRight
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            name,
-            key: ValueKey<String>('project-message-actor-$eventId'),
+            widget.name,
+            key: ValueKey<String>('project-message-actor-${widget.eventId}'),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            textAlign: avatarOnRight ? TextAlign.end : TextAlign.start,
+            textAlign: widget.avatarOnRight ? TextAlign.end : TextAlign.start,
             style: nameStyle,
           ),
           const SizedBox(height: 6),
-          child,
+          widget.child,
+          const SizedBox(height: 4),
+          AnimatedOpacity(
+            key: ValueKey<String>(
+              'project-message-metadata-opacity-${widget.eventId}',
+            ),
+            opacity: _showMetadata ? 1 : 0,
+            duration: animationDuration,
+            curve: Curves.easeOut,
+            child: ExcludeSemantics(
+              excluding: !_showMetadata,
+              child: ExcludeFocus(
+                excluding: !_showMetadata,
+                child: IgnorePointer(
+                  ignoring: !_showMetadata,
+                  child: widget.metadata,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 730),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children:
-              avatarOnRight
-                  ? <Widget>[content, const SizedBox(width: 10), avatar]
-                  : <Widget>[avatar, const SizedBox(width: 10), content],
+    return MouseRegion(
+      key: ValueKey<String>('project-message-hover-${widget.eventId}'),
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
+      child: Focus(
+        onFocusChange: _setFocused,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 730),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:
+                  widget.avatarOnRight
+                      ? <Widget>[content, const SizedBox(width: 10), avatar]
+                      : <Widget>[avatar, const SizedBox(width: 10), content],
+            ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+final class _ProjectMessageMetadata extends StatelessWidget {
+  const _ProjectMessageMetadata({
+    super.key,
+    required this.eventId,
+    required this.content,
+    required this.createdAt,
+  });
+
+  final String eventId;
+  final String content;
+  final DateTime createdAt;
+
+  Future<void> _copyMessage(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: content));
+    if (!context.mounted) return;
+    showHyveNotice(context, S.of(context).messageCopied);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final localeName = Localizations.localeOf(context).toString();
+    final formattedTimestamp = intl.DateFormat.yMd(
+      localeName,
+    ).add_Hms().format(createdAt.toLocal());
+    final copyLabel = MaterialLocalizations.of(context).copyButtonLabel;
+    final timestampStyle =
+        shadTheme?.textTheme.muted ??
+        Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          formattedTimestamp,
+          key: ValueKey<String>('project-message-time-$eventId'),
+          style: timestampStyle,
+        ),
+        const SizedBox(width: 4),
+        ProjectIconAction(
+          key: ValueKey<String>('project-message-copy-$eventId'),
+          icon: LucideIcons.copy,
+          label: copyLabel,
+          onPressed:
+              content.isEmpty ? null : () => unawaited(_copyMessage(context)),
+        ),
+      ],
     );
   }
 }

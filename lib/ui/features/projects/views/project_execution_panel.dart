@@ -465,8 +465,7 @@ final class _RunTile extends StatelessWidget {
         subtitle: Text(
           <String>[
             run.id,
-            if (decision != null)
-              '${decision!.choice.name}:${decision!.reasonCode}',
+            if (decision != null) copy.participationDecision(decision!),
             if (usage.hasData)
               copy.tokens(usage.inputTokens, usage.outputTokens),
             if (duration.isNotEmpty) copy.duration(duration),

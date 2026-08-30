@@ -296,11 +296,11 @@ Project-Agent 的 decision/reply 并发恒为 1；并发上限只控制不同 Ag
 
 参与判断的成本边界固定如下：
 
-- 每条广播对消息创建时的每个 active Agent 恰好发起一次判断调用；判断不重试，失败、超时或
+- 每条广播对消息创建时的每个 active Agent 恰好发起一次判断调用；判断不重试，调用失败或
   非法结构直接按 `pass` 收敛；
-- 每次判断的总输入上限为 4096 tokens、输出上限为 128 tokens、超时为 10 秒；组装输入时优先
-  保留当前消息和 Agent 身份，再按从近到远的顺序裁剪 Skill 摘要、ConversationSummary 和历史
-  消息；
+- 每次判断的总输入上限为 4096 tokens、输出上限为 128 tokens，不设置总超时时间；组装输入时
+  优先保留当前消息和 Agent 身份，再按从近到远的顺序裁剪 Skill 摘要、ConversationSummary 和
+  历史消息；
 - 若 active Agent 数为 `N`，一条广播最多产生 `N` 次判断调用，模型计费 Token 上界为
   `N × (4096 + 128)`；实际成本按每个 decision run 的 Provider、模型和实测 Token usage 记录；
 - targeted 消息和第一阶段媒体生成不产生参与判断调用；全部 `pass` 不触发额外兜底模型调用。
@@ -614,6 +614,8 @@ Agent 1 --- * ProjectMembership * --- 1 Project
   }
 }
 ```
+
+`timeoutMs` 仅为兼容已有项目的响应策略数据而保留，广播判断执行不再应用该值。
 
 #### `project_memberships`
 
@@ -1423,8 +1425,8 @@ Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行�
 - 发送前成员被移除时不会产生悬空运行；
 - 多目标回复互不替换配置、取消令牌或流式文本；
 - 广播判断失败只影响对应 Agent，全部 pass 不被视为错误；
-- 广播 decision 输入/输出预算分别不超过 4096/128 tokens，10 秒超时或非法结果不重试并按
-  `pass` 收敛；targeted 和媒体定向消息不创建 decision run；
+- 广播 decision 输入/输出预算分别不超过 4096/128 tokens，不设置总超时时间；非法结果不重试
+  并按 `pass` 收敛；targeted 和媒体定向消息不创建 decision run；
 - 同一 Agent 不会同时处理两个消息索引，不会跳过没有终态 receipt 的可见消息；
 - 回复只读取不超过 `contextThroughMessageSequence` 的历史，回复期间的新消息不会混入上下文；
 - 当前回复完成后自动处理积压消息，最终 cursor 等于项目最新消息索引；
@@ -1490,8 +1492,8 @@ Phase 0 的产物是确认后的设计契约，不修改生产 schema 或运行�
 
 以下选择于 2026-08-20 确认为实施基线：
 
-1. **广播判断**：每个 active Agent 执行一次低 Token、无 Tool 的模型判断；无效或超时按
-   `pass` 处理且不重试；单次最多 4096 输入、128 输出 tokens，超时 10 秒；
+1. **广播判断**：每个 active Agent 执行一次低 Token、无 Tool 的模型判断；无效结果按 `pass`
+   处理且不重试；单次最多 4096 输入、128 输出 tokens，不设置总超时时间；
 2. **顺序与并发**：每个 Project-Agent 严格串行处理消息；不同 Agent 可并行，项目判断最多
    并发 4 个、正式回复最多并发 2 个；用户输入不等待任何 Agent；
 3. **项目产物权限**：新成员默认 `read`，`readWrite` 由用户显式开启；

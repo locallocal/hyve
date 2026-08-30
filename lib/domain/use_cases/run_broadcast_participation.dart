@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -100,26 +99,20 @@ final class RunBroadcastParticipation {
     var terminalStatus = AgentRunStatus.passed;
     try {
       cancellationToken.throwIfCancelled();
-      result = await _gateway
-          .decide(
-            BroadcastParticipationRequest(
-              runId: runId,
-              projectId: project.id,
-              agent: agent,
-              sourceEvent: sourceEvent,
-              decisionSystemPrompt: bounded.systemPrompt,
-              visibleHistory: bounded.events,
-              maxInputTokens: maxInputTokens,
-              maxOutputTokens: maxOutputTokens,
-              estimatedInputTokens: bounded.estimatedTokens,
-              cancellationToken: cancellationToken,
-            ),
-          )
-          .timeout(
-            policy.timeout > const Duration(seconds: 10)
-                ? const Duration(seconds: 10)
-                : policy.timeout,
-          );
+      result = await _gateway.decide(
+        BroadcastParticipationRequest(
+          runId: runId,
+          projectId: project.id,
+          agent: agent,
+          sourceEvent: sourceEvent,
+          decisionSystemPrompt: bounded.systemPrompt,
+          visibleHistory: bounded.events,
+          maxInputTokens: maxInputTokens,
+          maxOutputTokens: maxOutputTokens,
+          estimatedInputTokens: bounded.estimatedTokens,
+          cancellationToken: cancellationToken,
+        ),
+      );
       if (result.reasonCode.trim().isEmpty) {
         throw const FormatException('missing participation reasonCode');
       }
@@ -133,12 +126,6 @@ final class RunBroadcastParticipation {
         reasonCode: 'decision_cancelled',
       );
       terminalStatus = AgentRunStatus.cancelled;
-    } on TimeoutException {
-      result = const BroadcastParticipationResult(
-        choice: ParticipationChoice.pass,
-        reasonCode: 'decision_timeout',
-      );
-      terminalStatus = AgentRunStatus.timedOut;
     } on FormatException {
       result = const BroadcastParticipationResult(
         choice: ParticipationChoice.pass,
@@ -215,7 +202,9 @@ _BoundedDecisionHistory _boundDecisionHistory({
       'Decide whether this agent should answer the latest project message. '
       'Tools are disabled. Return one JSON object only with exact keys '
       'choice, reasonCode, intendedContribution. choice must be reply or '
-      'pass. Keep the whole response below $maxOutputTokens tokens.\n'
+      'pass. For pass, use {"choice":"pass","reasonCode":"no_value",'
+      '"intendedContribution":""}. Do not use Markdown or add text outside '
+      'the JSON. Keep the whole response below $maxOutputTokens tokens.\n'
       'Agent identity:';
   final instructionTokens = _estimateTokens(instruction) + 8;
   final identitySource =

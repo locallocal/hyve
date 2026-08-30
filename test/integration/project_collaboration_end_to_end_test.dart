@@ -13,11 +13,14 @@ import 'package:hyve/data/repositories/sqlite_project_membership_repository.dart
 import 'package:hyve/data/repositories/sqlite_project_message_route_repository.dart';
 import 'package:hyve/data/repositories/sqlite_project_repository.dart';
 import 'package:hyve/data/repositories/sqlite_project_turn_repository.dart';
+import 'package:hyve/data/services/ai/provider_project_agent_execution_gateway.dart';
 import 'package:hyve/data/services/bot_api_key_cipher.dart';
 import 'package:hyve/data/services/database_service.dart';
 import 'package:hyve/data/services/local_database_service.dart';
 import 'package:hyve/data/services/project_agent_storage_service.dart';
+import 'package:hyve/domain/models/ai_models.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 import 'package:hyve/domain/repositories/project_agent_execution_gateway.dart';
 import 'package:hyve/domain/use_cases/agent_inbox_coordinator.dart';
 import 'package:hyve/domain/use_cases/deliver_to_project_agent.dart';
@@ -212,6 +215,7 @@ void main() {
         'updated_at': now.millisecondsSinceEpoch,
       });
 
+      final routedByProject = <String, RoutedProjectMessage>{};
       for (final projectId in <String>['project-a', 'project-b']) {
         final skillInventory = await localDatabase
             .queryConversationSkillInventory(projectId, agent.id);
@@ -219,7 +223,7 @@ void main() {
           skillInventory.map((row) => row['id']),
           contains('skill-global'),
         );
-        await route(
+        routedByProject[projectId] = await route(
           projectId: projectId,
           draft: ProjectMessageDraft(text: 'Research in $projectId'),
         );
@@ -242,6 +246,12 @@ void main() {
         isTrue,
       );
       for (final projectId in <String>['project-a', 'project-b']) {
+        final participation = await decisions.getForTurn(
+          routedByProject[projectId]!.turn.id,
+        );
+        expect(participation, hasLength(1));
+        expect(participation.single.choice, ParticipationChoice.reply);
+        expect(participation.single.reasonCode, 'useful');
         final project = (await projects.getProject(projectId))!;
         final cursor = await cursors.getCursor(projectId, agent.id);
         expect(
@@ -273,16 +283,18 @@ void main() {
 }
 
 final class _Gateway implements ProjectAgentExecutionGateway {
+  _Gateway()
+    : _decisionGateway = ProviderProjectAgentExecutionGateway(
+        providers: const _DecisionProviders(),
+      );
+
+  final ProviderProjectAgentExecutionGateway _decisionGateway;
   final List<ProjectAgentReplyRequest> replyRequests = [];
 
   @override
   Future<BroadcastParticipationResult> decide(
     BroadcastParticipationRequest request,
-  ) async => const BroadcastParticipationResult(
-    choice: ParticipationChoice.reply,
-    reasonCode: 'useful',
-    intendedContribution: 'answer',
-  );
+  ) => _decisionGateway.decide(request);
 
   @override
   Future<ProjectAgentReplyResult> reply(
@@ -292,6 +304,40 @@ final class _Gateway implements ProjectAgentExecutionGateway {
     return ProjectAgentReplyResult(
       status: ProjectAgentReplyStatus.completed,
       text: 'Completed ${request.projectId}',
+    );
+  }
+}
+
+final class _DecisionProviders implements AiProviderRepository {
+  const _DecisionProviders();
+
+  @override
+  AiProvider create(Bot bot) => _DecisionProvider(bot);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class _DecisionProvider extends AiProvider {
+  _DecisionProvider(super.bot);
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {
+    expect(messages.first.role, 'system');
+    expect(messages.first.content, contains('"choice":"pass"'));
+    onReasoningResponse?.call('The message needs a response.');
+    onResponse('Here is the decision:\n```JSON\n');
+    onResponse(
+      '{"choice":"REPLY","reason_code":"useful",'
+      '"intended_contribution":"answer"}',
+    );
+    onResponse('\n```');
+    onTokenUsage?.call(
+      const ModelTokenUsage(
+        model: 'decision-model',
+        inputTokens: 24,
+        outputTokens: 8,
+      ),
     );
   }
 }

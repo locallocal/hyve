@@ -249,9 +249,26 @@ final class ProjectLocalizations {
   String get tools => _text('Tools', '工具');
   String get active => _text('Active', '活跃');
   String get pausedStatus => _text('Paused', '已暂停');
+  String participationDecision(ParticipationDecision decision) =>
+      '${_participationChoice(decision.choice)} · '
+      '${_participationReason(decision.reasonCode)}';
+  String _participationChoice(ParticipationChoice choice) => switch (choice) {
+    ParticipationChoice.reply => _text('Reply', '回复'),
+    ParticipationChoice.pass => _text('Pass', '跳过'),
+  };
+  String _participationReason(String code) => switch (code) {
+    'decision_invalid' => _text('Invalid decision response', '判断结果格式无效'),
+    'decision_timeout' => _text('Decision timed out', '判断超时'),
+    'decision_failed' => _text('Decision request failed', '判断请求失败'),
+    'decision_cancelled' => _text('Decision cancelled', '判断已取消'),
+    _ => code,
+  };
   String runStatus(String phase, String status) => '$phase · $status';
   String duration(String value) => _text('Duration: $value', '耗时：$value');
-  String errorCode(String value) => _text('Error: $value', '错误码：$value');
+  String errorCode(String value) => _text(
+    'Error: ${_participationReason(value)}',
+    '错误：${_participationReason(value)}',
+  );
   String identifiers(String label, Iterable<String> values) =>
       '$label: ${values.isEmpty ? '-' : values.join(', ')}';
 }

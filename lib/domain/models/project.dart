@@ -16,6 +16,10 @@ final class BroadcastDecisionPolicy {
   final int concurrency;
   final int maxInputTokens;
   final int maxOutputTokens;
+
+  /// Retained for response-policy persistence compatibility.
+  ///
+  /// Broadcast participation execution no longer applies a time limit.
   final Duration timeout;
   final int maxAttempts;
   final String failureOutcome;

@@ -122,6 +122,82 @@ void main() {
     expect(find.text('暂无执行记录'), findsOneWidget);
   });
 
+  testWidgets('localizes invalid and timed out participation decisions', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 30);
+    final turn = _turn(now);
+    final invalidRun = _run(
+      now,
+      id: 'invalid-run',
+      phase: AgentRunPhase.decision,
+      status: AgentRunStatus.failed,
+      errorCode: 'decision_invalid',
+    );
+    final timedOutRun = _run(
+      now,
+      id: 'timed-out-run',
+      phase: AgentRunPhase.decision,
+      status: AgentRunStatus.timedOut,
+      errorCode: 'decision_timeout',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('zh', 'CN'),
+        supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
+        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: Scaffold(
+          body: SizedBox(
+            width: 900,
+            height: 700,
+            child: ProjectExecutionPanel(
+              embedded: true,
+              turns: <String, ProjectTurn>{turn.id: turn},
+              runs: <String, AgentRun>{
+                invalidRun.id: invalidRun,
+                timedOutRun.id: timedOutRun,
+              },
+              decisions: <String, ParticipationDecision>{
+                invalidRun.id: _decision(
+                  invalidRun,
+                  now,
+                  reasonCode: 'decision_invalid',
+                ),
+                timedOutRun.id: _decision(
+                  timedOutRun,
+                  now,
+                  reasonCode: 'decision_timeout',
+                ),
+              },
+              usageRecords: const <ModelTokenUsageRecord>[],
+              events: const <ProjectEvent>[],
+              agentNames: const <String, String>{'agent-1': 'Researcher'},
+              onCancelRun: _ignore,
+              onCancelTurn: _ignore,
+              onCancelRootChain: _ignore,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(ValueKey<String>('project-turn-${turn.id}')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('跳过 · 判断结果格式无效'), findsOneWidget);
+    expect(find.textContaining('错误：判断结果格式无效'), findsOneWidget);
+    expect(find.textContaining('跳过 · 判断超时'), findsOneWidget);
+    expect(find.textContaining('错误：判断超时'), findsOneWidget);
+    expect(find.textContaining('decision_invalid'), findsNothing);
+    expect(find.textContaining('decision_timeout'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('paginates execution history and navigates between pages', (
     tester,
   ) async {
@@ -333,17 +409,23 @@ ProjectTurn _turn(
   createdAt: now,
 );
 
-AgentRun _run(DateTime now) => AgentRun(
-  id: 'run-1',
+AgentRun _run(
+  DateTime now, {
+  String id = 'run-1',
+  AgentRunPhase phase = AgentRunPhase.reply,
+  AgentRunStatus status = AgentRunStatus.running,
+  String errorCode = '',
+}) => AgentRun(
+  id: id,
   projectId: 'project-1',
   turnId: 'turn-1',
   agentId: 'agent-1',
   sourceMessageEventId: 'event-1',
   sourceMessageSequence: 1,
   contextThroughMessageSequence: 1,
-  rootRunId: 'run-1',
-  phase: AgentRunPhase.reply,
-  status: AgentRunStatus.running,
+  rootRunId: id,
+  phase: phase,
+  status: status,
   agentSnapshot: const AgentRunSnapshot(
     agentName: 'Researcher',
     provider: 'test',
@@ -356,6 +438,22 @@ AgentRun _run(DateTime now) => AgentRun(
     agentMemoryIds: const <String>['memory-1'],
     toolNames: const <String>['project.artifact.search'],
   ),
+  errorCode: errorCode,
   startedAt: now,
+  createdAt: now,
+);
+
+ParticipationDecision _decision(
+  AgentRun run,
+  DateTime now, {
+  required String reasonCode,
+}) => ParticipationDecision(
+  runId: run.id,
+  agentId: run.agentId,
+  projectId: run.projectId,
+  turnId: run.turnId,
+  messageSequence: run.sourceMessageSequence,
+  choice: ParticipationChoice.pass,
+  reasonCode: reasonCode,
   createdAt: now,
 );

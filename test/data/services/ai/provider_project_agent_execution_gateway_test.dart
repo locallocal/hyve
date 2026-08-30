@@ -6,6 +6,60 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/ai_provider_repository.dart';
 
 void main() {
+  final decisionVariants = <({String name, String text, String reason})>[
+    (
+      name: 'Markdown JSON',
+      text: '''```JSON
+{"choice":"pass","reasonCode":"no_value","intendedContribution":""}
+```''',
+      reason: 'no_value',
+    ),
+    (
+      name: 'surrounding prose',
+      text:
+          'Decision follows: {"choice":"pass","reasonCode":"not_needed"} Done.',
+      reason: 'not_needed',
+    ),
+    (
+      name: 'snake case fields',
+      text:
+          '{"choice":"PASS","reason_code":"no_value",'
+          '"intended_contribution":""}',
+      reason: 'no_value',
+    ),
+    (
+      name: 'reasoning object before the decision',
+      text:
+          'Analysis: {"choice":"pass","reason":"tentative",'
+          '"confidence":0.9}\nFinal: '
+          '{"choice":"pass","reasonCode":"no_value"}',
+      reason: 'no_value',
+    ),
+  ];
+  for (final variant in decisionVariants) {
+    test('accepts recoverable ${variant.name} participation output', () async {
+      final gateway = ProviderProjectAgentExecutionGateway(
+        providers: _Providers(_TextProvider(variant.text)),
+      );
+
+      final result = await gateway.decide(_decisionRequest());
+
+      expect(result.choice, ParticipationChoice.pass);
+      expect(result.reasonCode, variant.reason);
+      expect(result.intendedContribution, isEmpty);
+    });
+  }
+
+  test('rejects participation output without a reason', () async {
+    final gateway = ProviderProjectAgentExecutionGateway(
+      providers: _Providers(
+        _TextProvider('{"choice":"pass","intendedContribution":""}'),
+      ),
+    );
+
+    expect(gateway.decide(_decisionRequest()), throwsFormatException);
+  });
+
   test('exposes and audits scoped project artifact tools', () async {
     final session = _ModelSession(<List<ModelEvent>>[
       <ModelEvent>[
@@ -139,6 +193,17 @@ final class _Provider extends AiProvider {
   Future<void> generateText(List<ChatMessage> messages) async {}
 }
 
+final class _TextProvider extends AiProvider {
+  _TextProvider(this.text) : super(_bot());
+
+  final String text;
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {
+    onResponse(text);
+  }
+}
+
 final class _Providers implements AiProviderRepository {
   const _Providers(this.provider);
 
@@ -193,3 +258,17 @@ ProjectEvent _event() => ProjectEvent(
   createdAt: DateTime(2026, 8, 22),
   updatedAt: DateTime(2026, 8, 22),
 );
+
+BroadcastParticipationRequest _decisionRequest() =>
+    BroadcastParticipationRequest(
+      runId: 'decision-run-1',
+      projectId: 'project-1',
+      agent: _agent(),
+      sourceEvent: _event(),
+      decisionSystemPrompt: 'Return a decision.',
+      visibleHistory: <ProjectEvent>[_event()],
+      maxInputTokens: 4096,
+      maxOutputTokens: 128,
+      estimatedInputTokens: 64,
+      cancellationToken: ProjectRunCancellationToken(),
+    );

@@ -10,6 +10,24 @@ import 'package:hyve/data/services/tools/project_artifact_tools.dart';
 import 'package:hyve/data/services/tools/agent_memory_tools.dart';
 import 'package:hyve/data/services/tools/project_deliver_to_agent_tool.dart';
 
+const Set<String> _participationResponseKeys = <String>{
+  'choice',
+  'reasonCode',
+  'reason_code',
+  'reason',
+  'intendedContribution',
+  'intended_contribution',
+};
+const List<String> _participationReasonKeys = <String>[
+  'reasonCode',
+  'reason_code',
+  'reason',
+];
+const List<String> _participationContributionKeys = <String>[
+  'intendedContribution',
+  'intended_contribution',
+];
+
 final class ProviderProjectAgentExecutionGateway
     implements ProjectAgentExecutionGateway {
   const ProviderProjectAgentExecutionGateway({
@@ -51,33 +69,35 @@ final class ProviderProjectAgentExecutionGateway
       messages: messages,
       cancellationToken: request.cancellationToken,
     );
-    final decoded = _strictJsonObject(generated.text);
-    if (decoded.keys.toSet().difference(const <String>{
-          'choice',
-          'reasonCode',
-          'intendedContribution',
-        }).isNotEmpty ||
-        decoded.length != 3) {
+    final decoded = _jsonObjectFromModelOutput(generated.text);
+    if (decoded.keys
+        .toSet()
+        .difference(_participationResponseKeys)
+        .isNotEmpty) {
       throw const FormatException('invalid participation response shape');
     }
-    final choiceName = decoded['choice'];
-    final reasonCode = decoded['reasonCode'];
-    final contribution = decoded['intendedContribution'];
+    final choiceName = _aliasedField(decoded, const <String>['choice']);
+    final reasonCode = _aliasedField(decoded, _participationReasonKeys);
+    final contribution = _aliasedField(
+      decoded,
+      _participationContributionKeys,
+      required: false,
+    );
     if (choiceName is! String ||
         reasonCode is! String ||
         reasonCode.trim().isEmpty ||
-        contribution is! String) {
+        contribution != null && contribution is! String) {
       throw const FormatException('invalid participation response fields');
     }
-    final choice = switch (choiceName) {
+    final choice = switch (choiceName.trim().toLowerCase()) {
       'reply' => ParticipationChoice.reply,
       'pass' => ParticipationChoice.pass,
       _ => throw const FormatException('invalid participation choice'),
     };
     return BroadcastParticipationResult(
       choice: choice,
-      reasonCode: reasonCode,
-      intendedContribution: contribution,
+      reasonCode: reasonCode.trim(),
+      intendedContribution: (contribution as String?)?.trim() ?? '',
       tokenUsage: generated.usage,
     );
   }
@@ -337,17 +357,84 @@ Bot _botFromAgent(Agent agent) => Bot(
   modifyTimestamp: agent.updatedAt,
 );
 
-Map<String, Object?> _strictJsonObject(String source) {
-  var normalized = source.trim();
-  if (normalized.startsWith('```') && normalized.endsWith('```')) {
-    normalized = normalized.substring(3, normalized.length - 3).trim();
-    if (normalized.startsWith('json')) {
-      normalized = normalized.substring(4).trim();
+Object? _aliasedField(
+  Map<String, Object?> values,
+  List<String> names, {
+  bool required = true,
+}) {
+  final present = names.where(values.containsKey).toList(growable: false);
+  if (present.length > 1 || required && present.isEmpty) {
+    throw const FormatException('ambiguous or missing participation field');
+  }
+  return present.isEmpty ? null : values[present.single];
+}
+
+Map<String, Object?> _jsonObjectFromModelOutput(String source) {
+  final normalized = source.trim();
+  final direct = _tryJsonObject(normalized);
+  if (direct != null) return direct;
+
+  Map<String, Object?>? firstObject;
+  for (
+    var start = normalized.indexOf('{');
+    start >= 0;
+    start = normalized.indexOf('{', start + 1)
+  ) {
+    final end = _jsonObjectEnd(normalized, start);
+    if (end == null) continue;
+    final decoded = _tryJsonObject(normalized.substring(start, end + 1));
+    if (decoded == null) continue;
+    firstObject ??= decoded;
+    if (_looksLikeParticipationObject(decoded)) return decoded;
+  }
+  if (firstObject != null) return firstObject;
+  throw const FormatException('participation response must contain an object');
+}
+
+bool _looksLikeParticipationObject(Map<String, Object?> values) =>
+    values.containsKey('choice') &&
+    _participationReasonKeys.any(values.containsKey) &&
+    values.keys.toSet().difference(_participationResponseKeys).isEmpty;
+
+Map<String, Object?>? _tryJsonObject(String source) {
+  if (source.isEmpty) return null;
+  try {
+    final decoded = jsonDecode(source);
+    if (decoded is! Map<Object?, Object?> ||
+        decoded.keys.any((key) => key is! String)) {
+      return null;
+    }
+    return <String, Object?>{
+      for (final entry in decoded.entries) entry.key! as String: entry.value,
+    };
+  } on FormatException {
+    return null;
+  }
+}
+
+int? _jsonObjectEnd(String source, int start) {
+  var depth = 0;
+  var inString = false;
+  var escaped = false;
+  for (var index = start; index < source.length; index++) {
+    final codeUnit = source.codeUnitAt(index);
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (codeUnit == 0x5c) {
+        escaped = true;
+      } else if (codeUnit == 0x22) {
+        inString = false;
+      }
+      continue;
+    }
+    if (codeUnit == 0x22) {
+      inString = true;
+    } else if (codeUnit == 0x7b) {
+      depth++;
+    } else if (codeUnit == 0x7d && --depth == 0) {
+      return index;
     }
   }
-  final decoded = jsonDecode(normalized);
-  if (decoded is! Map<String, Object?>) {
-    throw const FormatException('participation response must be an object');
-  }
-  return decoded;
+  return null;
 }

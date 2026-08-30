@@ -316,6 +316,35 @@ void main() {
     expect(request.visibleHistory.last.content, startsWith('CURRENT_MESSAGE'));
   });
 
+  test('broadcast decision waits for the gateway without timing out', () async {
+    final project = (await projects.getProject('project-1'))!;
+    await projects.updateProject(
+      project.copyWith(
+        responsePolicy: const ProjectResponsePolicy(
+          broadcastDecision: BroadcastDecisionPolicy(
+            timeout: Duration(milliseconds: 1),
+          ),
+        ),
+      ),
+    );
+    gateway.decisionDelay = const Duration(milliseconds: 20);
+
+    final routed = await route(
+      projectId: 'project-1',
+      draft: ProjectMessageDraft(text: 'wait for every broadcast decision'),
+    );
+    await inbox.wakeProject('project-1');
+    await inbox.waitForIdle(projectId: 'project-1');
+
+    final persisted = await decisions.getForTurn(routed.turn.id);
+    expect(persisted, hasLength(2));
+    expect(persisted.map((item) => item.reasonCode), everyElement('no_value'));
+    expect(
+      (await runs.getForTurn(routed.turn.id)).map((run) => run.status),
+      everyElement(AgentRunStatus.passed),
+    );
+  });
+
   test(
     'paused Agent resumes from its cursor without joining old broadcast',
     () async {
@@ -892,6 +921,7 @@ final class _ExecutionGateway implements ProjectAgentExecutionGateway {
   String failDecisionAgentId = '';
   String failReplyAgentId = '';
   String timeoutReplyAgentId = '';
+  Duration decisionDelay = Duration.zero;
   Duration replyDelay = Duration.zero;
   AgentDeliveryRequest? nextDelivery;
   final List<BroadcastParticipationRequest> decisionRequests = [];
@@ -917,6 +947,9 @@ final class _ExecutionGateway implements ProjectAgentExecutionGateway {
     decisionRequests.add(request);
     if (request.agent.id == failDecisionAgentId) {
       throw StateError('simulated decision failure');
+    }
+    if (decisionDelay > Duration.zero) {
+      await Future<void>.delayed(decisionDelay);
     }
     final choice = decision(request.agent.id, request.sourceEvent);
     return BroadcastParticipationResult(

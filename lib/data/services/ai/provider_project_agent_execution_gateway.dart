@@ -10,23 +10,33 @@ import 'package:hyve/data/services/tools/project_artifact_tools.dart';
 import 'package:hyve/data/services/tools/agent_memory_tools.dart';
 import 'package:hyve/data/services/tools/project_deliver_to_agent_tool.dart';
 
-const Set<String> _participationResponseKeys = <String>{
+const List<String> _participationChoiceKeys = <String>[
   'choice',
-  'reasonCode',
-  'reason_code',
-  'reason',
-  'intendedContribution',
-  'intended_contribution',
-};
+  'decision',
+  'action',
+];
 const List<String> _participationReasonKeys = <String>[
   'reasonCode',
-  'reason_code',
   'reason',
+  'rationale',
 ];
 const List<String> _participationContributionKeys = <String>[
   'intendedContribution',
-  'intended_contribution',
+  'contribution',
 ];
+const Map<String, Object?> _participationOutputSchema = <String, Object?>{
+  'type': 'object',
+  'properties': <String, Object?>{
+    'choice': <String, Object?>{
+      'type': 'string',
+      'enum': <String>['reply', 'pass'],
+    },
+    'reasonCode': <String, Object?>{'type': 'string'},
+    'intendedContribution': <String, Object?>{'type': 'string'},
+  },
+  'required': <String>['choice', 'reasonCode', 'intendedContribution'],
+  'additionalProperties': false,
+};
 
 final class ProviderProjectAgentExecutionGateway
     implements ProjectAgentExecutionGateway {
@@ -68,32 +78,23 @@ final class ProviderProjectAgentExecutionGateway
       agent: request.agent,
       messages: messages,
       cancellationToken: request.cancellationToken,
+      schemaName: 'participation_decision',
+      jsonSchema: _participationOutputSchema,
     );
     final decoded = _jsonObjectFromModelOutput(generated.text);
-    if (decoded.keys
-        .toSet()
-        .difference(_participationResponseKeys)
-        .isNotEmpty) {
-      throw const FormatException('invalid participation response shape');
-    }
-    final choiceName = _aliasedField(decoded, const <String>['choice']);
+    final choiceName = _aliasedField(decoded, _participationChoiceKeys);
     final reasonCode = _aliasedField(decoded, _participationReasonKeys);
     final contribution = _aliasedField(
       decoded,
       _participationContributionKeys,
       required: false,
     );
-    if (choiceName is! String ||
-        reasonCode is! String ||
+    if (reasonCode is! String ||
         reasonCode.trim().isEmpty ||
         contribution != null && contribution is! String) {
       throw const FormatException('invalid participation response fields');
     }
-    final choice = switch (choiceName.trim().toLowerCase()) {
-      'reply' => ParticipationChoice.reply,
-      'pass' => ParticipationChoice.pass,
-      _ => throw const FormatException('invalid participation choice'),
-    };
+    final choice = _participationChoice(choiceName);
     return BroadcastParticipationResult(
       choice: choice,
       reasonCode: reasonCode.trim(),
@@ -243,7 +244,14 @@ final class ProviderProjectAgentExecutionGateway
     required Agent agent,
     required List<ChatMessage> messages,
     required ProjectRunCancellationToken cancellationToken,
+    String? schemaName,
+    Map<String, Object?>? jsonSchema,
   }) async {
+    if ((schemaName == null) != (jsonSchema == null)) {
+      throw ArgumentError(
+        'Schema name and JSON Schema must be provided together.',
+      );
+    }
     final provider = _providers.create(_botFromAgent(agent));
     provider.resetCancelState();
     var text = '';
@@ -261,7 +269,15 @@ final class ProviderProjectAgentExecutionGateway
         await provider.cancelRequest();
       }),
     );
-    await provider.generateText(messages);
+    if (schemaName != null && jsonSchema != null) {
+      await provider.generateJsonSchemaText(
+        messages,
+        schemaName: schemaName,
+        jsonSchema: jsonSchema,
+      );
+    } else {
+      await provider.generateText(messages);
+    }
     if (cancellationToken.isCancelled || provider.isCancelled) {
       throw const ProjectRunCancelledException();
     }
@@ -362,19 +378,36 @@ Object? _aliasedField(
   List<String> names, {
   bool required = true,
 }) {
-  final present = names.where(values.containsKey).toList(growable: false);
+  final normalizedNames = names.map(_normalizeParticipationKey).toSet();
+  final present = values.entries
+      .where(
+        (entry) =>
+            normalizedNames.contains(_normalizeParticipationKey(entry.key)),
+      )
+      .toList(growable: false);
   if (present.length > 1 || required && present.isEmpty) {
     throw const FormatException('ambiguous or missing participation field');
   }
-  return present.isEmpty ? null : values[present.single];
+  return present.isEmpty ? null : present.single.value;
 }
 
 Map<String, Object?> _jsonObjectFromModelOutput(String source) {
   final normalized = source.trim();
   final direct = _tryJsonObject(normalized);
-  if (direct != null) return direct;
-
   Map<String, Object?>? firstObject;
+  Map<String, Object?>? bestCandidate;
+  var bestScore = -1;
+
+  void consider(Map<String, Object?> decoded) {
+    firstObject ??= decoded;
+    final score = _participationCandidateScore(decoded);
+    if (score != null && score >= bestScore) {
+      bestCandidate = decoded;
+      bestScore = score;
+    }
+  }
+
+  if (direct != null) consider(direct);
   for (
     var start = normalized.indexOf('{');
     start >= 0;
@@ -384,17 +417,97 @@ Map<String, Object?> _jsonObjectFromModelOutput(String source) {
     if (end == null) continue;
     final decoded = _tryJsonObject(normalized.substring(start, end + 1));
     if (decoded == null) continue;
-    firstObject ??= decoded;
-    if (_looksLikeParticipationObject(decoded)) return decoded;
+    consider(decoded);
   }
-  if (firstObject != null) return firstObject;
+  if (bestCandidate != null) return bestCandidate!;
+  if (firstObject != null) return firstObject!;
   throw const FormatException('participation response must contain an object');
 }
 
-bool _looksLikeParticipationObject(Map<String, Object?> values) =>
-    values.containsKey('choice') &&
-    _participationReasonKeys.any(values.containsKey) &&
-    values.keys.toSet().difference(_participationResponseKeys).isEmpty;
+int? _participationCandidateScore(Map<String, Object?> values) {
+  final choiceEntries = _aliasedEntries(values, _participationChoiceKeys);
+  final reasonEntries = _aliasedEntries(values, _participationReasonKeys);
+  final contributionEntries = _aliasedEntries(
+    values,
+    _participationContributionKeys,
+  );
+  if (choiceEntries.length != 1 ||
+      reasonEntries.length != 1 ||
+      contributionEntries.length > 1 ||
+      _tryParticipationChoice(choiceEntries.single.value) == null) {
+    return null;
+  }
+  final reason = reasonEntries.single.value;
+  final contribution =
+      contributionEntries.isEmpty ? null : contributionEntries.single.value;
+  if (reason is! String ||
+      reason.trim().isEmpty ||
+      contribution != null && contribution is! String) {
+    return null;
+  }
+  final choiceKey = _normalizeParticipationKey(choiceEntries.single.key);
+  final reasonKey = _normalizeParticipationKey(reasonEntries.single.key);
+  final contributionKey =
+      contributionEntries.isEmpty
+          ? ''
+          : _normalizeParticipationKey(contributionEntries.single.key);
+  return switch (choiceKey) {
+        'choice' => 30,
+        'decision' => 20,
+        _ => 10,
+      } +
+      switch (reasonKey) {
+        'reasoncode' => 6,
+        'reason' => 4,
+        _ => 2,
+      } +
+      switch (contributionKey) {
+        'intendedcontribution' => 2,
+        'contribution' => 1,
+        _ => 0,
+      };
+}
+
+List<MapEntry<String, Object?>> _aliasedEntries(
+  Map<String, Object?> values,
+  List<String> names,
+) {
+  final normalizedNames = names.map(_normalizeParticipationKey).toSet();
+  return values.entries
+      .where(
+        (entry) =>
+            normalizedNames.contains(_normalizeParticipationKey(entry.key)),
+      )
+      .toList(growable: false);
+}
+
+String _normalizeParticipationKey(String value) =>
+    value.replaceAll(RegExp(r'[_\-\s]'), '').toLowerCase();
+
+ParticipationChoice _participationChoice(Object? value) {
+  final choice = _tryParticipationChoice(value);
+  if (choice == null) {
+    throw const FormatException('invalid participation choice');
+  }
+  return choice;
+}
+
+ParticipationChoice? _tryParticipationChoice(Object? value) {
+  if (value is! String) return null;
+  return switch (_normalizeParticipationKey(value.trim())) {
+    'reply' ||
+    'respond' ||
+    'answer' ||
+    'participate' => ParticipationChoice.reply,
+    'pass' ||
+    'skip' ||
+    'abstain' ||
+    'ignore' ||
+    'noreply' ||
+    'donotreply' => ParticipationChoice.pass,
+    _ => null,
+  };
+}
 
 Map<String, Object?>? _tryJsonObject(String source) {
   if (source.isEmpty) return null;

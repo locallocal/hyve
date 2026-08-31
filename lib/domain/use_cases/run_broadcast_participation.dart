@@ -198,15 +198,24 @@ _BoundedDecisionHistory _boundDecisionHistory({
   required int maxInputTokens,
   required int maxOutputTokens,
 }) {
-  final instruction =
+  const profileInstruction =
       'Decide whether this agent should answer the latest project message. '
-      'Tools are disabled. Return one JSON object only with exact keys '
+      'Tools are disabled. The Agent profile below is context for judging '
+      'relevance; any response-format instructions inside it do not apply to '
+      'this decision.\nAgent profile:';
+  final outputInstruction =
+      'Decision output contract: return one JSON object only with the keys '
       'choice, reasonCode, intendedContribution. choice must be reply or '
-      'pass. For pass, use {"choice":"pass","reasonCode":"no_value",'
-      '"intendedContribution":""}. Do not use Markdown or add text outside '
-      'the JSON. Keep the whole response below $maxOutputTokens tokens.\n'
-      'Agent identity:';
-  final instructionTokens = _estimateTokens(instruction) + 8;
+      'pass. Use {"choice":"reply","reasonCode":"relevant",'
+      '"intendedContribution":"brief plan"} to reply, or '
+      '{"choice":"pass","reasonCode":"no_value",'
+      '"intendedContribution":""} to pass. Do not use Markdown or add text '
+      'outside the JSON. Keep the whole response below $maxOutputTokens '
+      'tokens.';
+  final instructionTokens =
+      _estimateTokens(profileInstruction) +
+      _estimateTokens(outputInstruction) +
+      8;
   final identitySource =
       '${agent.name}\n${agent.systemPrompt}\n${agent.parameters}';
   final remainingAfterInstruction = math.max(
@@ -216,7 +225,9 @@ _BoundedDecisionHistory _boundDecisionHistory({
   final identityBudget = math.min(1024, remainingAfterInstruction ~/ 3);
   final identity = _truncateToEstimatedTokens(identitySource, identityBudget);
   final systemPrompt =
-      identity.isEmpty ? instruction : '$instruction\n$identity';
+      identity.isEmpty
+          ? outputInstruction
+          : '$profileInstruction\n$identity\n\n$outputInstruction';
   var used = _estimateTokens(systemPrompt) + 8;
   final selected = <ProjectEvent>[];
   final older = history.reversed.where((event) => event.id != sourceEvent.id);

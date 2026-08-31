@@ -329,6 +329,66 @@ void main() {
     });
   });
 
+  group('Moonshot structured output', () {
+    test(
+      'uses strict JSON Schema without changing ordinary text requests',
+      () async {
+        Map<String, dynamic>? structuredBody;
+        final client = MockClient((request) async {
+          structuredBody = Map<String, dynamic>.from(
+            jsonDecode(request.body) as Map,
+          );
+          return http.Response(
+            '${_sse({
+              'choices': [
+                {
+                  'delta': {'content': '{"choice":"reply","reasonCode":"relevant",'
+                  '"intendedContribution":"answer"}'},
+                  'finish_reason': 'stop',
+                },
+              ],
+            })}'
+            'data: [DONE]\n\n',
+            200,
+            headers: {'content-type': 'text/event-stream'},
+          );
+        });
+        final provider = Moonshot(_bot(model: 'kimi-k3'), client: client);
+        const schema = <String, Object?>{
+          'type': 'object',
+          'properties': <String, Object?>{
+            'choice': <String, Object?>{
+              'type': 'string',
+              'enum': <String>['reply', 'pass'],
+            },
+          },
+          'required': <String>['choice'],
+          'additionalProperties': false,
+        };
+
+        await provider.generateJsonSchemaText(
+          [ChatMessage(role: 'user', content: 'Decide whether to reply.')],
+          schemaName: 'participation_decision',
+          jsonSchema: schema,
+        );
+        final textBody = await _requestBodyFor(
+          model: 'kimi-k3',
+          deepThinking: false,
+        );
+
+        expect(structuredBody?['response_format'], {
+          'type': 'json_schema',
+          'json_schema': {
+            'name': 'participation_decision',
+            'strict': true,
+            'schema': schema,
+          },
+        });
+        expect(textBody['response_format'], {'type': 'text'});
+      },
+    );
+  });
+
   group('Moonshot built-in web search', () {
     test('declares the official web search tool alongside reasoning', () async {
       final body = await _requestBodyFor(

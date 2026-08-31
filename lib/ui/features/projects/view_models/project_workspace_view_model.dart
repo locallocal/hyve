@@ -296,7 +296,18 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
       for (final membership in activeMemberships)
         if (agentsById[membership.agentId] case final agent?) agent,
     ]);
-    _events = List<ProjectEvent>.unmodifiable(events);
+    final eventsAtCommit = <String, ProjectEvent>{
+      for (final event in events) event.id: event,
+    };
+    for (final current in _events) {
+      final refreshed = eventsAtCommit[current.id];
+      eventsAtCommit[current.id] =
+          refreshed == null ? current : _preferEvent(refreshed, current);
+    }
+    _events = List<ProjectEvent>.unmodifiable(
+      eventsAtCommit.values.toList(growable: false)
+        ..sort((left, right) => left.sequence.compareTo(right.sequence)),
+    );
     _hasEarlierEvents =
         latestEvents.length == _eventPageSize &&
         _events.isNotEmpty &&
@@ -676,6 +687,15 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     if (_submitting || draft.isEmpty) return null;
     _submitting = true;
     _errorCode = '';
+    final optimisticRoute = _routeProjectMessage.prepareUserMessage(
+      projectId: projectId,
+      currentUserName: _currentUserProfile?.name ?? '',
+      currentUserAvatar: _currentUserProfile?.avatar ?? '',
+      draft: draft,
+    );
+    _upsertEvent(
+      optimisticRoute.optimisticEvent(sequence: _nextOptimisticSequence()),
+    );
     notifyListeners();
     try {
       final versionIds = <String>[...draft.projectArtifactVersionIds];
@@ -690,7 +710,10 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
           folder: 'attachments',
           displayName: attachment.displayName,
         );
-        if (imported == null) return null;
+        if (imported == null) {
+          _removeEvent(optimisticRoute.identity.eventId);
+          return null;
+        }
         versionIds.add(imported.currentVersion.id);
       }
       var messageAttachments = transientAttachments;
@@ -711,10 +734,11 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
       final currentUserProfile =
           _currentUserProfile ?? await _profileRepository.getProfile();
       _currentUserProfile = currentUserProfile;
-      return await _routeProjectMessage(
+      final preparedRoute = _routeProjectMessage.prepareUserMessage(
         projectId: projectId,
         currentUserName: currentUserProfile.name,
         currentUserAvatar: currentUserProfile.avatar,
+        identity: optimisticRoute.identity,
         draft: ProjectMessageDraft(
           text: draft.text,
           mentions: draft.mentions,
@@ -722,10 +746,15 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
           projectArtifactVersionIds: versionIds,
         ),
       );
+      final routed = await _routeProjectMessage.commit(preparedRoute);
+      _upsertEvent(routed.event);
+      return routed;
     } on ProjectMessageRouteFailure catch (failure) {
+      _removeEvent(optimisticRoute.identity.eventId);
       _errorCode = failure.code;
       return null;
     } on Object {
+      _removeEvent(optimisticRoute.identity.eventId);
       _errorCode = 'attachment_persist_failed';
       return null;
     } finally {
@@ -734,6 +763,51 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
         notifyListeners();
       }
     }
+  }
+
+  int _nextOptimisticSequence() {
+    var latest = _project?.lastEventSequence ?? 0;
+    for (final event in _events) {
+      if (event.sequence > latest) latest = event.sequence;
+    }
+    return latest + 1;
+  }
+
+  void _upsertEvent(ProjectEvent event) {
+    final byId = <String, ProjectEvent>{
+      for (final current in _events) current.id: current,
+      event.id: event,
+    };
+    _events = List<ProjectEvent>.unmodifiable(
+      byId.values.toList(growable: false)..sort((left, right) {
+        final sequence = left.sequence.compareTo(right.sequence);
+        if (sequence != 0) return sequence;
+        return left.id.compareTo(right.id);
+      }),
+    );
+    _storeWorkspaceSnapshot();
+  }
+
+  void _removeEvent(String eventId) {
+    _events = List<ProjectEvent>.unmodifiable(
+      _events.where((event) => event.id != eventId),
+    );
+    _storeWorkspaceSnapshot();
+  }
+
+  ProjectEvent _preferEvent(ProjectEvent left, ProjectEvent right) {
+    final leftPending = left.terminalState == ProjectEventTerminalState.draft;
+    final rightPending = right.terminalState == ProjectEventTerminalState.draft;
+    if (leftPending != rightPending) return leftPending ? right : left;
+    final updatedAt = left.updatedAt.compareTo(right.updatedAt);
+    if (updatedAt != 0) return updatedAt > 0 ? left : right;
+    if (left.messageSequence == null && right.messageSequence != null) {
+      return right;
+    }
+    if (right.messageSequence == null && left.messageSequence != null) {
+      return left;
+    }
+    return right;
   }
 
   bool cancelRun(String runId) => _inboxCoordinator.cancelRun(runId);

@@ -31,6 +31,72 @@ void main() {
     },
   );
 
+  test('structured controller restores a failed optimistic draft', () {
+    final controller = StructuredProjectMessageController();
+    addTearDown(controller.dispose);
+    final draft = ProjectMessageDraft(
+      text: '@研究员 请重试',
+      mentions: const <MentionSpan>[
+        MentionSpan(
+          agentId: 'agent-1',
+          start: 0,
+          length: 4,
+          displayTextSnapshot: '@研究员',
+        ),
+      ],
+    );
+
+    controller.restoreDraft(draft);
+
+    expect(controller.text, draft.text);
+    expect(controller.selection.baseOffset, draft.text.length);
+    expect(controller.mentions.single.agentId, 'agent-1');
+  });
+
+  testWidgets('submitting composer uses Shad pending state and blocks resend', (
+    tester,
+  ) async {
+    final controller = StructuredProjectMessageController(text: 'Sending');
+    addTearDown(controller.dispose);
+    var sends = 0;
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: ProjectMessageComposer(
+                controller: controller,
+                activeAgents: const <Agent>[],
+                submitting: true,
+                onSend: (_) => sends += 1,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<ShadTextarea>(find.byType(ShadTextarea)).enabled,
+      false,
+    );
+    expect(find.byIcon(LucideIcons.loaderCircle), findsOneWidget);
+    final sendButton = tester.widget<ShadIconButton>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('project-send-message')),
+        matching: find.byType(ShadIconButton),
+      ),
+    );
+    expect(sendButton.enabled, false);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-send-message')),
+      warnIfMissed: false,
+    );
+    expect(sends, 0);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'composer sends while runs are active and keeps cancel separate',
     (tester) async {

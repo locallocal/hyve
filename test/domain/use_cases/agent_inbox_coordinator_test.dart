@@ -312,6 +312,15 @@ void main() {
     expect(request.maxOutputTokens, 128);
     expect(request.estimatedInputTokens, lessThanOrEqualTo(4096));
     expect(request.decisionSystemPrompt, contains('Agent 1'));
+    expect(
+      request.decisionSystemPrompt.lastIndexOf('Decision output contract:'),
+      greaterThan(request.decisionSystemPrompt.lastIndexOf('Agent 1')),
+      reason: 'the decision format must take precedence over the Agent prompt',
+    );
+    expect(
+      request.decisionSystemPrompt,
+      contains('{"choice":"reply","reasonCode":"relevant"'),
+    );
     expect(request.visibleHistory.last.id, routed.event.id);
     expect(request.visibleHistory.last.content, startsWith('CURRENT_MESSAGE'));
   });

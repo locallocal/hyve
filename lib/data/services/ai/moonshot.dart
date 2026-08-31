@@ -131,7 +131,32 @@ class Moonshot extends Provider {
   }
 
   @override
-  Future<void> generateText(List<ChatMessage> messages) async {
+  Future<void> generateText(List<ChatMessage> messages) => _generateText(
+    messages,
+    responseFormat: const <String, Object?>{'type': 'text'},
+  );
+
+  @override
+  Future<void> generateJsonSchemaText(
+    List<ChatMessage> messages, {
+    required String schemaName,
+    required Map<String, Object?> jsonSchema,
+  }) => _generateText(
+    messages,
+    responseFormat: <String, Object?>{
+      'type': 'json_schema',
+      'json_schema': <String, Object?>{
+        'name': schemaName,
+        'strict': true,
+        'schema': jsonSchema,
+      },
+    },
+  );
+
+  Future<void> _generateText(
+    List<ChatMessage> messages, {
+    required Map<String, Object?> responseFormat,
+  }) async {
     try {
       resetCancelState();
       final url =
@@ -152,6 +177,7 @@ class Moonshot extends Provider {
           url: url,
           messages: requestMessages,
           useWebSearch: useWebSearch,
+          responseFormat: responseFormat,
         );
         if (isCancelled) break;
 
@@ -203,6 +229,7 @@ class Moonshot extends Provider {
     required String url,
     required List<Map<String, dynamic>> messages,
     required bool useWebSearch,
+    required Map<String, Object?> responseFormat,
   }) async {
     final request =
         http.Request('POST', Uri.parse(url))
@@ -213,7 +240,7 @@ class Moonshot extends Provider {
           ..body = jsonEncode({
             'model': bot.model,
             'messages': messages,
-            'response_format': {'type': 'text'},
+            'response_format': responseFormat,
             'stream': true,
             if (useWebSearch)
               'tools': [

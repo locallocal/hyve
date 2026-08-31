@@ -98,6 +98,15 @@ abstract class AiProvider {
 
   Future<void> generateText(List<ChatMessage> messages);
 
+  /// Generates text whose final content conforms to [jsonSchema] when the
+  /// provider supports native JSON Schema output. Providers without native
+  /// support retain prompt-based generation as a safe compatibility fallback.
+  Future<void> generateJsonSchemaText(
+    List<ChatMessage> messages, {
+    required String schemaName,
+    required Map<String, Object?> jsonSchema,
+  }) => generateText(messages);
+
   AgentModelSession openModelSession(ModelRequest request) {
     throw UnsupportedError(
       '${bot.apiType} does not support structured model sessions',

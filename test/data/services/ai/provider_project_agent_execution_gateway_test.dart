@@ -50,6 +50,40 @@ void main() {
     });
   }
 
+  test('accepts a valid participation decision with extra metadata', () async {
+    final gateway = ProviderProjectAgentExecutionGateway(
+      providers: _Providers(
+        _TextProvider(
+          '{"choice":"reply","reasonCode":"relevant",'
+          '"intendedContribution":"answer the question","confidence":0.92}',
+        ),
+      ),
+    );
+
+    final result = await gateway.decide(_decisionRequest());
+
+    expect(result.choice, ParticipationChoice.reply);
+    expect(result.reasonCode, 'relevant');
+    expect(result.intendedContribution, 'answer the question');
+  });
+
+  test('recovers a nested decision with common field aliases', () async {
+    final gateway = ProviderProjectAgentExecutionGateway(
+      providers: _Providers(
+        _TextProvider(
+          '{"result":{"decision":"respond","rationale":"useful",'
+          '"contribution":"summarize findings"}}',
+        ),
+      ),
+    );
+
+    final result = await gateway.decide(_decisionRequest());
+
+    expect(result.choice, ParticipationChoice.reply);
+    expect(result.reasonCode, 'useful');
+    expect(result.intendedContribution, 'summarize findings');
+  });
+
   test('rejects participation output without a reason', () async {
     final gateway = ProviderProjectAgentExecutionGateway(
       providers: _Providers(
@@ -59,6 +93,37 @@ void main() {
 
     expect(gateway.decide(_decisionRequest()), throwsFormatException);
   });
+
+  test(
+    'requests the strict participation schema from capable providers',
+    () async {
+      final provider = _SchemaTextProvider(
+        '{"choice":"reply","reasonCode":"relevant",'
+        '"intendedContribution":"answer the question"}',
+      );
+      final gateway = ProviderProjectAgentExecutionGateway(
+        providers: _Providers(provider),
+      );
+
+      final result = await gateway.decide(_decisionRequest());
+
+      expect(result.choice, ParticipationChoice.reply);
+      expect(provider.schemaName, 'participation_decision');
+      expect(provider.jsonSchema, {
+        'type': 'object',
+        'properties': {
+          'choice': {
+            'type': 'string',
+            'enum': ['reply', 'pass'],
+          },
+          'reasonCode': {'type': 'string'},
+          'intendedContribution': {'type': 'string'},
+        },
+        'required': ['choice', 'reasonCode', 'intendedContribution'],
+        'additionalProperties': false,
+      });
+    },
+  );
 
   test('exposes and audits scoped project artifact tools', () async {
     final session = _ModelSession(<List<ModelEvent>>[
@@ -200,6 +265,30 @@ final class _TextProvider extends AiProvider {
 
   @override
   Future<void> generateText(List<ChatMessage> messages) async {
+    onResponse(text);
+  }
+}
+
+final class _SchemaTextProvider extends AiProvider {
+  _SchemaTextProvider(this.text) : super(_bot());
+
+  final String text;
+  String? schemaName;
+  Map<String, Object?>? jsonSchema;
+
+  @override
+  Future<void> generateText(List<ChatMessage> messages) async {
+    throw StateError('Expected the structured output API.');
+  }
+
+  @override
+  Future<void> generateJsonSchemaText(
+    List<ChatMessage> messages, {
+    required String schemaName,
+    required Map<String, Object?> jsonSchema,
+  }) async {
+    this.schemaName = schemaName;
+    this.jsonSchema = jsonSchema;
     onResponse(text);
   }
 }

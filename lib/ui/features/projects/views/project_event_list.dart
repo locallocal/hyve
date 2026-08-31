@@ -24,6 +24,8 @@ final class ProjectEventList extends StatefulWidget {
     this.hasEarlier = false,
     this.loadingEarlier = false,
     this.onLoadEarlier,
+    this.initialScrollOffset = 0,
+    this.onScrollOffsetChanged,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     this.emptyIcon,
     this.emptyTitle,
@@ -41,6 +43,8 @@ final class ProjectEventList extends StatefulWidget {
   final bool hasEarlier;
   final bool loadingEarlier;
   final VoidCallback? onLoadEarlier;
+  final double initialScrollOffset;
+  final ValueChanged<double>? onScrollOffsetChanged;
   final EdgeInsetsGeometry padding;
   final IconData? emptyIcon;
   final String? emptyTitle;
@@ -59,12 +63,13 @@ final class ProjectEventList extends StatefulWidget {
 }
 
 final class _ProjectEventListState extends State<ProjectEventList> {
-  final ScrollController _scrollController = ScrollController();
-  bool _autoScrollScheduled = false;
+  static const double _loadEarlierThreshold = 240;
 
-  List<ProjectEvent> get _messages => widget.events
-      .where(ProjectEventList._isTimelineEntry)
-      .toList(growable: false);
+  late final ScrollController _scrollController;
+  late List<ProjectEvent> _messages;
+  late Map<Key, int> _messageIndexesByKey;
+  bool _autoScrollScheduled = false;
+  bool _loadEarlierScheduled = false;
 
   Object? _latestMessageState(Iterable<ProjectEvent> events) {
     final messages = events.where(ProjectEventList._isTimelineEntry);
@@ -76,16 +81,65 @@ final class _ProjectEventListState extends State<ProjectEventList> {
   @override
   void initState() {
     super.initState();
-    if (_messages.isNotEmpty) _scheduleScrollToLatest(animate: false);
+    _scrollController = ScrollController(
+      initialScrollOffset: widget.initialScrollOffset,
+    )..addListener(_handleScrollChanged);
+    _indexMessages();
+    if (_messages.isNotEmpty && widget.initialScrollOffset <= 0) {
+      _scheduleScrollToLatest(animate: false);
+    }
+    _scheduleLoadEarlierIfNeeded();
   }
 
   @override
   void didUpdateWidget(covariant ProjectEventList oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.events, widget.events)) _indexMessages();
     final previousLatest = _latestMessageState(oldWidget.events);
     final currentLatest = _latestMessageState(widget.events);
     if (currentLatest != null && currentLatest != previousLatest) {
       _scheduleScrollToLatest();
+    }
+    if (widget.hasEarlier && !widget.loadingEarlier) {
+      _scheduleLoadEarlierIfNeeded();
+    }
+  }
+
+  void _indexMessages() {
+    _messages = List<ProjectEvent>.unmodifiable(
+      widget.events.where(ProjectEventList._isTimelineEntry),
+    );
+    _messageIndexesByKey = <Key, int>{
+      for (var index = 0; index < _messages.length; index++)
+        ValueKey<String>('project-event-${_messages[index].id}'):
+            _messages.length - index - 1,
+    };
+  }
+
+  void _handleScrollChanged() {
+    if (!_scrollController.hasClients) return;
+    widget.onScrollOffsetChanged?.call(_scrollController.offset);
+    _loadEarlierIfNeeded();
+  }
+
+  void _scheduleLoadEarlierIfNeeded() {
+    if (_loadEarlierScheduled) return;
+    _loadEarlierScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadEarlierScheduled = false;
+      if (!mounted) return;
+      _loadEarlierIfNeeded();
+    });
+  }
+
+  void _loadEarlierIfNeeded() {
+    if (!_scrollController.hasClients ||
+        !widget.hasEarlier ||
+        widget.loadingEarlier) {
+      return;
+    }
+    if (_scrollController.position.extentAfter <= _loadEarlierThreshold) {
+      widget.onLoadEarlier?.call();
     }
   }
 
@@ -120,7 +174,9 @@ final class _ProjectEventListState extends State<ProjectEventList> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_handleScrollChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -163,6 +219,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
       reverse: true,
       padding: widget.padding,
       itemCount: messages.length + (widget.hasEarlier ? 1 : 0),
+      findChildIndexCallback: (key) => _messageIndexesByKey[key],
       itemBuilder: (context, index) {
         if (widget.hasEarlier && index == messages.length) {
           return Center(

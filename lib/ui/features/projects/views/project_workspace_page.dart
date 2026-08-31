@@ -327,6 +327,8 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 hasEarlier: viewModel.hasEarlierEvents,
                 loadingEarlier: viewModel.eventPageBusy,
                 onLoadEarlier: () => unawaited(viewModel.loadEarlierEvents()),
+                initialScrollOffset: viewModel.timelineOffset,
+                onScrollOffsetChanged: viewModel.rememberTimelineOffset,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 emptyIcon:
                     hasActiveAgents

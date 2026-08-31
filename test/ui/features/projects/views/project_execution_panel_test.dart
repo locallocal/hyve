@@ -279,7 +279,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders execution details without a Material ancestor', (
+  testWidgets('separates Shad audit history from broadcast runs', (
     tester,
   ) async {
     final now = DateTime.utc(2026, 8, 23);
@@ -292,6 +292,7 @@ void main() {
       eventType: ProjectEventType.systemNotice,
       actorType: ProjectEventActorType.system,
       actorNameSnapshot: 'System',
+      visibility: ProjectEventVisibility.audit,
       payload: const SystemNoticePayload(code: 'run_started'),
       createdAt: now,
       updatedAt: now,
@@ -324,7 +325,39 @@ void main() {
     expect(find.byType(ShadAccordion<String>), findsWidgets);
     expect(find.byType(ExpansionTile), findsNothing);
     expect(find.byType(ListTile), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>('project-execution-list')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-events-list')),
+      findsNothing,
+    );
+    expect(find.text('systemNotice'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-audits-tab')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('project-execution-list')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-events-list')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-events-card')),
+      findsOneWidget,
+    );
     expect(find.text('systemNotice'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-runs-tab')),
+    );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(ValueKey<String>('project-turn-${turn.id}')));
     await tester.pumpAndSettle();

@@ -238,11 +238,13 @@ final class ProjectLocalizations {
   String tokens(int input, int output) =>
       _text('Input $input · output $output', '输入 $input · 输出 $output');
   String get noExecutions => _text('No execution records yet', '暂无执行记录');
+  String get executionRuns => _text('Run history', '运行记录');
   String get cancelRun => _text('Cancel run', '取消运行');
   String get cancelTurn => _text('Cancel turn', '取消轮次');
   String get cancelRootChain => _text('Cancel root chain', '取消根消息链');
   String get contextReport => _text('Context report', '上下文报告');
   String get auditEvents => _text('Audit events', '审计事件');
+  String get noAuditEvents => _text('No audit events yet', '暂无审计事件');
   String get summarySegments => _text('Summary segments', '摘要片段');
   String get memories => _text('Agent memories', '智能体记忆');
   String get artifactVersionIds => _text('Artifact versions', '产物版本');

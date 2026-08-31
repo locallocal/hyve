@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
+import 'package:hyve/ui/features/projects/views/project_audit_event_list.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
 const int _executionHistoryPageSize = 10;
@@ -62,10 +63,10 @@ final class ProjectExecutionPanel extends StatelessWidget {
             .where((decision) => decision.choice == ParticipationChoice.pass)
             .length;
     final audits = events.reversed
-        .where((event) => event.messageSequence == null)
+        .where((event) => event.visibility == ProjectEventVisibility.audit)
         .take(50)
         .toList(growable: false);
-    final history = _ExecutionHistory(
+    final details = _ExecutionDetailTabs(
       turns: sortedTurns,
       runs: runs,
       decisions: decisions,
@@ -125,7 +126,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (hasBoundedHeight) Expanded(child: history) else history,
+            if (hasBoundedHeight) Expanded(child: details) else details,
           ],
         ),
       ),
@@ -133,8 +134,10 @@ final class ProjectExecutionPanel extends StatelessWidget {
   }
 }
 
-final class _ExecutionHistory extends StatefulWidget {
-  const _ExecutionHistory({
+enum _ExecutionDetailSection { runs, audits }
+
+final class _ExecutionDetailTabs extends StatefulWidget {
+  const _ExecutionDetailTabs({
     required this.turns,
     required this.runs,
     required this.decisions,
@@ -158,7 +161,131 @@ final class _ExecutionHistory extends StatefulWidget {
   final ValueChanged<String> onCancelRootChain;
   final bool hasBoundedHeight;
 
-  int get itemCount => turns.length + audits.length;
+  @override
+  State<_ExecutionDetailTabs> createState() => _ExecutionDetailTabsState();
+}
+
+final class _ExecutionDetailTabsState extends State<_ExecutionDetailTabs> {
+  _ExecutionDetailSection _selected = _ExecutionDetailSection.runs;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = ProjectLocalizations.of(context);
+    final runHistory = _ExecutionHistory(
+      turns: widget.turns,
+      runs: widget.runs,
+      decisions: widget.decisions,
+      usageRecords: widget.usageRecords,
+      agentNames: widget.agentNames,
+      onCancelRun: widget.onCancelRun,
+      onCancelTurn: widget.onCancelTurn,
+      onCancelRootChain: widget.onCancelRootChain,
+      hasBoundedHeight: widget.hasBoundedHeight,
+    );
+    final auditHistory = ProjectAuditEventList(
+      events: widget.audits,
+      hasBoundedHeight: widget.hasBoundedHeight,
+    );
+    if (hasShadProjectTheme(context)) {
+      return ShadTabs<_ExecutionDetailSection>(
+        value: _selected,
+        onChanged: (value) => setState(() => _selected = value),
+        gap: 12,
+        maintainState: false,
+        tabs: <ShadTab<_ExecutionDetailSection>>[
+          ShadTab<_ExecutionDetailSection>(
+            value: _ExecutionDetailSection.runs,
+            leading: const Icon(LucideIcons.play, size: 16),
+            trailing: Text('${widget.turns.length}'),
+            expandContent: widget.hasBoundedHeight,
+            content: runHistory,
+            child: Text(
+              copy.executionRuns,
+              key: const ValueKey<String>('project-execution-runs-tab'),
+            ),
+          ),
+          ShadTab<_ExecutionDetailSection>(
+            value: _ExecutionDetailSection.audits,
+            leading: const Icon(LucideIcons.shieldCheck, size: 16),
+            trailing: Text('${widget.audits.length}'),
+            expandContent: widget.hasBoundedHeight,
+            content: auditHistory,
+            child: Text(
+              copy.auditEvents,
+              key: const ValueKey<String>('project-execution-audits-tab'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final selectedContent = switch (_selected) {
+      _ExecutionDetailSection.runs => runHistory,
+      _ExecutionDetailSection.audits => auditHistory,
+    };
+    return Column(
+      mainAxisSize:
+          widget.hasBoundedHeight ? MainAxisSize.max : MainAxisSize.min,
+      children: <Widget>[
+        SegmentedButton<_ExecutionDetailSection>(
+          showSelectedIcon: false,
+          segments: <ButtonSegment<_ExecutionDetailSection>>[
+            ButtonSegment<_ExecutionDetailSection>(
+              value: _ExecutionDetailSection.runs,
+              icon: const Icon(Icons.play_arrow_outlined),
+              label: Text(
+                '${copy.executionRuns} · ${widget.turns.length}',
+                key: const ValueKey<String>('project-execution-runs-tab'),
+              ),
+            ),
+            ButtonSegment<_ExecutionDetailSection>(
+              value: _ExecutionDetailSection.audits,
+              icon: const Icon(Icons.verified_user_outlined),
+              label: Text(
+                '${copy.auditEvents} · ${widget.audits.length}',
+                key: const ValueKey<String>('project-execution-audits-tab'),
+              ),
+            ),
+          ],
+          selected: <_ExecutionDetailSection>{_selected},
+          onSelectionChanged: (selection) {
+            setState(() => _selected = selection.single);
+          },
+        ),
+        const SizedBox(height: 12),
+        if (widget.hasBoundedHeight)
+          Expanded(child: selectedContent)
+        else
+          selectedContent,
+      ],
+    );
+  }
+}
+
+final class _ExecutionHistory extends StatefulWidget {
+  const _ExecutionHistory({
+    required this.turns,
+    required this.runs,
+    required this.decisions,
+    required this.usageRecords,
+    required this.agentNames,
+    required this.onCancelRun,
+    required this.onCancelTurn,
+    required this.onCancelRootChain,
+    required this.hasBoundedHeight,
+  });
+
+  final List<ProjectTurn> turns;
+  final Map<String, AgentRun> runs;
+  final Map<String, ParticipationDecision> decisions;
+  final List<ModelTokenUsageRecord> usageRecords;
+  final Map<String, String> agentNames;
+  final ValueChanged<String> onCancelRun;
+  final ValueChanged<String> onCancelTurn;
+  final ValueChanged<String> onCancelRootChain;
+  final bool hasBoundedHeight;
+
+  int get itemCount => turns.length;
 
   @override
   State<_ExecutionHistory> createState() => _ExecutionHistoryState();
@@ -211,18 +338,7 @@ final class _ExecutionHistoryState extends State<_ExecutionHistory> {
       pageStart,
       widget.itemCount,
     );
-    final turnStart = pageStart.clamp(0, widget.turns.length);
-    final turnEnd = pageEnd.clamp(turnStart, widget.turns.length);
-    final auditStart = (pageStart - widget.turns.length).clamp(
-      0,
-      widget.audits.length,
-    );
-    final auditEnd = (pageEnd - widget.turns.length).clamp(
-      auditStart,
-      widget.audits.length,
-    );
-    final pageTurns = widget.turns.sublist(turnStart, turnEnd);
-    final pageAudits = widget.audits.sublist(auditStart, auditEnd);
+    final pageTurns = widget.turns.sublist(pageStart, pageEnd);
     final list = ListView(
       controller: _scrollController,
       primary: false,
@@ -244,16 +360,6 @@ final class _ExecutionHistoryState extends State<_ExecutionHistory> {
             onCancelTurn: widget.onCancelTurn,
             onCancelRootChain: widget.onCancelRootChain,
           ),
-        if (pageAudits.isNotEmpty) ...<Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-            child: Text(
-              copy.auditEvents,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          for (final event in pageAudits) _AuditEventTile(event: event),
-        ],
       ],
     );
     return Column(
@@ -508,58 +614,6 @@ final class _RunTile extends StatelessWidget {
   }
 }
 
-final class _AuditEventTile extends StatelessWidget {
-  const _AuditEventTile({required this.event});
-
-  final ProjectEvent event;
-
-  @override
-  Widget build(BuildContext context) {
-    final shadTheme = ShadTheme.maybeOf(context);
-    final actor =
-        event.actorNameSnapshot.isEmpty
-            ? event.actorType.name
-            : event.actorNameSnapshot;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Icon(_eventIcon(event.eventType), size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  event.eventType.name,
-                  style:
-                      shadTheme?.textTheme.small.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ) ??
-                      Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${event.id} · $actor',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style:
-                      shadTheme?.textTheme.muted ??
-                      Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 String _duration(AgentRun run) {
   final start = run.startedAt;
   final end = run.completedAt;
@@ -587,13 +641,4 @@ IconData _runIcon(AgentRunStatus status) => switch (status) {
   AgentRunStatus.cancelled ||
   AgentRunStatus.interrupted => Icons.cancel_outlined,
   _ => Icons.pending_outlined,
-};
-
-IconData _eventIcon(ProjectEventType type) => switch (type) {
-  ProjectEventType.membershipChanged => Icons.group_outlined,
-  ProjectEventType.projectArtifactChanged => Icons.folder_outlined,
-  ProjectEventType.runStatusChanged => Icons.monitor_heart_outlined,
-  ProjectEventType.participationDecision => Icons.psychology_outlined,
-  ProjectEventType.systemNotice => Icons.info_outline,
-  _ => Icons.receipt_long_outlined,
 };

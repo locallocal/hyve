@@ -25,6 +25,7 @@ final class ProjectAgentPersistence {
     required this.routeProjectMessage,
     required this.inboxCoordinator,
     required this.createProject,
+    required this.workspaceCache,
   });
 
   factory ProjectAgentPersistence.create({
@@ -272,6 +273,7 @@ final class ProjectAgentPersistence {
         projectRepository: projectRepository,
         membershipRepository: membershipRepository,
       ),
+      workspaceCache: ProjectWorkspaceCache(),
     );
   }
 
@@ -298,6 +300,7 @@ final class ProjectAgentPersistence {
   final RouteProjectMessage routeProjectMessage;
   final AgentInboxCoordinator inboxCoordinator;
   final CreateProject createProject;
+  final ProjectWorkspaceCache workspaceCache;
 
   ProjectWorkspaceViewModel createWorkspaceViewModel(
     String projectId, {
@@ -321,6 +324,7 @@ final class ProjectAgentPersistence {
     attachmentRepository: attachmentRepository,
     temporaryAttachmentRepository: temporaryAttachmentRepository,
     profileRepository: profileRepository,
+    workspaceCache: workspaceCache,
   );
 
   ProjectMembersViewModel createMembersViewModel(String projectId) =>

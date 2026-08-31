@@ -24,6 +24,7 @@ import 'package:hyve/domain/use_cases/route_project_message.dart';
 import 'package:hyve/ui/core/view_models/disposable_change_notifier.dart';
 import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
+import 'package:hyve/ui/features/projects/view_models/project_workspace_cache.dart';
 
 final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     implements ProjectArtifactsController {
@@ -46,6 +47,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     required AttachmentRepository attachmentRepository,
     required ProjectTemporaryAttachmentRepository temporaryAttachmentRepository,
     required ProfileRepository profileRepository,
+    required ProjectWorkspaceCache workspaceCache,
   }) : _routeProjectMessage = routeProjectMessage,
        _projectRepository = projectRepository,
        _membershipRepository = membershipRepository,
@@ -62,7 +64,10 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
        _attachmentRepository = attachmentRepository,
        _temporaryAttachmentRepository = temporaryAttachmentRepository,
        _profileRepository = profileRepository,
+       _workspaceCache = workspaceCache,
        _inboxCoordinator = inboxCoordinator {
+    final cached = _workspaceCache.peek(projectId);
+    if (cached != null) _restoreCachedSnapshot(cached);
     _cursorSubscription = _cursorRepository.changes.listen((key) {
       if (key.projectId == projectId) unawaited(refresh());
     });
@@ -89,9 +94,12 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     _profileSubscription = _profileRepository.changes.listen((profile) {
       if (isDisposed) return;
       _currentUserProfile = profile;
+      _storeWorkspaceSnapshot();
       notifyListeners();
     });
   }
+
+  static const int _eventPageSize = 50;
 
   final String projectId;
   final RouteProjectMessage _routeProjectMessage;
@@ -110,6 +118,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   final AttachmentRepository _attachmentRepository;
   final ProjectTemporaryAttachmentRepository _temporaryAttachmentRepository;
   final ProfileRepository _profileRepository;
+  final ProjectWorkspaceCache _workspaceCache;
   final AgentInboxCoordinator _inboxCoordinator;
   late final StreamSubscription<ProjectAgentInboxKey> _cursorSubscription;
   late final StreamSubscription<String> _membershipSubscription;
@@ -138,6 +147,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   bool _artifactBusy = false;
   bool _eventPageBusy = false;
   bool _hasEarlierEvents = false;
+  double _timelineOffset = 0;
   bool _submitting = false;
   String _errorCode = '';
 
@@ -161,6 +171,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   bool get artifactBusy => _artifactBusy;
   bool get eventPageBusy => _eventPageBusy;
   bool get hasEarlierEvents => _hasEarlierEvents;
+  double get timelineOffset => _timelineOffset;
   bool get submitting => _submitting;
   @override
   String get errorCode => _errorCode;
@@ -183,7 +194,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     };
     final latestEvents = await _eventRepository.getEvents(
       projectId,
-      limit: 200,
+      limit: _eventPageSize,
     );
     final eventById = <String, ProjectEvent>{
       for (final event in _events) event.id: event,
@@ -286,7 +297,10 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
         if (agentsById[membership.agentId] case final agent?) agent,
     ]);
     _events = List<ProjectEvent>.unmodifiable(events);
-    _hasEarlierEvents = _events.isNotEmpty && _events.first.sequence > 1;
+    _hasEarlierEvents =
+        latestEvents.length == _eventPageSize &&
+        _events.isNotEmpty &&
+        _events.first.sequence > 1;
     _turns = Map<String, ProjectTurn>.unmodifiable({
       for (final turn in turns) turn.id: turn,
     });
@@ -308,6 +322,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     });
     _agentsById = Map<String, Agent>.unmodifiable(agentsById);
     _agentStatuses = List<ProjectAgentStatusSnapshot>.unmodifiable(statuses);
+    _storeWorkspaceSnapshot();
     notifyListeners();
   }
 
@@ -319,14 +334,22 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
       final older = await _eventRepository.getEvents(
         projectId,
         beforeSequence: _events.first.sequence,
-        limit: 200,
+        limit: _eventPageSize,
       );
       if (isDisposed) return;
-      _events = List<ProjectEvent>.unmodifiable(<ProjectEvent>[
-        ...older,
-        ..._events,
-      ]);
-      _hasEarlierEvents = _events.isNotEmpty && _events.first.sequence > 1;
+      final byId = <String, ProjectEvent>{
+        for (final event in older) event.id: event,
+        for (final event in _events) event.id: event,
+      };
+      _events = List<ProjectEvent>.unmodifiable(
+        byId.values.toList(growable: false)
+          ..sort((left, right) => left.sequence.compareTo(right.sequence)),
+      );
+      _hasEarlierEvents =
+          older.length == _eventPageSize &&
+          _events.isNotEmpty &&
+          _events.first.sequence > 1;
+      _storeWorkspaceSnapshot();
     } on Object {
       _errorCode = 'project_events_load_failed';
     } finally {
@@ -335,6 +358,52 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
         notifyListeners();
       }
     }
+  }
+
+  void rememberTimelineOffset(double offset) {
+    if (!offset.isFinite || offset < 0) return;
+    _timelineOffset = offset;
+    _workspaceCache.rememberTimelineOffset(projectId, offset);
+  }
+
+  void _restoreCachedSnapshot(ProjectWorkspaceSnapshot snapshot) {
+    _project = snapshot.project;
+    _agentStatuses = snapshot.agentStatuses;
+    _activeAgents = snapshot.activeAgents;
+    _events = snapshot.events;
+    _hasEarlierEvents = snapshot.hasEarlierEvents;
+    _turns = snapshot.turns;
+    _deliveries = snapshot.deliveries;
+    _runs = snapshot.runs;
+    _decisions = snapshot.decisions;
+    _usageRecords = snapshot.usageRecords;
+    _agentNames = snapshot.agentNames;
+    _agentsById = snapshot.agentsById;
+    _currentUserProfile = snapshot.currentUserProfile;
+    _timelineOffset = snapshot.timelineOffset;
+  }
+
+  void _storeWorkspaceSnapshot() {
+    final project = _project;
+    if (project == null) return;
+    _workspaceCache.store(
+      ProjectWorkspaceSnapshot(
+        project: project,
+        agentStatuses: _agentStatuses,
+        activeAgents: _activeAgents,
+        events: _events,
+        turns: _turns,
+        deliveries: _deliveries,
+        runs: _runs,
+        decisions: _decisions,
+        usageRecords: _usageRecords,
+        agentNames: _agentNames,
+        agentsById: _agentsById,
+        currentUserProfile: _currentUserProfile,
+        hasEarlierEvents: _hasEarlierEvents,
+        timelineOffset: _timelineOffset,
+      ),
+    );
   }
 
   ProjectArtifactActor get _userArtifactActor => const ProjectArtifactActor(

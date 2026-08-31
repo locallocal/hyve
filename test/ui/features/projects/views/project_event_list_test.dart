@@ -701,6 +701,117 @@ void main() {
       }
     },
   );
+
+  testWidgets('loads older messages when the history edge is reached', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 31);
+    final events = <ProjectEvent>[
+      for (var sequence = 1; sequence <= 16; sequence++)
+        _message(
+          id: 'event-$sequence',
+          turnId: 'turn-$sequence',
+          sequence: sequence,
+          messageSequence: sequence,
+          actorType: ProjectEventActorType.user,
+          content: 'Message $sequence with enough content for the timeline',
+          now: now.add(Duration(seconds: sequence)),
+        ),
+    ];
+    var loadEarlierCalls = 0;
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: SizedBox(
+                height: 240,
+                child: ProjectEventList(
+                  events: events,
+                  turns: const <String, ProjectTurn>{},
+                  deliveries: const <String, AgentDelivery>{},
+                  runs: const <String, AgentRun>{},
+                  agentNames: const <String, String>{},
+                  hasEarlier: true,
+                  onLoadEarlier: () => loadEarlierCalls += 1,
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final timeline = find.byKey(
+      const ValueKey<String>('project-event-timeline'),
+    );
+    final scrollable = find.descendant(
+      of: timeline,
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable.first).position;
+    expect(position.maxScrollExtent, greaterThan(240));
+    expect(loadEarlierCalls, 0);
+
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump();
+
+    expect(loadEarlierCalls, 1);
+    expect(
+      find.byKey(const ValueKey<String>('project-load-earlier-events')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('restores the cached timeline position', (tester) async {
+    final now = DateTime.utc(2026, 8, 31);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: SizedBox(
+                height: 240,
+                child: ProjectEventList(
+                  events: <ProjectEvent>[
+                    for (var sequence = 1; sequence <= 16; sequence++)
+                      _message(
+                        id: 'cached-event-$sequence',
+                        turnId: 'cached-turn-$sequence',
+                        sequence: sequence,
+                        messageSequence: sequence,
+                        actorType: ProjectEventActorType.user,
+                        content: 'Cached message $sequence',
+                        now: now.add(Duration(seconds: sequence)),
+                      ),
+                  ],
+                  turns: const <String, ProjectTurn>{},
+                  deliveries: const <String, AgentDelivery>{},
+                  runs: const <String, AgentRun>{},
+                  agentNames: const <String, String>{},
+                  initialScrollOffset: 320,
+                ),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final timeline = find.byKey(
+      const ValueKey<String>('project-event-timeline'),
+    );
+    final scrollable = find.descendant(
+      of: timeline,
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable.first).position;
+
+    expect(position.maxScrollExtent, greaterThan(320));
+    expect(position.pixels, closeTo(320, 0.5));
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Agent _agent(String id, String name, String avatar, DateTime now) => Agent(

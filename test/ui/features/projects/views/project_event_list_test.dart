@@ -335,6 +335,115 @@ void main() {
   });
 
   testWidgets(
+    'optimistic user message stays mounted when persistence finishes',
+    (tester) async {
+      final now = DateTime.utc(2026, 8, 31);
+      final events = ValueNotifier<List<ProjectEvent>>(<ProjectEvent>[
+        for (var sequence = 1; sequence <= 16; sequence++)
+          _message(
+            id: 'event-$sequence',
+            turnId: 'turn-$sequence',
+            sequence: sequence,
+            messageSequence: sequence,
+            actorType: ProjectEventActorType.user,
+            content: 'Message $sequence',
+            now: now.add(Duration(seconds: sequence)),
+          ),
+      ]);
+      addTearDown(events.dispose);
+
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (_) => Scaffold(
+                body: SizedBox(
+                  height: 240,
+                  child: ValueListenableBuilder<List<ProjectEvent>>(
+                    valueListenable: events,
+                    builder:
+                        (_, value, _) => ProjectEventList(
+                          events: value,
+                          turns: const <String, ProjectTurn>{},
+                          deliveries: const <String, AgentDelivery>{},
+                          runs: const <String, AgentRun>{},
+                          agentNames: const <String, String>{},
+                        ),
+                  ),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final timeline = find.byKey(
+        const ValueKey<String>('project-event-timeline'),
+      );
+      final scrollable = find.descendant(
+        of: timeline,
+        matching: find.byType(Scrollable),
+      );
+      final position = tester.state<ScrollableState>(scrollable.first).position;
+      position.jumpTo(position.maxScrollExtent);
+
+      final pending = _message(
+        id: 'optimistic-event',
+        turnId: 'optimistic-turn',
+        sequence: 17,
+        messageSequence: null,
+        actorType: ProjectEventActorType.user,
+        content: 'Optimistic message',
+        now: now.add(const Duration(seconds: 17)),
+        terminalState: ProjectEventTerminalState.draft,
+      );
+      events.value = <ProjectEvent>[...events.value, pending];
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+      expect(
+        find.byKey(
+          const ValueKey<String>('project-message-pending-optimistic-event'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Optimistic message'), findsOneWidget);
+
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pump();
+      events.value = <ProjectEvent>[
+        ...events.value.take(events.value.length - 1),
+        _message(
+          id: pending.id,
+          turnId: pending.turnId,
+          sequence: 17,
+          messageSequence: 17,
+          actorType: ProjectEventActorType.user,
+          content: pending.content,
+          now: pending.createdAt,
+        ),
+      ];
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, closeTo(position.maxScrollExtent, 0.5));
+      expect(position.pixels, greaterThan(position.minScrollExtent));
+      expect(
+        tester.widget<ListView>(timeline).childrenDelegate.estimatedChildCount,
+        events.value.length,
+      );
+
+      position.jumpTo(position.minScrollExtent);
+      await tester.pump();
+      expect(
+        find.byKey(
+          const ValueKey<String>('project-message-pending-optimistic-event'),
+        ),
+        findsNothing,
+      );
+      expect(find.text('Optimistic message'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
     'shows reply navigation and keeps pass decisions out of bubbles',
     (tester) async {
       final now = DateTime.utc(2026, 8, 22);
@@ -842,7 +951,7 @@ ProjectEvent _message({
   required String id,
   required String turnId,
   required int sequence,
-  required int messageSequence,
+  required int? messageSequence,
   required ProjectEventActorType actorType,
   required String content,
   required DateTime now,
@@ -850,6 +959,7 @@ ProjectEvent _message({
   String replyToEventId = '',
   int? replyToMessageSequence,
   String actorAvatarSnapshot = '',
+  ProjectEventTerminalState terminalState = ProjectEventTerminalState.completed,
 }) => ProjectEvent(
   id: id,
   projectId: 'project-1',
@@ -869,6 +979,7 @@ ProjectEvent _message({
   replyToMessageSequence: replyToMessageSequence,
   content: content,
   payload: ProjectMessagePayload(),
+  terminalState: terminalState,
   createdAt: now,
   updatedAt: updatedAt ?? now,
 );

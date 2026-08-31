@@ -15,6 +15,50 @@ final class ProjectMessageRouteFailure implements Exception {
   String toString() => 'ProjectMessageRouteFailure($code)';
 }
 
+final class ProjectMessageRouteIdentity {
+  const ProjectMessageRouteIdentity({
+    required this.eventId,
+    required this.turnId,
+    required this.createdAt,
+  });
+
+  final String eventId;
+  final String turnId;
+  final DateTime createdAt;
+}
+
+/// A user message with stable identities, ready for optimistic presentation or
+/// durable routing. The repository still allocates authoritative sequences.
+final class PreparedProjectMessageRoute {
+  const PreparedProjectMessageRoute({
+    required this.identity,
+    required this.request,
+  });
+
+  final ProjectMessageRouteIdentity identity;
+  final ProjectMessageAppendRequest request;
+
+  ProjectEvent optimisticEvent({required int sequence}) => ProjectEvent(
+    id: request.eventId,
+    projectId: request.projectId,
+    turnId: request.turnId,
+    sequence: sequence,
+    eventType: request.eventType,
+    actorType: request.actorType,
+    actorId: request.actorId,
+    actorNameSnapshot: request.actorNameSnapshot,
+    actorAvatarSnapshot: request.actorAvatarSnapshot,
+    visibility: ProjectEventVisibility.project,
+    rootMessageId: request.eventId,
+    content: request.content,
+    payload: request.payload,
+    terminalState: ProjectEventTerminalState.draft,
+    targetAgentIds: request.targetAgentIds,
+    createdAt: request.createdAt,
+    updatedAt: request.createdAt,
+  );
+}
+
 final class RouteProjectMessage {
   RouteProjectMessage({
     required ProjectMessageRouteRepository repository,
@@ -38,6 +82,25 @@ final class RouteProjectMessage {
     String currentUserName = '',
     String currentUserAvatar = '',
   }) async {
+    return commit(
+      prepareUserMessage(
+        projectId: projectId,
+        draft: draft,
+        currentUserId: currentUserId,
+        currentUserName: currentUserName,
+        currentUserAvatar: currentUserAvatar,
+      ),
+    );
+  }
+
+  PreparedProjectMessageRoute prepareUserMessage({
+    required String projectId,
+    required ProjectMessageDraft draft,
+    String currentUserId = 'me',
+    String currentUserName = '',
+    String currentUserAvatar = '',
+    ProjectMessageRouteIdentity? identity,
+  }) {
     if (projectId.trim().isEmpty || draft.isEmpty) {
       throw const ProjectMessageRouteFailure('invalid_project_message');
     }
@@ -46,8 +109,13 @@ final class RouteProjectMessage {
         targetAgentIds.isEmpty
             ? ProjectTurnRoutingMode.broadcast
             : ProjectTurnRoutingMode.targeted;
-    final eventId = _idFactory('event');
-    final turnId = _idFactory('turn');
+    final routeIdentity =
+        identity ??
+        ProjectMessageRouteIdentity(
+          eventId: _idFactory('event'),
+          turnId: _idFactory('turn'),
+          createdAt: _clock(),
+        );
     final images = <String>[];
     final files = <String>[];
     for (final attachment in draft.attachments) {
@@ -57,10 +125,11 @@ final class RouteProjectMessage {
         files.add(attachment.sourcePath);
       }
     }
-    return _appendAndWake(
-      ProjectMessageAppendRequest(
-        eventId: eventId,
-        turnId: turnId,
+    return PreparedProjectMessageRoute(
+      identity: routeIdentity,
+      request: ProjectMessageAppendRequest(
+        eventId: routeIdentity.eventId,
+        turnId: routeIdentity.turnId,
         projectId: projectId,
         initiatorType: ProjectTurnInitiatorType.user,
         initiatorId: currentUserId,
@@ -77,10 +146,13 @@ final class RouteProjectMessage {
           projectArtifactVersionIds: draft.projectArtifactVersionIds,
         ),
         targetAgentIds: targetAgentIds,
-        createdAt: _clock(),
+        createdAt: routeIdentity.createdAt,
       ),
     );
   }
+
+  Future<RoutedProjectMessage> commit(PreparedProjectMessageRoute prepared) =>
+      _appendAndWake(prepared.request);
 
   Future<RoutedProjectMessage> appendAgentReply({
     required String projectId,

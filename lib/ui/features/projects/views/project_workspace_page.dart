@@ -103,10 +103,13 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   }
 
   Future<void> _submit(ProjectMessageDraft draft) async {
-    final routed = await _viewModel!.submit(draft);
-    if (routed != null && mounted) {
-      _composer.clear();
-      setState(_attachments.clear);
+    final submission = _viewModel!.submit(draft);
+    _composer.clear();
+    setState(_attachments.clear);
+    final routed = await submission;
+    if (routed == null && mounted) {
+      _composer.restoreDraft(draft);
+      setState(() => _attachments.addAll(draft.attachments));
     }
   }
 
@@ -356,11 +359,22 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
               child: Semantics(
                 liveRegion: true,
-                child: Text(
-                  copy.routeError(viewModel.errorCode),
-                  key: const ValueKey<String>('project-route-error'),
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+                child:
+                    hasShadProjectTheme(context)
+                        ? ShadAlert.destructive(
+                          key: const ValueKey<String>('project-route-error'),
+                          icon: const Icon(LucideIcons.circleAlert),
+                          description: Text(
+                            copy.routeError(viewModel.errorCode),
+                          ),
+                        )
+                        : Text(
+                          copy.routeError(viewModel.errorCode),
+                          key: const ValueKey<String>('project-route-error'),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
               ),
             ),
           ProjectContentBounds(
@@ -369,6 +383,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               controller: _composer,
               activeAgents: viewModel.activeAgents,
               attachments: _attachments,
+              submitting: viewModel.submitting,
               hintText: copy.broadcastHint,
               onPickAttachment: () => unawaited(_pickAttachment()),
               onRemoveAttachment:

@@ -56,6 +56,8 @@ final class ProjectEventList extends StatefulWidget {
 
   static bool _isTimelineEntry(ProjectEvent event) =>
       event.messageSequence != null ||
+      (event.eventType == ProjectEventType.userMessage &&
+          event.terminalState == ProjectEventTerminalState.draft) ||
       event.eventType == ProjectEventType.systemNotice;
 
   @override
@@ -75,7 +77,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     final messages = events.where(ProjectEventList._isTimelineEntry);
     if (messages.isEmpty) return null;
     final latest = messages.last;
-    return (latest.id, latest.content, latest.updatedAt, latest.terminalState);
+    return (latest.id, latest.content, latest.updatedAt);
   }
 
   @override
@@ -344,7 +346,8 @@ final class _ProjectEventListState extends State<ProjectEventList> {
                     ),
                   ),
                 ),
-              if (event.terminalState != ProjectEventTerminalState.completed)
+              if (event.terminalState != ProjectEventTerminalState.draft &&
+                  event.terminalState != ProjectEventTerminalState.completed)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
@@ -368,6 +371,8 @@ final class _ProjectEventListState extends State<ProjectEventList> {
               eventId: event.id,
               name: actorName,
               avatarOnRight: fromUser,
+              persistentMetadata:
+                  event.terminalState == ProjectEventTerminalState.draft,
               agent: fromUser ? null : widget.agentsById[event.actorId],
               fallbackAvatar: actorAvatar,
               metadata: _ProjectMessageMetadata(
@@ -375,6 +380,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
                 eventId: event.id,
                 content: event.content,
                 createdAt: event.createdAt,
+                pending: event.terminalState == ProjectEventTerminalState.draft,
               ),
               child: messageBubble,
             ),
@@ -396,6 +402,7 @@ final class _ProjectActorMessage extends StatefulWidget {
     required this.eventId,
     required this.name,
     required this.avatarOnRight,
+    required this.persistentMetadata,
     required this.agent,
     required this.fallbackAvatar,
     required this.metadata,
@@ -405,6 +412,7 @@ final class _ProjectActorMessage extends StatefulWidget {
   final String eventId;
   final String name;
   final bool avatarOnRight;
+  final bool persistentMetadata;
   final Agent? agent;
   final String fallbackAvatar;
   final Widget metadata;
@@ -418,7 +426,7 @@ final class _ProjectActorMessageState extends State<_ProjectActorMessage> {
   bool _hovered = false;
   bool _focused = false;
 
-  bool get _showMetadata => _hovered || _focused;
+  bool get _showMetadata => widget.persistentMetadata || _hovered || _focused;
 
   void _setHovered(bool value) {
     if (_hovered == value) return;
@@ -526,11 +534,13 @@ final class _ProjectMessageMetadata extends StatelessWidget {
     required this.eventId,
     required this.content,
     required this.createdAt,
+    required this.pending,
   });
 
   final String eventId;
   final String content;
   final DateTime createdAt;
+  final bool pending;
 
   Future<void> _copyMessage(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: content));
@@ -540,6 +550,20 @@ final class _ProjectMessageMetadata extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (pending) {
+      return SizedBox(
+        height: 44,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: ProjectBadge(
+            key: ValueKey<String>('project-message-pending-$eventId'),
+            icon: LucideIcons.clock3,
+            label: ProjectLocalizations.of(context).sending,
+            variant: ProjectBadgeVariant.secondary,
+          ),
+        ),
+      );
+    }
     final shadTheme = ShadTheme.maybeOf(context);
     final localeName = Localizations.localeOf(context).toString();
     final formattedTimestamp = intl.DateFormat.yMd(

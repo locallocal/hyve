@@ -27,6 +27,18 @@ final class StructuredProjectMessageController extends TextEditingController {
     attachments: attachments,
   );
 
+  void restoreDraft(ProjectMessageDraft draft) {
+    _mentions
+      ..clear()
+      ..addAll(draft.mentions);
+    _applyingStructuredEdit = true;
+    value = TextEditingValue(
+      text: draft.text,
+      selection: TextSelection.collapsed(offset: draft.text.length),
+    );
+    _applyingStructuredEdit = false;
+  }
+
   @override
   set value(TextEditingValue newValue) {
     final previousText = text;
@@ -201,6 +213,7 @@ final class ProjectMessageComposer extends StatefulWidget {
     required this.activeAgents,
     required this.onSend,
     this.attachments = const <PendingAttachment>[],
+    this.submitting = false,
     this.activeRunCount = 0,
     this.onCancelRuns,
     this.onPickAttachment,
@@ -212,6 +225,7 @@ final class ProjectMessageComposer extends StatefulWidget {
   final StructuredProjectMessageController controller;
   final List<Agent> activeAgents;
   final List<PendingAttachment> attachments;
+  final bool submitting;
   final ValueChanged<ProjectMessageDraft> onSend;
   final int activeRunCount;
   final VoidCallback? onCancelRuns;
@@ -289,7 +303,9 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
   }
 
   bool get _canSend =>
-      widget.controller.text.trim().isNotEmpty || widget.attachments.isNotEmpty;
+      !widget.submitting &&
+      (widget.controller.text.trim().isNotEmpty ||
+          widget.attachments.isNotEmpty);
 
   void _send() {
     if (!_canSend) return;
@@ -332,6 +348,7 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
             hintText:
                 widget.hintText.isEmpty ? copy.broadcastHint : widget.hintText,
             canSend: _canSend,
+            submitting: widget.submitting,
             activeRunCount: widget.activeRunCount,
             copy: copy,
             onPickAttachment: widget.onPickAttachment,
@@ -536,6 +553,7 @@ final class _ComposerSurface extends StatelessWidget {
     required this.focusNode,
     required this.hintText,
     required this.canSend,
+    required this.submitting,
     required this.activeRunCount,
     required this.copy,
     required this.onPickAttachment,
@@ -549,6 +567,7 @@ final class _ComposerSurface extends StatelessWidget {
   final FocusNode focusNode;
   final String hintText;
   final bool canSend;
+  final bool submitting;
   final int activeRunCount;
   final ProjectLocalizations copy;
   final VoidCallback? onPickAttachment;
@@ -581,6 +600,7 @@ final class _ComposerSurface extends StatelessWidget {
               minHeight: 72,
               maxHeight: 180,
               resizable: false,
+              enabled: !submitting,
               onSubmitted: (_) => onSend(),
             )
           else
@@ -590,6 +610,7 @@ final class _ComposerSurface extends StatelessWidget {
               focusNode: focusNode,
               minLines: 2,
               maxLines: 6,
+              enabled: !submitting,
               decoration: InputDecoration(
                 hintText: hintText,
                 border: OutlineInputBorder(
@@ -636,12 +657,13 @@ final class _ComposerSurface extends StatelessWidget {
                     key: const ValueKey<String>('project-pick-attachment'),
                     icon: LucideIcons.plus,
                     label: copy.addAttachment,
-                    onPressed: onPickAttachment,
+                    onPressed: submitting ? null : onPickAttachment,
                   ),
                 ProjectIconAction(
                   key: const ValueKey<String>('project-send-message'),
-                  icon: LucideIcons.send,
-                  label: copy.send,
+                  icon:
+                      submitting ? LucideIcons.loaderCircle : LucideIcons.send,
+                  label: submitting ? copy.sending : copy.send,
                   onPressed: canSend ? onSend : null,
                   variant: ShadButtonVariant.primary,
                 ),

@@ -97,46 +97,47 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-    'composer sends while runs are active and keeps cancel separate',
-    (tester) async {
-      final controller = StructuredProjectMessageController();
-      addTearDown(controller.dispose);
-      ProjectMessageDraft? sent;
-      var cancelCalls = 0;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ProjectMessageComposer(
-              controller: controller,
-              activeAgents: <Agent>[_agent('agent-1', '研究员')],
-              activeRunCount: 2,
-              onCancelRuns: () => cancelCalls++,
-              onSend: (draft) => sent = draft,
+  testWidgets('composer sends without exposing an active-run stop action', (
+    tester,
+  ) async {
+    final controller = StructuredProjectMessageController();
+    addTearDown(controller.dispose);
+    ProjectMessageDraft? sent;
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: ProjectMessageComposer(
+                controller: controller,
+                activeAgents: <Agent>[_agent('agent-1', '研究员')],
+                onSend: (draft) => sent = draft,
+              ),
             ),
-          ),
-        ),
-      );
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const ValueKey<String>('project-message-field')),
-        '新的消息',
-      );
-      await tester.pump();
-      expect(find.text('Stop active runs'), findsNothing);
-      expect(find.text('Send'), findsNothing);
-      await tester.tap(
-        find.byKey(const ValueKey<String>('project-send-message')),
-      );
-      await tester.pump();
-      expect(sent?.text, '新的消息');
+    expect(
+      find.byKey(const ValueKey<String>('project-cancel-runs')),
+      findsNothing,
+    );
+    expect(find.byIcon(LucideIcons.square), findsNothing);
+    expect(find.text('Stop active runs'), findsNothing);
 
-      await tester.tap(
-        find.byKey(const ValueKey<String>('project-cancel-runs')),
-      );
-      expect(cancelCalls, 1);
-    },
-  );
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('project-message-field')),
+      '新的消息',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-send-message')),
+    );
+    await tester.pump();
+
+    expect(sent?.text, '新的消息');
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('mention selection saves the selected Agent id', (tester) async {
     final controller = StructuredProjectMessageController();
@@ -365,8 +366,6 @@ void main() {
                       onToggleAttachmentPromotion:
                           (index, selected) => promotion = (index, selected),
                       onPickAttachment: () => pickCalls += 1,
-                      activeRunCount: 1,
-                      onCancelRuns: () {},
                       onSend: (draft) => sent = draft,
                     ),
                   ),
@@ -396,7 +395,7 @@ void main() {
         isA<Stack>(),
       );
       expect(find.byIcon(LucideIcons.plus), findsOneWidget);
-      expect(find.byIcon(LucideIcons.square), findsOneWidget);
+      expect(find.byIcon(LucideIcons.square), findsNothing);
       expect(find.byIcon(LucideIcons.send), findsOneWidget);
       expect(find.text('Add attachment'), findsNothing);
       expect(find.text('Send'), findsNothing);

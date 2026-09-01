@@ -824,18 +824,6 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     return cancelled;
   }
 
-  int cancelActiveRuns() {
-    var cancelled = 0;
-    for (final runId
-        in _agentStatuses
-            .map((status) => status.activeRunId)
-            .where((runId) => runId.isNotEmpty)
-            .toSet()) {
-      if (_inboxCoordinator.cancelRun(runId)) cancelled++;
-    }
-    return cancelled;
-  }
-
   @override
   void dispose() {
     _cursorSubscription.cancel();

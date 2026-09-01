@@ -214,8 +214,6 @@ final class ProjectMessageComposer extends StatefulWidget {
     required this.onSend,
     this.attachments = const <PendingAttachment>[],
     this.submitting = false,
-    this.activeRunCount = 0,
-    this.onCancelRuns,
     this.onPickAttachment,
     this.onRemoveAttachment,
     this.onToggleAttachmentPromotion,
@@ -227,8 +225,6 @@ final class ProjectMessageComposer extends StatefulWidget {
   final List<PendingAttachment> attachments;
   final bool submitting;
   final ValueChanged<ProjectMessageDraft> onSend;
-  final int activeRunCount;
-  final VoidCallback? onCancelRuns;
   final VoidCallback? onPickAttachment;
   final ValueChanged<int>? onRemoveAttachment;
   final void Function(int index, bool promote)? onToggleAttachmentPromotion;
@@ -349,10 +345,8 @@ final class _ProjectMessageComposerState extends State<ProjectMessageComposer> {
                 widget.hintText.isEmpty ? copy.broadcastHint : widget.hintText,
             canSend: _canSend,
             submitting: widget.submitting,
-            activeRunCount: widget.activeRunCount,
             copy: copy,
             onPickAttachment: widget.onPickAttachment,
-            onCancelRuns: widget.onCancelRuns,
             onSend: _send,
           ),
         ),
@@ -554,10 +548,8 @@ final class _ComposerSurface extends StatelessWidget {
     required this.hintText,
     required this.canSend,
     required this.submitting,
-    required this.activeRunCount,
     required this.copy,
     required this.onPickAttachment,
-    required this.onCancelRuns,
     required this.onSend,
   });
 
@@ -568,10 +560,8 @@ final class _ComposerSurface extends StatelessWidget {
   final String hintText;
   final bool canSend;
   final bool submitting;
-  final int activeRunCount;
   final ProjectLocalizations copy;
   final VoidCallback? onPickAttachment;
-  final VoidCallback? onCancelRuns;
   final VoidCallback onSend;
 
   @override
@@ -644,14 +634,6 @@ final class _ComposerSurface extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                if (activeRunCount > 0 && onCancelRuns != null)
-                  ProjectIconAction(
-                    key: const ValueKey<String>('project-cancel-runs'),
-                    icon: LucideIcons.square,
-                    label: copy.stopRuns,
-                    onPressed: onCancelRuns,
-                    variant: ShadButtonVariant.outline,
-                  ),
                 if (onPickAttachment != null)
                   ProjectIconAction(
                     key: const ValueKey<String>('project-pick-attachment'),

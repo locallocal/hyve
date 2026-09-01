@@ -292,35 +292,44 @@ extension _ProfileSettingsControls on _ProfilePageState {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            SizedBox(
-              width: HyveDesktopThemeSpec.settingsRowIconSlotWidth,
-              child: Icon(
-                Icons.lock_outline_rounded,
-                size: HyveDesktopThemeSpec.settingsRowIconSize,
-                color: HyveDesktopThemeSpec.mutedText(context),
-              ),
-            ),
-            const SizedBox(width: HyveDesktopThemeSpec.settingsRowIconGap),
-            Expanded(
-              child: Text(
-                S.of(context).applicationInjectedPrompt,
-                style: HyveDesktopThemeSpec.bodyStyle(context),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start:
-                HyveDesktopThemeSpec.settingsRowIconSlotWidth +
-                HyveDesktopThemeSpec.settingsRowIconGap,
+        ConstrainedBox(
+          key: const ValueKey<String>('profile-application-prompt-header'),
+          constraints: const BoxConstraints(
+            minHeight: HyveDesktopThemeSpec.settingsRowMinHeight,
           ),
-          child: Text(
-            S.of(context).applicationInjectedPromptDescription,
-            style: HyveDesktopThemeSpec.metaStyle(context),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: HyveDesktopThemeSpec.settingsRowIconSlotWidth,
+                child: Icon(
+                  LucideIcons.lockKeyhole,
+                  key: const ValueKey<String>(
+                    'profile-application-prompt-icon',
+                  ),
+                  size: HyveDesktopThemeSpec.settingsRowIconSize,
+                  color: HyveDesktopThemeSpec.mutedText(context),
+                ),
+              ),
+              const SizedBox(width: HyveDesktopThemeSpec.settingsRowIconGap),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.of(context).applicationInjectedPrompt,
+                      style: HyveDesktopThemeSpec.bodyStyle(context),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      S.of(context).applicationInjectedPromptDescription,
+                      style: HyveDesktopThemeSpec.metaStyle(context),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 10),

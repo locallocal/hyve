@@ -307,6 +307,19 @@ Application: Hyve
       final promptValue = find.byKey(
         const ValueKey<String>('profile-application-prompt-value'),
       );
+      final promptHeader = find.byKey(
+        const ValueKey<String>('profile-application-prompt-header'),
+      );
+      final promptIcon = find.byKey(
+        const ValueKey<String>('profile-application-prompt-icon'),
+      );
+      final skillEntry = find.byKey(
+        const ValueKey<String>('profile-skill-library'),
+      );
+      final skillIcon = find.descendant(
+        of: skillEntry,
+        matching: find.byIcon(LucideIcons.wrench),
+      );
       await tester.scrollUntilVisible(
         promptPanel,
         300,
@@ -317,6 +330,9 @@ Application: Hyve
 
       expect(promptPanel, findsOneWidget);
       expect(promptValue, findsOneWidget);
+      expect(promptHeader, findsOneWidget);
+      expect(promptIcon, findsOneWidget);
+      expect(skillIcon, findsOneWidget);
       expect(find.text('系统提示词'), findsOneWidget);
       expect(find.text('只读'), findsNothing);
       expect(
@@ -329,6 +345,20 @@ Application: Hyve
       expect(
         find.descendant(of: promptPanel, matching: find.byType(ShadTextarea)),
         findsNothing,
+      );
+      final promptIconWidget = tester.widget<Icon>(promptIcon);
+      final skillIconWidget = tester.widget<Icon>(skillIcon);
+      expect(promptIconWidget.icon, LucideIcons.lockKeyhole);
+      expect(promptIconWidget.size, HyveDesktopThemeSpec.settingsRowIconSize);
+      expect(promptIconWidget.size, skillIconWidget.size);
+      expect(promptIconWidget.color, skillIconWidget.color);
+      expect(
+        tester.getCenter(promptIcon).dx,
+        closeTo(tester.getCenter(skillIcon).dx, 0.01),
+      );
+      expect(
+        tester.getCenter(promptIcon).dy,
+        closeTo(tester.getCenter(promptHeader).dy, 0.01),
       );
       expect(
         tester.getSemantics(promptValue),

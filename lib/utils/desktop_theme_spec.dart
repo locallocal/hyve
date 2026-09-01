@@ -46,7 +46,20 @@ class HyveDesktopThemeSpec {
   static const double settingsRowValueMaxWidth = 220;
   static const EdgeInsetsDirectional settingsRowSeparatorMargin =
       EdgeInsetsDirectional.only(start: 40);
+  static const double shellBottomInset = 18;
+  static const EdgeInsets accountButtonPadding = EdgeInsets.fromLTRB(
+    8,
+    8,
+    8,
+    shellBottomInset,
+  );
   static const EdgeInsets formPagePadding = EdgeInsets.fromLTRB(32, 28, 32, 48);
+  static const EdgeInsets profilePagePadding = EdgeInsets.fromLTRB(
+    32,
+    28,
+    32,
+    shellBottomInset,
+  );
   static const double panelRadiusValue = 8;
   static const double itemRadiusValue = 6;
   static const double workspaceRadiusValue = 0;

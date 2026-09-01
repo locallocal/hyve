@@ -71,6 +71,11 @@ void main() {
       HyveDesktopThemeSpec.formPagePadding,
       const EdgeInsets.fromLTRB(32, 28, 32, 48),
     );
+    expect(HyveDesktopThemeSpec.shellBottomInset, 18);
+    expect(
+      HyveDesktopThemeSpec.profilePagePadding.bottom,
+      HyveDesktopThemeSpec.accountButtonPadding.bottom,
+    );
   });
 
   testWidgets('desktop theme exposes the documented dark fallback tokens', (

@@ -82,7 +82,7 @@ extension _DesktopLayoutWorkspace on _DesktopLayoutState {
           ),
           const ShadSeparator.horizontal(),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
+            padding: HyveDesktopThemeSpec.accountButtonPadding,
             child: _AccountButton(
               selected: widget.currentIndex >= 2,
               useLucideIcon: widget.currentIndex == 0,

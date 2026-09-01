@@ -174,6 +174,28 @@ void main() {
     }
   });
 
+  testWidgets('desktop legal section matches the account button bottom inset', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    try {
+      await tester.pumpWidget(_profileHarness());
+      await tester.pumpAndSettle();
+
+      final scrollView = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+
+      expect(scrollView.padding, HyveDesktopThemeSpec.profilePagePadding);
+      expect(
+        HyveDesktopThemeSpec.profilePagePadding.bottom,
+        HyveDesktopThemeSpec.accountButtonPadding.bottom,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('desktop about dialog groups app and legal information', (
     tester,
   ) async {

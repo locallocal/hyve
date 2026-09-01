@@ -395,7 +395,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return ColoredBox(
       color: HyveDesktopThemeSpec.workspaceSurface(context),
       child: SingleChildScrollView(
-        padding: HyveDesktopThemeSpec.formPagePadding,
+        padding: HyveDesktopThemeSpec.profilePagePadding,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(

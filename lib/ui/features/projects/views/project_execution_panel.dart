@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
@@ -482,6 +484,48 @@ final class _TurnCard extends StatelessWidget {
             .map((run) => run.rootRunId)
             .where((id) => id.isNotEmpty)
             .toSet();
+    final cancellationActions = <Widget>[
+      if (!turn.isTerminal)
+        ProjectActionButton(
+          key: ValueKey<String>('cancel-turn-${turn.id}'),
+          onPressed:
+              () => unawaited(
+                _confirmCancellation(
+                  context,
+                  title: copy.cancelTurnTitle,
+                  description: copy.cancelTurnDescription,
+                  confirmLabel: copy.cancelTurn,
+                  confirmKey: ValueKey<String>(
+                    'confirm-cancel-turn-${turn.id}',
+                  ),
+                  onConfirmed: () => onCancelTurn(turn.id),
+                ),
+              ),
+          leading: const Icon(LucideIcons.square, size: 16),
+          label: copy.cancelTurn,
+          variant: ProjectActionVariant.outline,
+        ),
+      for (final rootId in activeRoots)
+        ProjectActionButton(
+          key: ValueKey<String>('cancel-root-chain-$rootId'),
+          onPressed:
+              () => unawaited(
+                _confirmCancellation(
+                  context,
+                  title: copy.cancelRootChainTitle,
+                  description: copy.cancelRootChainDescription,
+                  confirmLabel: copy.cancelRootChain,
+                  confirmKey: ValueKey<String>(
+                    'confirm-cancel-root-chain-$rootId',
+                  ),
+                  onConfirmed: () => onCancelRootChain(rootId),
+                ),
+              ),
+          leading: const Icon(LucideIcons.circleStop, size: 16),
+          label: copy.cancelRootChain,
+          variant: ProjectActionVariant.outline,
+        ),
+    ];
     return ProjectSurfaceCard(
       padding: EdgeInsets.zero,
       child: ProjectDisclosure(
@@ -495,27 +539,8 @@ final class _TurnCard extends StatelessWidget {
         ),
         childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         children: <Widget>[
-          if (!turn.isTerminal)
-            Align(
-              alignment: Alignment.centerRight,
-              child: ProjectActionButton(
-                key: ValueKey<String>('cancel-turn-${turn.id}'),
-                onPressed: () => onCancelTurn(turn.id),
-                leading: const Icon(LucideIcons.square, size: 16),
-                label: copy.cancelTurn,
-                variant: ProjectActionVariant.destructive,
-              ),
-            ),
-          for (final rootId in activeRoots)
-            Align(
-              alignment: Alignment.centerRight,
-              child: ProjectActionButton(
-                onPressed: () => onCancelRootChain(rootId),
-                leading: const Icon(LucideIcons.circleStop, size: 16),
-                label: copy.cancelRootChain,
-                variant: ProjectActionVariant.outline,
-              ),
-            ),
+          if (cancellationActions.isNotEmpty)
+            _CancellationToolbar(children: cancellationActions),
           for (final run in orderedRuns)
             Padding(
               padding: EdgeInsets.only(
@@ -582,10 +607,23 @@ final class _RunTile extends StatelessWidget {
             run.isTerminal
                 ? null
                 : ProjectIconAction(
+                  key: ValueKey<String>('cancel-run-${run.id}'),
                   label: copy.cancelRun,
-                  onPressed: onCancel,
+                  onPressed:
+                      () => unawaited(
+                        _confirmCancellation(
+                          context,
+                          title: copy.cancelRunTitle,
+                          description: copy.cancelRunDescription,
+                          confirmLabel: copy.cancelRun,
+                          confirmKey: ValueKey<String>(
+                            'confirm-cancel-run-${run.id}',
+                          ),
+                          onConfirmed: onCancel,
+                        ),
+                      ),
                   icon: LucideIcons.square,
-                  destructive: true,
+                  variant: ShadButtonVariant.outline,
                 ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -612,6 +650,47 @@ final class _RunTile extends StatelessWidget {
       ),
     );
   }
+}
+
+final class _CancellationToolbar extends StatelessWidget {
+  const _CancellationToolbar({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Align(
+      alignment: Alignment.centerRight,
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 8,
+        children: children,
+      ),
+    ),
+  );
+}
+
+Future<void> _confirmCancellation(
+  BuildContext context, {
+  required String title,
+  required String description,
+  required String confirmLabel,
+  required Key confirmKey,
+  required VoidCallback onConfirmed,
+}) async {
+  final copy = ProjectLocalizations.of(context);
+  final confirmed = await showProjectConfirmation(
+    context: context,
+    title: title,
+    description: description,
+    cancelLabel: copy.cancel,
+    confirmLabel: confirmLabel,
+    destructive: true,
+    confirmKey: confirmKey,
+  );
+  if (confirmed && context.mounted) onConfirmed();
 }
 
 String _duration(AgentRun run) {

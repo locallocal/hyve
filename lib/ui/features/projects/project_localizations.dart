@@ -240,8 +240,24 @@ final class ProjectLocalizations {
   String get noExecutions => _text('No execution records yet', '暂无执行记录');
   String get executionRuns => _text('Run history', '运行记录');
   String get cancelRun => _text('Cancel run', '取消运行');
+  String get cancelRunTitle => _text('Cancel this run?', '取消此运行？');
+  String get cancelRunDescription => _text(
+    'Only this run will stop. Other active runs in the turn will continue.',
+    '仅停止此运行；同一轮次中的其他活跃运行将继续。',
+  );
   String get cancelTurn => _text('Cancel turn', '取消轮次');
+  String get cancelTurnTitle => _text('Cancel this turn?', '取消此轮次？');
+  String get cancelTurnDescription => _text(
+    'Every active run in this turn will stop. Completed results will be kept.',
+    '此轮次中的所有活跃运行都将停止；已完成的结果会保留。',
+  );
   String get cancelRootChain => _text('Cancel root chain', '取消根消息链');
+  String get cancelRootChainTitle =>
+      _text('Cancel this root message chain?', '取消此根消息链？');
+  String get cancelRootChainDescription => _text(
+    'Active runs in this root message chain, including descendant deliveries, will stop. Other chains will continue.',
+    '此根消息链及其后续交付中的活跃运行都将停止；其他消息链将继续。',
+  );
   String get contextReport => _text('Context report', '上下文报告');
   String get auditEvents => _text('Audit events', '审计事件');
   String get noAuditEvents => _text('No audit events yet', '暂无审计事件');

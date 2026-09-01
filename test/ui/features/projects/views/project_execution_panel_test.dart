@@ -80,9 +80,126 @@ void main() {
     expect(find.textContaining('memory-1'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Cancel run'));
+    await tester.pumpAndSettle();
+
+    expect(cancelledRun, isNull);
+    expect(find.text('Cancel this run?'), findsOneWidget);
+    expect(
+      find.text(
+        'Only this run will stop. Other active runs in the turn will continue.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(ValueKey<String>('confirm-cancel-run-${run.id}')),
+    );
+    await tester.pumpAndSettle();
+
     expect(cancelledRun, run.id);
     expect(tester.takeException(), isNull);
     semantics.dispose();
+  });
+
+  testWidgets('uses consistent Shad cancellation actions and confirmations', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 31);
+    final turn = _turn(now);
+    final run = _run(now);
+    String? cancelledRun;
+    String? cancelledTurn;
+    String? cancelledRootChain;
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('en'),
+        homeBuilder:
+            (_) => SizedBox(
+              width: 420,
+              height: 700,
+              child: ProjectExecutionPanel(
+                embedded: true,
+                turns: <String, ProjectTurn>{turn.id: turn},
+                runs: <String, AgentRun>{run.id: run},
+                decisions: const <String, ParticipationDecision>{},
+                usageRecords: const <ModelTokenUsageRecord>[],
+                events: const <ProjectEvent>[],
+                agentNames: const <String, String>{'agent-1': 'Researcher'},
+                onCancelRun: (id) => cancelledRun = id,
+                onCancelTurn: (id) => cancelledTurn = id,
+                onCancelRootChain: (id) => cancelledRootChain = id,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(ValueKey<String>('project-turn-${turn.id}')));
+    await tester.pumpAndSettle();
+
+    final cancelTurn = find.byKey(ValueKey<String>('cancel-turn-${turn.id}'));
+    final cancelRootChain = find.byKey(
+      ValueKey<String>('cancel-root-chain-${run.rootRunId}'),
+    );
+    final cancelRun = find.byKey(ValueKey<String>('cancel-run-${run.id}'));
+
+    expect(cancelTurn, findsOneWidget);
+    expect(cancelRootChain, findsOneWidget);
+    expect(cancelRun, findsOneWidget);
+    for (final action in <Finder>[cancelTurn, cancelRootChain]) {
+      final button = tester.widget<ShadButton>(
+        find.descendant(of: action, matching: find.byType(ShadButton)),
+      );
+      expect(button.variant, ShadButtonVariant.outline);
+    }
+    final runButton = tester.widget<ShadIconButton>(
+      find.descendant(of: cancelRun, matching: find.byType(ShadIconButton)),
+    );
+    expect(runButton.variant, ShadButtonVariant.outline);
+
+    await tester.tap(cancelTurn);
+    await tester.pumpAndSettle();
+
+    expect(cancelledTurn, isNull);
+    expect(find.byType(ShadDialog), findsOneWidget);
+    expect(find.text('Cancel this turn?'), findsOneWidget);
+    final confirmTurn = find.byKey(
+      ValueKey<String>('confirm-cancel-turn-${turn.id}'),
+    );
+    expect(
+      tester.widget<ShadButton>(confirmTurn).variant,
+      ShadButtonVariant.destructive,
+    );
+    await tester.tap(confirmTurn);
+    await tester.pumpAndSettle();
+    expect(cancelledTurn, turn.id);
+
+    await tester.tap(cancelRootChain);
+    await tester.pumpAndSettle();
+
+    expect(cancelledRootChain, isNull);
+    expect(find.text('Cancel this root message chain?'), findsOneWidget);
+    await tester.tap(
+      find.byKey(
+        ValueKey<String>('confirm-cancel-root-chain-${run.rootRunId}'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(cancelledRootChain, run.rootRunId);
+
+    await tester.tap(cancelRun);
+    await tester.pumpAndSettle();
+
+    expect(cancelledRun, isNull);
+    expect(find.text('Cancel this run?'), findsOneWidget);
+    await tester.tap(
+      find.byKey(ValueKey<String>('confirm-cancel-run-${run.id}')),
+    );
+    await tester.pumpAndSettle();
+    expect(cancelledRun, run.id);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('uses Chinese project copy when the locale is Chinese', (

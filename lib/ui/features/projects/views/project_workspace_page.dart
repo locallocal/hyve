@@ -389,11 +389,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               onRemoveAttachment:
                   (index) => setState(() => _attachments.removeAt(index)),
               onToggleAttachmentPromotion: _toggleAttachmentPromotion,
-              activeRunCount:
-                  viewModel.agentStatuses
-                      .where((status) => status.activeRunId.isNotEmpty)
-                      .length,
-              onCancelRuns: viewModel.cancelActiveRuns,
               onSend: (draft) => unawaited(_submit(draft)),
             ),
           ),

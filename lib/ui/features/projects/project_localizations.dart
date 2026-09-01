@@ -67,7 +67,6 @@ final class ProjectLocalizations {
   );
   String referencingMessages(int count) =>
       _text('$count referencing messages', '$count 条引用消息');
-  String get stopRuns => _text('Stop active runs', '停止运行');
   String get send => _text('Send', '发送');
   String get sending => _text('Sending', '发送中');
   String activity(ProjectAgentActivity activity) => switch (activity) {

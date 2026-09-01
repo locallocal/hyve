@@ -10,6 +10,8 @@ import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
 import 'package:hyve/utils/theme.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+const int _agentMemoryPageSize = 10;
+
 final class AgentMemoryPanel extends StatefulWidget {
   const AgentMemoryPanel({
     super.key,
@@ -192,15 +194,20 @@ final class _AgentMemoryPanelState extends State<AgentMemoryPanel> {
                   child:
                       items.isEmpty
                           ? Center(child: Text(S.of(context).noAgentMemory))
-                          : SingleChildScrollView(
-                            child: SelectableText(
-                              items
-                                  .map((memory) => '• ${memory.content}')
-                                  .join('\n\n'),
-                              key: const ValueKey<String>(
-                                'agent-memory-summary-content',
-                              ),
+                          : _PaginatedAgentMemoryList(
+                            key: const ValueKey<String>(
+                              'agent-memory-summary-content',
                             ),
+                            items: items,
+                            keyPrefix: 'agent-memory-summary',
+                            separatorHeight: 14,
+                            itemBuilder:
+                                (_, memory) => SelectableText(
+                                  '• ${memory.content}',
+                                  key: ValueKey<String>(
+                                    'agent-memory-summary-item-${memory.id}',
+                                  ),
+                                ),
                           ),
                 ),
               ),
@@ -363,18 +370,161 @@ final class _AgentMemoryDialogState extends State<_AgentMemoryDialog> {
                       ],
                     ),
                   )
-                  : ListView.separated(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  : _PaginatedAgentMemoryList(
+                    items: items,
+                    keyPrefix: 'agent-memory',
+                    separatorHeight: 10,
                     itemBuilder:
-                        (context, index) => _AgentMemoryTile(
-                          memory: items[index],
+                        (context, memory) => _AgentMemoryTile(
+                          memory: memory,
                           viewModel: widget.viewModel,
                         ),
                   ),
         ),
       ),
+    );
+  }
+}
+
+typedef _AgentMemoryItemBuilder =
+    Widget Function(BuildContext context, AgentMemory memory);
+
+final class _PaginatedAgentMemoryList extends StatefulWidget {
+  const _PaginatedAgentMemoryList({
+    super.key,
+    required this.items,
+    required this.keyPrefix,
+    required this.itemBuilder,
+    required this.separatorHeight,
+  });
+
+  final List<AgentMemory> items;
+  final String keyPrefix;
+  final _AgentMemoryItemBuilder itemBuilder;
+  final double separatorHeight;
+
+  @override
+  State<_PaginatedAgentMemoryList> createState() =>
+      _PaginatedAgentMemoryListState();
+}
+
+final class _PaginatedAgentMemoryListState
+    extends State<_PaginatedAgentMemoryList> {
+  int _pageIndex = 0;
+
+  int get _totalPages =>
+      (widget.items.length + _agentMemoryPageSize - 1) ~/ _agentMemoryPageSize;
+
+  @override
+  void didUpdateWidget(covariant _PaginatedAgentMemoryList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_totalPages == 0) {
+      _pageIndex = 0;
+    } else if (_pageIndex >= _totalPages) {
+      _pageIndex = _totalPages - 1;
+    }
+  }
+
+  void _showPage(int pageIndex) {
+    if (pageIndex < 0 || pageIndex >= _totalPages || pageIndex == _pageIndex) {
+      return;
+    }
+    setState(() => _pageIndex = pageIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pageStart = _pageIndex * _agentMemoryPageSize;
+    final pageEnd = math.min(
+      pageStart + _agentMemoryPageSize,
+      widget.items.length,
+    );
+    final pageItems = widget.items.sublist(pageStart, pageEnd);
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: ListView.separated(
+            key: ValueKey<String>(
+              '${widget.keyPrefix}-list-page-${_pageIndex + 1}',
+            ),
+            padding: const EdgeInsets.only(bottom: 4),
+            itemCount: pageItems.length,
+            separatorBuilder:
+                (_, _) => SizedBox(height: widget.separatorHeight),
+            itemBuilder:
+                (context, index) =>
+                    widget.itemBuilder(context, pageItems[index]),
+          ),
+        ),
+        if (_totalPages > 1) ...<Widget>[
+          const SizedBox(height: 12),
+          _AgentMemoryPagination(
+            keyPrefix: widget.keyPrefix,
+            currentPage: _pageIndex + 1,
+            totalPages: _totalPages,
+            onPrevious:
+                _pageIndex == 0 ? null : () => _showPage(_pageIndex - 1),
+            onNext:
+                _pageIndex == _totalPages - 1
+                    ? null
+                    : () => _showPage(_pageIndex + 1),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+final class _AgentMemoryPagination extends StatelessWidget {
+  const _AgentMemoryPagination({
+    required this.keyPrefix,
+    required this.currentPage,
+    required this.totalPages,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final String keyPrefix;
+  final int currentPage;
+  final int totalPages;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
+    final pageLabel = '$currentPage / $totalPages';
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        HyveDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-previous-page'),
+          icon: LucideIcons.chevronLeft,
+          label: localizations.previousPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: onPrevious != null,
+          onPressed: onPrevious,
+        ),
+        const SizedBox(width: 12),
+        Semantics(
+          label: pageLabel,
+          child: Text(
+            pageLabel,
+            key: ValueKey<String>('$keyPrefix-page-indicator'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        HyveDesktopIconAction(
+          key: ValueKey<String>('$keyPrefix-next-page'),
+          icon: LucideIcons.chevronRight,
+          label: localizations.nextPageTooltip,
+          variant: ShadButtonVariant.outline,
+          iconSize: 16,
+          enabled: onNext != null,
+          onPressed: onNext,
+        ),
+      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:hyve/domain/repositories/agent_memory_evolution_repository.dart'
 import 'package:hyve/domain/repositories/agent_memory_repository.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
 import 'package:hyve/ui/features/bots/view_models/agent_memory_view_model.dart';
+import 'package:hyve/ui/features/bots/views/agent_memory_panel.dart';
 import 'package:hyve/ui/features/bots/views/edit_bot.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -133,6 +134,92 @@ void main() {
     expect(find.byType(ListTile), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('agent memory displays ten items per page', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 900);
+    addTearDown(tester.view.reset);
+
+    final memories = <AgentMemory>[
+      for (var index = 1; index <= 21; index++)
+        _memory.copyWith(
+          id: 'memory-$index',
+          content: 'Memory ${index.toString().padLeft(2, '0')}',
+        ),
+    ];
+    final memoryRepository = _AgentMemoryRepository.fromMemories(memories);
+    final viewModel = AgentMemoryViewModel(
+      agentId: _agent.id,
+      agentRepository: _AgentRepository(_agent),
+      memoryRepository: memoryRepository,
+      evolutionRepository: const _AgentMemoryEvolutionRepository(),
+    );
+    addTearDown(viewModel.dispose);
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (_) => Scaffold(
+              body: SizedBox(
+                width: 720,
+                child: AgentMemoryPanel(viewModel: viewModel),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey<String>('memory-manage')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Memory 01'), findsOneWidget);
+    expect(find.text('Memory 11'), findsNothing);
+    expect(find.text('1 / 3'), findsOneWidget);
+    expect(
+      tester
+          .widget<ListView>(
+            find.byKey(const ValueKey<String>('agent-memory-list-page-1')),
+          )
+          .semanticChildCount,
+      10,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('agent-memory-next-page')),
+    );
+    await tester.pump();
+
+    expect(find.text('Memory 01'), findsNothing);
+    expect(find.text('Memory 11'), findsOneWidget);
+    expect(find.text('Memory 21'), findsNothing);
+    expect(find.text('2 / 3'), findsOneWidget);
+    expect(
+      tester
+          .widget<ListView>(
+            find.byKey(const ValueKey<String>('agent-memory-list-page-2')),
+          )
+          .semanticChildCount,
+      10,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('agent-memory-next-page')),
+    );
+    await tester.pump();
+
+    expect(find.text('Memory 21'), findsOneWidget);
+    expect(find.text('3 / 3'), findsOneWidget);
+    expect(
+      tester
+          .widget<ListView>(
+            find.byKey(const ValueKey<String>('agent-memory-list-page-3')),
+          )
+          .semanticChildCount,
+      1,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
 
 final _bot = Bot(
@@ -194,9 +281,12 @@ final class _AgentRepository implements AgentRepository {
 }
 
 final class _AgentMemoryRepository implements AgentMemoryRepository {
-  _AgentMemoryRepository(this.memory);
+  _AgentMemoryRepository(AgentMemory memory) : memories = <AgentMemory>[memory];
 
-  final AgentMemory memory;
+  _AgentMemoryRepository.fromMemories(Iterable<AgentMemory> memories)
+    : memories = List<AgentMemory>.of(memories);
+
+  final List<AgentMemory> memories;
   final List<String> requestedAgentIds = <String>[];
   final List<String> forgottenIds = <String>[];
 
@@ -209,7 +299,7 @@ final class _AgentMemoryRepository implements AgentMemoryRepository {
     bool includeHistory = false,
   }) async {
     requestedAgentIds.add(agentId);
-    return <AgentMemory>[memory];
+    return List<AgentMemory>.unmodifiable(memories);
   }
 
   @override
@@ -220,6 +310,7 @@ final class _AgentMemoryRepository implements AgentMemoryRepository {
   }) async {
     requestedAgentIds.add(agentId);
     forgottenIds.add(memoryId);
+    final memory = memories.firstWhere((item) => item.id == memoryId);
     return AgentMemoryMutationResult(memory: memory, revision: 1);
   }
 

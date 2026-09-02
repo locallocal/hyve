@@ -196,16 +196,6 @@ class ChatListBuilder extends StatelessWidget {
         if (isDesktop) {
           final contextItems = <Widget>[
             ShadContextMenuItem(
-              leading: const Icon(desktopProjectIcon, size: 16),
-              onPressed: openChat,
-              child: Text(
-                desktopProjectText(context, S.of(context).startChatting),
-              ),
-            ),
-            const ShadSeparator.horizontal(
-              margin: EdgeInsets.symmetric(vertical: 4),
-            ),
-            ShadContextMenuItem(
               leading: Icon(
                 LucideIcons.trash2,
                 size: 16,
@@ -222,11 +212,7 @@ class ChatListBuilder extends StatelessWidget {
             key: ValueKey('chat-menu-${chat.id}'),
             items: contextItems,
             child: buildListItem(
-              trailing: _ChatRowActions(
-                canOpen: true,
-                onOpen: openChat,
-                onDelete: deleteChat,
-              ),
+              trailing: _ChatRowActions(onDelete: deleteChat),
             ),
           );
         }
@@ -268,14 +254,8 @@ class ChatListBuilder extends StatelessWidget {
 }
 
 class _ChatRowActions extends StatefulWidget {
-  const _ChatRowActions({
-    required this.canOpen,
-    required this.onOpen,
-    required this.onDelete,
-  });
+  const _ChatRowActions({required this.onDelete});
 
-  final bool canOpen;
-  final VoidCallback onOpen;
   final VoidCallback onDelete;
 
   @override
@@ -332,16 +312,6 @@ class _ChatRowActionsState extends State<_ChatRowActions> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ShadButton.ghost(
-                    size: ShadButtonSize.sm,
-                    enabled: widget.canOpen,
-                    onPressed: () => _invoke(widget.onOpen),
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    leading: const Icon(desktopProjectIcon, size: 16),
-                    child: Text(
-                      desktopProjectText(context, S.of(context).startChatting),
-                    ),
-                  ),
                   ShadButton.raw(
                     variant: ShadButtonVariant.ghost,
                     size: ShadButtonSize.sm,

@@ -198,7 +198,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "changeAvatar": MessageLookupByLibrary.simpleMessage("아바타 변경"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("채팅 실행 상태"),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search matches bot names and the latest message.",
     ),
@@ -738,7 +737,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
-      "대화 메시지에 실행 세부 정보를 표시합니다.",
+      "사용 설정하면 프로젝트 대화에서 에이전트 메시지의 토큰 사용량과 도구, MCP 등의 호출 세부 정보를 확인할 수 있습니다.",
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),

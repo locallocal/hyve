@@ -255,6 +255,7 @@ void main() {
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     Profile? savedProfile;
+    final semantics = tester.ensureSemantics();
     try {
       await tester.pumpWidget(
         _profileHarness(
@@ -267,15 +268,61 @@ void main() {
       final switchFinder = find.byKey(
         const ValueKey<String>('profile-show-execution-status-switch'),
       );
+      final settingFinder = find.byKey(
+        const ValueKey<String>('profile-execution-status-setting'),
+      );
       expect(generalSection, findsOneWidget);
       expect(switchFinder, findsOneWidget);
+      expect(settingFinder, findsOneWidget);
+      expect(
+        find.descendant(of: settingFinder, matching: find.byType(ShadSwitch)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: settingFinder,
+          matching: find.byIcon(LucideIcons.activity),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.ancestor(of: settingFinder, matching: find.byType(ShadCard)),
+        findsOneWidget,
+      );
+      expect(find.text('执行状态'), findsOneWidget);
+      expect(find.text('项目执行状态'), findsNothing);
+      expect(
+        find.text(
+          '开启后，可在项目的会话列表中查看智能体消息的 Token 使用情况，'
+          '以及工具、MCP 等调用详情。',
+        ),
+        findsOneWidget,
+      );
       expect(tester.widget<ShadSwitch>(switchFinder).value, isTrue);
+      await Scrollable.ensureVisible(
+        tester.element(settingFinder),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSemantics(settingFinder),
+        matchesSemantics(
+          label: '执行状态',
+          hint:
+              '开启后，可在项目的会话列表中查看智能体消息的 Token 使用情况，'
+              '以及工具、MCP 等调用详情。',
+          hasEnabledState: true,
+          isEnabled: true,
+          hasToggledState: true,
+          isToggled: true,
+          hasTapAction: true,
+        ),
+      );
       expect(
         tester.getTopLeft(generalSection).dy,
         greaterThan(tester.getTopLeft(find.text('外观与语言')).dy),
       );
 
-      await tester.ensureVisible(switchFinder);
       await tester.tap(switchFinder);
       await tester.pumpAndSettle();
 
@@ -283,6 +330,7 @@ void main() {
       expect(savedProfile?.showExecutionStatus, isFalse);
       expect(tester.takeException(), isNull);
     } finally {
+      semantics.dispose();
       debugDefaultTargetPlatformOverride = null;
     }
   });
@@ -311,6 +359,12 @@ void main() {
       final promptPanel = find.byKey(
         const ValueKey<String>('profile-application-injected-prompt'),
       );
+      final executionSetting = find.byKey(
+        const ValueKey<String>('profile-execution-status-setting'),
+      );
+      final executionSwitch = find.byKey(
+        const ValueKey<String>('profile-show-execution-status-switch'),
+      );
       await tester.scrollUntilVisible(
         skillEntry,
         300,
@@ -319,6 +373,19 @@ void main() {
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
       expect(promptPanel, findsNothing);
+      expect(executionSetting, findsOneWidget);
+      expect(executionSwitch, findsOneWidget);
+      expect(tester.widget<ShadSwitch>(executionSwitch).value, isTrue);
+      expect(find.text('执行状态'), findsOneWidget);
+      expect(find.text('项目执行状态'), findsNothing);
+      expect(
+        tester.getTopLeft(skillEntry).dy,
+        lessThan(tester.getTopLeft(mcpEntry).dy),
+      );
+      expect(
+        tester.getTopLeft(mcpEntry).dy,
+        lessThan(tester.getTopLeft(executionSetting).dy),
+      );
       expect(
         find.descendant(
           of: mcpEntry,
@@ -327,7 +394,11 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.ensureVisible(skillEntry);
+      await Scrollable.ensureVisible(
+        tester.element(skillEntry),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(skillEntry);
       await Scrollable.ensureVisible(tester.element(mcpEntry), alignment: 0.5);
       await tester.pumpAndSettle();
@@ -345,6 +416,9 @@ void main() {
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
     var skillOpenCount = 0;
     var mcpOpenCount = 0;
     try {
@@ -365,6 +439,12 @@ void main() {
       final promptPanel = find.byKey(
         const ValueKey<String>('profile-application-injected-prompt'),
       );
+      final executionSetting = find.byKey(
+        const ValueKey<String>('profile-execution-status-setting'),
+      );
+      final executionSwitch = find.byKey(
+        const ValueKey<String>('profile-show-execution-status-switch'),
+      );
       await tester.scrollUntilVisible(
         skillEntry,
         300,
@@ -373,8 +453,25 @@ void main() {
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
       expect(promptPanel, findsNothing);
+      expect(executionSetting, findsOneWidget);
+      expect(executionSwitch, findsOneWidget);
+      expect(tester.widget<ShadSwitch>(executionSwitch).value, isTrue);
+      expect(find.text('执行状态'), findsOneWidget);
+      expect(find.text('项目执行状态'), findsNothing);
+      expect(
+        tester.getTopLeft(skillEntry).dy,
+        lessThan(tester.getTopLeft(mcpEntry).dy),
+      );
+      expect(
+        tester.getTopLeft(mcpEntry).dy,
+        lessThan(tester.getTopLeft(executionSetting).dy),
+      );
 
-      await tester.ensureVisible(skillEntry);
+      await Scrollable.ensureVisible(
+        tester.element(skillEntry),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(skillEntry);
       await Scrollable.ensureVisible(tester.element(mcpEntry), alignment: 0.5);
       await tester.pumpAndSettle();

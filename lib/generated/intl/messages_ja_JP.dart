@@ -200,7 +200,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "changeAvatar": MessageLookupByLibrary.simpleMessage("アバターを変更"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("チャットの実行状況"),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search matches bot names and the latest message.",
     ),
@@ -744,7 +743,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
-      "会話メッセージに実行の詳細を表示します。",
+      "有効にすると、プロジェクトの会話でエージェントメッセージのトークン使用量やツール、MCP などの呼び出し詳細を確認できます。",
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),

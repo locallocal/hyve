@@ -207,9 +207,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "changeAvatar": MessageLookupByLibrary.simpleMessage("Alterar avatar"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("Saved"),
     "chatDeleted": m5,
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage(
-      "Status de execução do chat",
-    ),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "Search matches bot names and the latest message.",
     ),
@@ -859,7 +856,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "showApiKey": MessageLookupByLibrary.simpleMessage("Show API Key"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
-      "Mostrar detalhes da execução nas mensagens da conversa.",
+      "Quando ativado, as conversas do projeto mostram o uso de tokens e os detalhes de chamadas de ferramentas, MCP e outros recursos nas mensagens dos agentes.",
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("Show Bot Info"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("Show Sidebar"),

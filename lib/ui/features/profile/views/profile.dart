@@ -353,6 +353,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   widget.onOpenMcpServers,
                   key: const ValueKey<String>('profile-mcp-servers'),
                 ),
+                const SizedBox(height: 8),
+                _buildExecutionStatusControl(context, desktop: false),
               ],
             ),
             _buildSettingsSection(
@@ -462,7 +464,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       subtitle: S.of(context).mcpServersDescription,
                       onTap: widget.onOpenMcpServers,
                     ),
-                    _buildDesktopExecutionStatusControl(context),
+                    _buildExecutionStatusControl(context, desktop: true),
                   ],
                 ),
                 const SizedBox(height: 32),

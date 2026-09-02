@@ -1454,20 +1454,10 @@ class S {
     );
   }
 
-  /// `Chat execution status`
-  String get chatExecutionStatus {
-    return Intl.message(
-      'Chat execution status',
-      name: 'chatExecutionStatus',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Show execution details in conversation messages.`
+  /// `When enabled, project conversations show token usage and tool, MCP, and other call details for agent messages.`
   String get showExecutionStatusDescription {
     return Intl.message(
-      'Show execution details in conversation messages.',
+      'When enabled, project conversations show token usage and tool, MCP, and other call details for agent messages.',
       name: 'showExecutionStatusDescription',
       desc: '',
       args: [],

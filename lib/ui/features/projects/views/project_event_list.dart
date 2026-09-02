@@ -66,17 +66,27 @@ final class ProjectEventList extends StatefulWidget {
 
 final class _ProjectEventListState extends State<ProjectEventList> {
   static const double _loadEarlierThreshold = 240;
+  static const double _followLatestThreshold = 96;
 
   late final ScrollController _scrollController;
   late List<ProjectEvent> _messages;
   late Map<Key, int> _messageIndexesByKey;
+  late bool _followLatest;
+  bool _showJumpToLatest = false;
   bool _autoScrollScheduled = false;
   bool _loadEarlierScheduled = false;
+  bool _latestVisibilityUpdateScheduled = false;
 
-  Object? _latestMessageState(Iterable<ProjectEvent> events) {
-    final messages = events.where(ProjectEventList._isTimelineEntry);
-    if (messages.isEmpty) return null;
-    final latest = messages.last;
+  ProjectEvent? _latestMessage(Iterable<ProjectEvent> events) {
+    ProjectEvent? latest;
+    for (final event in events) {
+      if (ProjectEventList._isTimelineEntry(event)) latest = event;
+    }
+    return latest;
+  }
+
+  Object? _latestMessageState(ProjectEvent? latest) {
+    if (latest == null) return null;
     return (latest.id, latest.content, latest.updatedAt);
   }
 
@@ -86,10 +96,12 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     _scrollController = ScrollController(
       initialScrollOffset: widget.initialScrollOffset,
     )..addListener(_handleScrollChanged);
+    _followLatest = widget.initialScrollOffset <= _followLatestThreshold;
     _indexMessages();
     if (_messages.isNotEmpty && widget.initialScrollOffset <= 0) {
       _scheduleScrollToLatest(animate: false);
     }
+    _scheduleLatestVisibilityUpdate();
     _scheduleLoadEarlierIfNeeded();
   }
 
@@ -97,11 +109,19 @@ final class _ProjectEventListState extends State<ProjectEventList> {
   void didUpdateWidget(covariant ProjectEventList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.events, widget.events)) _indexMessages();
-    final previousLatest = _latestMessageState(oldWidget.events);
-    final currentLatest = _latestMessageState(widget.events);
-    if (currentLatest != null && currentLatest != previousLatest) {
+    final previousLatest = _latestMessage(oldWidget.events);
+    final currentLatest = _latestMessage(widget.events);
+    final latestChanged =
+        _latestMessageState(currentLatest) !=
+        _latestMessageState(previousLatest);
+    final userSentNewMessage =
+        currentLatest != null &&
+        currentLatest.id != previousLatest?.id &&
+        currentLatest.actorType == ProjectEventActorType.user;
+    if (latestChanged && (_followLatest || userSentNewMessage)) {
       _scheduleScrollToLatest();
     }
+    _scheduleLatestVisibilityUpdate();
     if (widget.hasEarlier && !widget.loadingEarlier) {
       _scheduleLoadEarlierIfNeeded();
     }
@@ -122,6 +142,30 @@ final class _ProjectEventListState extends State<ProjectEventList> {
     if (!_scrollController.hasClients) return;
     widget.onScrollOffsetChanged?.call(_scrollController.offset);
     _loadEarlierIfNeeded();
+    _updateLatestVisibility();
+  }
+
+  void _scheduleLatestVisibilityUpdate() {
+    if (_latestVisibilityUpdateScheduled) return;
+    _latestVisibilityUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _latestVisibilityUpdateScheduled = false;
+      if (!mounted) return;
+      _updateLatestVisibility();
+    });
+  }
+
+  void _updateLatestVisibility() {
+    if (!_scrollController.hasClients) return;
+    final nearLatest =
+        _scrollController.position.extentBefore <= _followLatestThreshold;
+    if (_followLatest == nearLatest && _showJumpToLatest == !nearLatest) {
+      return;
+    }
+    setState(() {
+      _followLatest = nearLatest;
+      _showJumpToLatest = !nearLatest;
+    });
   }
 
   void _scheduleLoadEarlierIfNeeded() {
@@ -153,7 +197,10 @@ final class _ProjectEventListState extends State<ProjectEventList> {
       if (!mounted || !_scrollController.hasClients) return;
       final position = _scrollController.position;
       final target = position.minScrollExtent;
-      if ((target - position.pixels).abs() < 0.5) return;
+      if ((target - position.pixels).abs() < 0.5) {
+        _updateLatestVisibility();
+        return;
+      }
       final disableAnimations =
           MediaQuery.maybeOf(context)?.disableAnimations ?? false;
       if (!animate || disableAnimations) {
@@ -173,6 +220,8 @@ final class _ProjectEventListState extends State<ProjectEventList> {
       );
     });
   }
+
+  void _jumpToLatest() => _scheduleScrollToLatest();
 
   @override
   void dispose() {
@@ -388,10 +437,27 @@ final class _ProjectEventListState extends State<ProjectEventList> {
         );
       },
     );
-    return ScrollConfiguration(
+    final scrollable = ScrollConfiguration(
       key: const ValueKey<String>('project-event-scroll-configuration'),
       behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
       child: timeline,
+    );
+    return Stack(
+      children: <Widget>[
+        scrollable,
+        if (_showJumpToLatest)
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: ProjectActionButton(
+              key: const ValueKey<String>('project-jump-to-latest'),
+              label: copy.jumpToLatest,
+              onPressed: _jumpToLatest,
+              leading: const Icon(LucideIcons.arrowDown, size: 16),
+              variant: ProjectActionVariant.secondary,
+            ),
+          ),
+      ],
     );
   }
 }

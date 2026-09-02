@@ -212,9 +212,7 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  testWidgets('timeline anchors user sends and follows new agent messages', (
-    tester,
-  ) async {
+  testWidgets('shows jump to latest while reading history', (tester) async {
     final now = DateTime.utc(2026, 8, 24);
     final initialEvents = <ProjectEvent>[
       for (var sequence = 2; sequence <= 13; sequence++)
@@ -263,8 +261,12 @@ void main() {
       matching: find.byType(Scrollable),
     );
     final position = tester.state<ScrollableState>(scrollable.first).position;
+    final jumpToLatest = find.byKey(
+      const ValueKey<String>('project-jump-to-latest'),
+    );
     expect(position.maxScrollExtent, greaterThan(0));
     expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+    expect(jumpToLatest, findsNothing);
 
     events.value = <ProjectEvent>[
       ...events.value,
@@ -286,6 +288,20 @@ void main() {
 
     position.jumpTo(position.maxScrollExtent);
     await tester.pump();
+    expect(jumpToLatest, findsOneWidget);
+    expect(find.text('回到最新'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.arrowDown), findsOneWidget);
+    final shadButton = find.descendant(
+      of: jumpToLatest,
+      matching: find.byType(ShadButton),
+    );
+    expect(shadButton, findsOneWidget);
+    expect(
+      tester.widget<ShadButton>(shadButton).variant,
+      ShadButtonVariant.secondary,
+    );
+    expect(tester.widget<ShadButton>(shadButton).size, ShadButtonSize.sm);
+    expect(find.bySemanticsLabel('回到最新'), findsOneWidget);
     final positionBeforeEarlierHistory = position.pixels;
     events.value = <ProjectEvent>[
       _message(
@@ -315,7 +331,8 @@ void main() {
       ),
     ];
     await tester.pumpAndSettle();
-    expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+    expect(position.pixels, closeTo(positionBeforeEarlierHistory, 0.5));
+    expect(jumpToLatest, findsOneWidget);
 
     events.value = <ProjectEvent>[
       ...events.value.take(events.value.length - 1),
@@ -330,7 +347,13 @@ void main() {
       ),
     ];
     await tester.pumpAndSettle();
+    expect(position.pixels, closeTo(positionBeforeEarlierHistory, 0.5));
+    expect(jumpToLatest, findsOneWidget);
+
+    await tester.tap(jumpToLatest);
+    await tester.pumpAndSettle();
     expect(position.pixels, closeTo(position.minScrollExtent, 0.5));
+    expect(jumpToLatest, findsNothing);
     expect(tester.takeException(), isNull);
   });
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/utils/utils.dart';
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/domain/services/hyve_system_prompt.dart';
 import 'package:hyve/l10n/app_localizations.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/dependency_injection/app_scope.dart';
@@ -29,7 +28,6 @@ class ProfilePage extends StatefulWidget {
     this.onProfileSaved,
     this.viewModel,
     this.avatarPicker,
-    this.applicationPromptProvider,
     required this.onOpenSkillLibrary,
     required this.onOpenMcpServers,
   });
@@ -39,7 +37,6 @@ class ProfilePage extends StatefulWidget {
   final Future<void> Function(Profile profile)? onProfileSaved;
   final ProfileViewModel? viewModel;
   final Future<String?> Function()? avatarPicker;
-  final String Function()? applicationPromptProvider;
   final VoidCallback onOpenSkillLibrary;
   final VoidCallback onOpenMcpServers;
 
@@ -96,9 +93,6 @@ class _ProfilePageState extends State<ProfilePage> {
   // 获取字体大小
   double get _fontSize => _profile?.fontSize ?? 16.0;
   bool get _showExecutionStatus => _profile?.showExecutionStatus ?? true;
-  String get _applicationInjectedPrompt =>
-      (widget.applicationPromptProvider?.call() ?? currentHyveSystemPrompt())
-          .trim();
 
   @override
   void initState() {
@@ -359,8 +353,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   widget.onOpenMcpServers,
                   key: const ValueKey<String>('profile-mcp-servers'),
                 ),
-                const SizedBox(height: 12),
-                _buildApplicationInjectedPrompt(context, desktop: false),
               ],
             ),
             _buildSettingsSection(
@@ -471,7 +463,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       onTap: widget.onOpenMcpServers,
                     ),
                     _buildDesktopExecutionStatusControl(context),
-                    _buildApplicationInjectedPrompt(context, desktop: true),
                   ],
                 ),
                 const SizedBox(height: 32),

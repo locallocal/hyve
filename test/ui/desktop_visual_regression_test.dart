@@ -373,7 +373,6 @@ class _DesktopVisualGalleryState extends State<_DesktopVisualGallery> {
         modifyTimestamp: DateTime(2026, 8, 12),
       ),
       onProfileSaved: (_) async {},
-      applicationPromptProvider: () => 'Stable visual regression prompt.',
       onOpenSkillLibrary: () {},
       onOpenMcpServers: () {},
     );

@@ -46,6 +46,7 @@ final class ProjectLocalizations {
   );
   String get loadingWorkspace => _text('Loading project', '正在加载项目');
   String get loadEarlierEvents => _text('Load earlier events', '加载更早事件');
+  String get jumpToLatest => _text('Jump to latest', '回到最新');
   String get broadcastHint => _text(
     'Type a message. Without @ it will be broadcast to all active agents.',
     '输入消息；不选择 @ 时将广播给全部活跃智能体。',

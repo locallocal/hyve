@@ -239,46 +239,79 @@ extension _ProfileSettingsControls on _ProfilePageState {
     );
   }
 
-  Widget _buildDesktopExecutionStatusControl(BuildContext context) {
-    return MergeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              child: Icon(
-                LucideIcons.activity,
-                size: 18,
-                color: HyveDesktopThemeSpec.mutedText(context),
+  Widget _buildExecutionStatusControl(
+    BuildContext context, {
+    required bool desktop,
+  }) {
+    final strings = S.of(context);
+    final shadTheme = ShadTheme.of(context);
+    final titleStyle =
+        desktop
+            ? HyveDesktopThemeSpec.bodyStyle(context)
+            : shadTheme.textTheme.small.copyWith(
+              color: shadTheme.colorScheme.foreground,
+              fontSize: _fontSize,
+              fontWeight: FontWeight.w500,
+            );
+    final descriptionStyle =
+        desktop
+            ? HyveDesktopThemeSpec.metaStyle(context)
+            : shadTheme.textTheme.muted.copyWith(fontSize: _fontSize - 2);
+
+    return Semantics(
+      key: const ValueKey<String>('profile-execution-status-setting'),
+      container: true,
+      enabled: true,
+      toggled: _showExecutionStatus,
+      label: strings.executionStatus,
+      hint: strings.showExecutionStatusDescription,
+      onTap: () => _updateShowExecutionStatus(!_showExecutionStatus),
+      child: ExcludeSemantics(
+        child: Padding(
+          padding:
+              desktop
+                  ? const EdgeInsets.symmetric(vertical: 14, horizontal: 8)
+                  : const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width:
+                    desktop
+                        ? HyveDesktopThemeSpec.settingsRowIconSlotWidth
+                        : 24,
+                child: Icon(
+                  LucideIcons.activity,
+                  size: desktop ? HyveDesktopThemeSpec.settingsRowIconSize : 20,
+                  color: shadTheme.colorScheme.mutedForeground,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    S.of(context).chatExecutionStatus,
-                    style: HyveDesktopThemeSpec.bodyStyle(context),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    S.of(context).showExecutionStatusDescription,
-                    style: HyveDesktopThemeSpec.metaStyle(context),
-                  ),
-                ],
+              SizedBox(
+                width: desktop ? HyveDesktopThemeSpec.settingsRowIconGap : 16,
               ),
-            ),
-            const SizedBox(width: 16),
-            ShadSwitch(
-              key: const ValueKey<String>(
-                'profile-show-execution-status-switch',
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(strings.executionStatus, style: titleStyle),
+                    const SizedBox(height: 3),
+                    Text(
+                      strings.showExecutionStatusDescription,
+                      style: descriptionStyle,
+                    ),
+                  ],
+                ),
               ),
-              value: _showExecutionStatus,
-              onChanged: _updateShowExecutionStatus,
-            ),
-          ],
+              const SizedBox(width: 16),
+              ShadSwitch(
+                key: const ValueKey<String>(
+                  'profile-show-execution-status-switch',
+                ),
+                value: _showExecutionStatus,
+                onChanged: _updateShowExecutionStatus,
+              ),
+            ],
+          ),
         ),
       ),
     );

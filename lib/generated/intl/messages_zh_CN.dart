@@ -177,7 +177,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "changeAvatar": MessageLookupByLibrary.simpleMessage("更换头像"),
     "changesSaved": MessageLookupByLibrary.simpleMessage("已保存"),
     "chatDeleted": m5,
-    "chatExecutionStatus": MessageLookupByLibrary.simpleMessage("项目执行状态"),
     "chatSearchScope": MessageLookupByLibrary.simpleMessage(
       "搜索会匹配智能体名称和最后一条消息。",
     ),
@@ -621,7 +620,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage("来自 Hyve 的图片"),
     "showApiKey": MessageLookupByLibrary.simpleMessage("显示 API 密钥"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
-      "在项目内容中显示执行状态。",
+      "开启后，可在项目的会话列表中查看智能体消息的 Token 使用情况，以及工具、MCP 等调用详情。",
     ),
     "showInspector": MessageLookupByLibrary.simpleMessage("显示智能体信息"),
     "showSidebar": MessageLookupByLibrary.simpleMessage("显示侧栏"),

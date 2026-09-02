@@ -30,6 +30,7 @@ void main() {
     'processCommandCount',
     'processFileCount',
     'executionStatus',
+    'showExecutionStatusDescription',
     'toolCalls',
     'commandExecutions',
     'fileStatus',

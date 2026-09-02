@@ -706,11 +706,10 @@ void main() {
     expect(find.textContaining('输出 Token'), findsNothing);
   });
 
-  testWidgets('chat row menu does not show a row focus ring on pointer use', (
+  testWidgets('chat row menu omits open action without pointer focus ring', (
     tester,
   ) async {
     await withDesktopPlatform(() async {
-      var openCount = 0;
       final timestamp = DateTime(2026);
       final bot = Bot(
         id: 'bot-1',
@@ -749,7 +748,7 @@ void main() {
                     selectedChatId: chat.id,
                     onChatDeleted: (_) {},
                     onDeleteChat: (_) async {},
-                    onProjectSelected: (_) => openCount += 1,
+                    onProjectSelected: (_) {},
                   ),
                 ),
               ),
@@ -810,14 +809,15 @@ void main() {
             ?.color,
         selectedForeground,
       );
+      expect(find.text('开始项目吧'), findsNothing);
 
       await tester.tap(
-        find.byIcon(desktopProjectIcon),
+        find.byIcon(LucideIcons.trash2),
         kind: PointerDeviceKind.mouse,
       );
       await tester.pumpAndSettle();
 
-      expect(openCount, 1);
+      expect(find.text('取消'), findsOneWidget);
       expect(menuAction.focusNode!.hasFocus, isFalse);
     });
   });

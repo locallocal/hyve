@@ -287,96 +287,7 @@ void main() {
     }
   });
 
-  testWidgets('general section shows the application prompt as read only', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-    const prompt = '''<hyve_application_context>
-Application: Hyve
-</hyve_application_context>''';
-    final semantics = tester.ensureSemantics();
-    try {
-      await tester.pumpWidget(
-        _profileHarness(applicationPromptProvider: () => prompt),
-      );
-      await tester.pumpAndSettle();
-
-      final promptPanel = find.byKey(
-        const ValueKey<String>('profile-application-injected-prompt'),
-      );
-      final promptValue = find.byKey(
-        const ValueKey<String>('profile-application-prompt-value'),
-      );
-      final promptHeader = find.byKey(
-        const ValueKey<String>('profile-application-prompt-header'),
-      );
-      final promptIcon = find.byKey(
-        const ValueKey<String>('profile-application-prompt-icon'),
-      );
-      final skillEntry = find.byKey(
-        const ValueKey<String>('profile-skill-library'),
-      );
-      final skillIcon = find.descendant(
-        of: skillEntry,
-        matching: find.byIcon(LucideIcons.wrench),
-      );
-      await tester.scrollUntilVisible(
-        promptPanel,
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.ensureVisible(promptValue);
-      await tester.pumpAndSettle();
-
-      expect(promptPanel, findsOneWidget);
-      expect(promptValue, findsOneWidget);
-      expect(promptHeader, findsOneWidget);
-      expect(promptIcon, findsOneWidget);
-      expect(skillIcon, findsOneWidget);
-      expect(find.text('系统提示词'), findsOneWidget);
-      expect(find.text('只读'), findsNothing);
-      expect(
-        find.descendant(
-          of: promptPanel,
-          matching: find.widgetWithText(SelectableText, prompt),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: promptPanel, matching: find.byType(ShadTextarea)),
-        findsNothing,
-      );
-      final promptIconWidget = tester.widget<Icon>(promptIcon);
-      final skillIconWidget = tester.widget<Icon>(skillIcon);
-      expect(promptIconWidget.icon, LucideIcons.lockKeyhole);
-      expect(promptIconWidget.size, HyveDesktopThemeSpec.settingsRowIconSize);
-      expect(promptIconWidget.size, skillIconWidget.size);
-      expect(promptIconWidget.color, skillIconWidget.color);
-      expect(
-        tester.getCenter(promptIcon).dx,
-        closeTo(tester.getCenter(skillIcon).dx, 0.01),
-      );
-      expect(
-        tester.getCenter(promptIcon).dy,
-        closeTo(tester.getCenter(promptHeader).dy, 0.01),
-      );
-      expect(
-        tester.getSemantics(promptValue),
-        matchesSemantics(
-          label: '系统提示词',
-          value: prompt,
-          isTextField: true,
-          isReadOnly: true,
-        ),
-      );
-      expect(tester.takeException(), isNull);
-    } finally {
-      semantics.dispose();
-      debugDefaultTargetPlatformOverride = null;
-    }
-  });
-
-  testWidgets('desktop general section opens Skill and MCP pages', (
+  testWidgets('desktop general section omits prompt and opens Skill and MCP', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
@@ -407,7 +318,7 @@ Application: Hyve
       );
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
-      expect(promptPanel, findsOneWidget);
+      expect(promptPanel, findsNothing);
       expect(
         find.descendant(
           of: mcpEntry,
@@ -430,7 +341,7 @@ Application: Hyve
     }
   });
 
-  testWidgets('mobile general section opens Skill and MCP pages', (
+  testWidgets('mobile general section omits prompt and opens Skill and MCP', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -461,7 +372,7 @@ Application: Hyve
       );
       expect(skillEntry, findsOneWidget);
       expect(mcpEntry, findsOneWidget);
-      expect(promptPanel, findsOneWidget);
+      expect(promptPanel, findsNothing);
 
       await tester.ensureVisible(skillEntry);
       await tester.tap(skillEntry);
@@ -728,7 +639,6 @@ Widget _profileHarness({
   Future<void> Function(Profile profile)? onProfileSaved,
   VoidCallback? onOpenSkillLibrary,
   VoidCallback? onOpenMcpServers,
-  String Function()? applicationPromptProvider,
 }) {
   final shadTheme = buildHyveShadTheme(
     brightness: Brightness.light,
@@ -767,7 +677,6 @@ Widget _profileHarness({
                 modifyTimestamp: DateTime(2026),
               ),
               onProfileSaved: onProfileSaved ?? (_) async {},
-              applicationPromptProvider: applicationPromptProvider,
               onOpenSkillLibrary: onOpenSkillLibrary ?? () {},
               onOpenMcpServers: onOpenMcpServers ?? () {},
             ),

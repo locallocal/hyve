@@ -89,6 +89,10 @@ class BotTokenUsagePanel extends StatelessWidget {
           onShowDaily: onShowDaily ?? _noop,
           onBucketSelected: onBucketSelected,
           chartOrientation: TokenUsageChartOrientation.vertical,
+          chartMetrics: const <TokenUsageMetric>[
+            TokenUsageMetric.input,
+            TokenUsageMetric.output,
+          ],
         ),
       ],
     );

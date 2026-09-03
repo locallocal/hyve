@@ -10,6 +10,8 @@ import 'package:hyve/utils/theme.dart';
 
 enum TokenUsageChartOrientation { horizontal, vertical }
 
+enum TokenUsageMetric { total, input, output }
+
 class ConversationTokenUsagePanel extends StatelessWidget {
   const ConversationTokenUsagePanel({super.key, required this.viewModel});
 
@@ -78,7 +80,8 @@ class TokenUsageTimelineSection extends StatelessWidget {
     required this.onShowDaily,
     this.onBucketSelected,
     this.chartOrientation = TokenUsageChartOrientation.horizontal,
-  });
+    this.chartMetrics = const <TokenUsageMetric>[TokenUsageMetric.total],
+  }) : assert(chartMetrics.length > 0);
 
   final List<TokenUsageBucket> dailyBuckets;
   final List<TokenUsageBucket> visibleBuckets;
@@ -87,11 +90,13 @@ class TokenUsageTimelineSection extends StatelessWidget {
   final VoidCallback onShowDaily;
   final ValueChanged<TokenUsageBucket>? onBucketSelected;
   final TokenUsageChartOrientation chartOrientation;
+  final List<TokenUsageMetric> chartMetrics;
 
   @override
   Widget build(BuildContext context) {
     final hourly = granularity == TokenUsageGranularity.hour;
     final locale = Localizations.localeOf(context).toString();
+    final maximum = _maximumTokenUsage(visibleBuckets, chartMetrics);
     return Column(
       key: const ValueKey<String>('token-usage-timeline-section'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -133,11 +138,63 @@ class TokenUsageTimelineSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 10),
+        for (var index = 0; index < chartMetrics.length; index++) ...[
+          if (index > 0) const SizedBox(height: 24),
+          _TokenUsageMetricChart(
+            metric: chartMetrics[index],
+            showTitle: chartMetrics.length > 1,
+            buckets: visibleBuckets,
+            granularity: granularity,
+            onBucketSelected: onBucketSelected,
+            orientation: chartOrientation,
+            maximum: maximum,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _TokenUsageMetricChart extends StatelessWidget {
+  const _TokenUsageMetricChart({
+    required this.metric,
+    required this.showTitle,
+    required this.buckets,
+    required this.granularity,
+    required this.onBucketSelected,
+    required this.orientation,
+    required this.maximum,
+  });
+
+  final TokenUsageMetric metric;
+  final bool showTitle;
+  final List<TokenUsageBucket> buckets;
+  final TokenUsageGranularity granularity;
+  final ValueChanged<TokenUsageBucket>? onBucketSelected;
+  final TokenUsageChartOrientation orientation;
+  final int maximum;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      key: ValueKey<String>('token-usage-metric-${metric.name}'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        if (showTitle) ...<Widget>[
+          Text(
+            key: ValueKey<String>('token-usage-metric-title-${metric.name}'),
+            _tokenUsageMetricLabel(context, metric),
+            style: HyveDesktopThemeSpec.sectionTitleStyle(context),
+          ),
+          const SizedBox(height: 8),
+        ],
         TokenUsageChart(
-          buckets: visibleBuckets,
+          buckets: buckets,
           granularity: granularity,
+          metric: metric,
+          maximum: maximum,
           onBucketSelected: onBucketSelected,
-          orientation: chartOrientation,
+          orientation: orientation,
         ),
       ],
     );
@@ -212,12 +269,16 @@ class TokenUsageChart extends StatelessWidget {
     super.key,
     required this.buckets,
     required this.granularity,
+    this.metric = TokenUsageMetric.total,
+    this.maximum,
     this.onBucketSelected,
     this.orientation = TokenUsageChartOrientation.horizontal,
   });
 
   final List<TokenUsageBucket> buckets;
   final TokenUsageGranularity granularity;
+  final TokenUsageMetric metric;
+  final int? maximum;
   final ValueChanged<TokenUsageBucket>? onBucketSelected;
   final TokenUsageChartOrientation orientation;
 
@@ -225,16 +286,14 @@ class TokenUsageChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (buckets.isEmpty) {
       return SizedBox(
-        key: const ValueKey<String>('token-usage-chart-empty'),
+        key: ValueKey<String>(_metricKey('token-usage-chart-empty', metric)),
         height: 150,
         child: Center(child: Text(S.of(context).noTokenUsageRecorded)),
       );
     }
 
-    final maximum = buckets.fold<int>(
-      0,
-      (value, bucket) => math.max(value, bucket.usage.effectiveTotalTokens),
-    );
+    final chartMaximum =
+        maximum ?? _maximumTokenUsage(buckets, <TokenUsageMetric>[metric]);
     final locale = Localizations.localeOf(context).toString();
     final numberFormat = NumberFormat.compact(locale: locale);
     final isDaily = granularity == TokenUsageGranularity.day;
@@ -242,26 +301,37 @@ class TokenUsageChart extends StatelessWidget {
     if (orientation == TokenUsageChartOrientation.vertical) {
       return _VerticalTokenUsageChart(
         buckets: buckets,
-        maximum: maximum,
+        maximum: chartMaximum,
         granularity: granularity,
+        metric: metric,
         onBucketSelected: onBucketSelected,
       );
     }
 
     if (isDaily) {
       return Column(
-        key: const ValueKey<String>('token-usage-chart'),
+        key: ValueKey<String>(_metricKey('token-usage-chart', metric)),
         children: [
           for (final bucket in buckets)
             _HorizontalTokenUsageBar(
               bucket: bucket,
-              maximum: maximum,
-              bucketKey:
-                  'token-usage-bucket-day-${_tokenUsageDateKey(bucket.start)}',
-              barKey: 'token-usage-bar-day-${_tokenUsageDateKey(bucket.start)}',
+              maximum: chartMaximum,
+              metric: metric,
+              bucketKey: _bucketKey(
+                'bucket',
+                metric,
+                TokenUsageGranularity.day,
+                bucket,
+              ),
+              barKey: _bucketKey(
+                'bar',
+                metric,
+                TokenUsageGranularity.day,
+                bucket,
+              ),
               label: DateFormat.Md(locale).format(bucket.start),
               valueLabel: numberFormat.format(
-                bucket.usage.effectiveTotalTokens,
+                _tokenUsageValue(bucket.usage, metric),
               ),
               onTap:
                   onBucketSelected == null
@@ -273,16 +343,29 @@ class TokenUsageChart extends StatelessWidget {
     }
 
     return Column(
-      key: const ValueKey<String>('token-usage-chart'),
+      key: ValueKey<String>(_metricKey('token-usage-chart', metric)),
       children: [
         for (final bucket in buckets)
           _HorizontalTokenUsageBar(
             bucket: bucket,
-            maximum: maximum,
-            bucketKey: 'token-usage-bucket-hour-${bucket.start.hour}',
-            barKey: 'token-usage-bar-hour-${bucket.start.hour}',
+            maximum: chartMaximum,
+            metric: metric,
+            bucketKey: _bucketKey(
+              'bucket',
+              metric,
+              TokenUsageGranularity.hour,
+              bucket,
+            ),
+            barKey: _bucketKey(
+              'bar',
+              metric,
+              TokenUsageGranularity.hour,
+              bucket,
+            ),
             label: '${bucket.start.hour.toString().padLeft(2, '0')}:00',
-            valueLabel: numberFormat.format(bucket.usage.effectiveTotalTokens),
+            valueLabel: numberFormat.format(
+              _tokenUsageValue(bucket.usage, metric),
+            ),
           ),
       ],
     );
@@ -294,12 +377,14 @@ class _VerticalTokenUsageChart extends StatelessWidget {
     required this.buckets,
     required this.maximum,
     required this.granularity,
+    required this.metric,
     required this.onBucketSelected,
   });
 
   final List<TokenUsageBucket> buckets;
   final int maximum;
   final TokenUsageGranularity granularity;
+  final TokenUsageMetric metric;
   final ValueChanged<TokenUsageBucket>? onBucketSelected;
 
   @override
@@ -320,25 +405,24 @@ class _VerticalTokenUsageChart extends StatelessWidget {
           availableWidth / buckets.length,
         );
         return SizedBox(
-          key: const ValueKey<String>('token-usage-chart'),
+          key: ValueKey<String>(_metricKey('token-usage-chart', metric)),
           height: 176,
           child: ListView.builder(
-            key: const ValueKey<String>('token-usage-chart-vertical'),
+            key: ValueKey<String>(
+              _metricKey('token-usage-chart-vertical', metric),
+            ),
             scrollDirection: Axis.horizontal,
             itemCount: buckets.length,
             itemExtent: slotWidth,
             itemBuilder: (context, index) {
               final bucket = buckets[index];
-              final bucketKey =
-                  isDaily
-                      ? 'token-usage-bucket-day-'
-                          '${_tokenUsageDateKey(bucket.start)}'
-                      : 'token-usage-bucket-hour-${bucket.start.hour}';
-              final barKey =
-                  isDaily
-                      ? 'token-usage-bar-day-'
-                          '${_tokenUsageDateKey(bucket.start)}'
-                      : 'token-usage-bar-hour-${bucket.start.hour}';
+              final bucketKey = _bucketKey(
+                'bucket',
+                metric,
+                granularity,
+                bucket,
+              );
+              final barKey = _bucketKey('bar', metric, granularity, bucket);
               final label =
                   isDaily
                       ? DateFormat.Md(locale).format(bucket.start)
@@ -346,11 +430,12 @@ class _VerticalTokenUsageChart extends StatelessWidget {
               return _VerticalTokenUsageBar(
                 bucket: bucket,
                 maximum: maximum,
+                metric: metric,
                 bucketKey: bucketKey,
                 barKey: barKey,
                 label: label,
                 valueLabel: numberFormat.format(
-                  bucket.usage.effectiveTotalTokens,
+                  _tokenUsageValue(bucket.usage, metric),
                 ),
                 onTap:
                     onBucketSelected == null
@@ -369,6 +454,7 @@ class _VerticalTokenUsageBar extends StatelessWidget {
   const _VerticalTokenUsageBar({
     required this.bucket,
     required this.maximum,
+    required this.metric,
     required this.bucketKey,
     required this.barKey,
     required this.label,
@@ -378,6 +464,7 @@ class _VerticalTokenUsageBar extends StatelessWidget {
 
   final TokenUsageBucket bucket;
   final int maximum;
+  final TokenUsageMetric metric;
   final String bucketKey;
   final String barKey;
   final String label;
@@ -386,12 +473,16 @@ class _VerticalTokenUsageBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = bucket.usage.effectiveTotalTokens;
-    final semanticsLabel =
-        '$label, ${S.of(context).totalTokens} $total, '
-        '${S.of(context).inputTokens} ${bucket.usage.inputTokens}, '
-        '${S.of(context).outputTokens} ${bucket.usage.outputTokens}';
-    final colors = Theme.of(context).colorScheme;
+    final value = _tokenUsageValue(bucket.usage, metric);
+    final semanticsLabel = _tokenUsageSemanticsLabel(
+      context,
+      label,
+      bucket.usage,
+      metric,
+    );
+    final materialColors = Theme.of(context).colorScheme;
+    final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+    final barColor = _tokenUsageBarColor(context, metric);
 
     return Tooltip(
       message: semanticsLabel,
@@ -422,11 +513,11 @@ class _VerticalTokenUsageBar extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final height =
-                          total == 0 || maximum == 0
+                          value == 0 || maximum == 0
                               ? 2.0
                               : math.max(
                                 6.0,
-                                constraints.maxHeight * total / maximum,
+                                constraints.maxHeight * value / maximum,
                               );
                       return Align(
                         alignment: Alignment.bottomCenter,
@@ -436,9 +527,10 @@ class _VerticalTokenUsageBar extends StatelessWidget {
                           height: height,
                           decoration: BoxDecoration(
                             color:
-                                total == 0
-                                    ? colors.surfaceContainerHighest
-                                    : colors.primary,
+                                value == 0
+                                    ? shadColors?.muted ??
+                                        materialColors.surfaceContainerHighest
+                                    : barColor,
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
@@ -455,7 +547,9 @@ class _VerticalTokenUsageBar extends StatelessWidget {
                   overflow: TextOverflow.fade,
                   softWrap: false,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
+                    color:
+                        shadColors?.mutedForeground ??
+                        materialColors.onSurfaceVariant,
                     fontSize: 10,
                   ),
                 ),
@@ -472,6 +566,7 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
   const _HorizontalTokenUsageBar({
     required this.bucket,
     required this.maximum,
+    required this.metric,
     required this.bucketKey,
     required this.barKey,
     required this.label,
@@ -481,6 +576,7 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
 
   final TokenUsageBucket bucket;
   final int maximum;
+  final TokenUsageMetric metric;
   final String bucketKey;
   final String barKey;
   final String label;
@@ -489,12 +585,16 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = bucket.usage.effectiveTotalTokens;
-    final semanticsLabel =
-        '$label, ${S.of(context).totalTokens} $total, '
-        '${S.of(context).inputTokens} ${bucket.usage.inputTokens}, '
-        '${S.of(context).outputTokens} ${bucket.usage.outputTokens}';
-    final colors = Theme.of(context).colorScheme;
+    final value = _tokenUsageValue(bucket.usage, metric);
+    final semanticsLabel = _tokenUsageSemanticsLabel(
+      context,
+      label,
+      bucket.usage,
+      metric,
+    );
+    final materialColors = Theme.of(context).colorScheme;
+    final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+    final barColor = _tokenUsageBarColor(context, metric);
 
     return Tooltip(
       message: semanticsLabel,
@@ -515,7 +615,9 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
                     label,
                     maxLines: 1,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colors.onSurfaceVariant,
+                      color:
+                          shadColors?.mutedForeground ??
+                          materialColors.onSurfaceVariant,
                       fontSize: 10,
                     ),
                   ),
@@ -524,11 +626,11 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final width =
-                          total == 0 || maximum == 0
+                          value == 0 || maximum == 0
                               ? 2.0
                               : math.max(
                                 4.0,
-                                constraints.maxWidth * total / maximum,
+                                constraints.maxWidth * value / maximum,
                               );
                       return Align(
                         alignment: Alignment.centerLeft,
@@ -538,9 +640,10 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
                           height: 12,
                           decoration: BoxDecoration(
                             color:
-                                total == 0
-                                    ? colors.surfaceContainerHighest
-                                    : colors.primary,
+                                value == 0
+                                    ? shadColors?.muted ??
+                                        materialColors.surfaceContainerHighest
+                                    : barColor,
                             borderRadius: const BorderRadius.horizontal(
                               right: Radius.circular(4),
                             ),
@@ -569,6 +672,82 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _tokenUsageBarColor(BuildContext context, TokenUsageMetric metric) {
+  final materialColors = Theme.of(context).colorScheme;
+  final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+  return switch (metric) {
+    TokenUsageMetric.total ||
+    TokenUsageMetric.input => shadColors?.primary ?? materialColors.primary,
+    TokenUsageMetric.output =>
+      shadColors?.mutedForeground ?? materialColors.onSurfaceVariant,
+  };
+}
+
+int _maximumTokenUsage(
+  List<TokenUsageBucket> buckets,
+  Iterable<TokenUsageMetric> metrics,
+) {
+  return buckets.fold<int>(0, (maximum, bucket) {
+    return metrics.fold<int>(
+      maximum,
+      (value, metric) =>
+          math.max(value, _tokenUsageValue(bucket.usage, metric)),
+    );
+  });
+}
+
+int _tokenUsageValue(ModelTokenUsage usage, TokenUsageMetric metric) {
+  return switch (metric) {
+    TokenUsageMetric.total => usage.effectiveTotalTokens,
+    TokenUsageMetric.input => usage.inputTokens,
+    TokenUsageMetric.output => usage.outputTokens,
+  };
+}
+
+String _tokenUsageMetricLabel(BuildContext context, TokenUsageMetric metric) {
+  return switch (metric) {
+    TokenUsageMetric.total => S.of(context).totalTokens,
+    TokenUsageMetric.input => S.of(context).inputTokens,
+    TokenUsageMetric.output => S.of(context).outputTokens,
+  };
+}
+
+String _tokenUsageSemanticsLabel(
+  BuildContext context,
+  String bucketLabel,
+  ModelTokenUsage usage,
+  TokenUsageMetric metric,
+) {
+  if (metric != TokenUsageMetric.total) {
+    return '$bucketLabel, ${_tokenUsageMetricLabel(context, metric)} '
+        '${_tokenUsageValue(usage, metric)}';
+  }
+  return '$bucketLabel, ${S.of(context).totalTokens} '
+      '${usage.effectiveTotalTokens}, '
+      '${S.of(context).inputTokens} ${usage.inputTokens}, '
+      '${S.of(context).outputTokens} ${usage.outputTokens}';
+}
+
+String _metricKey(String base, TokenUsageMetric metric) {
+  return metric == TokenUsageMetric.total ? base : '$base-${metric.name}';
+}
+
+String _bucketKey(
+  String kind,
+  TokenUsageMetric metric,
+  TokenUsageGranularity granularity,
+  TokenUsageBucket bucket,
+) {
+  final bucketValue = switch (granularity) {
+    TokenUsageGranularity.day => _tokenUsageDateKey(bucket.start),
+    TokenUsageGranularity.hour => bucket.start.hour.toString(),
+  };
+  return _metricKey(
+    'token-usage-$kind-${granularity.name}-$bucketValue',
+    metric,
+  );
 }
 
 String _tokenUsageDateKey(DateTime date) {

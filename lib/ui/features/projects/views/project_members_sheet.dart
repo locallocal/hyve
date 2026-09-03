@@ -293,6 +293,7 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                           : ReorderableListView.builder(
                             key: const ValueKey<String>('project-member-list'),
                             buildDefaultDragHandles: false,
+                            proxyDecorator: _undecoratedMemberDragProxy,
                             itemCount: members.length,
                             onReorderItem:
                                 normalized.isEmpty && !widget.viewModel.mutating
@@ -346,6 +347,9 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
     );
   }
 }
+
+Widget _undecoratedMemberDragProxy(Widget child, int _, Animation<double> _) =>
+    child;
 
 final class _MemberCard extends StatelessWidget {
   const _MemberCard({

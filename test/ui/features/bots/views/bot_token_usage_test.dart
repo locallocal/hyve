@@ -222,9 +222,20 @@ void main() {
       closeTo(tester.getSize(outputBar).height * 4, 0.01),
     );
     final inputBarWidget = tester.widget<Container>(tallestDailyBar);
+    final outputBarWidget = tester.widget<Container>(outputBar);
+    final colorScheme =
+        ShadTheme.of(tester.element(tallestDailyBar)).colorScheme;
     expect(
       (inputBarWidget.decoration! as BoxDecoration).color,
-      ShadTheme.of(tester.element(tallestDailyBar)).colorScheme.primary,
+      colorScheme.primary,
+    );
+    expect(
+      (outputBarWidget.decoration! as BoxDecoration).color,
+      colorScheme.mutedForeground,
+    );
+    expect(
+      (inputBarWidget.decoration! as BoxDecoration).color,
+      isNot((outputBarWidget.decoration! as BoxDecoration).color),
     );
     await tester.tap(
       find.byKey(

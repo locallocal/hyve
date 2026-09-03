@@ -482,6 +482,7 @@ class _VerticalTokenUsageBar extends StatelessWidget {
     );
     final materialColors = Theme.of(context).colorScheme;
     final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+    final barColor = _tokenUsageBarColor(context, metric);
 
     return Tooltip(
       message: semanticsLabel,
@@ -529,8 +530,7 @@ class _VerticalTokenUsageBar extends StatelessWidget {
                                 value == 0
                                     ? shadColors?.muted ??
                                         materialColors.surfaceContainerHighest
-                                    : shadColors?.primary ??
-                                        materialColors.primary,
+                                    : barColor,
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
@@ -594,6 +594,7 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
     );
     final materialColors = Theme.of(context).colorScheme;
     final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+    final barColor = _tokenUsageBarColor(context, metric);
 
     return Tooltip(
       message: semanticsLabel,
@@ -642,8 +643,7 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
                                 value == 0
                                     ? shadColors?.muted ??
                                         materialColors.surfaceContainerHighest
-                                    : shadColors?.primary ??
-                                        materialColors.primary,
+                                    : barColor,
                             borderRadius: const BorderRadius.horizontal(
                               right: Radius.circular(4),
                             ),
@@ -672,6 +672,17 @@ class _HorizontalTokenUsageBar extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _tokenUsageBarColor(BuildContext context, TokenUsageMetric metric) {
+  final materialColors = Theme.of(context).colorScheme;
+  final shadColors = ShadTheme.maybeOf(context)?.colorScheme;
+  return switch (metric) {
+    TokenUsageMetric.total ||
+    TokenUsageMetric.input => shadColors?.primary ?? materialColors.primary,
+    TokenUsageMetric.output =>
+      shadColors?.mutedForeground ?? materialColors.onSurfaceVariant,
+  };
 }
 
 int _maximumTokenUsage(

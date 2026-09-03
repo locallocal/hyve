@@ -354,6 +354,15 @@ void main() {
         ),
         findsOneWidget,
       );
+      final memberList = tester.widget<ReorderableListView>(
+        find.byKey(const ValueKey<String>('project-member-list')),
+      );
+      const proxyChild = SizedBox.square(dimension: 24);
+      expect(memberList.proxyDecorator, isNotNull);
+      expect(
+        memberList.proxyDecorator!(proxyChild, 0, kAlwaysCompleteAnimation),
+        same(proxyChild),
+      );
       expect(tester.takeException(), isNull);
     });
   });

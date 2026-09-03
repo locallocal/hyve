@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
-import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/ui/core/view_models/token_usage_timeline.dart';
 import 'package:hyve/ui/features/bots/view_models/bot_token_usage_view_model.dart';
 import 'package:hyve/ui/features/bots/views/bot_token_usage.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   testWidgets('desktop panel shows summary and conversation pie side by side', (
@@ -124,16 +125,24 @@ void main() {
     expect(find.text('100.0%'), findsOneWidget);
   });
 
-  testWidgets('panel appends the shared daily usage bars', (tester) async {
+  testWidgets('panel stacks daily input and output charts', (tester) async {
     TokenUsageBucket? selectedBucket;
     final buckets = [
       TokenUsageBucket(
         start: DateTime(2026, 7, 24),
-        usage: const ModelTokenUsage(totalTokens: 25),
+        usage: const ModelTokenUsage(
+          inputTokens: 20,
+          outputTokens: 5,
+          totalTokens: 25,
+        ),
       ),
       TokenUsageBucket(
         start: DateTime(2026, 7, 25),
-        usage: const ModelTokenUsage(totalTokens: 75),
+        usage: const ModelTokenUsage(
+          inputTokens: 60,
+          outputTokens: 15,
+          totalTokens: 75,
+        ),
       ),
     ];
 
@@ -141,7 +150,11 @@ void main() {
       _Harness(
         width: 800,
         child: BotTokenUsagePanel(
-          usage: const ModelTokenUsage(totalTokens: 100),
+          usage: const ModelTokenUsage(
+            inputTokens: 80,
+            outputTokens: 20,
+            totalTokens: 100,
+          ),
           conversationUsages: const [],
           dailyBuckets: buckets,
           visibleBuckets: buckets,
@@ -157,26 +170,66 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey<String>('token-usage-bar-day-2026-07-24')),
+      find.byKey(
+        const ValueKey<String>('token-usage-bar-day-2026-07-24-input'),
+      ),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey<String>('token-usage-bar-day-2026-07-25')),
+      find.byKey(
+        const ValueKey<String>('token-usage-bar-day-2026-07-25-input'),
+      ),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey<String>('token-usage-chart-vertical')),
+      find.byKey(const ValueKey<String>('token-usage-chart-vertical-input')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-chart-vertical-output')),
+      findsOneWidget,
+    );
+    final inputSection = find.byKey(
+      const ValueKey<String>('token-usage-metric-input'),
+    );
+    final outputSection = find.byKey(
+      const ValueKey<String>('token-usage-metric-output'),
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-metric-title-input')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-metric-title-output')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(inputSection).dy,
+      lessThan(tester.getTopLeft(outputSection).dy),
     );
     final tallestDailyBar = find.byKey(
-      const ValueKey<String>('token-usage-bar-day-2026-07-25'),
+      const ValueKey<String>('token-usage-bar-day-2026-07-25-input'),
     );
     expect(
       tester.getSize(tallestDailyBar).height,
       greaterThan(tester.getSize(tallestDailyBar).width),
     );
+    final outputBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-day-2026-07-25-output'),
+    );
+    expect(
+      tester.getSize(tallestDailyBar).height,
+      closeTo(tester.getSize(outputBar).height * 4, 0.01),
+    );
+    final inputBarWidget = tester.widget<Container>(tallestDailyBar);
+    expect(
+      (inputBarWidget.decoration! as BoxDecoration).color,
+      ShadTheme.of(tester.element(tallestDailyBar)).colorScheme.primary,
+    );
     await tester.tap(
-      find.byKey(const ValueKey<String>('token-usage-bucket-day-2026-07-24')),
+      find.byKey(
+        const ValueKey<String>('token-usage-bucket-day-2026-07-24-input'),
+      ),
     );
     expect(selectedBucket?.start, DateTime(2026, 7, 24));
   });
@@ -185,9 +238,15 @@ void main() {
     tester,
   ) async {
     final hourlyBuckets = List<TokenUsageBucket>.generate(24, (hour) {
+      final inputTokens = 24 - hour;
+      final outputTokens = inputTokens * 2;
       return TokenUsageBucket(
         start: DateTime(2026, 7, 24, hour),
-        usage: ModelTokenUsage(totalTokens: 24 - hour),
+        usage: ModelTokenUsage(
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          totalTokens: inputTokens + outputTokens,
+        ),
       );
     });
 
@@ -195,12 +254,20 @@ void main() {
       _Harness(
         width: 600,
         child: BotTokenUsagePanel(
-          usage: const ModelTokenUsage(totalTokens: 300),
+          usage: const ModelTokenUsage(
+            inputTokens: 100,
+            outputTokens: 200,
+            totalTokens: 300,
+          ),
           conversationUsages: const [],
           dailyBuckets: [
             TokenUsageBucket(
               start: DateTime(2026, 7, 24),
-              usage: const ModelTokenUsage(totalTokens: 300),
+              usage: const ModelTokenUsage(
+                inputTokens: 100,
+                outputTokens: 200,
+                totalTokens: 300,
+              ),
             ),
           ],
           visibleBuckets: hourlyBuckets,
@@ -214,15 +281,22 @@ void main() {
 
     expect(find.text('小时用量'), findsOneWidget);
     final firstHourlyBar = find.byKey(
-      const ValueKey<String>('token-usage-bar-hour-0'),
+      const ValueKey<String>('token-usage-bar-hour-0-input'),
     );
     expect(firstHourlyBar, findsOneWidget);
     expect(
       tester.getSize(firstHourlyBar).height,
       greaterThan(tester.getSize(firstHourlyBar).width),
     );
+    final firstOutputBar = find.byKey(
+      const ValueKey<String>('token-usage-bar-hour-0-output'),
+    );
+    expect(
+      tester.getSize(firstOutputBar).height,
+      closeTo(tester.getSize(firstHourlyBar).height * 2, 0.01),
+    );
     final verticalChart = find.byKey(
-      const ValueKey<String>('token-usage-chart-vertical'),
+      const ValueKey<String>('token-usage-chart-vertical-input'),
     );
     final scrollable = find.descendant(
       of: verticalChart,
@@ -231,6 +305,18 @@ void main() {
     expect(scrollable, findsOneWidget);
     expect(
       tester.state<ScrollableState>(scrollable).position.maxScrollExtent,
+      greaterThan(0),
+    );
+    final outputChart = find.byKey(
+      const ValueKey<String>('token-usage-chart-vertical-output'),
+    );
+    final outputScrollable = find.descendant(
+      of: outputChart,
+      matching: find.byType(Scrollable),
+    );
+    expect(outputScrollable, findsOneWidget);
+    expect(
+      tester.state<ScrollableState>(outputScrollable).position.maxScrollExtent,
       greaterThan(0),
     );
   });
@@ -244,21 +330,17 @@ class _Harness extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      locale: const Locale('zh', 'CN'),
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      home: Scaffold(
-        body: Align(
-          alignment: Alignment.topLeft,
-          child: SizedBox(width: width, child: child),
-        ),
-      ),
+    return shadHarness(
+      brightness: Brightness.light,
+      homeBuilder:
+          (_) => Scaffold(
+            body: SingleChildScrollView(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(width: width, child: child),
+              ),
+            ),
+          ),
     );
   }
 }

@@ -284,8 +284,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     onShowProjectArtifacts:
                                         projectWorkspaceSelected
                                             ? _projectWorkspaceController
-                                                .showArtifacts
+                                                .toggleArtifacts
                                             : null,
+                                    projectArtifactsSelected:
+                                        projectWorkspaceSelected &&
+                                        _projectWorkspaceController
+                                            .showingArtifacts,
                                     onShowProjectExecution:
                                         projectWorkspaceSelected
                                             ? _projectWorkspaceController

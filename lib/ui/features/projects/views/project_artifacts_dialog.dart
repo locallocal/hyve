@@ -25,10 +25,12 @@ final class ProjectArtifactsDialog extends StatefulWidget {
     super.key,
     required this.viewModel,
     this.embedded = false,
+    this.onClose,
   });
 
   final ProjectArtifactsController viewModel;
   final bool embedded;
+  final VoidCallback? onClose;
 
   @override
   State<ProjectArtifactsDialog> createState() => _ProjectArtifactsDialogState();
@@ -270,6 +272,7 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
   @override
   Widget build(BuildContext context) {
     final copy = ProjectLocalizations.of(context);
+    final shadTheme = ShadTheme.maybeOf(context);
     final content = ProjectFileDropTarget(
       idleLabel: copy.dropFilesToImport,
       activeLabel: copy.releaseToImport,
@@ -312,10 +315,21 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                             const SizedBox(width: 10),
                             Text(
                               copy.artifacts,
-                              style: Theme.of(context).textTheme.titleLarge,
+                              style:
+                                  shadTheme?.textTheme.h4 ??
+                                  Theme.of(context).textTheme.titleLarge,
                             ),
                             const Spacer(),
-                            if (!widget.embedded)
+                            if (widget.onClose != null)
+                              ProjectIconAction(
+                                key: const ValueKey<String>(
+                                  'project-artifacts-close',
+                                ),
+                                label: copy.backToMessages,
+                                onPressed: widget.onClose,
+                                icon: LucideIcons.arrowLeft,
+                              )
+                            else if (!widget.embedded)
                               const SizedBox.square(dimension: 44),
                           ],
                         ),
@@ -448,9 +462,13 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                           },
                         ),
                         if (viewModel.artifactBusy)
-                          const LinearProgressIndicator(
-                            key: ValueKey<String>('artifact-loading'),
-                          ),
+                          shadTheme == null
+                              ? const LinearProgressIndicator(
+                                key: ValueKey<String>('artifact-loading'),
+                              )
+                              : const ShadProgress(
+                                key: ValueKey<String>('artifact-loading'),
+                              ),
                         if (viewModel.errorCode.startsWith('artifact_'))
                           Padding(
                             padding: const EdgeInsets.only(top: 8),

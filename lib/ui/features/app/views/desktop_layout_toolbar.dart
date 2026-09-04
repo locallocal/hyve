@@ -8,12 +8,14 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
     required this.onShowArtifacts,
     required this.onShowExecution,
     this.membersSelected = false,
+    this.artifactsSelected = false,
   });
 
   final VoidCallback onShowMembers;
   final VoidCallback onShowArtifacts;
   final VoidCallback onShowExecution;
   final bool membersSelected;
+  final bool artifactsSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +33,13 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
         ),
         HyveDesktopIconAction(
           key: const ValueKey<String>('project-artifacts-button'),
-          label: copy.artifacts,
+          label: artifactsSelected ? copy.backToMessages : copy.artifacts,
           onPressed: onShowArtifacts,
-          icon: LucideIcons.folderKanban,
+          icon:
+              artifactsSelected
+                  ? LucideIcons.messageSquareText
+                  : LucideIcons.folderKanban,
+          selected: artifactsSelected,
         ),
         HyveDesktopIconAction(
           key: const ValueKey<String>('project-execution-button'),
@@ -59,6 +65,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final VoidCallback? onShowProjectMembers;
   final bool projectMembersSelected;
   final VoidCallback? onShowProjectArtifacts;
+  final bool projectArtifactsSelected;
   final VoidCallback? onShowProjectExecution;
 
   const _UnifiedDesktopToolbar({
@@ -74,6 +81,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.onShowProjectMembers,
     required this.projectMembersSelected,
     required this.onShowProjectArtifacts,
+    required this.projectArtifactsSelected,
     required this.onShowProjectExecution,
   });
 
@@ -191,6 +199,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             onShowArtifacts: onShowProjectArtifacts!,
                             onShowExecution: onShowProjectExecution!,
                             membersSelected: projectMembersSelected,
+                            artifactsSelected: projectArtifactsSelected,
                           ),
                       ],
                     )

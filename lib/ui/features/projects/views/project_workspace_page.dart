@@ -19,7 +19,7 @@ export 'package:hyve/ui/features/projects/views/project_event_list.dart'
     show ProjectDeliveryCard;
 
 /// Primary surfaces that share the Project workspace's content area.
-enum ProjectWorkspacePane { messages, members }
+enum ProjectWorkspacePane { messages, members, artifacts }
 
 /// Commands exposed by an embedded Project workspace to its desktop shell.
 final class ProjectWorkspaceController
@@ -29,6 +29,7 @@ final class ProjectWorkspaceController
   _ProjectWorkspacePageState? _state;
 
   bool get showingMembers => value == ProjectWorkspacePane.members;
+  bool get showingArtifacts => value == ProjectWorkspacePane.artifacts;
 
   void showMembers() {
     value = ProjectWorkspacePane.members;
@@ -40,7 +41,11 @@ final class ProjectWorkspaceController
 
   void toggleMembers() => showingMembers ? showMessages() : showMembers();
 
-  void showArtifacts() => _state?._showArtifacts();
+  void showArtifacts() {
+    value = ProjectWorkspacePane.artifacts;
+  }
+
+  void toggleArtifacts() => showingArtifacts ? showMessages() : showArtifacts();
 
   void showExecution() => _state?._showExecution();
 
@@ -51,46 +56,58 @@ final class ProjectWorkspaceController
   }
 }
 
-/// Retains both workspace surfaces so switching to member management never
+/// Retains all workspace surfaces so switching project tools never
 /// recreates the message timeline, its scroll position, or composer state.
 final class ProjectWorkspacePaneStack extends StatelessWidget {
   const ProjectWorkspacePaneStack({
     super.key,
-    required this.showMembers,
+    required this.pane,
     required this.messages,
     required this.members,
+    required this.artifacts,
   });
 
-  final bool showMembers;
+  final ProjectWorkspacePane pane;
   final Widget messages;
   final Widget members;
+  final Widget artifacts;
 
   @override
   Widget build(BuildContext context) {
+    Widget cachedPane({
+      required ProjectWorkspacePane target,
+      required PageStorageKey<String> storageKey,
+      required Widget child,
+    }) {
+      final active = pane == target;
+      return ExcludeFocus(
+        excluding: !active,
+        child: TickerMode(
+          enabled: active,
+          child: KeyedSubtree(key: storageKey, child: child),
+        ),
+      );
+    }
+
     return IndexedStack(
       key: const ValueKey<String>('project-workspace-pane-stack'),
-      index: showMembers ? 1 : 0,
+      index: pane.index,
       sizing: StackFit.expand,
       children: <Widget>[
-        ExcludeFocus(
-          excluding: showMembers,
-          child: TickerMode(
-            enabled: !showMembers,
-            child: KeyedSubtree(
-              key: const PageStorageKey<String>('project-message-list-page'),
-              child: messages,
-            ),
-          ),
+        cachedPane(
+          target: ProjectWorkspacePane.messages,
+          storageKey: const PageStorageKey<String>('project-message-list-page'),
+          child: messages,
         ),
-        ExcludeFocus(
-          excluding: !showMembers,
-          child: TickerMode(
-            enabled: showMembers,
-            child: KeyedSubtree(
-              key: const PageStorageKey<String>('project-members-page'),
-              child: members,
-            ),
-          ),
+        cachedPane(
+          target: ProjectWorkspacePane.members,
+          storageKey: const PageStorageKey<String>('project-members-page'),
+          child: members,
+        ),
+        cachedPane(
+          target: ProjectWorkspacePane.artifacts,
+          storageKey: const PageStorageKey<String>('project-artifacts-page'),
+          child: artifacts,
         ),
       ],
     );
@@ -214,13 +231,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     );
   }
 
-  void _showArtifacts() {
-    showProjectDialog<void>(
-      context: context,
-      builder: (_) => ProjectArtifactsDialog(viewModel: _viewModel!),
-    );
-  }
-
   void _showExecution() {
     showProjectDialog<void>(
       context: context,
@@ -260,9 +270,11 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       child: ListenableBuilder(
         listenable: _workspaceController,
         builder: (context, _) {
-          final showingMembers = _workspaceController.showingMembers;
+          final pane = _workspaceController.value;
+          final showingMembers = pane == ProjectWorkspacePane.members;
+          final showingArtifacts = pane == ProjectWorkspacePane.artifacts;
           return PopScope(
-            canPop: !showingMembers,
+            canPop: pane == ProjectWorkspacePane.messages,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) _workspaceController.showMessages();
             },
@@ -313,9 +325,18 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                                         key: const ValueKey<String>(
                                           'project-artifacts-button',
                                         ),
-                                        label: copy.artifacts,
-                                        onPressed: _showArtifacts,
-                                        icon: LucideIcons.folderKanban,
+                                        label:
+                                            showingArtifacts
+                                                ? copy.backToMessages
+                                                : copy.artifacts,
+                                        onPressed:
+                                            _workspaceController
+                                                .toggleArtifacts,
+                                        icon:
+                                            showingArtifacts
+                                                ? LucideIcons.messageSquareText
+                                                : LucideIcons.folderKanban,
+                                        selected: showingArtifacts,
                                       ),
                                     if (!persistentInspector)
                                       ProjectIconAction(
@@ -339,7 +360,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                                         child: _workspacePane(
                                           viewModel,
                                           copy,
-                                          showingMembers: showingMembers,
+                                          pane: pane,
                                         ),
                                       ),
                                       const VerticalDivider(width: 1),
@@ -357,11 +378,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                                       ),
                                     ],
                                   )
-                                  : _workspacePane(
-                                    viewModel,
-                                    copy,
-                                    showingMembers: showingMembers,
-                                  ),
+                                  : _workspacePane(viewModel, copy, pane: pane),
                         ),
                       );
                     },
@@ -376,13 +393,18 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   Widget _workspacePane(
     ProjectWorkspaceViewModel viewModel,
     ProjectLocalizations copy, {
-    required bool showingMembers,
+    required ProjectWorkspacePane pane,
   }) {
     return ProjectWorkspacePaneStack(
-      showMembers: showingMembers,
+      pane: pane,
       messages: _workspace(viewModel, copy),
       members: _membersSheet(
         _membersViewModel!,
+        embedded: true,
+        onClose: _workspaceController.showMessages,
+      ),
+      artifacts: ProjectArtifactsDialog(
+        viewModel: viewModel,
         embedded: true,
         onClose: _workspaceController.showMessages,
       ),

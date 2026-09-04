@@ -56,6 +56,7 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
   List<Agent> _availableAgents = const <Agent>[];
   bool _loading = false;
   bool _mutating = false;
+  bool _reordering = false;
   String _errorCode = '';
   int _generation = 0;
 
@@ -63,6 +64,7 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
   List<Agent> get availableAgents => _availableAgents;
   bool get loading => _loading;
   bool get mutating => _mutating;
+  bool get reordering => _reordering;
   String get errorCode => _errorCode;
 
   Future<void> load() async {
@@ -131,16 +133,33 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
       );
 
   Future<void> reorder(int oldIndex, int newIndex) async {
-    if (_mutating || oldIndex == newIndex) return;
+    if (_mutating || isDisposed || oldIndex == newIndex) return;
+    if (oldIndex < 0 ||
+        oldIndex >= _members.length ||
+        newIndex < 0 ||
+        newIndex >= _members.length) {
+      return;
+    }
+    final previous = _members;
     final ordered = _members.toList(growable: true);
     final moved = ordered.removeAt(oldIndex);
     ordered.insert(newIndex, moved);
-    await _mutate(
-      () => _manageMembers.reorder(
-        projectId,
-        ordered.map((item) => item.membership.agentId),
-      ),
-    );
+    _members = List<ProjectMemberSnapshot>.unmodifiable(ordered);
+    _reordering = true;
+    try {
+      await _mutate(
+        () => _manageMembers.reorder(
+          projectId,
+          ordered.map((item) => item.membership.agentId),
+        ),
+        onFailure: () => _members = previous,
+      );
+    } finally {
+      if (!isDisposed) {
+        _reordering = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> remove(String agentId) =>
@@ -152,7 +171,10 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _mutate(Future<Object?> Function() operation) async {
+  Future<void> _mutate(
+    Future<Object?> Function() operation, {
+    void Function()? onFailure,
+  }) async {
     if (_mutating || isDisposed) return;
     _mutating = true;
     _errorCode = '';
@@ -161,8 +183,10 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
       await operation();
       await load();
     } on ProjectMemberMutationFailure catch (failure) {
+      onFailure?.call();
       _errorCode = failure.code;
     } on Object {
+      onFailure?.call();
       _errorCode = 'project_member_update_failed';
     } finally {
       if (!isDisposed) {

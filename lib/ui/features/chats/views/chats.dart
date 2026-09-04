@@ -86,9 +86,9 @@ class ChatListPageState extends State<ChatListPage> {
     final isDesktop = isDesktopPlatform(context);
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize;
     final body =
-        isLoading
+        isLoading && !widget.viewModel.hasLoaded
             ? _buildLoadingState(isDesktop)
-            : loadError != null
+            : loadError != null && !widget.viewModel.hasLoaded
             ? _buildErrorState(isDesktop)
             : _buildListSection(isDesktop);
 

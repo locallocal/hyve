@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
+import 'package:hyve/domain/repositories/chat_repository.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/app/view_models/main_shell_view_model.dart';
 import 'package:hyve/ui/features/app/views/desktop_layout.dart';
@@ -72,6 +75,83 @@ void main() {
       semantics.dispose();
     }
   });
+
+  testWidgets(
+    'desktop project list keeps cached rows visible during background refresh',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1000, 760);
+      addTearDown(tester.view.reset);
+      final timestamp = DateTime(2026);
+      final chatRepository = _BlockingRefreshChatRepository(<Chat>[
+        Chat(
+          id: 'project-1',
+          botIds: const <String>['bot-1'],
+          name: 'Stable project',
+          lastMessage: 'Existing preview',
+          lastMessageTimestamp: timestamp,
+          createTimestamp: timestamp,
+          modifyTimestamp: timestamp,
+        ),
+      ]);
+      addTearDown(chatRepository.dispose);
+      final viewModel = ChatListViewModel(
+        chatRepository: chatRepository,
+        botRepository: BotCardTestBotRepository(<Bot>[
+          Bot(
+            id: 'bot-1',
+            name: 'Planner',
+            avatar: '',
+            provider: 'OpenAI',
+            baseURL: '',
+            apiKey: '',
+            apiType: Bot.apiTypeOpenAI,
+            model: 'gpt-test',
+            systemPrompt: '',
+            createTimestamp: timestamp,
+            modifyTimestamp: timestamp,
+          ),
+        ]),
+      );
+      addTearDown(viewModel.dispose);
+      await viewModel.load();
+
+      await withDesktopPlatform(() async {
+        await tester.pumpWidget(
+          shadHarness(
+            brightness: Brightness.light,
+            homeBuilder:
+                (context) => Scaffold(
+                  body: ChatListPage(
+                    viewModel: viewModel,
+                    onProjectSelected: (_) {},
+                  ),
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final row = find.byType(ChatListItem);
+        final rowTop = tester.getTopLeft(row);
+
+        chatRepository.beginBlockedRefresh();
+        await chatRepository.refreshStarted;
+        viewModel.search('');
+        await tester.pump();
+
+        expect(viewModel.isLoading, isTrue);
+        expect(find.text('Stable project'), findsOneWidget);
+        expect(find.byType(ShadProgress), findsNothing);
+        expect(tester.getTopLeft(row), rowTop);
+
+        chatRepository.completeRefresh();
+        await tester.pumpAndSettle();
+
+        expect(viewModel.isLoading, isFalse);
+        expect(find.text('Stable project'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    },
+  );
 
   test('main shell distinguishes bot details from bot editing', () {
     final bot = Bot(
@@ -1069,4 +1149,42 @@ void main() {
 
     expect(rowButton().hoverBackgroundColor, isNull);
   });
+}
+
+final class _BlockingRefreshChatRepository implements ChatRepository {
+  _BlockingRefreshChatRepository(this.items);
+
+  final List<Chat> items;
+  final StreamController<List<Chat>> _changes =
+      StreamController<List<Chat>>.broadcast();
+  Completer<void>? _refreshGate;
+  Completer<void>? _refreshStarted;
+
+  @override
+  Stream<List<Chat>> get changes => _changes.stream;
+
+  Future<void> get refreshStarted => _refreshStarted!.future;
+
+  void beginBlockedRefresh() {
+    _refreshGate = Completer<void>();
+    _refreshStarted = Completer<void>();
+    _changes.add(items);
+  }
+
+  void completeRefresh() => _refreshGate!.complete();
+
+  @override
+  Future<List<Chat>> getChats({bool forceRefresh = false}) async {
+    final gate = _refreshGate;
+    if (gate != null && !gate.isCompleted) {
+      _refreshStarted!.complete();
+      await gate.future;
+    }
+    return items;
+  }
+
+  Future<void> dispose() => _changes.close();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

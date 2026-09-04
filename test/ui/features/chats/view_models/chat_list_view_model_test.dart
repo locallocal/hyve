@@ -141,6 +141,66 @@ void main() {
       expect(projectRepository.deletedId, 'project-2');
     },
   );
+
+  test('membership changes refresh an existing project snapshot without a '
+      'loading notification', () async {
+    final membershipRepository = _RefreshableMembershipRepository({
+      'project-1': <ProjectMembership>[
+        ProjectMembership(
+          projectId: 'project-1',
+          agentId: 'agent-1',
+          position: 0,
+          joinedAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        ProjectMembership(
+          projectId: 'project-1',
+          agentId: 'agent-2',
+          position: 1,
+          joinedAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    });
+    addTearDown(membershipRepository.dispose);
+    final viewModel = ChatListViewModel(
+      chatRepository: _FakeChatRepository(const []),
+      botRepository: _FakeBotRepository(const []),
+      projectRepository: _FakeProjectRepository([
+        _project('project-1', 'Stable project'),
+      ]),
+      membershipRepository: membershipRepository,
+      agentRepository: _FakeAgentRepository([
+        _agent('agent-1', 'Planner'),
+        _agent('agent-2', 'Reviewer'),
+      ]),
+    );
+    addTearDown(viewModel.dispose);
+
+    await viewModel.load();
+    final existingProject = viewModel.projects.single;
+    var notificationCount = 0;
+    viewModel.addListener(() => notificationCount += 1);
+
+    membershipRepository.beginBlockedRefresh('project-1');
+    await membershipRepository.refreshStarted;
+
+    expect(viewModel.isLoading, isTrue);
+    expect(viewModel.hasLoaded, isTrue);
+    expect(viewModel.projects.single, same(existingProject));
+    expect(notificationCount, 0);
+
+    membershipRepository.completeRefresh();
+    await membershipRepository.refreshCompleted;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(viewModel.isLoading, isFalse);
+    expect(viewModel.projects.single.bots.map((bot) => bot.id), [
+      'agent-1',
+      'agent-2',
+    ]);
+    expect(notificationCount, 1);
+  });
 }
 
 Project _project(String id, String name) => Project(
@@ -286,6 +346,48 @@ class _FakeMembershipRepository implements ProjectMembershipRepository {
   @override
   Future<List<ProjectMembership>> getForProject(String projectId) async =>
       byProject[projectId] ?? const <ProjectMembership>[];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _RefreshableMembershipRepository implements ProjectMembershipRepository {
+  _RefreshableMembershipRepository(this.byProject);
+
+  final Map<String, List<ProjectMembership>> byProject;
+  final StreamController<String> _changes =
+      StreamController<String>.broadcast();
+  Completer<void>? _refreshGate;
+  Completer<void>? _refreshStarted;
+  Completer<void>? _refreshCompleted;
+
+  @override
+  Stream<String> get changes => _changes.stream;
+
+  Future<void> get refreshStarted => _refreshStarted!.future;
+  Future<void> get refreshCompleted => _refreshCompleted!.future;
+
+  void beginBlockedRefresh(String projectId) {
+    _refreshGate = Completer<void>();
+    _refreshStarted = Completer<void>();
+    _refreshCompleted = Completer<void>();
+    _changes.add(projectId);
+  }
+
+  void completeRefresh() => _refreshGate!.complete();
+
+  @override
+  Future<List<ProjectMembership>> getForProject(String projectId) async {
+    final gate = _refreshGate;
+    if (gate != null && !gate.isCompleted) {
+      _refreshStarted!.complete();
+      await gate.future;
+      _refreshCompleted!.complete();
+    }
+    return byProject[projectId] ?? const <ProjectMembership>[];
+  }
+
+  Future<void> dispose() => _changes.close();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

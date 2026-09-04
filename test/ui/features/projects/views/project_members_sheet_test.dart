@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -325,10 +326,11 @@ void main() {
       _agent('agent-1', 'Researcher', now),
       _agent('agent-2', 'Writer', now),
     ]);
+    final saveAllCompleter = Completer<void>();
     final memberships = _MembershipRepository(<ProjectMembership>[
       _membership('agent-1', now, position: 0),
       _membership('agent-2', now, position: 1),
-    ]);
+    ], beforeSaveAll: () => saveAllCompleter.future);
     final cursors = _CursorRepository(now);
     final viewModel = ProjectMembersViewModel(
       projectId: 'project-1',
@@ -386,6 +388,57 @@ void main() {
       expect(
         memberList.proxyDecorator!(proxyChild, 0, kAlwaysCompleteAnimation),
         same(proxyChild),
+      );
+      final listTop = tester.getTopLeft(
+        find.byKey(const ValueKey<String>('project-member-list')),
+      );
+
+      memberList.onReorderItem!(0, 1);
+      await tester.pump();
+
+      expect(viewModel.mutating, isTrue);
+      expect(viewModel.reordering, isTrue);
+      expect(
+        viewModel.members.map((member) => member.agent?.name),
+        orderedEquals(<String?>['Writer', 'Researcher']),
+      );
+      expect(
+        tester
+            .widget<AbsorbPointer>(
+              find.byKey(
+                const ValueKey<String>('project-member-reorder-guard'),
+              ),
+            )
+            .absorbing,
+        isTrue,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('member-reorder-agent-1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-members-progress')),
+        findsNothing,
+      );
+      expect(
+        tester.getTopLeft(
+          find.byKey(const ValueKey<String>('project-member-list')),
+        ),
+        listTop,
+      );
+
+      saveAllCompleter.complete();
+      await tester.pumpAndSettle();
+
+      expect(viewModel.mutating, isFalse);
+      expect(viewModel.reordering, isFalse);
+      expect(
+        viewModel.members.map((member) => member.agent?.name),
+        orderedEquals(<String?>['Writer', 'Researcher']),
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-members-progress')),
+        findsNothing,
       );
       expect(tester.takeException(), isNull);
     });
@@ -461,12 +514,13 @@ final class _AgentRepository implements AgentRepository {
 }
 
 final class _MembershipRepository implements ProjectMembershipRepository {
-  _MembershipRepository(Iterable<ProjectMembership> items)
+  _MembershipRepository(Iterable<ProjectMembership> items, {this.beforeSaveAll})
     : _items = <String, ProjectMembership>{
         for (final item in items) item.agentId: item,
       };
 
   final Map<String, ProjectMembership> _items;
+  final Future<void> Function()? beforeSaveAll;
 
   ProjectMembership item(String id) => _items[id]!;
 
@@ -496,6 +550,7 @@ final class _MembershipRepository implements ProjectMembershipRepository {
 
   @override
   Future<void> saveAll(Iterable<ProjectMembership> memberships) async {
+    await beforeSaveAll?.call();
     for (final membership in memberships) {
       _items[membership.agentId] = membership;
     }

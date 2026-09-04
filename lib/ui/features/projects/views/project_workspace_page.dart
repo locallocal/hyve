@@ -19,17 +19,16 @@ export 'package:hyve/ui/features/projects/views/project_event_list.dart'
     show ProjectDeliveryCard;
 
 /// Primary surfaces that share the Project workspace's content area.
-enum ProjectWorkspacePane { messages, members, artifacts }
+enum ProjectWorkspacePane { messages, members, artifacts, execution }
 
 /// Commands exposed by an embedded Project workspace to its desktop shell.
 final class ProjectWorkspaceController
     extends ValueNotifier<ProjectWorkspacePane> {
   ProjectWorkspaceController() : super(ProjectWorkspacePane.messages);
 
-  _ProjectWorkspacePageState? _state;
-
   bool get showingMembers => value == ProjectWorkspacePane.members;
   bool get showingArtifacts => value == ProjectWorkspacePane.artifacts;
+  bool get showingExecution => value == ProjectWorkspacePane.execution;
 
   void showMembers() {
     value = ProjectWorkspacePane.members;
@@ -47,13 +46,11 @@ final class ProjectWorkspaceController
 
   void toggleArtifacts() => showingArtifacts ? showMessages() : showArtifacts();
 
-  void showExecution() => _state?._showExecution();
-
-  void _attach(_ProjectWorkspacePageState state) => _state = state;
-
-  void _detach(_ProjectWorkspacePageState state) {
-    if (identical(_state, state)) _state = null;
+  void showExecution() {
+    value = ProjectWorkspacePane.execution;
   }
+
+  void toggleExecution() => showingExecution ? showMessages() : showExecution();
 }
 
 /// Retains all workspace surfaces so switching project tools never
@@ -65,12 +62,14 @@ final class ProjectWorkspacePaneStack extends StatelessWidget {
     required this.messages,
     required this.members,
     required this.artifacts,
+    required this.execution,
   });
 
   final ProjectWorkspacePane pane;
   final Widget messages;
   final Widget members;
   final Widget artifacts;
+  final Widget execution;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +107,11 @@ final class ProjectWorkspacePaneStack extends StatelessWidget {
           target: ProjectWorkspacePane.artifacts,
           storageKey: const PageStorageKey<String>('project-artifacts-page'),
           child: artifacts,
+        ),
+        cachedPane(
+          target: ProjectWorkspacePane.execution,
+          storageKey: const PageStorageKey<String>('project-execution-page'),
+          child: execution,
         ),
       ],
     );
@@ -151,7 +155,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   void didUpdateWidget(covariant ProjectWorkspacePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      _workspaceController._detach(this);
       if (_ownsWorkspaceController) _workspaceController.dispose();
       _bindWorkspaceController(widget.controller);
     }
@@ -160,7 +163,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   void _bindWorkspaceController(ProjectWorkspaceController? controller) {
     _workspaceController = controller ?? ProjectWorkspaceController();
     _ownsWorkspaceController = controller == null;
-    _workspaceController._attach(this);
   }
 
   @override
@@ -179,7 +181,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
 
   @override
   void dispose() {
-    _workspaceController._detach(this);
     _composer.dispose();
     _viewModel?.dispose();
     _membersViewModel?.dispose();
@@ -231,16 +232,10 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     );
   }
 
-  void _showExecution() {
-    showProjectDialog<void>(
-      context: context,
-      builder: (_) => _executionPanel(_viewModel!),
-    );
-  }
-
   ProjectExecutionPanel _executionPanel(
     ProjectWorkspaceViewModel viewModel, {
     bool embedded = false,
+    VoidCallback? onClose,
   }) => ProjectExecutionPanel(
     turns: viewModel.turns,
     runs: viewModel.runs,
@@ -249,6 +244,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     events: viewModel.events,
     agentNames: viewModel.agentNames,
     embedded: embedded,
+    onClose: onClose,
     onCancelRun: (runId) {
       viewModel.cancelRun(runId);
       unawaited(viewModel.refresh());
@@ -273,6 +269,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           final pane = _workspaceController.value;
           final showingMembers = pane == ProjectWorkspacePane.members;
           final showingArtifacts = pane == ProjectWorkspacePane.artifacts;
+          final showingExecution = pane == ProjectWorkspacePane.execution;
           return PopScope(
             canPop: pane == ProjectWorkspacePane.messages,
             onPopInvokedWithResult: (didPop, _) {
@@ -343,9 +340,18 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                                         key: const ValueKey<String>(
                                           'project-execution-button',
                                         ),
-                                        label: copy.execution,
-                                        onPressed: _showExecution,
-                                        icon: LucideIcons.activity,
+                                        label:
+                                            showingExecution
+                                                ? copy.backToMessages
+                                                : copy.execution,
+                                        onPressed:
+                                            _workspaceController
+                                                .toggleExecution,
+                                        icon:
+                                            showingExecution
+                                                ? LucideIcons.messageSquareText
+                                                : LucideIcons.activity,
+                                        selected: showingExecution,
                                       ),
                                     const SizedBox(width: 4),
                                   ],
@@ -405,6 +411,11 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       ),
       artifacts: ProjectArtifactsDialog(
         viewModel: viewModel,
+        embedded: true,
+        onClose: _workspaceController.showMessages,
+      ),
+      execution: _executionPanel(
+        viewModel,
         embedded: true,
         onClose: _workspaceController.showMessages,
       ),

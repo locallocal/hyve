@@ -35,7 +35,7 @@ void main() {
                   onShowMembers: () => members += 1,
                   onShowArtifacts: () => artifacts += 1,
                   onShowExecution: () => execution += 1,
-                  artifactsSelected: true,
+                  executionSelected: true,
                 ),
               ),
             ),
@@ -47,6 +47,14 @@ void main() {
       tester
           .widget<HyveDesktopIconAction>(
             find.byKey(const ValueKey<String>('project-artifacts-button')),
+          )
+          .selected,
+      isFalse,
+    );
+    expect(
+      tester
+          .widget<HyveDesktopIconAction>(
+            find.byKey(const ValueKey<String>('project-execution-button')),
           )
           .selected,
       isTrue,

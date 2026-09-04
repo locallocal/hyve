@@ -293,8 +293,12 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                                     onShowProjectExecution:
                                         projectWorkspaceSelected
                                             ? _projectWorkspaceController
-                                                .showExecution
+                                                .toggleExecution
                                             : null,
+                                    projectExecutionSelected:
+                                        projectWorkspaceSelected &&
+                                        _projectWorkspaceController
+                                            .showingExecution,
                                   ),
                             ),
                             Expanded(child: _buildWorkspace(context)),

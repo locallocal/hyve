@@ -22,6 +22,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
     required this.onCancelTurn,
     required this.onCancelRootChain,
     this.embedded = false,
+    this.onClose,
   });
 
   final Map<String, ProjectTurn> turns;
@@ -34,6 +35,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
   final ValueChanged<String> onCancelTurn;
   final ValueChanged<String> onCancelRootChain;
   final bool embedded;
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,7 @@ final class ProjectExecutionPanel extends StatelessWidget {
 
   Widget _content(BuildContext context, {required bool hasBoundedHeight}) {
     final copy = ProjectLocalizations.of(context);
+    final shadTheme = ShadTheme.maybeOf(context);
     final sortedTurns = turns.values.toList(growable: false)
       ..sort((left, right) => right.createdAt.compareTo(left.createdAt));
     final totalUsage = ModelTokenUsage.sum(
@@ -94,10 +97,20 @@ final class ProjectExecutionPanel extends StatelessWidget {
                 Expanded(
                   child: Text(
                     copy.execution,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style:
+                        shadTheme?.textTheme.h4 ??
+                        Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
-                if (!embedded) const SizedBox.square(dimension: 44),
+                if (onClose case final onClose?)
+                  ProjectIconAction(
+                    key: const ValueKey<String>('project-execution-close'),
+                    label: copy.backToMessages,
+                    onPressed: onClose,
+                    icon: LucideIcons.arrowLeft,
+                  )
+                else if (!embedded)
+                  const SizedBox.square(dimension: 44),
               ],
             ),
             const SizedBox(height: 12),

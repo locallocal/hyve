@@ -6,6 +6,18 @@ import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
 
 void main() {
+  test('workspace controller toggles the execution page', () {
+    final controller = ProjectWorkspaceController();
+    addTearDown(controller.dispose);
+
+    controller.toggleExecution();
+    expect(controller.value, ProjectWorkspacePane.execution);
+    expect(controller.showingExecution, isTrue);
+
+    controller.toggleExecution();
+    expect(controller.value, ProjectWorkspacePane.messages);
+  });
+
   testWidgets('project content follows the composer width at every size', (
     tester,
   ) async {
@@ -45,6 +57,7 @@ void main() {
     var messageDisposals = 0;
     var memberInitializations = 0;
     var artifactInitializations = 0;
+    var executionInitializations = 0;
 
     Widget buildSwitcher({required ProjectWorkspacePane pane}) {
       return MaterialApp(
@@ -64,6 +77,10 @@ void main() {
               label: 'artifacts',
               onInitialize: () => artifactInitializations += 1,
             ),
+            execution: _LifecycleProbe(
+              label: 'execution',
+              onInitialize: () => executionInitializations += 1,
+            ),
           ),
         ),
       );
@@ -73,6 +90,7 @@ void main() {
     expect(messageInitializations, 1);
     expect(memberInitializations, 1);
     expect(artifactInitializations, 1);
+    expect(executionInitializations, 1);
     expect(find.text('messages'), findsOneWidget);
     expect(find.text('members'), findsNothing);
 
@@ -91,6 +109,21 @@ void main() {
     expect(artifactInitializations, 1);
     expect(messageDisposals, 0);
     expect(find.text('artifacts'), findsOneWidget);
+    expect(
+      find.byKey(
+        const PageStorageKey<String>('project-message-list-page'),
+        skipOffstage: false,
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(
+      buildSwitcher(pane: ProjectWorkspacePane.execution),
+    );
+    expect(messageInitializations, 1);
+    expect(executionInitializations, 1);
+    expect(messageDisposals, 0);
+    expect(find.text('execution'), findsOneWidget);
     expect(
       find.byKey(
         const PageStorageKey<String>('project-message-list-page'),

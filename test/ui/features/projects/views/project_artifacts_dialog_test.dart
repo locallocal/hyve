@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -196,6 +199,96 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'browses folders, returns, previews files, and opens externally',
+    (tester) async {
+      final rootFile = _artifactEntryAt('root', 'README.md');
+      final summary = _artifactEntryAt('summary', 'reports/summary.md');
+      final nested = _artifactEntryAt('nested', 'reports/2026/result.md');
+      final controller = _SynchronousArtifactsController(
+        artifacts: <ProjectArtifactEntry>[rootFile, summary, nested],
+      );
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          locale: const Locale('en'),
+          homeBuilder:
+              (_) => Scaffold(
+                body: SizedBox(
+                  width: 900,
+                  height: 720,
+                  child: ProjectArtifactsDialog(
+                    viewModel: controller,
+                    embedded: true,
+                  ),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('artifact-directory-reports')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-artifact-root')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-artifact-summary')),
+        findsNothing,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('artifact-directory-reports')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('artifact-directory-2026')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-artifact-summary')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('artifact-directory-2026')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('project-artifact-nested')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('artifact-directory-back')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey<String>('project-artifact-summary')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('artifact-text-preview')),
+        findsOneWidget,
+      );
+      expect(find.text('Preview: summary.md'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('artifact-open-external')),
+      );
+      await tester.pumpAndSettle();
+      expect(controller.openedArtifactIds, <String>['summary']);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('supports retained offstage layout in expanding Shad tabs', (
     tester,
   ) async {
@@ -246,6 +339,7 @@ final class _SynchronousArtifactsController extends ChangeNotifier
   });
 
   int refreshCount = 0;
+  final List<String> openedArtifactIds = <String>[];
 
   @override
   final List<ProjectArtifactEntry> artifacts;
@@ -264,6 +358,49 @@ final class _SynchronousArtifactsController extends ChangeNotifier
     refreshCount += 1;
     notifyListeners();
     return Future<void>.value();
+  }
+
+  @override
+  Future<List<ProjectArtifactVersion>> artifactVersions(
+    ProjectArtifactEntry entry,
+  ) async => <ProjectArtifactVersion>[entry.currentVersion];
+
+  @override
+  Future<ProjectArtifactReadResult?> previewArtifact(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async {
+    final text = 'Preview: ${entry.artifact.name}';
+    return ProjectArtifactReadResult(
+      artifact: entry.artifact,
+      version: entry.currentVersion,
+      bytes: Uint8List.fromList(utf8.encode(text)),
+      offset: 0,
+      nextOffset: text.length,
+      endOfFile: true,
+      text: text,
+    );
+  }
+
+  @override
+  Future<List<ProjectArtifactMessageReference>> artifactMessageReferences(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async => const <ProjectArtifactMessageReference>[];
+
+  @override
+  Future<String?> prepareArtifactFile(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async => '/tmp/${entry.artifact.name}';
+
+  @override
+  Future<bool> openArtifact(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async {
+    openedArtifactIds.add(entry.artifact.id);
+    return true;
   }
 
   @override
@@ -294,6 +431,44 @@ ProjectArtifactEntry _artifactEntry() {
       artifactId: artifact.id,
       versionNumber: 1,
       relativeBlobPath: 'artifacts/artifact-1/version-1',
+      contentDigest:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      byteLength: 15,
+      mimeType: artifact.mimeType,
+      createdByType: ProjectArtifactActorType.agent,
+      createdById: 'agent-1',
+      sourceRunId: 'run-1',
+      createdAt: createdAt,
+    ),
+  );
+}
+
+ProjectArtifactEntry _artifactEntryAt(String id, String relativePath) {
+  final createdAt = DateTime(2026, 8, 22);
+  final name = relativePath.split('/').last;
+  final versionId = 'version-$id';
+  final artifact = ProjectArtifact(
+    id: id,
+    projectId: 'project-1',
+    name: name,
+    relativePath: relativePath,
+    kind: ProjectArtifactKind.document,
+    mimeType: 'text/markdown',
+    currentVersionId: versionId,
+    searchStatus: ProjectArtifactSearchStatus.indexed,
+    createdByType: ProjectArtifactActorType.agent,
+    createdById: 'agent-1',
+    sourceRunId: 'run-1',
+    createdAt: createdAt,
+    updatedAt: createdAt,
+  );
+  return ProjectArtifactEntry(
+    artifact: artifact,
+    currentVersion: ProjectArtifactVersion(
+      id: versionId,
+      artifactId: id,
+      versionNumber: 1,
+      relativeBlobPath: 'artifacts/blobs/$id/$versionId/content',
       contentDigest:
           'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       byteLength: 15,

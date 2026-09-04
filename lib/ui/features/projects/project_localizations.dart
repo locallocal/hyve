@@ -130,16 +130,23 @@ final class ProjectLocalizations {
   String get importFiles => _text('Import files', '批量导入');
   String get createText => _text('New text', '新建文本');
   String get noArtifacts => _text('No matching project artifacts', '暂无匹配的项目产物');
+  String get artifactRoot => _text('All artifacts', '全部产物');
+  String get backToParentFolder => _text('Back to parent folder', '返回上一级');
+  String folderArtifactCount(int count) =>
+      _text('$count ${count == 1 ? 'artifact' : 'artifacts'}', '$count 个产物');
   String get previewAndHistory =>
       _text('Preview and version history', '预览与版本历史');
+  String get openInSystemApp => _text('Open with system app', '使用系统软件打开');
+  String get unableToOpenArtifact =>
+      _text('Unable to open this file with a system app.', '无法使用系统软件打开此文件。');
   String get writeNewVersion => _text('Write new version', '写入新版本');
   String get createVersion => _text('Create version', '创建版本');
   String source(String value) => _text('Source: $value', '来源：$value');
   String get unableToReadVersion =>
       _text('Unable to read this version', '无法读取此版本');
   String unsupportedPreview(String mime, String digest) => _text(
-    'Text preview is not supported for this type.\nMIME: $mime\nSHA-256: $digest',
-    '该类型不支持文本预览。\nMIME：$mime\nSHA-256：$digest',
+    'In-app preview is not supported for this type.\nMIME: $mime\nSHA-256: $digest',
+    '该类型不支持应用内预览。\nMIME：$mime\nSHA-256：$digest',
   );
   String get previewTruncated => _text(
     'Only the first 32 KiB is shown. Agents can continue reading in chunks.',
@@ -194,6 +201,7 @@ final class ProjectLocalizations {
       'Symbolic links cannot be imported.',
       '不允许导入符号链接。',
     ),
+    'artifact_open_failed' => unableToOpenArtifact,
     _ => _text('Artifact operation failed ($code)', '产物操作失败（$code）'),
   };
 

@@ -154,6 +154,23 @@ void main() {
       ),
       'beta launch plan',
     );
+    final materialized = await artifactRepository.materialize(
+      projectId: 'project-1',
+      artifactId: created.artifact.id,
+      versionId: created.version.id,
+      actor: user,
+    );
+    expect(path.basename(materialized), 'plan.md');
+    expect(await File(materialized).readAsString(), 'alpha launch plan');
+    expect(
+      await artifactRepository.materialize(
+        projectId: 'project-1',
+        artifactId: created.artifact.id,
+        versionId: created.version.id,
+        actor: user,
+      ),
+      materialized,
+    );
     expect(
       (await artifactRepository.versions(
         projectId: 'project-1',

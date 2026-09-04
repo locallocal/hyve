@@ -6,6 +6,8 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
+import 'package:hyve/ui/features/projects/views/project_artifact_browser.dart';
+import 'package:hyve/ui/features/projects/views/project_artifact_preview.dart';
 import 'package:hyve/ui/features/projects/views/project_file_drop_target.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/utils/theme.dart';
@@ -36,7 +38,7 @@ final class ProjectArtifactsDialog extends StatefulWidget {
   State<ProjectArtifactsDialog> createState() => _ProjectArtifactsDialogState();
 }
 
-enum _ArtifactAction { preview, rename, delete }
+enum _ArtifactAction { preview, openExternal, rename, delete }
 
 final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
   final TextEditingController _search = TextEditingController();
@@ -184,6 +186,8 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
     switch (action) {
       case _ArtifactAction.preview:
         _preview(entry);
+      case _ArtifactAction.openExternal:
+        unawaited(widget.viewModel.openArtifact(entry));
       case _ArtifactAction.rename:
         unawaited(_rename(entry));
       case _ArtifactAction.delete:
@@ -208,64 +212,37 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
     ProjectArtifactsController viewModel, {
     required bool hasBoundedHeight,
   }) {
-    if (viewModel.artifacts.isEmpty) {
-      return ProjectEmptyState(icon: LucideIcons.file, title: copy.noArtifacts);
-    }
-    return ListView.builder(
-      primary: hasBoundedHeight ? null : false,
-      shrinkWrap: !hasBoundedHeight,
-      physics: hasBoundedHeight ? null : const NeverScrollableScrollPhysics(),
-      key: const ValueKey<String>('artifact-list'),
-      itemCount: viewModel.artifacts.length,
-      itemBuilder: (context, index) {
-        final entry = viewModel.artifacts[index];
-        final artifact = entry.artifact;
-        final version = entry.currentVersion;
-        return ProjectSurfaceCard(
-          key: ValueKey<String>('project-artifact-${artifact.id}'),
-          padding: EdgeInsets.zero,
-          child: Material(
-            type: MaterialType.transparency,
-            child: ListTile(
-              leading: Icon(_kindIcon(artifact.kind)),
-              title: Text(artifact.relativePath),
-              subtitle: Text(
-                '${copy.artifactKind(artifact.kind)} · '
-                '${version.byteLength} B · '
-                'v${version.versionNumber} · '
-                '${copy.actorSource(artifact)}\n'
-                '${version.contentDigest.substring(0, 12)}'
-                '${entry.snippet.isEmpty ? '' : ' · ${entry.snippet}'}',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+    return ProjectArtifactBrowser(
+      artifacts: viewModel.artifacts,
+      hasBoundedHeight: hasBoundedHeight,
+      onPreview: _preview,
+      actionBuilder:
+          (entry) => ProjectOverflowMenu<_ArtifactAction>(
+            onSelected: (action) => _handleAction(action, entry),
+            items: <ProjectMenuItem<_ArtifactAction>>[
+              ProjectMenuItem<_ArtifactAction>(
+                value: _ArtifactAction.preview,
+                label: copy.previewAndHistory,
+                icon: LucideIcons.eye,
               ),
-              isThreeLine: true,
-              onTap: () => _preview(entry),
-              trailing: ProjectOverflowMenu<_ArtifactAction>(
-                onSelected: (action) => _handleAction(action, entry),
-                items: [
-                  ProjectMenuItem<_ArtifactAction>(
-                    value: _ArtifactAction.preview,
-                    label: copy.previewAndHistory,
-                    icon: LucideIcons.eye,
-                  ),
-                  ProjectMenuItem<_ArtifactAction>(
-                    value: _ArtifactAction.rename,
-                    label: copy.moveOrRename,
-                    icon: LucideIcons.pencil,
-                  ),
-                  ProjectMenuItem<_ArtifactAction>(
-                    value: _ArtifactAction.delete,
-                    label: copy.delete,
-                    icon: LucideIcons.trash2,
-                    destructive: true,
-                  ),
-                ],
+              ProjectMenuItem<_ArtifactAction>(
+                value: _ArtifactAction.openExternal,
+                label: copy.openInSystemApp,
+                icon: LucideIcons.externalLink,
               ),
-            ),
+              ProjectMenuItem<_ArtifactAction>(
+                value: _ArtifactAction.rename,
+                label: copy.moveOrRename,
+                icon: LucideIcons.pencil,
+              ),
+              ProjectMenuItem<_ArtifactAction>(
+                value: _ArtifactAction.delete,
+                label: copy.delete,
+                icon: LucideIcons.trash2,
+                destructive: true,
+              ),
+            ],
           ),
-        );
-      },
     );
   }
 
@@ -524,7 +501,10 @@ final class _ProjectArtifactPreviewDialogState
   List<ProjectArtifactVersion> _versions = const [];
   List<ProjectArtifactMessageReference> _references = const [];
   ProjectArtifactReadResult? _read;
+  String? _filePath;
   bool _loading = true;
+  bool _openingExternal = false;
+  bool _openFailed = false;
 
   @override
   void initState() {
@@ -533,7 +513,10 @@ final class _ProjectArtifactPreviewDialogState
   }
 
   Future<void> _load({String versionId = ''}) async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _openFailed = false;
+    });
     final versions = await widget.viewModel.artifactVersions(_entry);
     final read = await widget.viewModel.previewArtifact(
       _entry,
@@ -543,12 +526,38 @@ final class _ProjectArtifactPreviewDialogState
       _entry,
       versionId: read?.version.id ?? versionId,
     );
+    final mimeType =
+        read?.version.mimeType.toLowerCase().split(';').first.trim();
+    final filePath =
+        read == null || mimeType?.startsWith('image/') != true
+            ? null
+            : await widget.viewModel.prepareArtifactFile(
+              _entry,
+              versionId: read.version.id,
+            );
     if (!mounted) return;
     setState(() {
       _versions = versions;
       _references = references;
       _read = read;
+      _filePath = filePath;
       _loading = false;
+    });
+  }
+
+  Future<void> _openExternally() async {
+    setState(() {
+      _openingExternal = true;
+      _openFailed = false;
+    });
+    final opened = await widget.viewModel.openArtifact(
+      _entry,
+      versionId: _read?.version.id ?? '',
+    );
+    if (!mounted) return;
+    setState(() {
+      _openingExternal = false;
+      _openFailed = !opened;
     });
   }
 
@@ -599,9 +608,10 @@ final class _ProjectArtifactPreviewDialogState
   Widget build(BuildContext context) {
     final read = _read;
     final copy = ProjectLocalizations.of(context);
+    final window = MediaQuery.sizeOf(context);
     final content = SizedBox(
-      width: 720,
-      height: 520,
+      width: (window.width - 64).clamp(280.0, 720.0).toDouble(),
+      height: (window.height - 160).clamp(320.0, 520.0).toDouble(),
       child:
           _loading
               ? const Center(child: CircularProgressIndicator())
@@ -621,6 +631,49 @@ final class _ProjectArtifactPreviewDialogState
                       ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: <Widget>[
+                        ProjectActionButton(
+                          key: const ValueKey<String>('artifact-open-external'),
+                          onPressed:
+                              _openingExternal
+                                  ? null
+                                  : () => unawaited(_openExternally()),
+                          leading:
+                              _openingExternal
+                                  ? const SizedBox.square(
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(
+                                    LucideIcons.externalLink,
+                                    size: 16,
+                                  ),
+                          label: copy.openInSystemApp,
+                          variant: ProjectActionVariant.outline,
+                        ),
+                        if (read?.text != null &&
+                            read?.version.id ==
+                                _entry.artifact.currentVersionId)
+                          ProjectActionButton(
+                            key: const ValueKey<String>(
+                              'artifact-write-version',
+                            ),
+                            onPressed: () => unawaited(_writeVersion()),
+                            leading: const Icon(LucideIcons.pencil, size: 16),
+                            label: copy.writeNewVersion,
+                            variant: ProjectActionVariant.outline,
+                          ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -678,38 +731,27 @@ final class _ProjectArtifactPreviewDialogState
                     const Divider(),
                   ],
                   Expanded(
-                    child:
-                        read == null
-                            ? Center(child: Text(copy.unableToReadVersion))
-                            : read.text == null
-                            ? Center(
-                              child: Text(
-                                copy.unsupportedPreview(
-                                  read.version.mimeType,
-                                  read.version.contentDigest,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            )
-                            : SingleChildScrollView(
-                              child: SelectableText(read.text!),
-                            ),
+                    child: ProjectArtifactPreview(
+                      read: read,
+                      filePath: _filePath,
+                    ),
                   ),
-                  if (read != null && !read.endOfFile)
+                  if (read != null && !read.endOfFile && read.text != null)
                     Text(copy.previewTruncated),
+                  if (_openFailed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        copy.unableToOpenArtifact,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
                 ],
               ),
     );
     final actions = <Widget>[
-      if (read?.text != null &&
-          read?.version.id == _entry.artifact.currentVersionId)
-        ProjectActionButton(
-          key: const ValueKey<String>('artifact-write-version'),
-          onPressed: () => unawaited(_writeVersion()),
-          leading: const Icon(LucideIcons.pencil, size: 16),
-          label: copy.writeNewVersion,
-          variant: ProjectActionVariant.outline,
-        ),
       ProjectActionButton(
         onPressed: () => Navigator.pop(context),
         label: copy.close,
@@ -729,13 +771,3 @@ final class _ProjectArtifactPreviewDialogState
     );
   }
 }
-
-IconData _kindIcon(ProjectArtifactKind kind) => switch (kind) {
-  ProjectArtifactKind.image => Icons.image_outlined,
-  ProjectArtifactKind.audio => Icons.audio_file_outlined,
-  ProjectArtifactKind.video => Icons.video_file_outlined,
-  ProjectArtifactKind.code => Icons.code,
-  ProjectArtifactKind.dataset => Icons.table_chart_outlined,
-  ProjectArtifactKind.archive => Icons.archive_outlined,
-  _ => Icons.insert_drive_file_outlined,
-};

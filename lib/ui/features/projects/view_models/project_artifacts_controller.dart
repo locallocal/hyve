@@ -32,6 +32,16 @@ abstract interface class ProjectArtifactsController implements Listenable {
     String versionId = '',
   });
 
+  Future<String?> prepareArtifactFile(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  });
+
+  Future<bool> openArtifact(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  });
+
   Future<List<ProjectArtifactVersion>> artifactVersions(
     ProjectArtifactEntry entry,
   );

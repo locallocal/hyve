@@ -7,6 +7,7 @@ import 'package:hyve/domain/repositories/agent_message_receipt_repository.dart';
 import 'package:hyve/domain/repositories/agent_repository.dart';
 import 'package:hyve/domain/repositories/agent_run_repository.dart';
 import 'package:hyve/domain/repositories/attachment_repository.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
 import 'package:hyve/domain/repositories/model_usage_repository.dart';
 import 'package:hyve/domain/repositories/participation_decision_repository.dart';
 import 'package:hyve/domain/repositories/profile_repository.dart';
@@ -91,6 +92,7 @@ void main() {
       modelUsageRepository: usageRepository,
       inboxCoordinator: inbox,
       artifactRepository: _ArtifactRepository(),
+      messageActionRepository: _MessageActionRepository(),
       attachmentRepository: _AttachmentRepository(),
       temporaryAttachmentRepository: _TemporaryAttachmentRepository(),
       profileRepository: _ProfileRepository(),
@@ -257,6 +259,9 @@ final class _ArtifactRepository extends _UnsupportedRepository
 
 final class _AttachmentRepository extends _UnsupportedRepository
     implements AttachmentRepository {}
+
+final class _MessageActionRepository extends _UnsupportedRepository
+    implements MessageActionRepository {}
 
 final class _TemporaryAttachmentRepository extends _UnsupportedRepository
     implements ProjectTemporaryAttachmentRepository {}

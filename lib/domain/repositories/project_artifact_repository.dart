@@ -45,6 +45,13 @@ abstract interface class ProjectArtifactRepository {
     int length = 8192,
   });
 
+  Future<String> materialize({
+    required String projectId,
+    required String artifactId,
+    String versionId = '',
+    required ProjectArtifactActor actor,
+  });
+
   Future<ProjectArtifactMutationResult> create({
     required String projectId,
     required String relativePath,

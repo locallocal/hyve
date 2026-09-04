@@ -14,6 +14,7 @@ import 'package:hyve/domain/repositories/project_artifact_repository.dart';
 import 'package:hyve/domain/repositories/project_event_repository.dart';
 import 'package:hyve/domain/repositories/project_membership_repository.dart';
 import 'package:hyve/domain/repositories/model_usage_repository.dart';
+import 'package:hyve/domain/repositories/message_action_repository.dart';
 import 'package:hyve/domain/repositories/participation_decision_repository.dart';
 import 'package:hyve/domain/repositories/profile_repository.dart';
 import 'package:hyve/domain/repositories/project_repository.dart';
@@ -44,6 +45,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     required ModelUsageRepository modelUsageRepository,
     required AgentInboxCoordinator inboxCoordinator,
     required ProjectArtifactRepository artifactRepository,
+    required MessageActionRepository messageActionRepository,
     required AttachmentRepository attachmentRepository,
     required ProjectTemporaryAttachmentRepository temporaryAttachmentRepository,
     required ProfileRepository profileRepository,
@@ -61,6 +63,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
        _decisionRepository = decisionRepository,
        _modelUsageRepository = modelUsageRepository,
        _artifactRepository = artifactRepository,
+       _messageActionRepository = messageActionRepository,
        _attachmentRepository = attachmentRepository,
        _temporaryAttachmentRepository = temporaryAttachmentRepository,
        _profileRepository = profileRepository,
@@ -115,6 +118,7 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
   final ParticipationDecisionRepository _decisionRepository;
   final ModelUsageRepository _modelUsageRepository;
   final ProjectArtifactRepository _artifactRepository;
+  final MessageActionRepository _messageActionRepository;
   final AttachmentRepository _attachmentRepository;
   final ProjectTemporaryAttachmentRepository _temporaryAttachmentRepository;
   final ProfileRepository _profileRepository;
@@ -531,6 +535,49 @@ final class ProjectWorkspaceViewModel extends DisposableChangeNotifier
     } on ProjectArtifactFailure catch (failure) {
       _recordArtifactFailure(failure);
       return null;
+    }
+  }
+
+  @override
+  Future<String?> prepareArtifactFile(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async {
+    try {
+      return await _artifactRepository.materialize(
+        projectId: projectId,
+        artifactId: entry.artifact.id,
+        versionId: versionId,
+        actor: _userArtifactActor,
+      );
+    } on ProjectArtifactFailure catch (failure) {
+      _recordArtifactFailure(failure);
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> openArtifact(
+    ProjectArtifactEntry entry, {
+    String versionId = '',
+  }) async {
+    final filePath = await prepareArtifactFile(entry, versionId: versionId);
+    if (filePath == null) return false;
+    try {
+      final opened = await _messageActionRepository.openExternal(
+        Uri.file(filePath),
+      );
+      if (!opened) {
+        _recordArtifactFailure(
+          const ProjectArtifactFailure('artifact_open_failed'),
+        );
+      }
+      return opened;
+    } on Object catch (error) {
+      _recordArtifactFailure(
+        ProjectArtifactFailure('artifact_open_failed', cause: error),
+      );
+      return false;
     }
   }
 

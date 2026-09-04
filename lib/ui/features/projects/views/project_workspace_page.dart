@@ -174,6 +174,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     _viewModel = dependencies.createWorkspaceViewModel(
       widget.projectId,
       profileRepository: appDependencies.profileRepository,
+      messageActionRepository: appDependencies.messageActionRepository,
     );
     _membersViewModel = dependencies.createMembersViewModel(widget.projectId);
     unawaited(_viewModel!.refresh());

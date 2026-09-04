@@ -305,6 +305,7 @@ final class ProjectAgentPersistence {
   ProjectWorkspaceViewModel createWorkspaceViewModel(
     String projectId, {
     required ProfileRepository profileRepository,
+    required MessageActionRepository messageActionRepository,
   }) => ProjectWorkspaceViewModel(
     projectId: projectId,
     routeProjectMessage: routeProjectMessage,
@@ -321,6 +322,7 @@ final class ProjectAgentPersistence {
     modelUsageRepository: modelUsageRepository,
     inboxCoordinator: inboxCoordinator,
     artifactRepository: artifactRepository,
+    messageActionRepository: messageActionRepository,
     attachmentRepository: attachmentRepository,
     temporaryAttachmentRepository: temporaryAttachmentRepository,
     profileRepository: profileRepository,

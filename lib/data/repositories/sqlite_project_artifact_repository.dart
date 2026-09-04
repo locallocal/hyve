@@ -155,50 +155,93 @@ final class SqliteProjectArtifactRepository
       throw const ProjectArtifactFailure('artifact_read_range_invalid');
     }
     try {
-      final entry = await get(
+      final resolved = await _resolveArtifactVersion(
         projectId: projectId,
         artifactId: artifactId,
+        versionId: versionId,
         actor: actor,
       );
-      if (entry == null) {
-        throw const ProjectArtifactFailure('artifact_not_found');
-      }
-      var version = entry.currentVersion;
-      if (versionId.isNotEmpty && versionId != version.id) {
-        final row = await _localDatabase.loadProjectArtifactVersion(
-          projectId: projectId,
-          artifactId: artifactId,
-          versionId: versionId,
-          actorType: actor.type.name,
-          actorId: actor.id,
-        );
-        if (row == null) {
-          throw const ProjectArtifactFailure('artifact_version_not_found');
-        }
-        version = ProjectArtifactVersionRecord(row).toDomain();
-      }
       final bytes = await _storage.read(
         projectId: projectId,
-        relativeBlobPath: version.relativeBlobPath,
+        relativeBlobPath: resolved.version.relativeBlobPath,
         offset: offset,
         length: length,
       );
       final nextOffset = offset + bytes.length;
       return ProjectArtifactReadResult(
-        artifact: entry.artifact,
-        version: version,
+        artifact: resolved.entry.artifact,
+        version: resolved.version,
         bytes: bytes,
         offset: offset,
         nextOffset: nextOffset,
-        endOfFile: nextOffset >= version.byteLength,
+        endOfFile: nextOffset >= resolved.version.byteLength,
         text:
-            isProjectArtifactTextMimeType(version.mimeType)
+            isProjectArtifactTextMimeType(resolved.version.mimeType)
                 ? utf8.decode(bytes, allowMalformed: true)
                 : null,
       );
     } on Object catch (error) {
       throw _artifactFailure(error);
     }
+  }
+
+  @override
+  Future<String> materialize({
+    required String projectId,
+    required String artifactId,
+    String versionId = '',
+    required ProjectArtifactActor actor,
+  }) async {
+    try {
+      final resolved = await _resolveArtifactVersion(
+        projectId: projectId,
+        artifactId: artifactId,
+        versionId: versionId,
+        actor: actor,
+      );
+      return _storage.materializeArtifact(
+        projectId: projectId,
+        artifactId: artifactId,
+        versionId: resolved.version.id,
+        relativeBlobPath: resolved.version.relativeBlobPath,
+        fileName: resolved.entry.artifact.name,
+      );
+    } on Object catch (error) {
+      throw _artifactFailure(error);
+    }
+  }
+
+  Future<({ProjectArtifactEntry entry, ProjectArtifactVersion version})>
+  _resolveArtifactVersion({
+    required String projectId,
+    required String artifactId,
+    required String versionId,
+    required ProjectArtifactActor actor,
+  }) async {
+    final entry = await get(
+      projectId: projectId,
+      artifactId: artifactId,
+      actor: actor,
+    );
+    if (entry == null) {
+      throw const ProjectArtifactFailure('artifact_not_found');
+    }
+    var version = entry.currentVersion;
+    if (versionId.isEmpty || versionId == version.id) {
+      return (entry: entry, version: version);
+    }
+    final row = await _localDatabase.loadProjectArtifactVersion(
+      projectId: projectId,
+      artifactId: artifactId,
+      versionId: versionId,
+      actorType: actor.type.name,
+      actorId: actor.id,
+    );
+    if (row == null) {
+      throw const ProjectArtifactFailure('artifact_version_not_found');
+    }
+    version = ProjectArtifactVersionRecord(row).toDomain();
+    return (entry: entry, version: version);
   }
 
   @override

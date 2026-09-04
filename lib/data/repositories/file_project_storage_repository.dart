@@ -189,6 +189,68 @@ final class FileProjectStorageRepository implements ProjectStorageRepository {
   }
 
   @override
+  Future<String> materializeArtifact({
+    required String projectId,
+    required String artifactId,
+    required String versionId,
+    required String relativeBlobPath,
+    required String fileName,
+  }) async {
+    _validateIdentity(artifactId, 'artifactId');
+    _validateIdentity(versionId, 'versionId');
+    final normalized = _normalizeBlobPath(relativeBlobPath);
+    final safeName = path.basename(fileName.replaceAll('\\', '/')).trim();
+    if (safeName.isEmpty || safeName == '.' || safeName == '..') {
+      throw const ProjectArtifactFailure('artifact_file_name_invalid');
+    }
+
+    final root = await _storage.projectRoot(projectId);
+    await _rejectRootLink(root);
+    await _rejectLinks(root, normalized);
+    final source = File(path.join(root.path, path.fromUri(normalized)));
+    if (!await source.exists()) {
+      throw const ProjectArtifactFailure('artifact_blob_missing');
+    }
+
+    final relativeDirectory = path.posix.join(
+      path.posix.dirname(normalized),
+      'open',
+    );
+    await _rejectLinks(root, relativeDirectory);
+    final directory = Directory(
+      path.join(root.path, path.fromUri(relativeDirectory)),
+    );
+    await directory.create(recursive: true);
+    final destination = File(path.join(directory.path, safeName));
+    await _rejectLinks(
+      root,
+      path.posix.join(relativeDirectory, safeName.replaceAll('\\', '/')),
+    );
+    final sourceModified = await source.lastModified();
+    if (await destination.exists()) {
+      final sameLength = await destination.length() == await source.length();
+      final destinationModified = await destination.lastModified();
+      if (sameLength && destinationModified.isAtSameMomentAs(sourceModified)) {
+        return destination.path;
+      }
+    }
+    final temporary = File(
+      '${destination.path}.${DateTime.now().microsecondsSinceEpoch}.tmp',
+    );
+    try {
+      await source.copy(temporary.path);
+      if (await destination.exists()) await destination.delete();
+      await temporary.rename(destination.path);
+      await destination.setLastModified(sourceModified);
+      return destination.path;
+    } on Object catch (error) {
+      if (await temporary.exists()) await temporary.delete();
+      if (error is ProjectArtifactFailure) rethrow;
+      throw ProjectArtifactFailure('artifact_materialize_failed', cause: error);
+    }
+  }
+
+  @override
   Future<void> deleteBlob(String projectId, String relativeBlobPath) async {
     final normalized = _normalizeBlobPath(relativeBlobPath);
     final root = await _storage.projectRoot(projectId);

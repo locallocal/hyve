@@ -44,6 +44,14 @@ abstract interface class ProjectStorageRepository {
     required int length,
   });
 
+  Future<String> materializeArtifact({
+    required String projectId,
+    required String artifactId,
+    required String versionId,
+    required String relativeBlobPath,
+    required String fileName,
+  });
+
   Future<void> deleteBlob(String projectId, String relativeBlobPath);
 
   Future<StagedProjectArtifactDeletion?> stageArtifactDeletion(

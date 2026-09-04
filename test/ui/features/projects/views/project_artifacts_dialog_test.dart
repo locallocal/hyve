@@ -14,6 +14,7 @@ void main() {
   ) async {
     final controller = _SynchronousArtifactsController();
     addTearDown(controller.dispose);
+    var closeRequests = 0;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -26,6 +27,7 @@ void main() {
                       (context) => ProjectArtifactsDialog(
                         viewModel: controller,
                         embedded: true,
+                        onClose: () => closeRequests += 1,
                       ),
                 ),
           ),
@@ -35,6 +37,12 @@ void main() {
 
     expect(controller.refreshCount, 1);
     expect(tester.takeException(), isNull);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-artifacts-close')),
+    );
+    await tester.pump();
+    expect(closeRequests, 1);
 
     await tester.pump();
     expect(find.byType(ProjectArtifactsDialog), findsOneWidget);

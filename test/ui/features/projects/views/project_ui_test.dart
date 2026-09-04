@@ -38,18 +38,19 @@ void main() {
     }
   });
 
-  testWidgets('workspace pane switch keeps the message page mounted', (
+  testWidgets('workspace tool panes keep the message page mounted', (
     tester,
   ) async {
     var messageInitializations = 0;
     var messageDisposals = 0;
     var memberInitializations = 0;
+    var artifactInitializations = 0;
 
-    Widget buildSwitcher({required bool showMembers}) {
+    Widget buildSwitcher({required ProjectWorkspacePane pane}) {
       return MaterialApp(
         home: Scaffold(
           body: ProjectWorkspacePaneStack(
-            showMembers: showMembers,
+            pane: pane,
             messages: _LifecycleProbe(
               label: 'messages',
               onInitialize: () => messageInitializations += 1,
@@ -59,23 +60,37 @@ void main() {
               label: 'members',
               onInitialize: () => memberInitializations += 1,
             ),
+            artifacts: _LifecycleProbe(
+              label: 'artifacts',
+              onInitialize: () => artifactInitializations += 1,
+            ),
           ),
         ),
       );
     }
 
-    await tester.pumpWidget(buildSwitcher(showMembers: false));
+    await tester.pumpWidget(buildSwitcher(pane: ProjectWorkspacePane.messages));
     expect(messageInitializations, 1);
     expect(memberInitializations, 1);
+    expect(artifactInitializations, 1);
     expect(find.text('messages'), findsOneWidget);
     expect(find.text('members'), findsNothing);
 
-    await tester.pumpWidget(buildSwitcher(showMembers: true));
+    await tester.pumpWidget(buildSwitcher(pane: ProjectWorkspacePane.members));
     expect(messageInitializations, 1);
     expect(memberInitializations, 1);
     expect(messageDisposals, 0);
     expect(find.text('messages'), findsNothing);
     expect(find.text('members'), findsOneWidget);
+
+    await tester.pumpWidget(
+      buildSwitcher(pane: ProjectWorkspacePane.artifacts),
+    );
+    expect(messageInitializations, 1);
+    expect(memberInitializations, 1);
+    expect(artifactInitializations, 1);
+    expect(messageDisposals, 0);
+    expect(find.text('artifacts'), findsOneWidget);
     expect(
       find.byKey(
         const PageStorageKey<String>('project-message-list-page'),
@@ -84,7 +99,7 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.pumpWidget(buildSwitcher(showMembers: false));
+    await tester.pumpWidget(buildSwitcher(pane: ProjectWorkspacePane.messages));
     expect(messageInitializations, 1);
     expect(messageDisposals, 0);
     expect(find.text('messages'), findsOneWidget);

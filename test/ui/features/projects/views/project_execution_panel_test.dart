@@ -524,8 +524,13 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey<String>('project-audit-events-card')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-card-audit-1')),
       findsOneWidget,
     );
+    expect(find.text('审计事件'), findsOneWidget);
     expect(find.text('systemNotice'), findsOneWidget);
 
     await tester.tap(
@@ -539,6 +544,114 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('summary-1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('audit events render directly and paginate twenty per page', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 8, 24);
+    final events = <ProjectEvent>[
+      for (var index = 1; index <= 61; index += 1)
+        _auditEvent(
+          now.add(Duration(minutes: index)),
+          id: 'audit-$index',
+          sequence: index,
+        ),
+    ];
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('en'),
+        homeBuilder:
+            (_) => SizedBox(
+              width: 900,
+              height: 700,
+              child: ProjectExecutionPanel(
+                embedded: true,
+                turns: const <String, ProjectTurn>{},
+                runs: const <String, AgentRun>{},
+                decisions: const <String, ParticipationDecision>{},
+                usageRecords: const <ModelTokenUsageRecord>[],
+                events: events,
+                agentNames: const <String, String>{},
+                onCancelRun: _ignore,
+                onCancelTurn: _ignore,
+                onCancelRootChain: _ignore,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-execution-audits-tab')),
+    );
+    await tester.pumpAndSettle();
+
+    List<Widget> pageCards() {
+      final list = tester.widget<ListView>(
+        find.byKey(const ValueKey<String>('project-audit-events-list')),
+      );
+      return (list.childrenDelegate as SliverChildListDelegate).children;
+    }
+
+    expect(find.text('Audit events'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-events-card')),
+      findsNothing,
+    );
+    expect(pageCards(), hasLength(20));
+    expect(find.text('1 / 4'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-61')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-41')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-audit-events-next-page')),
+    );
+    await tester.pump();
+
+    expect(pageCards(), hasLength(20));
+    expect(find.text('2 / 4'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-41')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-61')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-audit-events-next-page')),
+    );
+    await tester.pump();
+
+    expect(pageCards(), hasLength(20));
+    expect(find.text('3 / 4'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-21')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-audit-events-next-page')),
+    );
+    await tester.pump();
+
+    expect(pageCards(), hasLength(1));
+    expect(find.text('4 / 4'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-event-tile-audit-1')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -663,4 +776,21 @@ ParticipationDecision _decision(
   choice: ParticipationChoice.pass,
   reasonCode: reasonCode,
   createdAt: now,
+);
+
+ProjectEvent _auditEvent(
+  DateTime now, {
+  required String id,
+  required int sequence,
+}) => ProjectEvent(
+  id: id,
+  projectId: 'project-1',
+  sequence: sequence,
+  eventType: ProjectEventType.systemNotice,
+  actorType: ProjectEventActorType.system,
+  actorNameSnapshot: 'System',
+  visibility: ProjectEventVisibility.audit,
+  payload: const SystemNoticePayload(code: 'audit_event'),
+  createdAt: now,
+  updatedAt: now,
 );

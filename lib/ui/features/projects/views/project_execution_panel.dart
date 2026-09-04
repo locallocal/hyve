@@ -68,7 +68,6 @@ final class ProjectExecutionPanel extends StatelessWidget {
             .length;
     final audits = events.reversed
         .where((event) => event.visibility == ProjectEventVisibility.audit)
-        .take(50)
         .toList(growable: false);
     final details = _ExecutionDetailTabs(
       turns: sortedTurns,
@@ -376,7 +375,8 @@ final class _ExecutionHistoryState extends State<_ExecutionHistory> {
         if (widget.hasBoundedHeight) Expanded(child: list) else list,
         if (_totalPages > 1) ...<Widget>[
           const SizedBox(height: 12),
-          _ExecutionPagination(
+          ProjectPagination(
+            keyPrefix: 'project-execution',
             currentPage: _pageIndex + 1,
             totalPages: _totalPages,
             onPrevious:
@@ -387,53 +387,6 @@ final class _ExecutionHistoryState extends State<_ExecutionHistory> {
                     : () => _showPage(_pageIndex + 1),
           ),
         ],
-      ],
-    );
-  }
-}
-
-final class _ExecutionPagination extends StatelessWidget {
-  const _ExecutionPagination({
-    required this.currentPage,
-    required this.totalPages,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final int currentPage;
-  final int totalPages;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = MaterialLocalizations.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        ProjectIconAction(
-          key: const ValueKey<String>('project-execution-previous-page'),
-          icon: LucideIcons.chevronLeft,
-          label: localizations.previousPageTooltip,
-          variant: ShadButtonVariant.outline,
-          onPressed: onPrevious,
-        ),
-        const SizedBox(width: 12),
-        Semantics(
-          label: '$currentPage / $totalPages',
-          child: Text(
-            '$currentPage / $totalPages',
-            key: const ValueKey<String>('project-execution-page-indicator'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ProjectIconAction(
-          key: const ValueKey<String>('project-execution-next-page'),
-          icon: LucideIcons.chevronRight,
-          label: localizations.nextPageTooltip,
-          variant: ShadButtonVariant.outline,
-          onPressed: onNext,
-        ),
       ],
     );
   }

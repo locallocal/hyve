@@ -370,6 +370,60 @@ final class ProjectBackAction extends StatelessWidget {
   );
 }
 
+/// Compact previous/next pagination shared by project detail lists.
+final class ProjectPagination extends StatelessWidget {
+  const ProjectPagination({
+    super.key,
+    required this.keyPrefix,
+    required this.currentPage,
+    required this.totalPages,
+    required this.onPrevious,
+    required this.onNext,
+  }) : assert(keyPrefix.length > 0),
+       assert(currentPage > 0),
+       assert(totalPages > 0),
+       assert(currentPage <= totalPages);
+
+  final String keyPrefix;
+  final int currentPage;
+  final int totalPages;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        ProjectIconAction(
+          key: ValueKey<String>('$keyPrefix-previous-page'),
+          icon: LucideIcons.chevronLeft,
+          label: localizations.previousPageTooltip,
+          variant: ShadButtonVariant.outline,
+          onPressed: onPrevious,
+        ),
+        const SizedBox(width: 12),
+        Semantics(
+          label: '$currentPage / $totalPages',
+          child: Text(
+            '$currentPage / $totalPages',
+            key: ValueKey<String>('$keyPrefix-page-indicator'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        ProjectIconAction(
+          key: ValueKey<String>('$keyPrefix-next-page'),
+          icon: LucideIcons.chevronRight,
+          label: localizations.nextPageTooltip,
+          variant: ShadButtonVariant.outline,
+          onPressed: onNext,
+        ),
+      ],
+    );
+  }
+}
+
 final class ProjectBadge extends StatelessWidget {
   const ProjectBadge({
     super.key,

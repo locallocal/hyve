@@ -8,6 +8,44 @@ import 'package:hyve/ui/features/projects/views/project_execution_panel.dart';
 import '../../../../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('embedded execution page can return to messages', (tester) async {
+    var closeCount = 0;
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        locale: const Locale('en'),
+        homeBuilder:
+            (_) => SizedBox(
+              width: 700,
+              height: 600,
+              child: ProjectExecutionPanel(
+                embedded: true,
+                turns: const <String, ProjectTurn>{},
+                runs: const <String, AgentRun>{},
+                decisions: const <String, ParticipationDecision>{},
+                usageRecords: const <ModelTokenUsageRecord>[],
+                events: const <ProjectEvent>[],
+                agentNames: const <String, String>{},
+                onCancelRun: (_) {},
+                onCancelTurn: (_) {},
+                onCancelRootChain: (_) {},
+                onClose: () => closeCount += 1,
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final close = find.byKey(const ValueKey<String>('project-execution-close'));
+    expect(close, findsOneWidget);
+    await tester.tap(close);
+    await tester.pump();
+
+    expect(closeCount, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows run chain, usage, errors, context IDs, and cancellation', (
     tester,
   ) async {

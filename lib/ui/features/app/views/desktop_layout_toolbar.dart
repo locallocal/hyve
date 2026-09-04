@@ -9,6 +9,7 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
     required this.onShowExecution,
     this.membersSelected = false,
     this.artifactsSelected = false,
+    this.executionSelected = false,
   });
 
   final VoidCallback onShowMembers;
@@ -16,6 +17,7 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
   final VoidCallback onShowExecution;
   final bool membersSelected;
   final bool artifactsSelected;
+  final bool executionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +45,13 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
         ),
         HyveDesktopIconAction(
           key: const ValueKey<String>('project-execution-button'),
-          label: copy.execution,
+          label: executionSelected ? copy.backToMessages : copy.execution,
           onPressed: onShowExecution,
-          icon: LucideIcons.activity,
+          icon:
+              executionSelected
+                  ? LucideIcons.messageSquareText
+                  : LucideIcons.activity,
+          selected: executionSelected,
         ),
       ],
     );
@@ -67,6 +73,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final VoidCallback? onShowProjectArtifacts;
   final bool projectArtifactsSelected;
   final VoidCallback? onShowProjectExecution;
+  final bool projectExecutionSelected;
 
   const _UnifiedDesktopToolbar({
     required this.currentIndex,
@@ -83,6 +90,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.onShowProjectArtifacts,
     required this.projectArtifactsSelected,
     required this.onShowProjectExecution,
+    required this.projectExecutionSelected,
   });
 
   @override
@@ -200,6 +208,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             onShowExecution: onShowProjectExecution!,
                             membersSelected: projectMembersSelected,
                             artifactsSelected: projectArtifactsSelected,
+                            executionSelected: projectExecutionSelected,
                           ),
                       ],
                     )

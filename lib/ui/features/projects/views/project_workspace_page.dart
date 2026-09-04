@@ -101,17 +101,26 @@ final class ProjectWorkspacePaneStack extends StatelessWidget {
         cachedPane(
           target: ProjectWorkspacePane.members,
           storageKey: const PageStorageKey<String>('project-members-page'),
-          child: members,
+          child: ProjectContentBounds(
+            key: const ValueKey<String>('project-members-content-bounds'),
+            child: members,
+          ),
         ),
         cachedPane(
           target: ProjectWorkspacePane.artifacts,
           storageKey: const PageStorageKey<String>('project-artifacts-page'),
-          child: artifacts,
+          child: ProjectContentBounds(
+            key: const ValueKey<String>('project-artifacts-content-bounds'),
+            child: artifacts,
+          ),
         ),
         cachedPane(
           target: ProjectWorkspacePane.execution,
           storageKey: const PageStorageKey<String>('project-execution-page'),
-          child: execution,
+          child: ProjectContentBounds(
+            key: const ValueKey<String>('project-execution-content-bounds'),
+            child: execution,
+          ),
         ),
       ],
     );

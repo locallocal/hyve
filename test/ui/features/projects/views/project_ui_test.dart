@@ -142,6 +142,69 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('workspace tool panes match the message content width', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    for (final width in <double>[600, 1200]) {
+      tester.view.physicalSize = Size(width, 700);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProjectWorkspacePaneStack(
+              pane: ProjectWorkspacePane.messages,
+              messages: const ProjectContentBounds(
+                child: ColoredBox(
+                  key: ValueKey<String>('message-width-reference'),
+                  color: Colors.black,
+                ),
+              ),
+              members: const ColoredBox(
+                key: ValueKey<String>('members-width-target'),
+                color: Colors.red,
+              ),
+              artifacts: const ColoredBox(
+                key: ValueKey<String>('artifacts-width-target'),
+                color: Colors.green,
+              ),
+              execution: const ColoredBox(
+                key: ValueKey<String>('execution-width-target'),
+                color: Colors.blue,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final reference = tester.getRect(
+        find.byKey(
+          const ValueKey<String>('message-width-reference'),
+          skipOffstage: false,
+        ),
+      );
+      expect(
+        reference.width,
+        math.min(width - 32, projectContentMaxWidth),
+        reason: 'message width at window width $width',
+      );
+      for (final key in <String>[
+        'members-width-target',
+        'artifacts-width-target',
+        'execution-width-target',
+      ]) {
+        final target = tester.getRect(
+          find.byKey(ValueKey<String>(key), skipOffstage: false),
+        );
+        expect(target.width, reference.width, reason: '$key at width $width');
+        expect(target.left, reference.left, reason: '$key at width $width');
+      }
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('member and artifact headers keep identical geometry', (
     tester,
   ) async {

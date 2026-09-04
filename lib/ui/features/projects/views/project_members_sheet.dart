@@ -108,64 +108,23 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    if (shadTheme == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Icon(
-                          LucideIcons.bot,
-                          semanticLabel: copy.members,
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: shadTheme.colorScheme.border,
-                          ),
-                          borderRadius: shadTheme.radius,
-                        ),
-                        child: Icon(
-                          LucideIcons.bot,
-                          size: 18,
-                          color: shadTheme.colorScheme.foreground,
-                          semanticLabel: copy.members,
-                        ),
-                      ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            copy.members,
-                            style:
-                                shadTheme?.textTheme.h4 ??
-                                Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            copy.membersDescription,
-                            style:
-                                shadTheme?.textTheme.muted ??
-                                Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (widget.onClose != null)
-                      ProjectBackAction(
-                        key: const ValueKey<String>('project-members-close'),
-                        label: copy.backToMessages,
-                        onPressed: widget.onClose,
-                      )
-                    else if (!widget.embedded)
-                      const SizedBox.square(dimension: 44),
-                  ],
+                ProjectSectionHeader(
+                  key: const ValueKey<String>('project-members-header'),
+                  icon: LucideIcons.bot,
+                  title: copy.members,
+                  description: copy.membersDescription,
+                  trailing:
+                      widget.onClose != null
+                          ? ProjectBackAction(
+                            key: const ValueKey<String>(
+                              'project-members-close',
+                            ),
+                            label: copy.backToMessages,
+                            onPressed: widget.onClose,
+                          )
+                          : !widget.embedded
+                          ? const SizedBox.square(dimension: 44)
+                          : null,
                 ),
                 const SizedBox(height: 20),
                 LayoutBuilder(

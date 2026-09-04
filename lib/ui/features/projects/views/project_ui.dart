@@ -275,6 +275,78 @@ final class ProjectIconAction extends StatelessWidget {
   );
 }
 
+/// Consistent title, annotation, and bordered icon for project sections.
+final class ProjectSectionHeader extends StatelessWidget {
+  const ProjectSectionHeader({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (shadTheme == null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, semanticLabel: title),
+          )
+        else
+          Container(
+            key: const ValueKey<String>('project-section-header-icon-frame'),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(color: shadTheme.colorScheme.border),
+              borderRadius: shadTheme.radius,
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: shadTheme.colorScheme.foreground,
+              semanticLabel: title,
+            ),
+          ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style:
+                      shadTheme?.textTheme.h4 ??
+                      Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style:
+                    shadTheme?.textTheme.muted ??
+                    Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        if (trailing case final trailing?) trailing,
+      ],
+    );
+  }
+}
+
 /// Standard back navigation used by project detail surfaces.
 ///
 /// Keeping the outline variant here ensures section-to-message navigation and

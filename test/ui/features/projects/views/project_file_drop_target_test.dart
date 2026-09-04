@@ -18,7 +18,10 @@ void main() {
               idleLabel: 'Drop files here to import',
               activeLabel: 'Release to import',
               onDropped: (paths) => dropped = paths,
-              child: const SizedBox.expand(child: Placeholder()),
+              child: const SizedBox.expand(
+                key: ValueKey<String>('drop-content'),
+                child: Placeholder(),
+              ),
             ),
           ),
         ),
@@ -29,12 +32,24 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final targetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('artifact-drop-target')),
+    );
+    final contentRect = tester.getRect(
+      find.byKey(const ValueKey<String>('drop-content')),
+    );
+    expect(contentRect, targetRect);
+
     final target = tester.widget<DropTarget>(find.byType(DropTarget));
     target.onDragEntered?.call(
       DropEventDetails(localPosition: Offset.zero, globalPosition: Offset.zero),
     );
     await tester.pump();
     expect(find.text('Release to import'), findsOneWidget);
+    expect(
+      tester.getRect(find.byKey(const ValueKey<String>('drop-content'))),
+      targetRect,
+    );
 
     target.onDragDone?.call(
       DropDoneDetails(

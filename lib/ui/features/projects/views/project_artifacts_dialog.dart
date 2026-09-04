@@ -283,33 +283,27 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                               : MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.folderKanban,
-                              semanticLabel: copy.artifacts,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              copy.artifacts,
-                              style:
-                                  shadTheme?.textTheme.h4 ??
-                                  Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const Spacer(),
-                            if (widget.onClose != null)
-                              ProjectBackAction(
-                                key: const ValueKey<String>(
-                                  'project-artifacts-close',
-                                ),
-                                label: copy.backToMessages,
-                                onPressed: widget.onClose,
-                              )
-                            else if (!widget.embedded)
-                              const SizedBox.square(dimension: 44),
-                          ],
+                        ProjectSectionHeader(
+                          key: const ValueKey<String>(
+                            'project-artifacts-header',
+                          ),
+                          icon: LucideIcons.folderKanban,
+                          title: copy.artifacts,
+                          description: copy.artifactsDescription,
+                          trailing:
+                              widget.onClose != null
+                                  ? ProjectBackAction(
+                                    key: const ValueKey<String>(
+                                      'project-artifacts-close',
+                                    ),
+                                    label: copy.backToMessages,
+                                    onPressed: widget.onClose,
+                                  )
+                                  : !widget.embedded
+                                  ? const SizedBox.square(dimension: 44)
+                                  : null,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
                         LayoutBuilder(
                           builder: (context, constraints) {
                             const minimumToolbarWidth = 720.0;
@@ -474,7 +468,7 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
         maxWidth: widget.embedded ? double.infinity : 900,
         maxHeight: widget.embedded ? double.infinity : 680,
       ),
-      child: content,
+      child: SafeArea(child: content),
     );
   }
 }

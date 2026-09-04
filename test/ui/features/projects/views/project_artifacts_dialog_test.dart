@@ -67,11 +67,16 @@ void main() {
         shadHarness(
           brightness: Brightness.light,
           homeBuilder:
-              (_) => Scaffold(
-                body: ProjectArtifactsDialog(
-                  viewModel: controller,
-                  embedded: true,
-                  onClose: () {},
+              (context) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(padding: const EdgeInsets.only(top: 24)),
+                child: Scaffold(
+                  body: ProjectArtifactsDialog(
+                    viewModel: controller,
+                    embedded: true,
+                    onClose: () {},
+                  ),
                 ),
               ),
         ),
@@ -79,6 +84,33 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      final header = find.byKey(
+        const ValueKey<String>('project-artifacts-header'),
+      );
+      expect(header, findsOneWidget);
+      expect(tester.widget(header), isA<ProjectSectionHeader>());
+      expect(
+        find.ancestor(of: header, matching: find.byType(SafeArea)),
+        findsOneWidget,
+      );
+      expect(tester.getRect(header).top, 44);
+      expect(find.text('浏览项目文件、预览版本历史，并使用系统软件打开文件。'), findsOneWidget);
+      final headerIconFrame = find.descendant(
+        of: header,
+        matching: find.byKey(
+          const ValueKey<String>('project-section-header-icon-frame'),
+        ),
+      );
+      expect(headerIconFrame, findsOneWidget);
+      expect(tester.getSize(headerIconFrame), const Size.square(40));
+      final iconDecoration =
+          tester.widget<Container>(headerIconFrame).decoration!
+              as BoxDecoration;
+      final iconBorder = iconDecoration.border! as Border;
+      expect(
+        iconBorder.top.color,
+        ShadTheme.of(tester.element(header)).colorScheme.border,
+      );
       expect(
         find.byKey(const ValueKey<String>('artifact-primary-toolbar')),
         findsOneWidget,

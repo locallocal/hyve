@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
+import 'package:hyve/utils/theme.dart';
 
 /// Browses flat artifact paths as a retained, project-relative folder tree.
 final class ProjectArtifactBrowser extends StatefulWidget {
@@ -224,46 +225,138 @@ final class _ArtifactDirectoryList extends StatelessWidget {
       itemBuilder: (context, index) {
         if (index < directories.length) {
           final directory = directories[index];
-          return ProjectSurfaceCard(
+          return _ArtifactBrowserRow(
             key: ValueKey<String>('artifact-directory-${directory.key}'),
-            padding: EdgeInsets.zero,
-            child: Material(
-              type: MaterialType.transparency,
-              child: ListTile(
-                leading: const Icon(LucideIcons.folder),
-                title: Text(directory.key),
-                subtitle: Text(copy.folderArtifactCount(directory.value)),
-                trailing: const Icon(LucideIcons.chevronRight, size: 18),
-                onTap: () => onOpenDirectory(directory.key),
-              ),
-            ),
+            leading: const Icon(LucideIcons.folder),
+            title: directory.key,
+            subtitle: copy.folderArtifactCount(directory.value),
+            trailing: const Icon(LucideIcons.chevronRight, size: 18),
+            onPressed: () => onOpenDirectory(directory.key),
           );
         }
         final entry = files[index - directories.length];
         final artifact = entry.artifact;
         final version = entry.currentVersion;
-        return ProjectSurfaceCard(
+        return _ArtifactBrowserRow(
           key: ValueKey<String>('project-artifact-${artifact.id}'),
-          padding: EdgeInsets.zero,
-          child: Material(
-            type: MaterialType.transparency,
-            child: ListTile(
-              leading: Icon(projectArtifactKindIcon(artifact.kind)),
-              title: Text(artifact.name),
-              subtitle: Text(
-                '${copy.artifactKind(artifact.kind)} · '
-                '${version.byteLength} B · v${version.versionNumber} · '
-                '${copy.actorSource(artifact)}'
-                '${entry.snippet.isEmpty ? '' : '\n${entry.snippet}'}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () => onPreview(entry),
-              trailing: actionBuilder(entry),
-            ),
-          ),
+          leading: Icon(projectArtifactKindIcon(artifact.kind)),
+          title: artifact.name,
+          subtitle:
+              '${copy.artifactKind(artifact.kind)} · '
+              '${version.byteLength} B · v${version.versionNumber} · '
+              '${copy.actorSource(artifact)}'
+              '${entry.snippet.isEmpty ? '' : '\n${entry.snippet}'}',
+          trailing: actionBuilder(entry),
+          onPressed: () => onPreview(entry),
         );
       },
+    );
+  }
+}
+
+final class _ArtifactBrowserRow extends StatelessWidget {
+  const _ArtifactBrowserRow({
+    super.key,
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+    required this.onPressed,
+  });
+
+  final Widget leading;
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasShadProjectTheme(context)) {
+      return ProjectSurfaceCard(
+        padding: EdgeInsets.zero,
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            leading: leading,
+            title: Text(title),
+            subtitle: Text(
+              subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: trailing,
+            onTap: onPressed,
+          ),
+        ),
+      );
+    }
+
+    final theme = ShadTheme.of(context);
+    final colors = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: HyveDesktopActionSurface(
+        label: title,
+        hint: subtitle,
+        onPressed: onPressed,
+        liftOnHover: false,
+        builder: (context, highlighted) {
+          final foreground =
+              highlighted ? colors.accentForeground : colors.cardForeground;
+          return ShadCard(
+            width: double.infinity,
+            padding: EdgeInsets.zero,
+            backgroundColor: highlighted ? colors.accent : colors.card,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 72),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
+                child: Row(
+                  children: <Widget>[
+                    IconTheme(
+                      data: IconThemeData(
+                        color: colors.mutedForeground,
+                        size: 24,
+                      ),
+                      child: leading,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.p.copyWith(
+                              color: foreground,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.muted.copyWith(
+                              color: colors.mutedForeground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    trailing,
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

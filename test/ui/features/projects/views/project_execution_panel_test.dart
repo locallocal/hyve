@@ -235,6 +235,37 @@ void main() {
           .variant,
       ShadBadgeVariant.secondary,
     );
+
+    await tester.tap(find.byKey(ValueKey<String>('project-run-${run.id}')));
+    await tester.pumpAndSettle();
+
+    final contextReport = find.byKey(
+      ValueKey<String>('project-run-context-${run.id}'),
+    );
+    final runSurface = find.byKey(
+      ValueKey<String>('project-run-surface-${run.id}'),
+    );
+    final contextIcon = find.descendant(
+      of: contextReport,
+      matching: find.byIcon(LucideIcons.fileText),
+    );
+    expect(contextReport, findsOneWidget);
+    expect(tester.widget(contextReport), isA<Column>());
+    expect(
+      find.ancestor(of: contextReport, matching: runSurface),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(contextIcon).dx,
+      closeTo(
+        tester
+            .getTopLeft(
+              find.byKey(ValueKey<String>('project-run-indicator-${run.id}')),
+            )
+            .dx,
+        0.5,
+      ),
+    );
     for (final action in <Finder>[cancelTurn, cancelRootChain]) {
       final button = tester.widget<ShadButton>(
         find.descendant(of: action, matching: find.byType(ShadButton)),

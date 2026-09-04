@@ -595,6 +595,7 @@ final class _RunTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
+        key: ValueKey<String>('project-run-surface-${run.id}'),
         color:
             shadTheme?.colorScheme.muted.withValues(alpha: 0.28) ??
             materialScheme.surfaceContainerLowest,
@@ -714,46 +715,41 @@ final class _RunContextPanel extends StatelessWidget {
       (copy.memoryRevision, '${report.agentMemoryRevision}'),
       (copy.coveredThroughMessage, '${report.coveredThroughMessageSequence}'),
     ];
-    return Container(
+    return Column(
       key: ValueKey<String>('project-run-context-$runId'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: shadTheme?.colorScheme.background ?? materialScheme.surface,
-        border: Border.all(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Divider(
+          height: 1,
           color: shadTheme?.colorScheme.border ?? materialScheme.outlineVariant,
         ),
-        borderRadius: shadTheme?.radius ?? BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              const Icon(LucideIcons.fileText, size: 15),
-              const SizedBox(width: 7),
-              Text(
-                copy.contextReport,
-                style:
-                    shadTheme?.textTheme.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ) ??
-                    Theme.of(context).textTheme.labelLarge,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          for (final (index, entry) in entries.indexed) ...<Widget>[
-            if (index > 0)
-              Divider(
-                height: 17,
-                color:
-                    shadTheme?.colorScheme.border ??
-                    materialScheme.outlineVariant,
-              ),
-            _ContextEntry(label: entry.$1, value: entry.$2),
+        const SizedBox(height: 12),
+        Row(
+          children: <Widget>[
+            const Icon(LucideIcons.fileText, size: 15),
+            const SizedBox(width: 7),
+            Text(
+              copy.contextReport,
+              style:
+                  shadTheme?.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ) ??
+                  Theme.of(context).textTheme.labelLarge,
+            ),
           ],
+        ),
+        const SizedBox(height: 10),
+        for (final (index, entry) in entries.indexed) ...<Widget>[
+          if (index > 0)
+            Divider(
+              height: 17,
+              color:
+                  shadTheme?.colorScheme.border ??
+                  materialScheme.outlineVariant,
+            ),
+          _ContextEntry(label: entry.$1, value: entry.$2),
         ],
-      ),
+      ],
     );
   }
 }

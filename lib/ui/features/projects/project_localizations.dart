@@ -21,9 +21,17 @@ final class ProjectLocalizations {
 
   String get workspace => _text('Project workspace', '项目工作区');
   String get artifacts => _text('Project artifacts', '项目产物');
+  String get artifactsDescription => _text(
+    'Browse project files, preview version history, and open files with system apps.',
+    '浏览项目文件、预览版本历史，并使用系统软件打开文件。',
+  );
   String get members => _text('Project members', '项目成员');
   String get backToMessages => _text('Back to messages', '返回消息');
   String get execution => _text('Execution details', '执行详情');
+  String get executionDescription => _text(
+    'Review run history, participation decisions, token usage, and audit events.',
+    '查看运行记录、参与判断、Token 用量和审计事件。',
+  );
   String get close => _text('Close', '关闭');
   String get cancel => _text('Cancel', '取消');
   String get create => _text('Create', '创建');

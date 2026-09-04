@@ -37,6 +37,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final header = find.byKey(
+      const ValueKey<String>('project-execution-header'),
+    );
+    expect(header, findsOneWidget);
+    expect(
+      find.text(
+        'Review run history, participation decisions, token usage, and audit '
+        'events.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-section-header-icon-frame')),
+      findsOneWidget,
+    );
     final close = find.byKey(const ValueKey<String>('project-execution-close'));
     expect(close, findsOneWidget);
     final backButton = tester.widget<ShadIconButton>(

@@ -44,6 +44,9 @@ final class _ProjectFileDropTargetState extends State<ProjectFileDropTarget> {
         duration: const Duration(milliseconds: 120),
         decoration: BoxDecoration(
           color: _dragging ? activeBackground : null,
+          borderRadius: shadTheme?.radius ?? BorderRadius.circular(12),
+        ),
+        foregroundDecoration: BoxDecoration(
           border: Border.all(
             color: _dragging ? activeColor : Colors.transparent,
             width: 2,

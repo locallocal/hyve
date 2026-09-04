@@ -203,6 +203,17 @@ void main() {
         find.byKey(const ValueKey<String>('project-member-add-label')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const ValueKey<String>('project-members-header')),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Monitor processing and manage agent order, artifact access, and '
+          'participation.',
+        ),
+        findsOneWidget,
+      );
       final back = find.byKey(const ValueKey<String>('project-members-close'));
       final backButton = tester.widget<ShadIconButton>(
         find.descendant(of: back, matching: find.byType(ShadIconButton)),

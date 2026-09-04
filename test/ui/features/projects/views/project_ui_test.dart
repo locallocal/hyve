@@ -2,8 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
+
+import '../../../../support/widget_test_support.dart';
 
 void main() {
   test('workspace controller toggles the execution page', () {
@@ -136,6 +139,79 @@ void main() {
     expect(messageInitializations, 1);
     expect(messageDisposals, 0);
     expect(find.text('messages'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('member and artifact headers keep identical geometry', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(420, 700);
+    addTearDown(tester.view.reset);
+
+    Widget section({
+      required Key key,
+      required IconData icon,
+      required String title,
+      required String description,
+    }) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ProjectSectionHeader(
+          key: key,
+          icon: icon,
+          title: title,
+          description: description,
+          trailing: ProjectBackAction(label: '返回消息', onPressed: () {}),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(
+      shadHarness(
+        brightness: Brightness.light,
+        homeBuilder:
+            (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(padding: const EdgeInsets.only(top: 24)),
+              child: ProjectWorkspacePaneStack(
+                pane: ProjectWorkspacePane.members,
+                messages: const SizedBox.shrink(),
+                members: section(
+                  key: const ValueKey<String>('member-reference-header'),
+                  icon: LucideIcons.bot,
+                  title: '项目成员',
+                  description: '查看消息处理状态，并管理智能体顺序、产物权限和项目参与状态。',
+                ),
+                artifacts: section(
+                  key: const ValueKey<String>('artifact-comparison-header'),
+                  icon: LucideIcons.folderKanban,
+                  title: '项目产物',
+                  description: '浏览项目文件、预览版本历史，并使用系统软件打开文件。',
+                ),
+                execution: const SizedBox.shrink(),
+              ),
+            ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final membersRect = tester.getRect(
+      find.byKey(
+        const ValueKey<String>('member-reference-header'),
+        skipOffstage: false,
+      ),
+    );
+    final artifactsRect = tester.getRect(
+      find.byKey(
+        const ValueKey<String>('artifact-comparison-header'),
+        skipOffstage: false,
+      ),
+    );
+    expect(artifactsRect.top, membersRect.top);
+    expect(artifactsRect.size, membersRect.size);
+    expect(membersRect.top, 44);
     expect(tester.takeException(), isNull);
   });
 }

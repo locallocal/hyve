@@ -57,7 +57,6 @@ final class ProjectExecutionPanel extends StatelessWidget {
 
   Widget _content(BuildContext context, {required bool hasBoundedHeight}) {
     final copy = ProjectLocalizations.of(context);
-    final shadTheme = ShadTheme.maybeOf(context);
     final sortedTurns = turns.values.toList(growable: false)
       ..sort((left, right) => right.createdAt.compareTo(left.createdAt));
     final totalUsage = ModelTokenUsage.sum(
@@ -90,29 +89,23 @@ final class ProjectExecutionPanel extends StatelessWidget {
           mainAxisSize: hasBoundedHeight ? MainAxisSize.max : MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Icon(LucideIcons.activity, semanticLabel: copy.execution),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    copy.execution,
-                    style:
-                        shadTheme?.textTheme.h4 ??
-                        Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                if (onClose case final onClose?)
-                  ProjectBackAction(
-                    key: const ValueKey<String>('project-execution-close'),
-                    label: copy.backToMessages,
-                    onPressed: onClose,
-                  )
-                else if (!embedded)
-                  const SizedBox.square(dimension: 44),
-              ],
+            ProjectSectionHeader(
+              key: const ValueKey<String>('project-execution-header'),
+              icon: LucideIcons.activity,
+              title: copy.execution,
+              description: copy.executionDescription,
+              trailing:
+                  onClose != null
+                      ? ProjectBackAction(
+                        key: const ValueKey<String>('project-execution-close'),
+                        label: copy.backToMessages,
+                        onPressed: onClose,
+                      )
+                      : !embedded
+                      ? const SizedBox.square(dimension: 44)
+                      : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Wrap(
               spacing: 8,
               runSpacing: 8,

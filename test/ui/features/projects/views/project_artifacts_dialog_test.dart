@@ -7,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/view_models/project_artifacts_controller.dart';
 import 'package:hyve/ui/features/projects/views/project_artifacts_dialog.dart';
+import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/utils/theme.dart';
 
 import '../../../../support/widget_test_support.dart';
@@ -173,7 +174,7 @@ void main() {
     });
   });
 
-  testWidgets('artifact tiles provide a Material ancestor in Shad surfaces', (
+  testWidgets('artifact tiles use Shad action surfaces without Material ink', (
     tester,
   ) async {
     final controller = _SynchronousArtifactsController(
@@ -191,13 +192,91 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(ListTile), findsOneWidget);
-    expect(
-      find.ancestor(of: find.byType(ListTile), matching: find.byType(Material)),
-      findsOneWidget,
-    );
+    expect(find.byType(ListTile), findsNothing);
+    expect(find.byType(HyveDesktopActionSurface), findsOneWidget);
+    expect(find.byType(ShadCard), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  for (final brightness in <Brightness>[Brightness.light, Brightness.dark]) {
+    testWidgets('artifact row stays readable while its menu is open in '
+        '${brightness.name} mode', (tester) async {
+      final controller = _SynchronousArtifactsController(
+        artifacts: <ProjectArtifactEntry>[
+          _artifactEntryAt('root', 'README.md'),
+        ],
+      );
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: brightness,
+          locale: const Locale('en'),
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectThemeScope(
+                  child: ProjectArtifactsDialog(
+                    viewModel: controller,
+                    embedded: true,
+                  ),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final artifact = find.byKey(
+        const ValueKey<String>('project-artifact-root'),
+      );
+      final popover = find.descendant(
+        of: artifact,
+        matching: find.byType(ShadPopover),
+      );
+      final moreButton = find.descendant(
+        of: artifact,
+        matching: find.byIcon(LucideIcons.ellipsis),
+      );
+      expect(popover, findsOneWidget);
+      expect(moreButton, findsOneWidget);
+
+      final artifactCard = find.descendant(
+        of: artifact,
+        matching: find.byType(ShadCard),
+      );
+      final colors = ShadTheme.of(tester.element(artifact)).colorScheme;
+
+      void expectRowColors(Color background, Color foreground) {
+        final artifactCardWidget = tester.widget<ShadCard>(artifactCard);
+        final title = tester.widget<Text>(find.text('README.md'));
+        expect(artifactCardWidget.backgroundColor, background);
+        expect(title.style?.color, foreground);
+        expect(artifactCardWidget.backgroundColor, isNot(title.style?.color));
+      }
+
+      expect(find.text('Preview and version history'), findsNothing);
+      expectRowColors(colors.card, colors.cardForeground);
+
+      await tester.tap(moreButton);
+      await tester.pumpAndSettle();
+
+      final previewLabel = find.text('Preview and version history');
+
+      expect(previewLabel, findsOneWidget);
+      expect(find.text('Open with system app'), findsOneWidget);
+      expectRowColors(colors.card, colors.cardForeground);
+      expect(
+        find.descendant(of: artifact, matching: find.byType(ListTile)),
+        findsNothing,
+      );
+      expect(find.byType(ShadDialog), findsNothing);
+
+      await tester.tap(find.text('Open with system app'));
+      await tester.pumpAndSettle();
+
+      expect(controller.openedArtifactIds, <String>['root']);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets(
     'browses folders, returns, previews files, and opens externally',

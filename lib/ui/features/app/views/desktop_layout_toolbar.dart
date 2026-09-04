@@ -7,11 +7,13 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
     required this.onShowMembers,
     required this.onShowArtifacts,
     required this.onShowExecution,
+    this.membersSelected = false,
   });
 
   final VoidCallback onShowMembers;
   final VoidCallback onShowArtifacts;
   final VoidCallback onShowExecution;
+  final bool membersSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +23,11 @@ class ProjectWorkspaceToolbarActions extends StatelessWidget {
       children: <Widget>[
         HyveDesktopIconAction(
           key: const ValueKey<String>('project-members-button'),
-          label: copy.members,
+          label: membersSelected ? copy.backToMessages : copy.members,
           onPressed: onShowMembers,
-          icon: LucideIcons.bot,
+          icon:
+              membersSelected ? LucideIcons.messageSquareText : LucideIcons.bot,
+          selected: membersSelected,
         ),
         HyveDesktopIconAction(
           key: const ValueKey<String>('project-artifacts-button'),
@@ -53,6 +57,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
   final VoidCallback? onCreateChat;
   final VoidCallback? onSearchRequested;
   final VoidCallback? onShowProjectMembers;
+  final bool projectMembersSelected;
   final VoidCallback? onShowProjectArtifacts;
   final VoidCallback? onShowProjectExecution;
 
@@ -67,6 +72,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
     required this.onCreateChat,
     required this.onSearchRequested,
     required this.onShowProjectMembers,
+    required this.projectMembersSelected,
     required this.onShowProjectArtifacts,
     required this.onShowProjectExecution,
   });
@@ -184,6 +190,7 @@ class _UnifiedDesktopToolbar extends StatelessWidget {
                             onShowMembers: onShowProjectMembers!,
                             onShowArtifacts: onShowProjectArtifacts!,
                             onShowExecution: onShowProjectExecution!,
+                            membersSelected: projectMembersSelected,
                           ),
                       ],
                     )

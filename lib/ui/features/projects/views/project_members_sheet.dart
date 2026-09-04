@@ -16,12 +16,14 @@ final class ProjectMembersSheet extends StatefulWidget {
     this.agentStatuses = const <ProjectAgentStatusSnapshot>[],
     this.embedded = false,
     this.disposeViewModel = true,
+    this.onClose,
   });
 
   final ProjectMembersViewModel viewModel;
   final List<ProjectAgentStatusSnapshot> agentStatuses;
   final bool embedded;
   final bool disposeViewModel;
+  final VoidCallback? onClose;
 
   @override
   State<ProjectMembersSheet> createState() => _ProjectMembersSheetState();
@@ -155,7 +157,15 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                         ],
                       ),
                     ),
-                    if (!widget.embedded) const SizedBox.square(dimension: 44),
+                    if (widget.onClose != null)
+                      ProjectIconAction(
+                        key: const ValueKey<String>('project-members-close'),
+                        label: copy.backToMessages,
+                        onPressed: widget.onClose,
+                        icon: LucideIcons.arrowLeft,
+                      )
+                    else if (!widget.embedded)
+                      const SizedBox.square(dimension: 44),
                   ],
                 ),
                 const SizedBox(height: 20),

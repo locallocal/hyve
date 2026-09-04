@@ -54,6 +54,7 @@ void main() {
       manageMembers: manager,
     );
     addTearDown(viewModel.dispose);
+    var closeRequests = 0;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -63,6 +64,7 @@ void main() {
             viewModel: viewModel,
             embedded: true,
             disposeViewModel: false,
+            onClose: () => closeRequests += 1,
           ),
         ),
       ),
@@ -76,6 +78,11 @@ void main() {
     );
     expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
     expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('project-members-close')),
+    );
+    await tester.pump();
+    expect(closeRequests, 1);
     final memberAvatar = tester.widget<CircleAvatar>(
       find.descendant(
         of: find.byKey(const ValueKey<String>('member-avatar-agent-1')),

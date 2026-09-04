@@ -71,6 +71,7 @@ void main() {
                 body: ProjectArtifactsDialog(
                   viewModel: controller,
                   embedded: true,
+                  onClose: () {},
                 ),
               ),
         ),
@@ -82,6 +83,16 @@ void main() {
         find.byKey(const ValueKey<String>('artifact-primary-toolbar')),
         findsOneWidget,
       );
+      final backActions = find.byType(ProjectBackAction);
+      final shadBackButtons = find.descendant(
+        of: backActions,
+        matching: find.byType(ShadIconButton),
+      );
+      expect(backActions, findsNWidgets(2));
+      expect(shadBackButtons, findsNWidgets(2));
+      for (final button in tester.widgetList<ShadIconButton>(shadBackButtons)) {
+        expect(button.variant, ShadButtonVariant.outline);
+      }
       void expectAlignedRow() {
         final primaryRow = tester.getRect(
           find.byKey(const ValueKey<String>('artifact-primary-toolbar')),

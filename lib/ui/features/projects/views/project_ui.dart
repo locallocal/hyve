@@ -275,6 +275,29 @@ final class ProjectIconAction extends StatelessWidget {
   );
 }
 
+/// Standard back navigation used by project detail surfaces.
+///
+/// Keeping the outline variant here ensures section-to-message navigation and
+/// artifact directory navigation retain the same Shad interaction styling.
+final class ProjectBackAction extends StatelessWidget {
+  const ProjectBackAction({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => ProjectIconAction(
+    icon: LucideIcons.arrowLeft,
+    label: label,
+    onPressed: onPressed,
+    variant: ShadButtonVariant.outline,
+  );
+}
+
 final class ProjectBadge extends StatelessWidget {
   const ProjectBadge({
     super.key,

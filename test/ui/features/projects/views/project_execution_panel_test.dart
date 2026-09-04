@@ -39,6 +39,10 @@ void main() {
 
     final close = find.byKey(const ValueKey<String>('project-execution-close'));
     expect(close, findsOneWidget);
+    final backButton = tester.widget<ShadIconButton>(
+      find.descendant(of: close, matching: find.byType(ShadIconButton)),
+    );
+    expect(backButton.variant, ShadButtonVariant.outline);
     await tester.tap(close);
     await tester.pump();
 

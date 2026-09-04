@@ -158,11 +158,10 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                       ),
                     ),
                     if (widget.onClose != null)
-                      ProjectIconAction(
+                      ProjectBackAction(
                         key: const ValueKey<String>('project-members-close'),
                         label: copy.backToMessages,
                         onPressed: widget.onClose,
-                        icon: LucideIcons.arrowLeft,
                       )
                     else if (!widget.embedded)
                       const SizedBox.square(dimension: 44),

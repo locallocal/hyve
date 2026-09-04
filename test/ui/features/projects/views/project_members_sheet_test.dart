@@ -191,6 +191,7 @@ void main() {
                         agentStatuses: agentStatuses,
                         embedded: true,
                         disposeViewModel: false,
+                        onClose: () {},
                       ),
                     ),
               ),
@@ -202,6 +203,11 @@ void main() {
         find.byKey(const ValueKey<String>('project-member-add-label')),
         findsOneWidget,
       );
+      final back = find.byKey(const ValueKey<String>('project-members-close'));
+      final backButton = tester.widget<ShadIconButton>(
+        find.descendant(of: back, matching: find.byType(ShadIconButton)),
+      );
+      expect(backButton.variant, ShadButtonVariant.outline);
       expect(find.byType(ShadInput), findsOneWidget);
       expect(find.byType(ShadSelect<String>), findsOneWidget);
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);

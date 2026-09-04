@@ -238,7 +238,8 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                               ),
                     ),
                   ),
-                if (widget.viewModel.loading || widget.viewModel.mutating)
+                if (widget.viewModel.loading &&
+                    widget.viewModel.members.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child:
@@ -258,53 +259,69 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                             icon: LucideIcons.bot,
                             title: copy.noMembers,
                           )
-                          : ReorderableListView.builder(
-                            key: const ValueKey<String>('project-member-list'),
-                            buildDefaultDragHandles: false,
-                            proxyDecorator: _undecoratedMemberDragProxy,
-                            itemCount: members.length,
-                            onReorderItem:
-                                normalized.isEmpty && !widget.viewModel.mutating
-                                    ? (oldIndex, newIndex) => unawaited(
-                                      widget.viewModel.reorder(
-                                        oldIndex,
-                                        newIndex,
+                          : AbsorbPointer(
+                            key: const ValueKey<String>(
+                              'project-member-reorder-guard',
+                            ),
+                            absorbing: widget.viewModel.reordering,
+                            child: ReorderableListView.builder(
+                              key: const ValueKey<String>(
+                                'project-member-list',
+                              ),
+                              buildDefaultDragHandles: false,
+                              proxyDecorator: _undecoratedMemberDragProxy,
+                              itemCount: members.length,
+                              onReorderItem:
+                                  normalized.isEmpty &&
+                                          !widget.viewModel.mutating
+                                      ? (oldIndex, newIndex) => unawaited(
+                                        widget.viewModel.reorder(
+                                          oldIndex,
+                                          newIndex,
+                                        ),
+                                      )
+                                      : (_, _) {},
+                              itemBuilder: (context, index) {
+                                final member = members[index];
+                                final keepReorderVisuals =
+                                    widget.viewModel.reordering;
+                                return _MemberCard(
+                                  key: ValueKey<String>(
+                                    'project-member-${member.membership.agentId}',
+                                  ),
+                                  member: member,
+                                  processingStatus:
+                                      statusesByAgent[member
+                                          .membership
+                                          .agentId],
+                                  index: index,
+                                  enabled:
+                                      !widget.viewModel.mutating ||
+                                      keepReorderVisuals,
+                                  dragEnabled:
+                                      members.length > 1 &&
+                                      normalized.isEmpty &&
+                                      (!widget.viewModel.mutating ||
+                                          keepReorderVisuals),
+                                  onPauseChanged:
+                                      (paused) => unawaited(
+                                        widget.viewModel.setPaused(
+                                          member.membership.agentId,
+                                          paused: paused,
+                                        ),
                                       ),
-                                    )
-                                    : (_, _) {},
-                            itemBuilder: (context, index) {
-                              final member = members[index];
-                              return _MemberCard(
-                                key: ValueKey<String>(
-                                  'project-member-${member.membership.agentId}',
-                                ),
-                                member: member,
-                                processingStatus:
-                                    statusesByAgent[member.membership.agentId],
-                                index: index,
-                                enabled: !widget.viewModel.mutating,
-                                dragEnabled:
-                                    members.length > 1 &&
-                                    normalized.isEmpty &&
-                                    !widget.viewModel.mutating,
-                                onPauseChanged:
-                                    (paused) => unawaited(
-                                      widget.viewModel.setPaused(
-                                        member.membership.agentId,
-                                        paused: paused,
+                                  onAccessChanged:
+                                      (access) => unawaited(
+                                        widget.viewModel.setStorageAccess(
+                                          member.membership.agentId,
+                                          access,
+                                        ),
                                       ),
-                                    ),
-                                onAccessChanged:
-                                    (access) => unawaited(
-                                      widget.viewModel.setStorageAccess(
-                                        member.membership.agentId,
-                                        access,
-                                      ),
-                                    ),
-                                onRemove:
-                                    () => unawaited(_confirmRemove(member)),
-                              );
-                            },
+                                  onRemove:
+                                      () => unawaited(_confirmRemove(member)),
+                                );
+                              },
+                            ),
                           ),
                 ),
               ],

@@ -48,6 +48,7 @@ class ChatListViewModel extends DisposableChangeNotifier {
   String _query = '';
   AppFailure? _error;
   bool _isLoading = false;
+  bool _hasLoaded = false;
   int _loadGeneration = 0;
 
   List<Chat> get chats => _chats;
@@ -58,13 +59,15 @@ class ChatListViewModel extends DisposableChangeNotifier {
   String get query => _query;
   AppFailure? get error => _error;
   bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
 
   Future<void> load() async {
     if (isDisposed) return;
     final generation = ++_loadGeneration;
+    final isInitialLoad = !_hasLoaded;
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    if (isInitialLoad) notifyListeners();
     try {
       final modern =
           _projectRepository != null &&
@@ -79,6 +82,7 @@ class ChatListViewModel extends DisposableChangeNotifier {
       _bots = results.bots;
       _projects = results.workspaces;
       _applyFilter();
+      _hasLoaded = true;
     } catch (error) {
       if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'chat_list_load_failed');

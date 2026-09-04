@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
@@ -202,7 +203,11 @@ final class _ExecutionDetailTabsState extends State<_ExecutionDetailTabs> {
           ShadTab<_ExecutionDetailSection>(
             value: _ExecutionDetailSection.runs,
             leading: const Icon(LucideIcons.play, size: 16),
-            trailing: Text('${widget.turns.length}'),
+            trailing: ProjectBadge(
+              key: const ValueKey<String>('project-execution-runs-count'),
+              label: '${widget.turns.length}',
+              variant: ProjectBadgeVariant.secondary,
+            ),
             expandContent: widget.hasBoundedHeight,
             content: runHistory,
             child: Text(
@@ -213,7 +218,11 @@ final class _ExecutionDetailTabsState extends State<_ExecutionDetailTabs> {
           ShadTab<_ExecutionDetailSection>(
             value: _ExecutionDetailSection.audits,
             leading: const Icon(LucideIcons.shieldCheck, size: 16),
-            trailing: Text('${widget.audits.length}'),
+            trailing: ProjectBadge(
+              key: const ValueKey<String>('project-execution-audits-count'),
+              label: '${widget.audits.length}',
+              variant: ProjectBadgeVariant.secondary,
+            ),
             expandContent: widget.hasBoundedHeight,
             content: auditHistory,
             child: Text(
@@ -349,6 +358,7 @@ final class _ExecutionHistoryState extends State<_ExecutionHistory> {
       controller: _scrollController,
       primary: false,
       shrinkWrap: !widget.hasBoundedHeight,
+      padding: const EdgeInsets.only(top: 2, bottom: 4),
       physics:
           widget.hasBoundedHeight ? null : const NeverScrollableScrollPhysics(),
       key: const ValueKey<String>('project-execution-list'),
@@ -436,6 +446,8 @@ final class _TurnCard extends StatelessWidget {
     final copy = ProjectLocalizations.of(context);
     final orderedRuns = runs.toList(growable: false)
       ..sort((left, right) => left.createdAt.compareTo(right.createdAt));
+    final statusLabel = copy.turnStatus(turn.status);
+    final visual = _turnVisual(turn.status);
     final activeRoots =
         orderedRuns
             .where((run) => !run.isTerminal)
@@ -486,14 +498,47 @@ final class _TurnCard extends StatelessWidget {
     ];
     return ProjectSurfaceCard(
       padding: EdgeInsets.zero,
+      margin: const EdgeInsets.only(bottom: 10),
       child: ProjectDisclosure(
         key: ValueKey<String>('project-turn-${turn.id}'),
-        leading: Icon(_turnIcon(turn.status)),
-        title: Text(
-          '#${turn.sourceMessageSequence} · ${turn.routingMode.name}',
+        leading: ProjectIndicatorIcon(
+          key: ValueKey<String>('project-turn-indicator-${turn.id}'),
+          icon: visual.icon,
+          tone: visual.tone,
+          semanticLabel: statusLabel,
         ),
-        subtitle: Text(
-          '${turn.status.name} · ${orderedRuns.length} ${copy.totalRuns.toLowerCase()}',
+        title: Row(
+          children: <Widget>[
+            Flexible(
+              child: Text(copy.messageSequence(turn.sourceMessageSequence)),
+            ),
+            const SizedBox(width: 8),
+            ProjectBadge(
+              key: ValueKey<String>('project-turn-status-${turn.id}'),
+              label: statusLabel,
+              variant: visual.badgeVariant,
+            ),
+          ],
+        ),
+        subtitle: ProjectMetadataWrap(
+          items: <ProjectMetadataItem>[
+            ProjectMetadataItem(
+              icon: LucideIcons.messageSquareText,
+              label: copy.routingMode(turn.routingMode),
+            ),
+            ProjectMetadataItem(
+              icon: LucideIcons.bot,
+              label: copy.runCount(orderedRuns.length),
+            ),
+            ProjectMetadataItem(
+              icon: LucideIcons.send,
+              label: copy.recipientCount(turn.recipientCount),
+            ),
+            ProjectMetadataItem(
+              icon: LucideIcons.clock3,
+              label: _executionTimestamp(context, turn.createdAt),
+            ),
+          ],
         ),
         childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         children: <Widget>[
@@ -543,69 +588,212 @@ final class _RunTile extends StatelessWidget {
     final copy = ProjectLocalizations.of(context);
     final duration = _duration(run);
     final report = run.contextReport;
-    return ProjectSurfaceCard(
-      padding: EdgeInsets.zero,
-      child: ProjectDisclosure(
-        key: ValueKey<String>('project-run-${run.id}'),
-        leading: Icon(_runIcon(run.status)),
-        title: Text(
-          '$agentName · ${copy.runStatus(run.phase.name, run.status.name)}',
+    final statusLabel = copy.agentRunStatus(run.status);
+    final visual = _runVisual(run.status);
+    final shadTheme = ShadTheme.maybeOf(context);
+    final materialScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color:
+            shadTheme?.colorScheme.muted.withValues(alpha: 0.28) ??
+            materialScheme.surfaceContainerLowest,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: shadTheme?.radius ?? BorderRadius.circular(8),
+          side: BorderSide(
+            color:
+                shadTheme?.colorScheme.border ?? materialScheme.outlineVariant,
+          ),
         ),
-        subtitle: Text(
-          <String>[
-            run.id,
-            if (decision != null) copy.participationDecision(decision!),
-            if (usage.hasData)
-              copy.tokens(usage.inputTokens, usage.outputTokens),
-            if (duration.isNotEmpty) copy.duration(duration),
-            if (run.errorCode.isNotEmpty) copy.errorCode(run.errorCode),
-          ].join('\n'),
-        ),
-        trailing:
-            run.isTerminal
-                ? null
-                : ProjectIconAction(
-                  key: ValueKey<String>('cancel-run-${run.id}'),
-                  label: copy.cancelRun,
-                  onPressed:
-                      () => unawaited(
-                        _confirmCancellation(
-                          context,
-                          title: copy.cancelRunTitle,
-                          description: copy.cancelRunDescription,
-                          confirmLabel: copy.cancelRun,
-                          confirmKey: ValueKey<String>(
-                            'confirm-cancel-run-${run.id}',
-                          ),
-                          onConfirmed: onCancel,
-                        ),
-                      ),
-                  icon: LucideIcons.square,
-                  variant: ShadButtonVariant.outline,
+        child: ProjectDisclosure(
+          key: ValueKey<String>('project-run-${run.id}'),
+          leading: ProjectIndicatorIcon(
+            key: ValueKey<String>('project-run-indicator-${run.id}'),
+            icon: visual.icon,
+            tone: visual.tone,
+            semanticLabel: statusLabel,
+            size: 30,
+            iconSize: 14,
+          ),
+          title: Row(
+            children: <Widget>[
+              Flexible(child: Text(agentName)),
+              const SizedBox(width: 8),
+              ProjectBadge(
+                key: ValueKey<String>('project-run-status-${run.id}'),
+                label: statusLabel,
+                variant: visual.badgeVariant,
+              ),
+            ],
+          ),
+          subtitle: ProjectMetadataWrap(
+            spacing: 10,
+            items: <ProjectMetadataItem>[
+              ProjectMetadataItem(
+                icon: LucideIcons.activity,
+                label: copy.runPhase(run.phase),
+              ),
+              if (decision != null)
+                ProjectMetadataItem(
+                  icon: LucideIcons.brain,
+                  label: copy.participationDecision(decision!),
                 ),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+              if (usage.hasData)
+                ProjectMetadataItem(
+                  icon: LucideIcons.chartNoAxesColumnIncreasing,
+                  label: copy.tokens(usage.inputTokens, usage.outputTokens),
+                ),
+              if (duration.isNotEmpty)
+                ProjectMetadataItem(
+                  icon: LucideIcons.clock3,
+                  label: copy.duration(duration),
+                ),
+              if (run.errorCode.isNotEmpty)
+                ProjectMetadataItem(
+                  icon: LucideIcons.triangleAlert,
+                  label: copy.errorCode(run.errorCode),
+                ),
+            ],
+          ),
+          trailing:
+              run.isTerminal
+                  ? null
+                  : ProjectIconAction(
+                    key: ValueKey<String>('cancel-run-${run.id}'),
+                    label: copy.cancelRun,
+                    onPressed:
+                        () => unawaited(
+                          _confirmCancellation(
+                            context,
+                            title: copy.cancelRunTitle,
+                            description: copy.cancelRunDescription,
+                            confirmLabel: copy.cancelRun,
+                            confirmKey: ValueKey<String>(
+                              'confirm-cancel-run-${run.id}',
+                            ),
+                            onConfirmed: onCancel,
+                          ),
+                        ),
+                    icon: LucideIcons.square,
+                    variant: ShadButtonVariant.outline,
+                  ),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[_RunContextPanel(runId: run.id, report: report)],
+        ),
+      ),
+    );
+  }
+}
+
+final class _RunContextPanel extends StatelessWidget {
+  const _RunContextPanel({required this.runId, required this.report});
+
+  final String runId;
+  final AgentRunContextReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = ProjectLocalizations.of(context);
+    final shadTheme = ShadTheme.maybeOf(context);
+    final materialScheme = Theme.of(context).colorScheme;
+    final entries = <(String, String)>[
+      (copy.runIdentifierLabel, runId),
+      (
+        copy.summarySegments,
+        _identifierValue(report.conversationSummarySegmentIds),
+      ),
+      (copy.memories, _identifierValue(report.agentMemoryIds)),
+      (
+        copy.artifactVersionIds,
+        _identifierValue(report.projectArtifactVersionIds),
+      ),
+      (copy.skills, _identifierValue(report.skillDigests)),
+      (copy.tools, _identifierValue(report.toolNames)),
+      (copy.memoryRevision, '${report.agentMemoryRevision}'),
+      (copy.coveredThroughMessage, '${report.coveredThroughMessageSequence}'),
+    ];
+    return Container(
+      key: ValueKey<String>('project-run-context-$runId'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: shadTheme?.colorScheme.background ?? materialScheme.surface,
+        border: Border.all(
+          color: shadTheme?.colorScheme.border ?? materialScheme.outlineVariant,
+        ),
+        borderRadius: shadTheme?.radius ?? BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text(copy.contextReport),
-          Text(
-            copy.identifiers(
-              copy.summarySegments,
-              report.conversationSummarySegmentIds,
-            ),
+          Row(
+            children: <Widget>[
+              const Icon(LucideIcons.fileText, size: 15),
+              const SizedBox(width: 7),
+              Text(
+                copy.contextReport,
+                style:
+                    shadTheme?.textTheme.small.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ) ??
+                    Theme.of(context).textTheme.labelLarge,
+              ),
+            ],
           ),
-          Text(copy.identifiers(copy.memories, report.agentMemoryIds)),
-          Text(
-            copy.identifiers(
-              copy.artifactVersionIds,
-              report.projectArtifactVersionIds,
-            ),
-          ),
-          Text(copy.identifiers(copy.skills, report.skillDigests)),
-          Text(copy.identifiers(copy.tools, report.toolNames)),
-          Text('memoryRevision: ${report.agentMemoryRevision}'),
-          Text('coveredThrough: ${report.coveredThroughMessageSequence}'),
+          const SizedBox(height: 10),
+          for (final (index, entry) in entries.indexed) ...<Widget>[
+            if (index > 0)
+              Divider(
+                height: 17,
+                color:
+                    shadTheme?.colorScheme.border ??
+                    materialScheme.outlineVariant,
+              ),
+            _ContextEntry(label: entry.$1, value: entry.$2),
+          ],
         ],
       ),
+    );
+  }
+}
+
+final class _ContextEntry extends StatelessWidget {
+  const _ContextEntry({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final labelStyle =
+        shadTheme?.textTheme.muted ?? Theme.of(context).textTheme.bodySmall;
+    final valueStyle = (shadTheme?.textTheme.small ??
+            Theme.of(context).textTheme.bodyMedium)
+        ?.copyWith(fontFamily: 'monospace');
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 480;
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(label, style: labelStyle),
+              const SizedBox(height: 3),
+              Text(value, style: valueStyle),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(width: 152, child: Text(label, style: labelStyle)),
+            const SizedBox(width: 12),
+            Expanded(child: Text(value, style: valueStyle)),
+          ],
+        );
+      },
     );
   }
 }
@@ -661,21 +849,80 @@ String _duration(AgentRun run) {
       : '${(elapsed.inMilliseconds / 1000).toStringAsFixed(1)} s';
 }
 
-IconData _turnIcon(ProjectTurnStatus status) => switch (status) {
-  ProjectTurnStatus.completed => Icons.check_circle_outline,
-  ProjectTurnStatus.partial => Icons.warning_amber_outlined,
-  ProjectTurnStatus.failed => Icons.error_outline,
-  ProjectTurnStatus.cancelled => Icons.cancel_outlined,
-  _ => Icons.sync,
+String _executionTimestamp(BuildContext context, DateTime timestamp) =>
+    intl.DateFormat.yMd(
+      Localizations.localeOf(context).toString(),
+    ).add_jm().format(timestamp.toLocal());
+
+String _identifierValue(Iterable<String> values) =>
+    values.isEmpty ? '-' : values.join(', ');
+
+({IconData icon, ProjectIndicatorTone tone, ProjectBadgeVariant badgeVariant})
+_turnVisual(ProjectTurnStatus status) => switch (status) {
+  ProjectTurnStatus.completed => (
+    icon: LucideIcons.circleCheck,
+    tone: ProjectIndicatorTone.success,
+    badgeVariant: ProjectBadgeVariant.secondary,
+  ),
+  ProjectTurnStatus.partial => (
+    icon: LucideIcons.triangleAlert,
+    tone: ProjectIndicatorTone.warning,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
+  ProjectTurnStatus.failed => (
+    icon: LucideIcons.circleAlert,
+    tone: ProjectIndicatorTone.destructive,
+    badgeVariant: ProjectBadgeVariant.destructive,
+  ),
+  ProjectTurnStatus.cancelled => (
+    icon: LucideIcons.circleStop,
+    tone: ProjectIndicatorTone.neutral,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
+  ProjectTurnStatus.created => (
+    icon: LucideIcons.clock3,
+    tone: ProjectIndicatorTone.neutral,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
+  _ => (
+    icon: LucideIcons.loaderCircle,
+    tone: ProjectIndicatorTone.primary,
+    badgeVariant: ProjectBadgeVariant.secondary,
+  ),
 };
 
-IconData _runIcon(AgentRunStatus status) => switch (status) {
-  AgentRunStatus.completed => Icons.check_circle_outline,
-  AgentRunStatus.passed => Icons.skip_next_outlined,
+({IconData icon, ProjectIndicatorTone tone, ProjectBadgeVariant badgeVariant})
+_runVisual(AgentRunStatus status) => switch (status) {
+  AgentRunStatus.completed => (
+    icon: LucideIcons.circleCheck,
+    tone: ProjectIndicatorTone.success,
+    badgeVariant: ProjectBadgeVariant.secondary,
+  ),
+  AgentRunStatus.passed => (
+    icon: LucideIcons.circleSlash,
+    tone: ProjectIndicatorTone.neutral,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
   AgentRunStatus.failed ||
   AgentRunStatus.timedOut ||
-  AgentRunStatus.limitExceeded => Icons.error_outline,
-  AgentRunStatus.cancelled ||
-  AgentRunStatus.interrupted => Icons.cancel_outlined,
-  _ => Icons.pending_outlined,
+  AgentRunStatus.limitExceeded => (
+    icon: LucideIcons.circleAlert,
+    tone: ProjectIndicatorTone.destructive,
+    badgeVariant: ProjectBadgeVariant.destructive,
+  ),
+  AgentRunStatus.cancelled || AgentRunStatus.interrupted => (
+    icon: LucideIcons.circleStop,
+    tone: ProjectIndicatorTone.neutral,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
+  AgentRunStatus.queued => (
+    icon: LucideIcons.clock3,
+    tone: ProjectIndicatorTone.neutral,
+    badgeVariant: ProjectBadgeVariant.outline,
+  ),
+  _ => (
+    icon: LucideIcons.loaderCircle,
+    tone: ProjectIndicatorTone.primary,
+    badgeVariant: ProjectBadgeVariant.secondary,
+  ),
 };

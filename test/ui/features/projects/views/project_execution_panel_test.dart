@@ -205,6 +205,36 @@ void main() {
     expect(cancelTurn, findsOneWidget);
     expect(cancelRootChain, findsOneWidget);
     expect(cancelRun, findsOneWidget);
+    expect(
+      find.byKey(ValueKey<String>('project-turn-indicator-${turn.id}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey<String>('project-run-indicator-${run.id}')),
+      findsOneWidget,
+    );
+    final turnStatus = find.byKey(
+      ValueKey<String>('project-turn-status-${turn.id}'),
+    );
+    final runStatus = find.byKey(
+      ValueKey<String>('project-run-status-${run.id}'),
+    );
+    expect(
+      tester
+          .widget<ShadBadge>(
+            find.descendant(of: turnStatus, matching: find.byType(ShadBadge)),
+          )
+          .variant,
+      ShadBadgeVariant.secondary,
+    );
+    expect(
+      tester
+          .widget<ShadBadge>(
+            find.descendant(of: runStatus, matching: find.byType(ShadBadge)),
+          )
+          .variant,
+      ShadBadgeVariant.secondary,
+    );
     for (final action in <Finder>[cancelTurn, cancelRootChain]) {
       final button = tester.widget<ShadButton>(
         find.descendant(of: action, matching: find.byType(ShadButton)),
@@ -416,8 +446,8 @@ void main() {
     );
 
     expect(find.text('1 / 2'), findsOneWidget);
-    expect(find.text('#11 · broadcast'), findsOneWidget);
-    expect(find.text('#1 · broadcast'), findsNothing);
+    expect(find.text('Message #11'), findsOneWidget);
+    expect(find.text('Message #1'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('project-execution-next-page')),
@@ -425,8 +455,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('2 / 2'), findsOneWidget);
-    expect(find.text('#11 · broadcast'), findsNothing);
-    expect(find.text('#1 · broadcast'), findsOneWidget);
+    expect(find.text('Message #11'), findsNothing);
+    expect(find.text('Message #1'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('project-execution-previous-page')),
@@ -434,8 +464,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('1 / 2'), findsOneWidget);
-    expect(find.text('#11 · broadcast'), findsOneWidget);
-    expect(find.text('#1 · broadcast'), findsNothing);
+    expect(find.text('Message #11'), findsOneWidget);
+    expect(find.text('Message #1'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('project-execution-next-page')),
@@ -449,7 +479,7 @@ void main() {
       find.byKey(const ValueKey<String>('project-execution-page-indicator')),
       findsNothing,
     );
-    expect(find.text('#11 · broadcast'), findsOneWidget);
+    expect(find.text('Message #11'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -504,10 +534,20 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey<String>('project-execution-runs-count')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey<String>('project-turn-status-${turn.id}')),
+      findsOneWidget,
+    );
+    expect(find.text('回复中'), findsOneWidget);
+    expect(find.text('广播'), findsOneWidget);
+    expect(
       find.byKey(const ValueKey<String>('project-audit-events-list')),
       findsNothing,
     );
-    expect(find.text('systemNotice'), findsNothing);
+    expect(find.text('系统通知'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('project-execution-audits-tab')),
@@ -523,6 +563,10 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey<String>('project-execution-audits-count')),
+      findsOneWidget,
+    );
+    expect(
       find.byKey(const ValueKey<String>('project-audit-events-card')),
       findsNothing,
     );
@@ -531,7 +575,16 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('审计事件'), findsOneWidget);
-    expect(find.text('systemNotice'), findsOneWidget);
+    expect(find.text('系统通知'), findsOneWidget);
+    expect(find.text('run_started'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-indicator-audit-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('project-audit-actor-audit-1')),
+      findsOneWidget,
+    );
 
     await tester.tap(
       find.byKey(const ValueKey<String>('project-execution-runs-tab')),

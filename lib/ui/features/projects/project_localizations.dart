@@ -256,6 +256,47 @@ final class ProjectLocalizations {
       _text('Input $input · output $output', '输入 $input · 输出 $output');
   String get noExecutions => _text('No execution records yet', '暂无执行记录');
   String get executionRuns => _text('Run history', '运行记录');
+  String messageSequence(int sequence) =>
+      _text('Message #$sequence', '消息 #$sequence');
+  String runCount(int count) =>
+      _text('$count ${count == 1 ? 'run' : 'runs'}', '$count 个运行');
+  String recipientCount(int count) => _text('$count recipients', '$count 个接收者');
+  String routingMode(ProjectTurnRoutingMode mode) => switch (mode) {
+    ProjectTurnRoutingMode.targeted => _text('Targeted', '定向'),
+    ProjectTurnRoutingMode.broadcast => _text('Broadcast', '广播'),
+    ProjectTurnRoutingMode.delivery => _text('Delivery', '交付'),
+  };
+  String turnStatus(ProjectTurnStatus status) => switch (status) {
+    ProjectTurnStatus.created => _text('Created', '已创建'),
+    ProjectTurnStatus.dispatching => _text('Dispatching', '分发中'),
+    ProjectTurnStatus.deciding => _text('Deciding', '判断中'),
+    ProjectTurnStatus.replying => _text('Replying', '回复中'),
+    ProjectTurnStatus.delivering => _text('Delivering', '交付中'),
+    ProjectTurnStatus.completed => _text('Completed', '已完成'),
+    ProjectTurnStatus.partial => _text('Partial', '部分完成'),
+    ProjectTurnStatus.failed => _text('Failed', '失败'),
+    ProjectTurnStatus.cancelled => _text('Cancelled', '已取消'),
+  };
+  String runPhase(AgentRunPhase phase) => switch (phase) {
+    AgentRunPhase.decision => _text('Decision', '判断'),
+    AgentRunPhase.reply => _text('Reply', '回复'),
+    AgentRunPhase.delivery => _text('Delivery', '交付'),
+  };
+  String agentRunStatus(AgentRunStatus status) => switch (status) {
+    AgentRunStatus.queued => _text('Queued', '排队中'),
+    AgentRunStatus.deciding => _text('Deciding', '判断中'),
+    AgentRunStatus.passed => _text('Passed', '已跳过'),
+    AgentRunStatus.preparing => _text('Preparing', '准备中'),
+    AgentRunStatus.running => _text('Running', '运行中'),
+    AgentRunStatus.delivering => _text('Delivering', '交付中'),
+    AgentRunStatus.completed => _text('Completed', '已完成'),
+    AgentRunStatus.cancelled => _text('Cancelled', '已取消'),
+    AgentRunStatus.failed => _text('Failed', '失败'),
+    AgentRunStatus.timedOut => _text('Timed out', '已超时'),
+    AgentRunStatus.limitExceeded => _text('Limit exceeded', '超出限制'),
+    AgentRunStatus.interrupted => _text('Interrupted', '已中断'),
+  };
+  String get runIdentifierLabel => _text('Run ID', '运行 ID');
   String get cancelRun => _text('Cancel run', '取消运行');
   String get cancelRunTitle => _text('Cancel this run?', '取消此运行？');
   String get cancelRunDescription => _text(
@@ -278,33 +319,80 @@ final class ProjectLocalizations {
   String get contextReport => _text('Context report', '上下文报告');
   String get auditEvents => _text('Audit events', '审计事件');
   String get noAuditEvents => _text('No audit events yet', '暂无审计事件');
+  String auditEventType(ProjectEventType type) => switch (type) {
+    ProjectEventType.userMessage => _text('User message', '用户消息'),
+    ProjectEventType.agentMessage => _text('Agent message', '智能体消息'),
+    ProjectEventType.participationDecision => _text(
+      'Participation decision',
+      '参与判断',
+    ),
+    ProjectEventType.agentDelivery => _text('Agent delivery', '智能体交付'),
+    ProjectEventType.membershipChanged => _text('Membership changed', '成员变更'),
+    ProjectEventType.projectArtifactChanged => _text(
+      'Artifact changed',
+      '产物变更',
+    ),
+    ProjectEventType.runStatusChanged => _text('Run status changed', '运行状态变更'),
+    ProjectEventType.systemNotice => _text('System notice', '系统通知'),
+  };
+  String auditSequence(int sequence) =>
+      _text('Event #$sequence', '事件 #$sequence');
+  String auditActor(ProjectEventActorType type, String snapshot) {
+    if (snapshot.trim().isNotEmpty) return snapshot.trim();
+    return switch (type) {
+      ProjectEventActorType.user => user,
+      ProjectEventActorType.agent => agent,
+      ProjectEventActorType.system => system,
+    };
+  }
+
+  String membershipChange(String agentId, String previous, String current) =>
+      previous.isEmpty
+          ? _text('$agentId is now $current', '$agentId 当前状态为 $current')
+          : _text(
+            '$agentId changed from $previous to $current',
+            '$agentId 从 $previous 变更为 $current',
+          );
+  String artifactChange(String changeKind, String artifactId) => _text(
+    '$changeKind · Artifact $artifactId',
+    '$changeKind · 产物 $artifactId',
+  );
+  String auditRunChange(String phase, String status, String errorCode) =>
+      <String>[
+        '$phase · $status',
+        if (errorCode.isNotEmpty) errorCode,
+      ].join(' · ');
+  String auditDelivery(String kind, String summary) =>
+      summary.trim().isEmpty ? kind : '$kind · ${summary.trim()}';
+  String auditSystemNotice(String code, String detail) =>
+      detail.trim().isEmpty ? code : '$code · ${detail.trim()}';
   String get summarySegments => _text('Summary segments', '摘要片段');
   String get memories => _text('Agent memories', '智能体记忆');
   String get artifactVersionIds => _text('Artifact versions', '产物版本');
   String get skills => _text('Skills', '技能');
   String get tools => _text('Tools', '工具');
+  String get memoryRevision => _text('Memory revision', '记忆版本');
+  String get coveredThroughMessage =>
+      _text('Covered through message', '上下文覆盖至消息');
   String get active => _text('Active', '活跃');
   String get pausedStatus => _text('Paused', '已暂停');
   String participationDecision(ParticipationDecision decision) =>
-      '${_participationChoice(decision.choice)} · '
-      '${_participationReason(decision.reasonCode)}';
-  String _participationChoice(ParticipationChoice choice) => switch (choice) {
+      '${participationChoice(decision.choice)} · '
+      '${participationReason(decision.reasonCode)}';
+  String participationChoice(ParticipationChoice choice) => switch (choice) {
     ParticipationChoice.reply => _text('Reply', '回复'),
     ParticipationChoice.pass => _text('Pass', '跳过'),
   };
-  String _participationReason(String code) => switch (code) {
+  String participationReason(String code) => switch (code) {
     'decision_invalid' => _text('Invalid decision response', '判断结果格式无效'),
     'decision_timeout' => _text('Decision timed out', '判断超时'),
     'decision_failed' => _text('Decision request failed', '判断请求失败'),
     'decision_cancelled' => _text('Decision cancelled', '判断已取消'),
     _ => code,
   };
-  String runStatus(String phase, String status) => '$phase · $status';
   String duration(String value) => _text('Duration: $value', '耗时：$value');
   String errorCode(String value) => _text(
-    'Error: ${_participationReason(value)}',
-    '错误：${_participationReason(value)}',
+    'Error: ${participationReason(value)}',
+    '错误：${participationReason(value)}',
   );
-  String identifiers(String label, Iterable<String> values) =>
-      '$label: ${values.isEmpty ? '-' : values.join(', ')}';
 }

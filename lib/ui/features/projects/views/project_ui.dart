@@ -347,6 +347,101 @@ final class ProjectSectionHeader extends StatelessWidget {
   }
 }
 
+/// Semantic icon treatment shared by compact project activity lists.
+///
+/// The low-contrast fill and 1px border follow the shadcn visual hierarchy:
+/// color communicates state without turning every list row into an alert.
+enum ProjectIndicatorTone { neutral, primary, success, warning, destructive }
+
+final class ProjectIndicatorIcon extends StatelessWidget {
+  const ProjectIndicatorIcon({
+    super.key,
+    required this.icon,
+    required this.tone,
+    required this.semanticLabel,
+    this.size = 34,
+    this.iconSize = 16,
+  });
+
+  final IconData icon;
+  final ProjectIndicatorTone tone;
+  final String semanticLabel;
+  final double size;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = HyveDesktopThemeSpec.tokens(context);
+    final color = switch (tone) {
+      ProjectIndicatorTone.neutral => tokens.secondaryText,
+      ProjectIndicatorTone.primary => tokens.accent,
+      ProjectIndicatorTone.success => tokens.success,
+      ProjectIndicatorTone.warning => tokens.warning,
+      ProjectIndicatorTone.destructive => tokens.danger,
+    };
+    return Semantics(
+      label: semanticLabel,
+      image: true,
+      child: ExcludeSemantics(
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            border: Border.all(color: color.withValues(alpha: 0.24)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: iconSize, color: color),
+        ),
+      ),
+    );
+  }
+}
+
+@immutable
+final class ProjectMetadataItem {
+  const ProjectMetadataItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+}
+
+/// Responsive, muted metadata used below activity list titles.
+final class ProjectMetadataWrap extends StatelessWidget {
+  const ProjectMetadataWrap({
+    super.key,
+    required this.items,
+    this.spacing = 12,
+    this.runSpacing = 4,
+  });
+
+  final List<ProjectMetadataItem> items;
+  final double spacing;
+  final double runSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = HyveDesktopThemeSpec.mutedText(context);
+    final style = HyveDesktopThemeSpec.metaStyle(context);
+    return Wrap(
+      spacing: spacing,
+      runSpacing: runSpacing,
+      children: <Widget>[
+        for (final item in items)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(item.icon, size: 13, color: color),
+              const SizedBox(width: 5),
+              Text(item.label, style: style),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
 /// Standard back navigation used by project detail surfaces.
 ///
 /// Keeping the outline variant here ensures section-to-message navigation and

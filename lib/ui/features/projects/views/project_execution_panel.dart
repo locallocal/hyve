@@ -103,11 +103,10 @@ final class ProjectExecutionPanel extends StatelessWidget {
                   ),
                 ),
                 if (onClose case final onClose?)
-                  ProjectIconAction(
+                  ProjectBackAction(
                     key: const ValueKey<String>('project-execution-close'),
                     label: copy.backToMessages,
                     onPressed: onClose,
-                    icon: LucideIcons.arrowLeft,
                   )
                 else if (!embedded)
                   const SizedBox.square(dimension: 44),

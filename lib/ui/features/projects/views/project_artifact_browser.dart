@@ -177,12 +177,10 @@ final class _ArtifactPathNavigation extends StatelessWidget {
             );
     return Row(
       children: <Widget>[
-        ProjectIconAction(
+        ProjectBackAction(
           key: const ValueKey<String>('artifact-directory-back'),
           label: copy.backToParentFolder,
           onPressed: onBack,
-          icon: LucideIcons.arrowLeft,
-          variant: ShadButtonVariant.outline,
         ),
         const SizedBox(width: 8),
         Expanded(

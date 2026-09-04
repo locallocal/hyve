@@ -298,13 +298,12 @@ final class _ProjectArtifactsDialogState extends State<ProjectArtifactsDialog> {
                             ),
                             const Spacer(),
                             if (widget.onClose != null)
-                              ProjectIconAction(
+                              ProjectBackAction(
                                 key: const ValueKey<String>(
                                   'project-artifacts-close',
                                 ),
                                 label: copy.backToMessages,
                                 onPressed: widget.onClose,
-                                icon: LucideIcons.arrowLeft,
                               )
                             else if (!widget.embedded)
                               const SizedBox.square(dimension: 44),

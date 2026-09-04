@@ -22,6 +22,7 @@ final class ProjectLocalizations {
   String get workspace => _text('Project workspace', '项目工作区');
   String get artifacts => _text('Project artifacts', '项目产物');
   String get members => _text('Project members', '项目成员');
+  String get backToMessages => _text('Back to messages', '返回消息');
   String get execution => _text('Execution details', '执行详情');
   String get close => _text('Close', '关闭');
   String get cancel => _text('Cancel', '取消');

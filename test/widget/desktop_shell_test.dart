@@ -35,12 +35,22 @@ void main() {
                   onShowMembers: () => members += 1,
                   onShowArtifacts: () => artifacts += 1,
                   onShowExecution: () => execution += 1,
+                  membersSelected: true,
                 ),
               ),
             ),
       ),
     );
     await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<HyveDesktopIconAction>(
+            find.byKey(const ValueKey<String>('project-members-button')),
+          )
+          .selected,
+      isTrue,
+    );
 
     for (final key in const <String>[
       'project-members-button',

@@ -105,8 +105,14 @@ class _DesktopLayoutState extends State<DesktopLayout> {
   @override
   void didUpdateWidget(covariant DesktopLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final chatChanged = oldWidget.selectedChatId != widget.selectedChatId;
-    if (chatChanged) _chatPageKey = null;
+    final workspaceChanged =
+        oldWidget.selectedChatId != widget.selectedChatId ||
+        oldWidget.selectedProjectUsesAgentRuntime !=
+            widget.selectedProjectUsesAgentRuntime;
+    if (workspaceChanged) {
+      _chatPageKey = null;
+      _projectWorkspaceController.showMessages();
+    }
     if (oldWidget.currentIndex == 0 && widget.currentIndex != 0) {
       _preserveChatOverlayIntent = false;
       unawaited(_dismissActiveChatOverlay());
@@ -130,6 +136,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
         }),
       );
     }
+    _projectWorkspaceController.dispose();
     super.dispose();
   }
 
@@ -234,51 +241,57 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                       Expanded(
                         child: Column(
                           children: [
-                            _UnifiedDesktopToolbar(
-                              currentIndex: widget.currentIndex,
-                              bot: _activeBot,
-                              projectName: widget.selectedProjectName,
-                              sidebarVisible:
-                                  overlaySidebar
-                                      ? isChat
-                                          ? _activeChatOverlay ==
-                                              _ChatOverlay.sidebar
-                                          : _compactSidebarOpen
-                                      : _sidebarVisible,
-                              compact: isChat && overlaySidebar,
-                              isChat: isChat,
-                              onToggleSidebar:
-                                  () => _toggleSidebar(
-                                    context,
-                                    overlay: overlaySidebar,
-                                    useChatSheet: isChat,
-                                  ),
-                              onCreateChat: widget.onCreateChat,
-                              onSearchRequested:
-                                  widget.currentIndex >= 2
-                                      ? null
-                                      : () => _requestSearch(
-                                        context,
-                                        isChat: isChat,
-                                        overlaySidebar: overlaySidebar,
-                                      ),
-                              onShowProjectMembers:
-                                  projectWorkspaceSelected
-                                      ? () => unawaited(
+                            ListenableBuilder(
+                              listenable: _projectWorkspaceController,
+                              builder:
+                                  (context, _) => _UnifiedDesktopToolbar(
+                                    currentIndex: widget.currentIndex,
+                                    bot: _activeBot,
+                                    projectName: widget.selectedProjectName,
+                                    sidebarVisible:
+                                        overlaySidebar
+                                            ? isChat
+                                                ? _activeChatOverlay ==
+                                                    _ChatOverlay.sidebar
+                                                : _compactSidebarOpen
+                                            : _sidebarVisible,
+                                    compact: isChat && overlaySidebar,
+                                    isChat: isChat,
+                                    onToggleSidebar:
+                                        () => _toggleSidebar(
+                                          context,
+                                          overlay: overlaySidebar,
+                                          useChatSheet: isChat,
+                                        ),
+                                    onCreateChat: widget.onCreateChat,
+                                    onSearchRequested:
+                                        widget.currentIndex >= 2
+                                            ? null
+                                            : () => _requestSearch(
+                                              context,
+                                              isChat: isChat,
+                                              overlaySidebar: overlaySidebar,
+                                            ),
+                                    onShowProjectMembers:
+                                        projectWorkspaceSelected
+                                            ? _projectWorkspaceController
+                                                .toggleMembers
+                                            : null,
+                                    projectMembersSelected:
+                                        projectWorkspaceSelected &&
                                         _projectWorkspaceController
-                                            .showMembers(),
-                                      )
-                                      : null,
-                              onShowProjectArtifacts:
-                                  projectWorkspaceSelected
-                                      ? _projectWorkspaceController
-                                          .showArtifacts
-                                      : null,
-                              onShowProjectExecution:
-                                  projectWorkspaceSelected
-                                      ? _projectWorkspaceController
-                                          .showExecution
-                                      : null,
+                                            .showingMembers,
+                                    onShowProjectArtifacts:
+                                        projectWorkspaceSelected
+                                            ? _projectWorkspaceController
+                                                .showArtifacts
+                                            : null,
+                                    onShowProjectExecution:
+                                        projectWorkspaceSelected
+                                            ? _projectWorkspaceController
+                                                .showExecution
+                                            : null,
+                                  ),
                             ),
                             Expanded(child: _buildWorkspace(context)),
                           ],

@@ -18,14 +18,27 @@ import 'package:hyve/ui/features/projects/views/project_ui.dart';
 export 'package:hyve/ui/features/projects/views/project_event_list.dart'
     show ProjectDeliveryCard;
 
+/// Primary surfaces that share the Project workspace's content area.
+enum ProjectWorkspacePane { messages, members }
+
 /// Commands exposed by an embedded Project workspace to its desktop shell.
-final class ProjectWorkspaceController {
+final class ProjectWorkspaceController
+    extends ValueNotifier<ProjectWorkspacePane> {
+  ProjectWorkspaceController() : super(ProjectWorkspacePane.messages);
+
   _ProjectWorkspacePageState? _state;
 
-  Future<void> showMembers() async {
-    final state = _state;
-    if (state != null) await state._showMembers();
+  bool get showingMembers => value == ProjectWorkspacePane.members;
+
+  void showMembers() {
+    value = ProjectWorkspacePane.members;
   }
+
+  void showMessages() {
+    value = ProjectWorkspacePane.messages;
+  }
+
+  void toggleMembers() => showingMembers ? showMessages() : showMembers();
 
   void showArtifacts() => _state?._showArtifacts();
 
@@ -35,6 +48,52 @@ final class ProjectWorkspaceController {
 
   void _detach(_ProjectWorkspacePageState state) {
     if (identical(_state, state)) _state = null;
+  }
+}
+
+/// Retains both workspace surfaces so switching to member management never
+/// recreates the message timeline, its scroll position, or composer state.
+final class ProjectWorkspacePaneStack extends StatelessWidget {
+  const ProjectWorkspacePaneStack({
+    super.key,
+    required this.showMembers,
+    required this.messages,
+    required this.members,
+  });
+
+  final bool showMembers;
+  final Widget messages;
+  final Widget members;
+
+  @override
+  Widget build(BuildContext context) {
+    return IndexedStack(
+      key: const ValueKey<String>('project-workspace-pane-stack'),
+      index: showMembers ? 1 : 0,
+      sizing: StackFit.expand,
+      children: <Widget>[
+        ExcludeFocus(
+          excluding: showMembers,
+          child: TickerMode(
+            enabled: !showMembers,
+            child: KeyedSubtree(
+              key: const PageStorageKey<String>('project-message-list-page'),
+              child: messages,
+            ),
+          ),
+        ),
+        ExcludeFocus(
+          excluding: !showMembers,
+          child: TickerMode(
+            enabled: showMembers,
+            child: KeyedSubtree(
+              key: const PageStorageKey<String>('project-members-page'),
+              child: members,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -61,21 +120,30 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       StructuredProjectMessageController();
   ProjectWorkspaceViewModel? _viewModel;
   ProjectMembersViewModel? _membersViewModel;
+  late ProjectWorkspaceController _workspaceController;
+  late bool _ownsWorkspaceController;
   final List<PendingAttachment> _attachments = <PendingAttachment>[];
 
   @override
   void initState() {
     super.initState();
-    widget.controller?._attach(this);
+    _bindWorkspaceController(widget.controller);
   }
 
   @override
   void didUpdateWidget(covariant ProjectWorkspacePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?._detach(this);
-      widget.controller?._attach(this);
+      _workspaceController._detach(this);
+      if (_ownsWorkspaceController) _workspaceController.dispose();
+      _bindWorkspaceController(widget.controller);
     }
+  }
+
+  void _bindWorkspaceController(ProjectWorkspaceController? controller) {
+    _workspaceController = controller ?? ProjectWorkspaceController();
+    _ownsWorkspaceController = controller == null;
+    _workspaceController._attach(this);
   }
 
   @override
@@ -90,15 +158,15 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     );
     _membersViewModel = dependencies.createMembersViewModel(widget.projectId);
     unawaited(_viewModel!.refresh());
-    unawaited(_membersViewModel!.load());
   }
 
   @override
   void dispose() {
-    widget.controller?._detach(this);
+    _workspaceController._detach(this);
     _composer.dispose();
     _viewModel?.dispose();
     _membersViewModel?.dispose();
+    if (_ownsWorkspaceController) _workspaceController.dispose();
     super.dispose();
   }
 
@@ -127,36 +195,10 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     });
   }
 
-  Future<void> _showMembers() async {
-    final viewModel = _membersViewModel!;
-    if (hasShadProjectTheme(context)) {
-      await showProjectDialog<void>(
-        context: context,
-        builder: (_) => _membersSheet(viewModel),
-      );
-      return;
-    }
-    if (MediaQuery.sizeOf(context).width < 700) {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder:
-            (_) => FractionallySizedBox(
-              heightFactor: 0.9,
-              child: _membersSheet(viewModel, embedded: true),
-            ),
-      );
-      return;
-    }
-    await showProjectDialog<void>(
-      context: context,
-      builder: (_) => _membersSheet(viewModel),
-    );
-  }
-
   Widget _membersSheet(
     ProjectMembersViewModel membersViewModel, {
     bool embedded = false,
+    VoidCallback? onClose,
   }) {
     final workspaceViewModel = _viewModel!;
     return ListenableBuilder(
@@ -167,6 +209,7 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             agentStatuses: workspaceViewModel.agentStatuses,
             embedded: embedded,
             disposeViewModel: false,
+            onClose: onClose,
           ),
     );
   }
@@ -215,87 +258,133 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     if (viewModel == null) return const SizedBox.shrink();
     return ProjectThemeScope(
       child: ListenableBuilder(
-        listenable: viewModel,
-        builder:
-            (context, _) => LayoutBuilder(
-              builder: (context, constraints) {
-                final copy = ProjectLocalizations.of(context);
-                final project = viewModel.project;
-                final title =
-                    project?.name ??
-                    (widget.projectName.trim().isEmpty
-                        ? copy.workspace
-                        : widget.projectName.trim());
-                final shadTheme = ShadTheme.maybeOf(context);
-                final inspectorBreakpoint =
-                    shadTheme?.breakpoints.xl.value ?? 1180;
-                final persistentInspector =
-                    constraints.maxWidth >= inspectorBreakpoint;
-                return Scaffold(
-                  appBar:
-                      widget.embedded
-                          ? null
-                          : AppBar(
-                            title: Text(title),
-                            centerTitle: false,
-                            scrolledUnderElevation: 0,
-                            actions: <Widget>[
-                              ProjectIconAction(
-                                key: const ValueKey<String>(
-                                  'project-members-button',
-                                ),
-                                label: copy.members,
-                                onPressed: () => unawaited(_showMembers()),
-                                icon: LucideIcons.bot,
-                              ),
-                              if (!persistentInspector)
-                                ProjectIconAction(
-                                  key: const ValueKey<String>(
-                                    'project-artifacts-button',
-                                  ),
-                                  label: copy.artifacts,
-                                  onPressed: _showArtifacts,
-                                  icon: LucideIcons.folderKanban,
-                                ),
-                              if (!persistentInspector)
-                                ProjectIconAction(
-                                  key: const ValueKey<String>(
-                                    'project-execution-button',
-                                  ),
-                                  label: copy.execution,
-                                  onPressed: _showExecution,
-                                  icon: LucideIcons.activity,
-                                ),
-                              const SizedBox(width: 4),
-                            ],
-                          ),
-                  body: SafeArea(
-                    top: false,
-                    child:
-                        persistentInspector
-                            ? Row(
-                              children: <Widget>[
-                                Expanded(child: _workspace(viewModel, copy)),
-                                const VerticalDivider(width: 1),
-                                SizedBox(
-                                  width: projectInspectorWidth,
-                                  child: _PersistentProjectInspector(
-                                    artifacts: ProjectArtifactsPanel(
-                                      viewModel: viewModel,
+        listenable: _workspaceController,
+        builder: (context, _) {
+          final showingMembers = _workspaceController.showingMembers;
+          return PopScope(
+            canPop: !showingMembers,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) _workspaceController.showMessages();
+            },
+            child: ListenableBuilder(
+              listenable: viewModel,
+              builder:
+                  (context, _) => LayoutBuilder(
+                    builder: (context, constraints) {
+                      final copy = ProjectLocalizations.of(context);
+                      final project = viewModel.project;
+                      final title =
+                          project?.name ??
+                          (widget.projectName.trim().isEmpty
+                              ? copy.workspace
+                              : widget.projectName.trim());
+                      final shadTheme = ShadTheme.maybeOf(context);
+                      final inspectorBreakpoint =
+                          shadTheme?.breakpoints.xl.value ?? 1180;
+                      final persistentInspector =
+                          constraints.maxWidth >= inspectorBreakpoint;
+                      return Scaffold(
+                        appBar:
+                            widget.embedded
+                                ? null
+                                : AppBar(
+                                  title: Text(title),
+                                  centerTitle: false,
+                                  scrolledUnderElevation: 0,
+                                  actions: <Widget>[
+                                    ProjectIconAction(
+                                      key: const ValueKey<String>(
+                                        'project-members-button',
+                                      ),
+                                      label:
+                                          showingMembers
+                                              ? copy.backToMessages
+                                              : copy.members,
+                                      onPressed:
+                                          _workspaceController.toggleMembers,
+                                      icon:
+                                          showingMembers
+                                              ? LucideIcons.messageSquareText
+                                              : LucideIcons.bot,
+                                      selected: showingMembers,
                                     ),
-                                    execution: _executionPanel(
-                                      viewModel,
-                                      embedded: true,
-                                    ),
-                                  ),
+                                    if (!persistentInspector)
+                                      ProjectIconAction(
+                                        key: const ValueKey<String>(
+                                          'project-artifacts-button',
+                                        ),
+                                        label: copy.artifacts,
+                                        onPressed: _showArtifacts,
+                                        icon: LucideIcons.folderKanban,
+                                      ),
+                                    if (!persistentInspector)
+                                      ProjectIconAction(
+                                        key: const ValueKey<String>(
+                                          'project-execution-button',
+                                        ),
+                                        label: copy.execution,
+                                        onPressed: _showExecution,
+                                        icon: LucideIcons.activity,
+                                      ),
+                                    const SizedBox(width: 4),
+                                  ],
                                 ),
-                              ],
-                            )
-                            : _workspace(viewModel, copy),
+                        body: SafeArea(
+                          top: false,
+                          child:
+                              persistentInspector
+                                  ? Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: _workspacePane(
+                                          viewModel,
+                                          copy,
+                                          showingMembers: showingMembers,
+                                        ),
+                                      ),
+                                      const VerticalDivider(width: 1),
+                                      SizedBox(
+                                        width: projectInspectorWidth,
+                                        child: _PersistentProjectInspector(
+                                          artifacts: ProjectArtifactsPanel(
+                                            viewModel: viewModel,
+                                          ),
+                                          execution: _executionPanel(
+                                            viewModel,
+                                            embedded: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : _workspacePane(
+                                    viewModel,
+                                    copy,
+                                    showingMembers: showingMembers,
+                                  ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _workspacePane(
+    ProjectWorkspaceViewModel viewModel,
+    ProjectLocalizations copy, {
+    required bool showingMembers,
+  }) {
+    return ProjectWorkspacePaneStack(
+      showMembers: showingMembers,
+      messages: _workspace(viewModel, copy),
+      members: _membersSheet(
+        _membersViewModel!,
+        embedded: true,
+        onClose: _workspaceController.showMessages,
       ),
     );
   }
@@ -347,9 +436,9 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                     hasActiveAgents
                         ? null
                         : ProjectActionButton(
-                          label: copy.addAgent,
-                          onPressed: () => unawaited(_showMembers()),
-                          leading: const Icon(LucideIcons.plus, size: 16),
+                          label: copy.members,
+                          onPressed: _workspaceController.showMembers,
+                          leading: const Icon(LucideIcons.bot, size: 16),
                         ),
               ),
             ),

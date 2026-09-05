@@ -215,6 +215,12 @@ final class ProjectLocalizations {
 
   String get searchAgents => _text('Search agents', '搜索智能体');
   String get addAgent => _text('Add agent', '添加智能体');
+  String get addAgentDescription => _text(
+    'Search for an available agent and add it to this project.',
+    '搜索可用智能体并将其添加到当前项目。',
+  );
+  String get searchAvailableAgents =>
+      _text('Search available agents', '搜索可添加的智能体');
   String get membersDescription => _text(
     'Monitor processing and manage agent order, artifact access, and participation.',
     '查看消息处理状态，并管理智能体顺序、产物权限和项目参与状态。',
@@ -222,6 +228,7 @@ final class ProjectLocalizations {
   String get noMembers => _text('No project members yet', '项目暂无成员');
   String get noAvailableAgents =>
       _text('No agents are available to add', '没有可添加的智能体');
+  String get noMatchingAgents => _text('No matching agents', '未找到匹配的智能体');
   String get deletedAgent => _text('Deleted agent', '已删除的智能体');
   String get pause => _text('Pause', '暂停');
   String get resume => _text('Resume', '恢复');

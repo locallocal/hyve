@@ -79,6 +79,19 @@ void main() {
     );
     expect(find.byIcon(LucideIcons.ellipsis), findsNothing);
     expect(find.byIcon(LucideIcons.gripVertical), findsNothing);
+    final memberSearch = find.descendant(
+      of: find.byKey(const ValueKey<String>('project-member-search')),
+      matching: find.byType(TextField),
+    );
+    final memberAdd = find.byKey(const ValueKey<String>('project-member-add'));
+    expect(
+      tester.getSize(memberAdd).height,
+      tester.getSize(memberSearch).height,
+    );
+    expect(
+      tester.getRect(memberAdd).center.dy,
+      closeTo(tester.getRect(memberSearch).center.dy, 0.5),
+    );
     await tester.tap(
       find.byKey(const ValueKey<String>('project-members-close')),
     );
@@ -142,6 +155,7 @@ void main() {
     final agents = _AgentRepository(<Agent>[
       _agent('agent-1', 'Researcher', now, avatar: avatarPath),
       _agent('agent-2', 'Writer', now),
+      _agent('agent-3', 'Reviewer', now),
     ]);
     final memberships = _MembershipRepository(<ProjectMembership>[
       _membership('agent-1', now),
@@ -201,10 +215,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const ValueKey<String>('project-member-add-label')),
-        findsOneWidget,
-      );
-      expect(
         find.byKey(const ValueKey<String>('project-members-header')),
         findsOneWidget,
       );
@@ -221,24 +231,46 @@ void main() {
       );
       expect(backButton.variant, ShadButtonVariant.outline);
       expect(find.byType(ShadInput), findsOneWidget);
-      expect(find.byType(ShadSelect<String>), findsOneWidget);
+      expect(find.byType(ShadSelect<String>), findsNothing);
       expect(find.byType(ShadSelect<ProjectStorageAccess>), findsOneWidget);
       final memberSearch = find.descendant(
         of: find.byKey(const ValueKey<String>('project-member-search')),
         matching: find.byType(ShadInput),
       );
       final memberSearchInput = tester.widget<ShadInput>(memberSearch);
-      final memberAddSelect = find.descendant(
-        of: find.byKey(const ValueKey<String>('project-member-add-select')),
-        matching: find.byType(ShadSelect<String>),
+      final memberAdd = find.byKey(
+        const ValueKey<String>('project-member-add'),
+      );
+      final memberAddButton = tester.widget<ShadIconButton>(
+        find.descendant(of: memberAdd, matching: find.byType(ShadIconButton)),
+      );
+      expect(memberAddButton.variant, ShadButtonVariant.outline);
+      expect(
+        tester.getSize(memberAdd),
+        const Size.square(HyveDesktopThemeSpec.botFormFieldHeight),
       );
       expect(
-        tester.getSize(memberAddSelect).height,
-        HyveDesktopThemeSpec.botFormFieldHeight,
-      );
-      expect(
-        tester.getSize(memberAddSelect).height,
+        tester.getSize(memberAdd).height,
         tester.getSize(memberSearch).height,
+      );
+      expect(
+        tester
+            .getSize(
+              find.descendant(
+                of: memberAdd,
+                matching: find.byType(ShadIconButton),
+              ),
+            )
+            .height,
+        tester.getSize(memberSearch).height,
+      );
+      expect(
+        tester.getRect(memberAdd).center.dy,
+        closeTo(tester.getRect(memberSearch).center.dy, 0.5),
+      );
+      expect(
+        tester.getRect(memberAdd).left,
+        greaterThan(tester.getRect(memberSearch).right),
       );
       expect(memberSearchInput.alignment, AlignmentDirectional.centerStart);
       expect(
@@ -269,6 +301,40 @@ void main() {
             .dy,
         closeTo(tester.getRect(memberSearch).center.dy, 0.5),
       );
+
+      await tester.tap(memberAdd);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('project-agent-picker-search')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('project-agent-picker-list')),
+        findsOneWidget,
+      );
+      expect(find.text('Writer'), findsOneWidget);
+      expect(find.text('Reviewer'), findsOneWidget);
+      expect(find.byType(ShadInput), findsNWidgets(2));
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('project-agent-picker-search')),
+        'review',
+      );
+      await tester.pump();
+      expect(find.text('Writer'), findsNothing);
+      expect(find.text('Reviewer'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey<String>('project-agent-picker-search')),
+        'missing',
+      );
+      await tester.pump();
+      expect(find.text('No matching agents'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('project-agent-picker-close')),
+      );
+      await tester.pumpAndSettle();
       expect(find.byType(ShadCard), findsOneWidget);
       expect(find.byType(ShadAvatar), findsOneWidget);
       final memberAvatar = tester.widget<ShadAvatar>(

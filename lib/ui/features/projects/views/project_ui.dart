@@ -255,6 +255,8 @@ final class ProjectIconAction extends StatelessWidget {
     this.selected,
     this.destructive = false,
     this.variant = ShadButtonVariant.ghost,
+    this.hitTargetSize = 44,
+    this.buttonSize = 36,
   });
 
   final IconData icon;
@@ -263,6 +265,8 @@ final class ProjectIconAction extends StatelessWidget {
   final bool? selected;
   final bool destructive;
   final ShadButtonVariant variant;
+  final double hitTargetSize;
+  final double buttonSize;
 
   @override
   Widget build(BuildContext context) => HyveDesktopIconAction(
@@ -271,6 +275,8 @@ final class ProjectIconAction extends StatelessWidget {
     onPressed: onPressed,
     selected: selected,
     variant: destructive ? ShadButtonVariant.destructive : variant,
+    hitTargetSize: hitTargetSize,
+    buttonSize: buttonSize,
   );
 }
 

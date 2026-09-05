@@ -40,6 +40,34 @@ ShadPosition hyveDialogClosePosition(BuildContext context) =>
       textDirection: Directionality.of(context),
     );
 
+/// Canonical sizing modes for primary in-app dialogs.
+enum HyveDialogSize {
+  /// Lets the dialog follow its content up to the Shad default constraints.
+  intrinsic,
+
+  /// Fills the standard large workflow surface while preserving window insets.
+  large,
+}
+
+const Size hyveLargeDialogMaxSize = Size(840, 720);
+
+/// Resolves the shared large-dialog size from the available app window.
+///
+/// Keeping this calculation here prevents feature dialogs from drifting apart
+/// and ensures resized desktop windows retain a usable outer margin.
+Size hyveLargeDialogSizeOf(BuildContext context) {
+  final windowSize = MediaQuery.sizeOf(context);
+  final inset = windowSize.width < 900 || windowSize.height < 760 ? 16.0 : 24.0;
+  return Size(
+    (windowSize.width - inset * 2)
+        .clamp(0.0, hyveLargeDialogMaxSize.width)
+        .toDouble(),
+    (windowSize.height - inset * 2)
+        .clamp(0.0, hyveLargeDialogMaxSize.height)
+        .toDouble(),
+  );
+}
+
 /// A primary Shad dialog with Hyve's standard accessible close action.
 class HyveDialog extends StatelessWidget {
   const HyveDialog({
@@ -61,6 +89,7 @@ class HyveDialog extends StatelessWidget {
     this.padding,
     this.gap,
     this.constraints,
+    this.size = HyveDialogSize.intrinsic,
     this.border,
     this.shadows,
     this.removeBorderRadiusWhenTiny,
@@ -82,7 +111,10 @@ class HyveDialog extends StatelessWidget {
     this.titlePinned,
     this.descriptionPinned,
     this.actionsPinned,
-  });
+  }) : assert(
+         size == HyveDialogSize.intrinsic || constraints == null,
+         'Large dialogs use the shared responsive constraints.',
+       );
 
   final Widget? title;
   final Widget? description;
@@ -101,6 +133,7 @@ class HyveDialog extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final double? gap;
   final BoxConstraints? constraints;
+  final HyveDialogSize size;
   final BoxBorder? border;
   final List<BoxShadow>? shadows;
   final bool? removeBorderRadiusWhenTiny;
@@ -124,52 +157,60 @@ class HyveDialog extends StatelessWidget {
   final bool? actionsPinned;
 
   @override
-  Widget build(BuildContext context) => ShadDialog(
-    title: title,
-    description: description,
-    actions: actions,
-    closeIcon:
-        showCloseButton
-            ? HyveDialogCloseButton(
-              key: closeButtonKey,
-              enabled: closeButtonEnabled,
-              variant: closeButtonVariant,
-              foregroundColor: closeButtonForegroundColor,
-              hoverBackgroundColor: closeButtonHoverBackgroundColor,
-              onPressed:
-                  closeButtonEnabled
-                      ? onClose ?? () => Navigator.of(context).pop()
-                      : null,
-            )
-            : const SizedBox.shrink(),
-    closeIconPosition: hyveDialogClosePosition(context),
-    radius: radius,
-    backgroundColor: backgroundColor,
-    expandActionsWhenTiny: expandActionsWhenTiny,
-    padding: padding,
-    gap: gap,
-    constraints: constraints,
-    border: border,
-    shadows: shadows,
-    removeBorderRadiusWhenTiny: removeBorderRadiusWhenTiny,
-    actionsAxis: actionsAxis,
-    actionsMainAxisSize: actionsMainAxisSize,
-    actionsMainAxisAlignment: actionsMainAxisAlignment,
-    actionsVerticalDirection: actionsVerticalDirection,
-    titleStyle: titleStyle,
-    descriptionStyle: descriptionStyle,
-    titleTextAlign: titleTextAlign,
-    descriptionTextAlign: descriptionTextAlign,
-    alignment: alignment,
-    mainAxisAlignment: mainAxisAlignment,
-    crossAxisAlignment: crossAxisAlignment,
-    scrollable: scrollable,
-    scrollPadding: scrollPadding,
-    actionsGap: actionsGap,
-    useSafeArea: useSafeArea,
-    titlePinned: titlePinned,
-    descriptionPinned: descriptionPinned,
-    actionsPinned: actionsPinned,
-    child: child,
-  );
+  Widget build(BuildContext context) {
+    final effectiveConstraints = switch (size) {
+      HyveDialogSize.intrinsic => constraints,
+      HyveDialogSize.large => BoxConstraints.tight(
+        hyveLargeDialogSizeOf(context),
+      ),
+    };
+    return ShadDialog(
+      title: title,
+      description: description,
+      actions: actions,
+      closeIcon:
+          showCloseButton
+              ? HyveDialogCloseButton(
+                key: closeButtonKey,
+                enabled: closeButtonEnabled,
+                variant: closeButtonVariant,
+                foregroundColor: closeButtonForegroundColor,
+                hoverBackgroundColor: closeButtonHoverBackgroundColor,
+                onPressed:
+                    closeButtonEnabled
+                        ? onClose ?? () => Navigator.of(context).pop()
+                        : null,
+              )
+              : const SizedBox.shrink(),
+      closeIconPosition: hyveDialogClosePosition(context),
+      radius: radius,
+      backgroundColor: backgroundColor,
+      expandActionsWhenTiny: expandActionsWhenTiny,
+      padding: padding,
+      gap: gap,
+      constraints: effectiveConstraints,
+      border: border,
+      shadows: shadows,
+      removeBorderRadiusWhenTiny: removeBorderRadiusWhenTiny,
+      actionsAxis: actionsAxis,
+      actionsMainAxisSize: actionsMainAxisSize,
+      actionsMainAxisAlignment: actionsMainAxisAlignment,
+      actionsVerticalDirection: actionsVerticalDirection,
+      titleStyle: titleStyle,
+      descriptionStyle: descriptionStyle,
+      titleTextAlign: titleTextAlign,
+      descriptionTextAlign: descriptionTextAlign,
+      alignment: alignment,
+      mainAxisAlignment: mainAxisAlignment,
+      crossAxisAlignment: crossAxisAlignment,
+      scrollable: scrollable,
+      scrollPadding: scrollPadding,
+      actionsGap: actionsGap,
+      useSafeArea: useSafeArea,
+      titlePinned: titlePinned,
+      descriptionPinned: descriptionPinned,
+      actionsPinned: actionsPinned,
+      child: child,
+    );
+  }
 }

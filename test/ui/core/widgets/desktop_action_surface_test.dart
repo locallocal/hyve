@@ -9,6 +9,42 @@ import 'package:hyve/utils/theme.dart';
 import '../../../support/widget_test_support.dart';
 
 void main() {
+  testWidgets('large Hyve dialogs share responsive canonical constraints', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    for (final (windowSize, expectedSize) in <(Size, Size)>[
+      (const Size(1280, 900), hyveLargeDialogMaxSize),
+      (const Size(800, 600), const Size(768, 568)),
+    ]) {
+      tester.view.physicalSize = windowSize;
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          homeBuilder:
+              (_) => const Scaffold(
+                body: SizedBox(
+                  key: ValueKey<String>('large-dialog-size-probe'),
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        hyveLargeDialogSizeOf(
+          tester.element(
+            find.byKey(const ValueKey<String>('large-dialog-size-probe')),
+          ),
+        ),
+        expectedSize,
+      );
+    }
+  });
+
   testWidgets('Hyve dialog close matches Theme Settings and dismisses', (
     tester,
   ) async {

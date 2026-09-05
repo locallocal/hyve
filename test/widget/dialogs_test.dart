@@ -11,7 +11,7 @@ import 'package:hyve/utils/theme.dart';
 import '../support/widget_test_support.dart';
 
 void main() {
-  testWidgets('new chat uses the desktop dialog and interactive list style', (
+  testWidgets('new chat uses the large desktop dialog and interactive list', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -64,12 +64,10 @@ void main() {
       expect(find.text('OpenAI · gpt-test'), findsOneWidget);
       expect(find.text('Anthropic · claude-test'), findsOneWidget);
       expect(
-        tester
-            .getSize(
-              find.byKey(const ValueKey<String>('new-chat-dialog-content')),
-            )
-            .width,
-        480,
+        tester.getSize(
+          find.byKey(const ValueKey<String>('new-chat-dialog-content')),
+        ),
+        hyveLargeDialogMaxSize,
       );
       expect(tester.takeException(), isNull);
     });

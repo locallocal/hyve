@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -66,34 +65,17 @@ class _NewChatDialogState extends State<NewChatDialog> {
       return _buildMobileDialog(context);
     }
 
-    final windowSize = MediaQuery.sizeOf(context);
-    final inset =
-        windowSize.width < 720 || windowSize.height < 640 ? 16.0 : 24.0;
-    final dialogWidth = math.max(
-      0.0,
-      math.min(480.0, windowSize.width - inset * 2),
-    );
-    final dialogMaxHeight = math.max(
-      0.0,
-      math.min(560.0, windowSize.height - inset * 2),
-    );
-
     return HyveDialog(
-      constraints: BoxConstraints(
-        maxWidth: dialogWidth,
-        maxHeight: dialogMaxHeight,
-      ),
+      size: HyveDialogSize.large,
       padding: EdgeInsets.zero,
       gap: 0,
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
       showCloseButton: false,
-      child: SizedBox(
+      child: SizedBox.expand(
         key: const ValueKey<String>('new-chat-dialog-content'),
-        width: dialogWidth,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
             _buildDesktopHeader(context),
             ShadSeparator.horizontal(

@@ -95,6 +95,10 @@ void main() {
       find.byKey(const ValueKey<String>('artifact-markdown-preview')),
       findsOneWidget,
     );
+    final content = tester.widget<KeyedSubtree>(
+      find.byKey(const ValueKey<String>('artifact-preview-content')),
+    );
+    expect(content.child, isNot(isA<Container>()));
 
     await _pumpPreview(
       tester,

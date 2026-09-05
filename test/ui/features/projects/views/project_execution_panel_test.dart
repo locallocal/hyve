@@ -438,7 +438,7 @@ void main() {
   ) async {
     final now = DateTime.utc(2026, 8, 24);
     final turns = <String, ProjectTurn>{
-      for (var index = 1; index <= 11; index += 1)
+      for (var index = 1; index <= 21; index += 1)
         'turn-$index': _turn(
           now.add(Duration(minutes: index)),
           id: 'turn-$index',
@@ -476,8 +476,16 @@ void main() {
       ),
     );
 
+    List<Widget> pageChildren() {
+      final list = tester.widget<ListView>(
+        find.byKey(const ValueKey<String>('project-execution-list')),
+      );
+      return (list.childrenDelegate as SliverChildListDelegate).children;
+    }
+
     expect(find.text('1 / 2'), findsOneWidget);
-    expect(find.text('Message #11'), findsOneWidget);
+    expect(pageChildren(), hasLength(20));
+    expect(find.text('Message #21'), findsOneWidget);
     expect(find.text('Message #1'), findsNothing);
 
     await tester.tap(
@@ -486,7 +494,9 @@ void main() {
     await tester.pump();
 
     expect(find.text('2 / 2'), findsOneWidget);
-    expect(find.text('Message #11'), findsNothing);
+    expect(pageChildren(), hasLength(1));
+    expect(find.text('Message #21'), findsNothing);
+    expect(find.text('Message #2'), findsNothing);
     expect(find.text('Message #1'), findsOneWidget);
 
     await tester.tap(
@@ -495,7 +505,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('1 / 2'), findsOneWidget);
-    expect(find.text('Message #11'), findsOneWidget);
+    expect(pageChildren(), hasLength(20));
+    expect(find.text('Message #21'), findsOneWidget);
     expect(find.text('Message #1'), findsNothing);
 
     await tester.tap(
@@ -503,14 +514,14 @@ void main() {
     );
     await tester.pump();
 
-    turnsNotifier.value = <String, ProjectTurn>{'turn-11': turns['turn-11']!};
+    turnsNotifier.value = <String, ProjectTurn>{'turn-21': turns['turn-21']!};
     await tester.pump();
 
     expect(
       find.byKey(const ValueKey<String>('project-execution-page-indicator')),
       findsNothing,
     );
-    expect(find.text('Message #11'), findsOneWidget);
+    expect(find.text('Message #21'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

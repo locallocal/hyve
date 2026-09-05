@@ -39,6 +39,9 @@ class BotTokenUsagePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final populatedBuckets = visibleBuckets
+        .where((bucket) => bucket.usage.hasData)
+        .toList(growable: false);
     final summary = KeyedSubtree(
       key: const ValueKey<String>('bot-token-usage-summary'),
       child: SizedBox(
@@ -83,7 +86,7 @@ class BotTokenUsagePanel extends StatelessWidget {
         ),
         TokenUsageTimelineSection(
           dailyBuckets: dailyBuckets,
-          visibleBuckets: visibleBuckets,
+          visibleBuckets: populatedBuckets,
           granularity: granularity,
           selectedDay: selectedDay,
           onShowDaily: onShowDaily ?? _noop,
@@ -93,6 +96,7 @@ class BotTokenUsagePanel extends StatelessWidget {
             TokenUsageMetric.input,
             TokenUsageMetric.output,
           ],
+          frameMetrics: true,
         ),
       ],
     );

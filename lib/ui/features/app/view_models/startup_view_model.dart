@@ -33,6 +33,12 @@ class StartupViewModel extends DisposableChangeNotifier {
     try {
       final profile = await _profileRepository.getProfile();
       if (isDisposed || generation != _loadGeneration) return;
+      _profile = profile;
+      _isLoading = false;
+      notifyListeners();
+      await Future<void>.delayed(Duration.zero);
+      if (isDisposed || generation != _loadGeneration) return;
+
       StartupCapabilitiesReport capabilitiesReport;
       try {
         capabilitiesReport =
@@ -54,13 +60,13 @@ class StartupViewModel extends DisposableChangeNotifier {
         ]);
       }
       if (isDisposed || generation != _loadGeneration) return;
-      _profile = profile;
       _capabilitiesReport = capabilitiesReport;
+      notifyListeners();
     } catch (error) {
       if (isDisposed || generation != _loadGeneration) return;
       _error = AppFailure.from(error, code: 'startup_required_failed');
     } finally {
-      if (!isDisposed && generation == _loadGeneration) {
+      if (!isDisposed && generation == _loadGeneration && _isLoading) {
         _isLoading = false;
         notifyListeners();
       }

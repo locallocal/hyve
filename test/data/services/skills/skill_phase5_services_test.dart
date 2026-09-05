@@ -203,6 +203,55 @@ void main() {
     expect(status.availability, SkillSandboxAvailability.helperUnavailable);
   });
 
+  test('sandbox probe drains helper output without blocking startup', () async {
+    if (!Platform.isLinux) return;
+    final directory = await Directory.systemTemp.createTemp(
+      'hyve-sandbox-output-test-',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final helper = File('${directory.path}/fake-bwrap');
+    await helper.writeAsString(
+      '#!/bin/sh\n/usr/bin/head -c 262144 /dev/zero\n',
+    );
+    final chmod = await Process.run('chmod', <String>['+x', helper.path]);
+    expect(chmod.exitCode, 0);
+
+    final status =
+        await LinuxBubblewrapSkillSandbox(
+          bubblewrapPath: helper.path,
+          prlimitPath: '/bin/true',
+          probeTimeout: const Duration(seconds: 2),
+          installationVerifier: (_, _) async {},
+        ).probe();
+
+    expect(status.availability, SkillSandboxAvailability.available);
+  });
+
+  test('sandbox probe returns promptly when its helper times out', () async {
+    if (!Platform.isLinux) return;
+    final directory = await Directory.systemTemp.createTemp(
+      'hyve-sandbox-timeout-test-',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final helper = File('${directory.path}/fake-bwrap');
+    await helper.writeAsString('#!/bin/sh\nexec /bin/sleep 30\n');
+    final chmod = await Process.run('chmod', <String>['+x', helper.path]);
+    expect(chmod.exitCode, 0);
+
+    final stopwatch = Stopwatch()..start();
+    final status =
+        await LinuxBubblewrapSkillSandbox(
+          bubblewrapPath: helper.path,
+          prlimitPath: '/bin/true',
+          probeTimeout: const Duration(milliseconds: 50),
+          installationVerifier: (_, _) async {},
+        ).probe();
+    stopwatch.stop();
+
+    expect(status.availability, SkillSandboxAvailability.probeFailed);
+    expect(stopwatch.elapsed, lessThan(const Duration(seconds: 2)));
+  });
+
   test('catalog endpoint policy rejects DNS resolving to private IP', () async {
     final policy = SkillCatalogEndpointPolicy(
       dnsLookup: (_) async => [InternetAddress('192.168.1.10')],

@@ -1,9 +1,32 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/domain/repositories/profile_repository.dart';
 import 'package:hyve/ui/features/app/view_models/startup_view_model.dart';
 
 void main() {
+  test('publishes the profile before optional capabilities finish', () async {
+    final capabilityCompleter = Completer<StartupCapabilitiesReport>();
+    final viewModel = StartupViewModel(
+      profileRepository: _ProfileRepository(),
+      capabilityInitializer: () => capabilityCompleter.future,
+    );
+    addTearDown(viewModel.dispose);
+
+    var loadCompleted = false;
+    final load = viewModel.load()..whenComplete(() => loadCompleted = true);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(viewModel.profile, isNotNull);
+    expect(viewModel.isLoading, isFalse);
+    expect(loadCompleted, isFalse);
+
+    capabilityCompleter.complete(StartupCapabilitiesReport.empty);
+    await load;
+    expect(loadCompleted, isTrue);
+  });
+
   test(
     'publishes optional capability degradation without blocking startup',
     () async {

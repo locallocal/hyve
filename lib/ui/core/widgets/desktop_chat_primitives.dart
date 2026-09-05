@@ -290,10 +290,14 @@ class HyveDesktopIconAction extends StatefulWidget {
     this.selected,
     this.autofocus = false,
     this.iconSize = 18,
+    this.hitTargetSize = 44,
+    this.buttonSize = 36,
     this.hoverBackgroundColor,
     this.foregroundColor,
     this.showFocusRing = true,
-  }) : assert(
+  }) : assert(hitTargetSize >= 44, 'Icon actions need a 44px touch target.'),
+       assert(buttonSize > 0 && buttonSize <= hitTargetSize),
+       assert(
          variant != ShadButtonVariant.link,
          'ShadIconButton does not support the link variant.',
        );
@@ -307,6 +311,8 @@ class HyveDesktopIconAction extends StatefulWidget {
   final bool? selected;
   final bool autofocus;
   final double iconSize;
+  final double hitTargetSize;
+  final double buttonSize;
   final Color? hoverBackgroundColor;
   final Color? foregroundColor;
   final bool showFocusRing;
@@ -362,7 +368,7 @@ class _HyveDesktopIconActionState extends State<HyveDesktopIconAction> {
         child: Tooltip(
           message: widget.label,
           child: SizedBox.square(
-            dimension: 44,
+            dimension: widget.hitTargetSize,
             child: IconButton(
               focusNode: _focusNode,
               autofocus: widget.autofocus,
@@ -388,12 +394,12 @@ class _HyveDesktopIconActionState extends State<HyveDesktopIconAction> {
           focusNode: _focusNode,
           builder: (context) => Text(widget.label),
           child: SizedBox.square(
-            dimension: 44,
+            dimension: widget.hitTargetSize,
             child: Center(
               child: ShadIconButton.raw(
                 variant: widget.variant,
-                width: 36,
-                height: 36,
+                width: widget.buttonSize,
+                height: widget.buttonSize,
                 padding: EdgeInsets.zero,
                 focusNode: _focusNode,
                 autofocus: widget.autofocus,

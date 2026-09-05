@@ -6,6 +6,7 @@ import 'package:hyve/domain/models/models.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/view_models/project_agent_activity.dart';
 import 'package:hyve/ui/features/projects/view_models/project_members_view_model.dart';
+import 'package:hyve/ui/features/projects/views/project_agent_picker_dialog.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/utils/theme.dart';
 
@@ -63,6 +64,19 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
     }
   }
 
+  Future<void> _showAgentPicker() async {
+    final agentId = await showProjectDialog<String>(
+      context: context,
+      builder:
+          (_) => ProjectAgentPickerDialog(
+            agents: widget.viewModel.availableAgents,
+          ),
+    );
+    if (agentId != null && mounted) {
+      await widget.viewModel.add(agentId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ProjectDialogSurface(
@@ -98,13 +112,6 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                           )),
                 )
                 .toList(growable: false);
-            final available = widget.viewModel.availableAgents
-                .where(
-                  (agent) =>
-                      normalized.isEmpty ||
-                      agent.name.toLowerCase().contains(normalized),
-                )
-                .toList(growable: false);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -127,95 +134,45 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                           : null,
                 ),
                 const SizedBox(height: 20),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final compact = constraints.maxWidth < projectCompactWidth;
-                    final search = ProjectTextInput(
-                      key: const ValueKey<String>('project-member-search'),
-                      controller: _search,
-                      label: copy.searchAgents,
-                      leading: const Icon(LucideIcons.search, size: 16),
-                      trailing:
-                          _query.isEmpty
-                              ? null
-                              : ProjectIconAction(
-                                label: copy.close,
-                                onPressed: () {
-                                  _search.clear();
-                                  setState(() => _query = '');
-                                },
-                                icon: LucideIcons.x,
-                              ),
-                      onChanged: (value) => setState(() => _query = value),
-                    );
-                    final add = Column(
-                      key: const ValueKey<String>('project-member-add'),
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        if (shadTheme != null) ...<Widget>[
-                          Text(
-                            copy.addAgent,
-                            key: const ValueKey<String>(
-                              'project-member-add-label',
-                            ),
-                            style: shadTheme.textTheme.small,
-                          ),
-                          const SizedBox(height: 6),
-                        ],
-                        SizedBox(
-                          key: const ValueKey<String>(
-                            'project-member-add-select',
-                          ),
-                          height:
-                              shadTheme == null
-                                  ? null
-                                  : HyveDesktopThemeSpec.botFormFieldHeight,
-                          child: ProjectSelect<String>(
-                            key: ValueKey<String>(
-                              'project-member-add-options-${available.map((item) => item.id).join('-')}',
-                            ),
-                            placeholder:
-                                available.isEmpty
-                                    ? copy.noAvailableAgents
-                                    : copy.addAgent,
-                            options: <ProjectSelectOption<String>>[
-                              for (final agent in available)
-                                ProjectSelectOption<String>(
-                                  value: agent.id,
-                                  label: agent.name,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: ProjectTextInput(
+                        key: const ValueKey<String>('project-member-search'),
+                        controller: _search,
+                        label: copy.searchAgents,
+                        showLabel: false,
+                        leading: const Icon(LucideIcons.search, size: 16),
+                        trailing:
+                            _query.isEmpty
+                                ? null
+                                : ProjectIconAction(
+                                  label: copy.close,
+                                  onPressed: () {
+                                    _search.clear();
+                                    setState(() => _query = '');
+                                  },
+                                  icon: LucideIcons.x,
                                 ),
-                            ],
-                            enabled:
-                                !widget.viewModel.mutating &&
-                                available.isNotEmpty,
-                            onChanged: (agentId) {
-                              if (agentId != null) {
-                                unawaited(widget.viewModel.add(agentId));
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                    if (compact) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          search,
-                          const SizedBox(height: 12),
-                          add,
-                        ],
-                      );
-                    }
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Expanded(child: search),
-                        const SizedBox(width: 12),
-                        SizedBox(width: 240, child: add),
-                      ],
-                    );
-                  },
+                        onChanged: (value) => setState(() => _query = value),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ProjectIconAction(
+                      key: const ValueKey<String>('project-member-add'),
+                      icon: LucideIcons.plus,
+                      label: copy.addAgent,
+                      variant: ShadButtonVariant.outline,
+                      hitTargetSize: HyveDesktopThemeSpec.botFormFieldHeight,
+                      buttonSize: HyveDesktopThemeSpec.botFormFieldHeight,
+                      onPressed:
+                          widget.viewModel.mutating ||
+                                  widget.viewModel.availableAgents.isEmpty
+                              ? null
+                              : () => unawaited(_showAgentPicker()),
+                    ),
+                  ],
                 ),
                 if (widget.viewModel.errorCode.isNotEmpty)
                   Padding(

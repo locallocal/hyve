@@ -40,29 +40,16 @@ class AddBotDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final windowSize = MediaQuery.sizeOf(context);
-    final inset =
-        windowSize.width < 900 || windowSize.height < 760 ? 16.0 : 24.0;
-    final dialogWidth =
-        (windowSize.width - inset * 2).clamp(0.0, 840.0).toDouble();
-    final dialogHeight =
-        (windowSize.height - inset * 2).clamp(0.0, 720.0).toDouble();
-
     return HyveDialog(
-      constraints: BoxConstraints.tightFor(
-        width: dialogWidth,
-        height: dialogHeight,
-      ),
+      size: HyveDialogSize.large,
       padding: EdgeInsets.zero,
       gap: 0,
       scrollable: false,
       useSafeArea: false,
       removeBorderRadiusWhenTiny: false,
       showCloseButton: false,
-      child: SizedBox(
+      child: SizedBox.expand(
         key: const ValueKey<String>('add-bot-dialog-content'),
-        width: dialogWidth,
-        height: dialogHeight,
         child: AddBotPage(
           embedded: true,
           onBotAdded: onBotAdded,

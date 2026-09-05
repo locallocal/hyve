@@ -230,7 +230,7 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                               itemCount: members.length,
                               onReorderItem:
                                   normalized.isEmpty &&
-                                          !widget.viewModel.mutating
+                                          widget.viewModel.canReorder
                                       ? (oldIndex, newIndex) => unawaited(
                                         widget.viewModel.reorder(
                                           oldIndex,
@@ -240,37 +240,41 @@ final class _ProjectMembersSheetState extends State<ProjectMembersSheet> {
                                       : (_, _) {},
                               itemBuilder: (context, index) {
                                 final member = members[index];
+                                final agentId = member.membership.agentId;
                                 final keepReorderVisuals =
                                     widget.viewModel.reordering;
+                                final updatingAccess = widget.viewModel
+                                    .isUpdatingStorageAccess(agentId);
+                                final showDragHandle =
+                                    members.length > 1 && normalized.isEmpty;
                                 return _MemberCard(
                                   key: ValueKey<String>(
-                                    'project-member-${member.membership.agentId}',
+                                    'project-member-$agentId',
                                   ),
                                   member: member,
-                                  processingStatus:
-                                      statusesByAgent[member
-                                          .membership
-                                          .agentId],
+                                  processingStatus: statusesByAgent[agentId],
                                   index: index,
                                   enabled:
-                                      !widget.viewModel.mutating ||
+                                      (!widget.viewModel.mutating &&
+                                          !updatingAccess) ||
                                       keepReorderVisuals,
+                                  updatingAccess: updatingAccess,
+                                  showDragHandle: showDragHandle,
                                   dragEnabled:
-                                      members.length > 1 &&
-                                      normalized.isEmpty &&
-                                      (!widget.viewModel.mutating ||
+                                      showDragHandle &&
+                                      (widget.viewModel.canReorder ||
                                           keepReorderVisuals),
                                   onPauseChanged:
                                       (paused) => unawaited(
                                         widget.viewModel.setPaused(
-                                          member.membership.agentId,
+                                          agentId,
                                           paused: paused,
                                         ),
                                       ),
                                   onAccessChanged:
                                       (access) => unawaited(
                                         widget.viewModel.setStorageAccess(
-                                          member.membership.agentId,
+                                          agentId,
                                           access,
                                         ),
                                       ),
@@ -300,6 +304,8 @@ final class _MemberCard extends StatelessWidget {
     required this.processingStatus,
     required this.index,
     required this.enabled,
+    required this.updatingAccess,
+    required this.showDragHandle,
     required this.dragEnabled,
     required this.onPauseChanged,
     required this.onAccessChanged,
@@ -310,6 +316,8 @@ final class _MemberCard extends StatelessWidget {
   final ProjectAgentStatusSnapshot? processingStatus;
   final int index;
   final bool enabled;
+  final bool updatingAccess;
+  final bool showDragHandle;
   final bool dragEnabled;
   final ValueChanged<bool> onPauseChanged;
   final ValueChanged<ProjectStorageAccess> onAccessChanged;
@@ -336,7 +344,13 @@ final class _MemberCard extends StatelessWidget {
               label: copy.storageAccessName(access),
             ),
         ],
-        enabled: enabled,
+        enabled: enabled || updatingAccess,
+        trailing:
+            updatingAccess
+                ? _MemberAccessProgressIndicator(agentId: membership.agentId)
+                : null,
+        blockInteraction: updatingAccess,
+        statusLabel: updatingAccess ? copy.updatingStorageAccess : null,
         onChanged: (value) {
           if (value != null) onAccessChanged(value);
         },
@@ -357,20 +371,25 @@ final class _MemberCard extends StatelessWidget {
     );
     final identity = Row(
       children: <Widget>[
-        if (dragEnabled) ...<Widget>[
+        if (showDragHandle) ...<Widget>[
           Semantics(
             container: true,
             label: copy.reorderMember(name),
+            enabled: dragEnabled,
             child: ReorderableDragStartListener(
               key: ValueKey<String>('member-reorder-${membership.agentId}'),
               index: index,
+              enabled: dragEnabled,
               child: ExcludeSemantics(
                 child:
                     shadTheme == null
                         ? Tooltip(
                           message: copy.reorderMember(name),
                           child: MouseRegion(
-                            cursor: SystemMouseCursors.grab,
+                            cursor:
+                                dragEnabled
+                                    ? SystemMouseCursors.grab
+                                    : MouseCursor.defer,
                             child: const SizedBox.square(
                               dimension: 36,
                               child: Icon(LucideIcons.gripVertical, size: 18),
@@ -380,7 +399,10 @@ final class _MemberCard extends StatelessWidget {
                         : ShadTooltip(
                           builder: (_) => Text(copy.reorderMember(name)),
                           child: ShadGestureDetector(
-                            cursor: SystemMouseCursors.grab,
+                            cursor:
+                                dragEnabled
+                                    ? SystemMouseCursors.grab
+                                    : MouseCursor.defer,
                             child: SizedBox.square(
                               dimension: 36,
                               child: Icon(
@@ -475,6 +497,27 @@ final class _MemberCard extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+final class _MemberAccessProgressIndicator extends StatelessWidget {
+  const _MemberAccessProgressIndicator({required this.agentId});
+
+  final String agentId;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadTheme = ShadTheme.maybeOf(context);
+    final color =
+        shadTheme?.colorScheme.mutedForeground ??
+        Theme.of(context).colorScheme.primary;
+    return ExcludeSemantics(
+      child: SizedBox.square(
+        key: ValueKey<String>('member-access-progress-$agentId'),
+        dimension: 14,
+        child: CircularProgressIndicator(color: color, strokeWidth: 2),
       ),
     );
   }

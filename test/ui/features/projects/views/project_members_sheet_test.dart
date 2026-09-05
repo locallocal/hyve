@@ -381,6 +381,182 @@ void main() {
     });
   });
 
+  testWidgets(
+    'storage access updates optimistically without flashing the member list',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1000, 760);
+      addTearDown(tester.view.reset);
+      final now = DateTime.utc(2026, 8, 22);
+      final saveStarted = Completer<void>();
+      final finishSave = Completer<void>();
+      addTearDown(() {
+        if (!finishSave.isCompleted) finishSave.complete();
+      });
+      final agents = _AgentRepository(<Agent>[
+        _agent('agent-1', 'Researcher', now),
+        _agent('agent-2', 'Writer', now),
+      ]);
+      final memberships = _MembershipRepository(
+        <ProjectMembership>[
+          _membership('agent-1', now, position: 0),
+          _membership('agent-2', now, position: 1),
+        ],
+        beforeSave: (membership) async {
+          if (membership.agentId != 'agent-1') return;
+          if (!saveStarted.isCompleted) saveStarted.complete();
+          await finishSave.future;
+        },
+      );
+      final cursors = _CursorRepository(now);
+      final viewModel = ProjectMembersViewModel(
+        projectId: 'project-1',
+        agentRepository: agents,
+        membershipRepository: memberships,
+        cursorRepository: cursors,
+        manageMembers: ManageProjectMembers(
+          projectRepository: _ProjectRepository(now),
+          agentRepository: agents,
+          membershipRepository: memberships,
+          cursorRepository: cursors,
+          wakeup: (_, _) async {},
+          cancelRun: (_) => true,
+          clock: () => now,
+        ),
+      );
+      addTearDown(viewModel.dispose);
+
+      await withDesktopPlatform(() async {
+        await tester.pumpWidget(
+          shadHarness(
+            brightness: Brightness.light,
+            locale: const Locale('en'),
+            homeBuilder:
+                (_) => Scaffold(
+                  body: ProjectMembersSheet(
+                    viewModel: viewModel,
+                    embedded: true,
+                    disposeViewModel: false,
+                  ),
+                ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final firstMember = find.byKey(
+          const ValueKey<String>('project-member-agent-1'),
+        );
+        final firstMemberElement = tester.element(firstMember);
+        final firstAccess = find.byKey(
+          const ValueKey<String>('member-access-agent-1'),
+        );
+        final secondAccess = find.byKey(
+          const ValueKey<String>('member-access-agent-2'),
+        );
+
+        await tester.tap(
+          find.descendant(
+            of: firstAccess,
+            matching: find.byType(ShadSelect<ProjectStorageAccess>),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Read & write').last);
+        await saveStarted.future;
+        await tester.pump();
+
+        expect(viewModel.isUpdatingStorageAccess('agent-1'), isTrue);
+        expect(
+          viewModel.members.first.membership.projectStorageAccess,
+          ProjectStorageAccess.readWrite,
+        );
+        expect(
+          memberships.item('agent-1').projectStorageAccess,
+          ProjectStorageAccess.read,
+        );
+        expect(
+          find.descendant(
+            of: firstAccess,
+            matching: find.byKey(
+              const ValueKey<String>('member-access-progress-agent-1'),
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: secondAccess,
+            matching: find.byKey(
+              const ValueKey<String>('member-access-progress-agent-2'),
+            ),
+          ),
+          findsNothing,
+        );
+        expect(
+          tester
+              .widget<ShadSelect<ProjectStorageAccess>>(
+                find.descendant(
+                  of: firstAccess,
+                  matching: find.byType(ShadSelect<ProjectStorageAccess>),
+                ),
+              )
+              .enabled,
+          isTrue,
+        );
+        expect(
+          tester
+              .widget<ShadSelect<ProjectStorageAccess>>(
+                find.descendant(
+                  of: secondAccess,
+                  matching: find.byType(ShadSelect<ProjectStorageAccess>),
+                ),
+              )
+              .enabled,
+          isTrue,
+        );
+        expect(
+          tester
+              .widget<ShadSelect<ProjectStorageAccess>>(
+                find.descendant(
+                  of: firstAccess,
+                  matching: find.byType(ShadSelect<ProjectStorageAccess>),
+                ),
+              )
+              .initialValue,
+          ProjectStorageAccess.readWrite,
+        );
+        expect(tester.element(firstMember), same(firstMemberElement));
+        expect(
+          find.byKey(const ValueKey<String>('member-reorder-agent-1')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey<String>('project-members-progress')),
+          findsNothing,
+        );
+
+        finishSave.complete();
+        await tester.pumpAndSettle();
+
+        expect(viewModel.isUpdatingStorageAccess('agent-1'), isFalse);
+        expect(
+          memberships.item('agent-1').projectStorageAccess,
+          ProjectStorageAccess.readWrite,
+        );
+        expect(
+          find.descendant(
+            of: firstAccess,
+            matching: find.byKey(
+              const ValueKey<String>('member-access-progress-agent-1'),
+            ),
+          ),
+          findsNothing,
+        );
+        expect(tester.takeException(), isNull);
+      });
+    },
+  );
+
   testWidgets('multiple members expose an explicit reorder handle', (
     tester,
   ) async {
@@ -580,12 +756,16 @@ final class _AgentRepository implements AgentRepository {
 }
 
 final class _MembershipRepository implements ProjectMembershipRepository {
-  _MembershipRepository(Iterable<ProjectMembership> items, {this.beforeSaveAll})
-    : _items = <String, ProjectMembership>{
-        for (final item in items) item.agentId: item,
-      };
+  _MembershipRepository(
+    Iterable<ProjectMembership> items, {
+    this.beforeSave,
+    this.beforeSaveAll,
+  }) : _items = <String, ProjectMembership>{
+         for (final item in items) item.agentId: item,
+       };
 
   final Map<String, ProjectMembership> _items;
+  final Future<void> Function(ProjectMembership membership)? beforeSave;
   final Future<void> Function()? beforeSaveAll;
 
   ProjectMembership item(String id) => _items[id]!;
@@ -611,6 +791,7 @@ final class _MembershipRepository implements ProjectMembershipRepository {
 
   @override
   Future<void> save(ProjectMembership membership) async {
+    await beforeSave?.call(membership);
     _items[membership.agentId] = membership;
   }
 

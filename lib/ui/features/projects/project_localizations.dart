@@ -236,6 +236,8 @@ final class ProjectLocalizations {
   String reorderMember(String name) =>
       _text('Drag to reorder $name', '拖动以调整 $name 的顺序');
   String get storageAccess => _text('Artifact access', '产物权限');
+  String get updatingStorageAccess =>
+      _text('Updating artifact access', '正在更新产物权限');
   String storageAccessName(ProjectStorageAccess access) => switch (access) {
     ProjectStorageAccess.none => _text('None', '无'),
     ProjectStorageAccess.read => _text('Read', '只读'),

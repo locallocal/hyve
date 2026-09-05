@@ -411,8 +411,9 @@ void main() {
         ).readAsStringSync();
 
     expect(workspace, isNot(contains('copy.addAgent')));
-    expect(membersDialog, contains("'project-member-add-label'"));
+    expect(membersDialog, contains("'project-member-add'"));
     expect(membersDialog, contains('copy.addAgent'));
+    expect(membersDialog, contains('ProjectAgentPickerDialog('));
   });
 
   test(

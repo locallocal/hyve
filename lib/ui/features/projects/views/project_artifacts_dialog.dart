@@ -488,6 +488,7 @@ final class _ProjectArtifactPreviewDialogState
   bool _loading = true;
   bool _openingExternal = false;
   bool _openFailed = false;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -496,29 +497,42 @@ final class _ProjectArtifactPreviewDialogState
   }
 
   Future<void> _load({String versionId = ''}) async {
+    final generation = ++_loadGeneration;
     setState(() {
       _loading = true;
       _openFailed = false;
     });
-    final versions = await widget.viewModel.artifactVersions(_entry);
-    final read = await widget.viewModel.previewArtifact(
+    final versionsFuture = widget.viewModel.artifactVersions(_entry);
+    final readFuture = widget.viewModel.previewArtifact(
       _entry,
       versionId: versionId,
     );
-    final references = await widget.viewModel.artifactMessageReferences(
+    final versions = await versionsFuture;
+    final read = await readFuture;
+    final resolvedVersionId = read?.version.id ?? versionId;
+    final referencesFuture = widget.viewModel.artifactMessageReferences(
       _entry,
-      versionId: read?.version.id ?? versionId,
+      versionId: resolvedVersionId,
     );
-    final mimeType =
-        read?.version.mimeType.toLowerCase().split(';').first.trim();
-    final filePath =
-        read == null || mimeType?.startsWith('image/') != true
-            ? null
-            : await widget.viewModel.prepareArtifactFile(
+    final previewType =
+        read == null
+            ? ProjectArtifactPreviewType.unsupported
+            : projectArtifactPreviewType(
+              mimeType: read.version.mimeType,
+              fileName: read.artifact.name,
+              kind: read.artifact.kind,
+              hasText: read.text != null,
+            );
+    final filePathFuture =
+        read == null || !previewType.requiresLocalFile
+            ? Future<String?>.value()
+            : widget.viewModel.prepareArtifactFile(
               _entry,
               versionId: read.version.id,
             );
-    if (!mounted) return;
+    final references = await referencesFuture;
+    final filePath = await filePathFuture;
+    if (!mounted || generation != _loadGeneration) return;
     setState(() {
       _versions = versions;
       _references = references;
@@ -593,8 +607,8 @@ final class _ProjectArtifactPreviewDialogState
     final copy = ProjectLocalizations.of(context);
     final window = MediaQuery.sizeOf(context);
     final content = SizedBox(
-      width: (window.width - 64).clamp(280.0, 720.0).toDouble(),
-      height: (window.height - 160).clamp(320.0, 520.0).toDouble(),
+      width: (window.width - 80).clamp(160.0, 792.0).toDouble(),
+      height: (window.height - 192).clamp(160.0, 560.0).toDouble(),
       child:
           _loading
               ? const Center(child: CircularProgressIndicator())
@@ -675,7 +689,9 @@ final class _ProjectArtifactPreviewDialogState
                         ),
                     ],
                   ),
-                  const Divider(),
+                  hasShadProjectTheme(context)
+                      ? const ShadSeparator.horizontal()
+                      : const Divider(),
                   if (_references.isNotEmpty) ...[
                     Text(
                       copy.referencingMessages(_references.length),
@@ -711,7 +727,9 @@ final class _ProjectArtifactPreviewDialogState
                         },
                       ),
                     ),
-                    const Divider(),
+                    hasShadProjectTheme(context)
+                        ? const ShadSeparator.horizontal()
+                        : const Divider(),
                   ],
                   Expanded(
                     child: ProjectArtifactPreview(
@@ -742,12 +760,20 @@ final class _ProjectArtifactPreviewDialogState
     ];
     if (hasShadProjectTheme(context)) {
       return HyveDialog(
+        key: const ValueKey<String>('project-artifact-preview-dialog'),
+        size: HyveDialogSize.large,
+        scrollable: false,
+        titlePinned: true,
+        actionsPinned: true,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         title: Text(_entry.artifact.relativePath),
         actions: actions,
         child: content,
       );
     }
     return AlertDialog(
+      key: const ValueKey<String>('project-artifact-preview-dialog'),
+      insetPadding: const EdgeInsets.all(16),
       title: Text(_entry.artifact.relativePath),
       content: content,
       actions: actions,

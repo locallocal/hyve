@@ -397,10 +397,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const ValueKey<String>('artifact-text-preview')),
+        find.byKey(const ValueKey<String>('artifact-markdown-preview')),
         findsOneWidget,
       );
       expect(find.text('Preview: summary.md'), findsOneWidget);
+      final previewDialog = tester.widget<ShadDialog>(
+        find.byType(ShadDialog).last,
+      );
+      expect(previewDialog.constraints?.maxWidth, greaterThan(720));
+      expect(previewDialog.constraints?.maxHeight, greaterThan(520));
 
       await tester.tap(
         find.byKey(const ValueKey<String>('artifact-open-external')),

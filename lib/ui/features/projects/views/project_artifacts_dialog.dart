@@ -601,182 +601,217 @@ final class _ProjectArtifactPreviewDialogState
     controller.dispose();
   }
 
+  Widget _previewActions(
+    ProjectLocalizations copy,
+    ProjectArtifactReadResult? read,
+  ) => Wrap(
+    key: const ValueKey<String>('artifact-preview-actions'),
+    alignment: WrapAlignment.end,
+    spacing: 8,
+    runSpacing: 8,
+    children: <Widget>[
+      ProjectActionButton(
+        key: const ValueKey<String>('artifact-open-external'),
+        onPressed: _openingExternal ? null : () => unawaited(_openExternally()),
+        leading:
+            _openingExternal
+                ? const SizedBox.square(
+                  dimension: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                : const Icon(LucideIcons.externalLink, size: 16),
+        label: copy.openInSystemApp,
+        variant: ProjectActionVariant.outline,
+      ),
+      if (read?.text != null &&
+          read?.version.id == _entry.artifact.currentVersionId)
+        ProjectActionButton(
+          key: const ValueKey<String>('artifact-write-version'),
+          onPressed: () => unawaited(_writeVersion()),
+          leading: const Icon(LucideIcons.pencil, size: 16),
+          label: copy.writeNewVersion,
+          variant: ProjectActionVariant.outline,
+        ),
+    ],
+  );
+
+  Widget _versionBadges(ProjectArtifactReadResult? read) => Wrap(
+    key: const ValueKey<String>('artifact-version-badges'),
+    spacing: 8,
+    runSpacing: 4,
+    children: [
+      for (final version in _versions)
+        ProjectBadge(
+          label: 'v${version.versionNumber} · ${version.byteLength} B',
+          variant:
+              read?.version.id == version.id
+                  ? ProjectBadgeVariant.primary
+                  : ProjectBadgeVariant.outline,
+          onPressed: () => unawaited(_load(versionId: version.id)),
+        ),
+    ],
+  );
+
+  Widget _previewHeader(
+    BuildContext context,
+    ProjectLocalizations copy,
+    ProjectArtifactReadResult? read,
+  ) {
+    final metadata = Column(
+      key: const ValueKey<String>('artifact-preview-metadata'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${copy.source(copy.actorSource(_entry.artifact))}'
+          '${_entry.artifact.sourceRunId.isEmpty ? '' : ' · run ${_entry.artifact.sourceRunId}'}',
+        ),
+        if (read != null)
+          Text(
+            copy.versionProvenance(
+              read.version.versionNumber,
+              read.version.createdById,
+              read.version.sourceRunId,
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+      ],
+    );
+    final actions = _previewActions(copy, read);
+    final badges = _versionBadges(read);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 640) {
+          return Column(
+            key: const ValueKey<String>('artifact-preview-header'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              metadata,
+              if (_versions.isNotEmpty) ...[const SizedBox(height: 4), badges],
+              const SizedBox(height: 8),
+              Align(alignment: AlignmentDirectional.centerEnd, child: actions),
+            ],
+          );
+        }
+        return Column(
+          key: const ValueKey<String>('artifact-preview-header'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: metadata),
+                const SizedBox(width: 16),
+                actions,
+              ],
+            ),
+            if (_versions.isNotEmpty) ...[const SizedBox(height: 4), badges],
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final read = _read;
     final copy = ProjectLocalizations.of(context);
-    final window = MediaQuery.sizeOf(context);
-    final content = SizedBox(
-      width: (window.width - 80).clamp(160.0, 792.0).toDouble(),
-      height: (window.height - 192).clamp(160.0, 560.0).toDouble(),
-      child:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+    final usesShad = hasShadProjectTheme(context);
+    final previewBody =
+        _loading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (usesShad) const SizedBox(height: 12),
+                _previewHeader(context, copy, read),
+                usesShad ? const ShadSeparator.horizontal() : const Divider(),
+                if (_references.isNotEmpty) ...[
                   Text(
-                    '${copy.source(copy.actorSource(_entry.artifact))}'
-                    '${_entry.artifact.sourceRunId.isEmpty ? '' : ' · run ${_entry.artifact.sourceRunId}'}',
+                    copy.referencingMessages(_references.length),
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  if (read != null)
-                    Text(
-                      copy.versionProvenance(
-                        read.version.versionNumber,
-                        read.version.createdById,
-                        read.version.sourceRunId,
+                  SizedBox(
+                    height: 96,
+                    child: ListView.builder(
+                      key: const ValueKey<String>(
+                        'artifact-message-references',
                       ),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: <Widget>[
-                        ProjectActionButton(
-                          key: const ValueKey<String>('artifact-open-external'),
-                          onPressed:
-                              _openingExternal
-                                  ? null
-                                  : () => unawaited(_openExternally()),
-                          leading:
-                              _openingExternal
-                                  ? const SizedBox.square(
-                                    dimension: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                  : const Icon(
-                                    LucideIcons.externalLink,
-                                    size: 16,
-                                  ),
-                          label: copy.openInSystemApp,
-                          variant: ProjectActionVariant.outline,
-                        ),
-                        if (read?.text != null &&
-                            read?.version.id ==
-                                _entry.artifact.currentVersionId)
-                          ProjectActionButton(
-                            key: const ValueKey<String>(
-                              'artifact-write-version',
+                      itemCount: _references.length,
+                      itemBuilder: (context, index) {
+                        final reference = _references[index];
+                        final actor =
+                            reference.actorName.isEmpty
+                                ? reference.actorId
+                                : reference.actorName;
+                        return Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            dense: true,
+                            title: Text(
+                              '#${reference.messageSequence} · $actor',
                             ),
-                            onPressed: () => unawaited(_writeVersion()),
-                            leading: const Icon(LucideIcons.pencil, size: 16),
-                            label: copy.writeNewVersion,
-                            variant: ProjectActionVariant.outline,
+                            subtitle: Text(
+                              reference.content,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                      ],
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final version in _versions)
-                        ProjectBadge(
-                          label:
-                              'v${version.versionNumber} · '
-                              '${version.byteLength} B',
-                          variant:
-                              read?.version.id == version.id
-                                  ? ProjectBadgeVariant.primary
-                                  : ProjectBadgeVariant.outline,
-                          onPressed:
-                              () => unawaited(_load(versionId: version.id)),
-                        ),
-                    ],
-                  ),
-                  hasShadProjectTheme(context)
-                      ? const ShadSeparator.horizontal()
-                      : const Divider(),
-                  if (_references.isNotEmpty) ...[
-                    Text(
-                      copy.referencingMessages(_references.length),
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    SizedBox(
-                      height: 96,
-                      child: ListView.builder(
-                        key: const ValueKey<String>(
-                          'artifact-message-references',
-                        ),
-                        itemCount: _references.length,
-                        itemBuilder: (context, index) {
-                          final reference = _references[index];
-                          final actor =
-                              reference.actorName.isEmpty
-                                  ? reference.actorId
-                                  : reference.actorName;
-                          return Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              dense: true,
-                              title: Text(
-                                '#${reference.messageSequence} · $actor',
-                              ),
-                              subtitle: Text(
-                                reference.content,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    hasShadProjectTheme(context)
-                        ? const ShadSeparator.horizontal()
-                        : const Divider(),
-                  ],
-                  Expanded(
-                    child: ProjectArtifactPreview(
-                      read: read,
-                      filePath: _filePath,
-                    ),
-                  ),
-                  if (read != null && !read.endOfFile && read.text != null)
-                    Text(copy.previewTruncated),
-                  if (_openFailed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        copy.unableToOpenArtifact,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
+                  usesShad ? const ShadSeparator.horizontal() : const Divider(),
                 ],
-              ),
-    );
-    final actions = <Widget>[
-      ProjectActionButton(
-        onPressed: () => Navigator.pop(context),
-        label: copy.close,
-      ),
-    ];
-    if (hasShadProjectTheme(context)) {
+                Expanded(
+                  child: ProjectArtifactPreview(
+                    read: read,
+                    filePath: _filePath,
+                  ),
+                ),
+                if (read != null && !read.endOfFile && read.text != null)
+                  Text(copy.previewTruncated),
+                if (_openFailed)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      copy.unableToOpenArtifact,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+    if (usesShad) {
       return HyveDialog(
         key: const ValueKey<String>('project-artifact-preview-dialog'),
+        closeButtonKey: const ValueKey<String>(
+          'project-artifact-preview-close',
+        ),
         size: HyveDialogSize.large,
         scrollable: false,
         titlePinned: true,
-        actionsPinned: true,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         title: Text(_entry.artifact.relativePath),
-        actions: actions,
-        child: content,
+        child: SizedBox.expand(
+          key: const ValueKey<String>('artifact-preview-layout'),
+          child: previewBody,
+        ),
       );
     }
+    final window = MediaQuery.sizeOf(context);
     return AlertDialog(
       key: const ValueKey<String>('project-artifact-preview-dialog'),
       insetPadding: const EdgeInsets.all(16),
       title: Text(_entry.artifact.relativePath),
-      content: content,
-      actions: actions,
+      content: SizedBox(
+        key: const ValueKey<String>('artifact-preview-layout'),
+        width: (window.width - 80).clamp(160.0, 792.0).toDouble(),
+        height: (window.height - 192).clamp(160.0, 560.0).toDouble(),
+        child: previewBody,
+      ),
     );
   }
 }

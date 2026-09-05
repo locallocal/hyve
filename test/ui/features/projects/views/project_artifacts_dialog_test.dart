@@ -406,6 +406,33 @@ void main() {
       );
       expect(previewDialog.constraints?.maxWidth, greaterThan(720));
       expect(previewDialog.constraints?.maxHeight, greaterThan(520));
+      final metadataRect = tester.getRect(
+        find.byKey(const ValueKey<String>('artifact-preview-metadata')),
+      );
+      final actionsRect = tester.getRect(
+        find.byKey(const ValueKey<String>('artifact-preview-actions')),
+      );
+      final badgesRect = tester.getRect(
+        find.byKey(const ValueKey<String>('artifact-version-badges')),
+      );
+      final closeRect = tester.getRect(
+        find.byKey(const ValueKey<String>('project-artifact-preview-close')),
+      );
+      final previewLayoutSize = tester.getSize(
+        find.byKey(const ValueKey<String>('artifact-preview-layout')),
+      );
+      expect(
+        (metadataRect.center.dy - actionsRect.center.dy).abs(),
+        lessThanOrEqualTo(1),
+      );
+      expect(actionsRect.top, greaterThanOrEqualTo(closeRect.bottom + 4));
+      expect(actionsRect.left, greaterThan(metadataRect.left));
+      expect(badgesRect.top - metadataRect.bottom, inInclusiveRange(0, 8));
+      expect(
+        previewLayoutSize.height,
+        greaterThan(previewDialog.constraints!.maxHeight - 100),
+      );
+      expect(find.widgetWithText(ProjectActionButton, 'Close'), findsNothing);
 
       await tester.tap(
         find.byKey(const ValueKey<String>('artifact-open-external')),

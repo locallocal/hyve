@@ -245,32 +245,9 @@ final class ProjectArtifactPreview extends StatelessWidget {
       ),
     };
 
-    return _ArtifactPreviewSurface(
-      dark:
-          previewType == ProjectArtifactPreviewType.image ||
-          previewType == ProjectArtifactPreviewType.video,
+    return KeyedSubtree(
+      key: const ValueKey<String>('artifact-preview-content'),
       child: preview,
-    );
-  }
-}
-
-final class _ArtifactPreviewSurface extends StatelessWidget {
-  const _ArtifactPreviewSurface({required this.child, this.dark = false});
-
-  final Widget child;
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = HyveDesktopTokens.of(context);
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: dark ? Colors.black : tokens.raisedSurface,
-        border: Border.all(color: tokens.separator),
-        borderRadius: HyveDesktopThemeSpec.containerRadius,
-      ),
-      child: child,
     );
   }
 }
@@ -433,10 +410,13 @@ final class _ArtifactImagePreview extends StatelessWidget {
               errorBuilder:
                   (_, _, _) => _unreadablePreview(context, dark: true),
             );
-    return InteractiveViewer(
-      minScale: 0.5,
-      maxScale: 5,
-      child: Center(child: image),
+    return ColoredBox(
+      color: Colors.black,
+      child: InteractiveViewer(
+        minScale: 0.5,
+        maxScale: 5,
+        child: Center(child: image),
+      ),
     );
   }
 }
@@ -450,20 +430,13 @@ final class _ArtifactAudioPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final path = filePath;
     if (path == null) return _unreadablePreview(context);
-    final tokens = HyveDesktopTokens.of(context);
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
-          child: Container(
+          child: SizedBox(
             key: const ValueKey<String>('artifact-audio-preview'),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: tokens.controlFill,
-              border: Border.all(color: tokens.separator),
-              borderRadius: BorderRadius.circular(10),
-            ),
             child: AudioPlayerWidget(
               key: ValueKey<String>('artifact-audio-player-$path'),
               audioFilePath: path,

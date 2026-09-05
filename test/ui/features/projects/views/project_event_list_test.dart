@@ -12,7 +12,7 @@ import 'package:hyve/ui/features/projects/views/project_event_list.dart';
 import '../../../../support/widget_test_support.dart';
 
 void main() {
-  testWidgets('reveals the time and copy action when hovering a message', (
+  testWidgets('reveals the ID, time, and copy action when hovering a message', (
     tester,
   ) async {
     final clipboardWrites = <MethodCall>[];
@@ -66,6 +66,9 @@ void main() {
       final timestampFinder = find.byKey(
         const ValueKey<String>('project-message-time-copyable-message'),
       );
+      final messageIdFinder = find.byKey(
+        const ValueKey<String>('project-message-id-copyable-message'),
+      );
       final metadataOpacityFinder = find.byKey(
         const ValueKey<String>(
           'project-message-metadata-opacity-copyable-message',
@@ -93,8 +96,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.widget<AnimatedOpacity>(metadataOpacityFinder).opacity, 1);
+      expect(messageIdFinder, findsOneWidget);
+      expect(find.text('消息 ID：copyable-message'), findsOneWidget);
+      expect(
+        find.descendant(of: messageIdFinder, matching: find.byType(ShadBadge)),
+        findsNothing,
+      );
       expect(copyAction, findsOneWidget);
       expect(find.byIcon(LucideIcons.copy), findsOneWidget);
+      expect(
+        tester.getTopLeft(messageIdFinder).dx,
+        lessThan(tester.getTopLeft(timestampFinder).dx),
+      );
       expect(
         tester.getSemantics(copyAction),
         matchesSemantics(
@@ -122,6 +135,69 @@ void main() {
         'text': '需要复制的项目消息',
       });
       expect(find.text('消息已复制到剪贴板'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('aligns the borderless ID with the in-message reply sequence', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 9, 5, 10, 30);
+    final event = _message(
+      id: 'aligned-message',
+      turnId: 'aligned-turn',
+      sequence: 2,
+      messageSequence: 2,
+      actorType: ProjectEventActorType.agent,
+      content: '带有引用序号的回复',
+      now: now,
+      replyToEventId: 'source-message',
+      replyToMessageSequence: 1,
+    );
+
+    await withDesktopPlatform(() async {
+      await tester.pumpWidget(
+        shadHarness(
+          brightness: Brightness.light,
+          locale: const Locale('zh', 'CN'),
+          homeBuilder:
+              (_) => Scaffold(
+                body: ProjectEventList(
+                  events: <ProjectEvent>[event],
+                  turns: const <String, ProjectTurn>{},
+                  deliveries: const <String, AgentDelivery>{},
+                  runs: const <String, AgentRun>{},
+                  agentNames: const <String, String>{},
+                ),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final bubbleFinder = find.byKey(
+        const ValueKey<String>('project-message-bubble-aligned-message'),
+      );
+      final messageIdFinder = find.byKey(
+        const ValueKey<String>('project-message-id-aligned-message'),
+      );
+      final replySequenceFinder = find.byKey(
+        const ValueKey<String>('project-reply-link-aligned-message'),
+      );
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(tester.getCenter(bubbleFinder));
+      await tester.pumpAndSettle();
+
+      expect(find.text('消息 ID：aligned-message'), findsOneWidget);
+      expect(
+        find.descendant(of: messageIdFinder, matching: find.byType(ShadBadge)),
+        findsNothing,
+      );
+      expect(
+        tester.getTopLeft(messageIdFinder).dx,
+        closeTo(tester.getTopLeft(replySequenceFinder).dx, 0.01),
+      );
       expect(tester.takeException(), isNull);
     });
   });

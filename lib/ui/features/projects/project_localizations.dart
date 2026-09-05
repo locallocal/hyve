@@ -105,6 +105,7 @@ final class ProjectLocalizations {
       _text('Artifact versions: ${ids.join(', ')}', '产物版本：${ids.join('，')}');
   String get auditDetails => _text('Audit details', '审计详情');
   String eventId(String id) => _text('Event: $id', '事件：$id');
+  String messageId(String id) => _text('Message ID: $id', '消息 ID：$id');
   String turnId(String id, String status) =>
       _text('Turn: $id · $status', '轮次：$id · $status');
   String sourceRun(String id) => _text('Source run: $id', '来源运行：$id');

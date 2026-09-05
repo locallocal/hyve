@@ -11,6 +11,8 @@ import 'package:hyve/ui/core/widgets/profile_avatar.dart';
 import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
+const _messageBubbleHorizontalPadding = 14.0;
+
 final class ProjectEventList extends StatefulWidget {
   const ProjectEventList({
     super.key,
@@ -430,6 +432,7 @@ final class _ProjectEventListState extends State<ProjectEventList> {
                 content: event.content,
                 createdAt: event.createdAt,
                 pending: event.terminalState == ProjectEventTerminalState.draft,
+                alignEnd: fromUser,
               ),
               child: messageBubble,
             ),
@@ -601,12 +604,14 @@ final class _ProjectMessageMetadata extends StatelessWidget {
     required this.content,
     required this.createdAt,
     required this.pending,
+    required this.alignEnd,
   });
 
   final String eventId;
   final String content;
   final DateTime createdAt;
   final bool pending;
+  final bool alignEnd;
 
   Future<void> _copyMessage(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: content));
@@ -616,49 +621,95 @@ final class _ProjectMessageMetadata extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final projectCopy = ProjectLocalizations.of(context);
+    final shadTheme = ShadTheme.maybeOf(context);
+    final materialTheme = Theme.of(context);
+    final metadataStyle =
+        shadTheme?.textTheme.muted ??
+        materialTheme.textTheme.labelSmall?.copyWith(
+          color: materialTheme.colorScheme.onSurfaceVariant,
+        );
+    final metadataColor =
+        metadataStyle?.color ?? materialTheme.colorScheme.onSurfaceVariant;
+    final messageId = Flexible(
+      fit: FlexFit.loose,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 280),
+        child: Row(
+          key: ValueKey<String>('project-message-id-$eventId'),
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(LucideIcons.hash, size: 13, color: metadataColor),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                projectCopy.messageId(eventId),
+                overflow: TextOverflow.ellipsis,
+                style: metadataStyle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final contentPadding = EdgeInsetsDirectional.only(
+      start: alignEnd ? 0 : _messageBubbleHorizontalPadding,
+      end: alignEnd ? _messageBubbleHorizontalPadding : 0,
+    );
     if (pending) {
-      return SizedBox(
-        height: 44,
-        child: Align(
-          alignment: Alignment.centerRight,
-          child: ProjectBadge(
-            key: ValueKey<String>('project-message-pending-$eventId'),
-            icon: LucideIcons.clock3,
-            label: ProjectLocalizations.of(context).sending,
-            variant: ProjectBadgeVariant.secondary,
+      return Padding(
+        padding: contentPadding,
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              messageId,
+              const SizedBox(width: 6),
+              ProjectBadge(
+                key: ValueKey<String>('project-message-pending-$eventId'),
+                icon: LucideIcons.clock3,
+                label: projectCopy.sending,
+                variant: ProjectBadgeVariant.secondary,
+              ),
+            ],
           ),
         ),
       );
     }
-    final shadTheme = ShadTheme.maybeOf(context);
     final localeName = Localizations.localeOf(context).toString();
     final formattedTimestamp = intl.DateFormat.yMd(
       localeName,
     ).add_Hms().format(createdAt.toLocal());
     final copyLabel = MaterialLocalizations.of(context).copyButtonLabel;
-    final timestampStyle =
-        shadTheme?.textTheme.muted ??
-        Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        );
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          formattedTimestamp,
-          key: ValueKey<String>('project-message-time-$eventId'),
-          style: timestampStyle,
+    return Padding(
+      padding: contentPadding,
+      child: SizedBox(
+        height: 44,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            messageId,
+            const SizedBox(width: 6),
+            Text(
+              formattedTimestamp,
+              key: ValueKey<String>('project-message-time-$eventId'),
+              style: metadataStyle,
+            ),
+            const SizedBox(width: 4),
+            ProjectIconAction(
+              key: ValueKey<String>('project-message-copy-$eventId'),
+              icon: LucideIcons.copy,
+              label: copyLabel,
+              onPressed:
+                  content.isEmpty
+                      ? null
+                      : () => unawaited(_copyMessage(context)),
+            ),
+          ],
         ),
-        const SizedBox(width: 4),
-        ProjectIconAction(
-          key: ValueKey<String>('project-message-copy-$eventId'),
-          icon: LucideIcons.copy,
-          label: copyLabel,
-          onPressed:
-              content.isEmpty ? null : () => unawaited(_copyMessage(context)),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -793,7 +844,10 @@ final class _ProjectMessageBubble extends StatelessWidget {
       return ConstrainedBox(
         constraints: constraints,
         child: ShadCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _messageBubbleHorizontalPadding,
+            vertical: 10,
+          ),
           backgroundColor: shadTheme.colorScheme.muted,
           radius: shadTheme.radius,
           border: ShadBorder.none,
@@ -810,7 +864,10 @@ final class _ProjectMessageBubble extends StatelessWidget {
     }
     return Container(
       constraints: constraints,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: _messageBubbleHorizontalPadding,
+        vertical: 10,
+      ),
       decoration: BoxDecoration(
         color: materialScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

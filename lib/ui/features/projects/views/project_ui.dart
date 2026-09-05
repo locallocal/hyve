@@ -837,12 +837,18 @@ final class ProjectSelect<T> extends StatelessWidget {
     required this.onChanged,
     this.initialValue,
     this.enabled = true,
+    this.trailing,
+    this.blockInteraction = false,
+    this.statusLabel,
   });
 
   final List<ProjectSelectOption<T>> options;
   final String placeholder;
   final T? initialValue;
   final bool enabled;
+  final Widget? trailing;
+  final bool blockInteraction;
+  final String? statusLabel;
   final ValueChanged<T?>? onChanged;
 
   String _labelFor(T value) =>
@@ -850,13 +856,15 @@ final class ProjectSelect<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget select;
     if (hasShadProjectTheme(context)) {
-      return ShadSelect<T>(
+      select = ShadSelect<T>(
         initialValue: initialValue,
         enabled: enabled,
         placeholder: Text(placeholder),
         minWidth: 180,
         maxHeight: 320,
+        trailing: trailing,
         selectedOptionBuilder: (_, value) => Text(_labelFor(value)),
         options: [
           for (final option in options)
@@ -864,20 +872,29 @@ final class ProjectSelect<T> extends StatelessWidget {
         ],
         onChanged: onChanged,
       );
+    } else {
+      select = DropdownButtonFormField<T>(
+        initialValue: initialValue,
+        isExpanded: true,
+        decoration: InputDecoration(labelText: placeholder),
+        hint: Text(placeholder, overflow: TextOverflow.ellipsis),
+        icon: trailing,
+        items: [
+          for (final option in options)
+            DropdownMenuItem<T>(
+              value: option.value,
+              child: Text(option.label, overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: enabled ? onChanged : null,
+      );
     }
-    return DropdownButtonFormField<T>(
-      initialValue: initialValue,
-      isExpanded: true,
-      decoration: InputDecoration(labelText: placeholder),
-      hint: Text(placeholder, overflow: TextOverflow.ellipsis),
-      items: [
-        for (final option in options)
-          DropdownMenuItem<T>(
-            value: option.value,
-            child: Text(option.label, overflow: TextOverflow.ellipsis),
-          ),
-      ],
-      onChanged: enabled ? onChanged : null,
+    return Semantics(
+      container: true,
+      enabled: enabled && !blockInteraction,
+      liveRegion: statusLabel != null,
+      value: statusLabel,
+      child: AbsorbPointer(absorbing: blockInteraction, child: select),
     );
   }
 }

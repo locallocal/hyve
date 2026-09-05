@@ -57,6 +57,8 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
   bool _loading = false;
   bool _mutating = false;
   bool _reordering = false;
+  final Map<String, ProjectStorageAccess> _pendingStorageAccess =
+      <String, ProjectStorageAccess>{};
   String _errorCode = '';
   int _generation = 0;
 
@@ -65,7 +67,11 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
   bool get loading => _loading;
   bool get mutating => _mutating;
   bool get reordering => _reordering;
+  bool get canReorder => !_mutating && _pendingStorageAccess.isEmpty;
   String get errorCode => _errorCode;
+
+  bool isUpdatingStorageAccess(String agentId) =>
+      _pendingStorageAccess.containsKey(agentId);
 
   Future<void> load() async {
     if (isDisposed) return;
@@ -96,7 +102,7 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
           List<ProjectMemberSnapshot>.unmodifiable(<ProjectMemberSnapshot>[
             for (final membership in memberships)
               ProjectMemberSnapshot(
-                membership: membership,
+                membership: _withPendingStorageAccess(membership),
                 agent: agentsById[membership.agentId],
                 activeRunId: cursors[membership.agentId]?.activeRunId ?? '',
               ),
@@ -125,15 +131,51 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
         paused
             ? _manageMembers.pause(projectId, agentId)
             : _manageMembers.resume(projectId, agentId),
+    agentId: agentId,
   );
 
-  Future<void> setStorageAccess(String agentId, ProjectStorageAccess access) =>
-      _mutate(
-        () => _manageMembers.setStorageAccess(projectId, agentId, access),
+  Future<void> setStorageAccess(
+    String agentId,
+    ProjectStorageAccess access,
+  ) async {
+    if (_mutating || isDisposed || isUpdatingStorageAccess(agentId)) return;
+    final index = _members.indexWhere(
+      (member) => member.membership.agentId == agentId,
+    );
+    if (index == -1) return;
+    final previous = _members[index].membership;
+    if (previous.projectStorageAccess == access) return;
+
+    _pendingStorageAccess[agentId] = access;
+    _errorCode = '';
+    _replaceMembership(previous.copyWith(projectStorageAccess: access));
+    notifyListeners();
+    try {
+      final persisted = await _manageMembers.setStorageAccess(
+        projectId,
+        agentId,
+        access,
       );
+      if (isDisposed) return;
+      _pendingStorageAccess.remove(agentId);
+      _replaceMembership(persisted);
+    } on ProjectMemberMutationFailure catch (failure) {
+      if (isDisposed) return;
+      _pendingStorageAccess.remove(agentId);
+      _replaceMembership(previous);
+      _errorCode = failure.code;
+    } on Object {
+      if (isDisposed) return;
+      _pendingStorageAccess.remove(agentId);
+      _replaceMembership(previous);
+      _errorCode = 'project_member_update_failed';
+    } finally {
+      if (!isDisposed) notifyListeners();
+    }
+  }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
-    if (_mutating || isDisposed || oldIndex == newIndex) return;
+    if (!canReorder || isDisposed || oldIndex == newIndex) return;
     if (oldIndex < 0 ||
         oldIndex >= _members.length ||
         newIndex < 0 ||
@@ -162,8 +204,10 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
     }
   }
 
-  Future<void> remove(String agentId) =>
-      _mutate(() => _manageMembers.remove(projectId, agentId));
+  Future<void> remove(String agentId) => _mutate(
+    () => _manageMembers.remove(projectId, agentId),
+    agentId: agentId,
+  );
 
   void clearError() {
     if (_errorCode.isEmpty) return;
@@ -173,9 +217,14 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
 
   Future<void> _mutate(
     Future<Object?> Function() operation, {
+    String? agentId,
     void Function()? onFailure,
   }) async {
-    if (_mutating || isDisposed) return;
+    if (_mutating ||
+        isDisposed ||
+        (agentId != null && isUpdatingStorageAccess(agentId))) {
+      return;
+    }
     _mutating = true;
     _errorCode = '';
     notifyListeners();
@@ -194,6 +243,28 @@ final class ProjectMembersViewModel extends DisposableChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  ProjectMembership _withPendingStorageAccess(ProjectMembership membership) {
+    final pendingAccess = _pendingStorageAccess[membership.agentId];
+    return pendingAccess == null
+        ? membership
+        : membership.copyWith(projectStorageAccess: pendingAccess);
+  }
+
+  void _replaceMembership(ProjectMembership membership) {
+    final index = _members.indexWhere(
+      (member) => member.membership.agentId == membership.agentId,
+    );
+    if (index == -1) return;
+    final previous = _members[index];
+    final updated = _members.toList(growable: false);
+    updated[index] = ProjectMemberSnapshot(
+      membership: membership,
+      agent: previous.agent,
+      activeRunId: previous.activeRunId,
+    );
+    _members = List<ProjectMemberSnapshot>.unmodifiable(updated);
   }
 
   @override

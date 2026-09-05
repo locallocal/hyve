@@ -8,7 +8,7 @@ import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/ui/features/projects/views/project_audit_event_list.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 
-const int _executionHistoryPageSize = 10;
+const int _executionHistoryPageSize = 20;
 
 final class ProjectExecutionPanel extends StatelessWidget {
   const ProjectExecutionPanel({

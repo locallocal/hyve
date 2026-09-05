@@ -144,6 +144,10 @@ void main() {
           totalTokens: 75,
         ),
       ),
+      TokenUsageBucket(
+        start: DateTime(2026, 7, 26),
+        usage: ModelTokenUsage.empty,
+      ),
     ];
 
     await tester.pumpWidget(
@@ -182,6 +186,18 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(
+        const ValueKey<String>('token-usage-bucket-day-2026-07-26-input'),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+        const ValueKey<String>('token-usage-bucket-day-2026-07-26-output'),
+      ),
+      findsNothing,
+    );
+    expect(
       find.byKey(const ValueKey<String>('token-usage-chart-vertical-input')),
       findsOneWidget,
     );
@@ -207,6 +223,17 @@ void main() {
       tester.getTopLeft(inputSection).dy,
       lessThan(tester.getTopLeft(outputSection).dy),
     );
+    final inputSurface = tester.widget<Container>(inputSection);
+    final outputSurface = tester.widget<Container>(outputSection);
+    final inputDecoration = inputSurface.decoration! as BoxDecoration;
+    final outputDecoration = outputSurface.decoration! as BoxDecoration;
+    final colorScheme = ShadTheme.of(tester.element(inputSection)).colorScheme;
+    expect(inputDecoration.color, colorScheme.secondary);
+    expect(outputDecoration.color, colorScheme.secondary);
+    expect((inputDecoration.border! as Border).top.color, colorScheme.border);
+    expect((outputDecoration.border! as Border).top.color, colorScheme.border);
+    expect(inputDecoration.borderRadius, isNotNull);
+    expect(outputDecoration.borderRadius, inputDecoration.borderRadius);
     final tallestDailyBar = find.byKey(
       const ValueKey<String>('token-usage-bar-day-2026-07-25-input'),
     );
@@ -223,8 +250,6 @@ void main() {
     );
     final inputBarWidget = tester.widget<Container>(tallestDailyBar);
     final outputBarWidget = tester.widget<Container>(outputBar);
-    final colorScheme =
-        ShadTheme.of(tester.element(tallestDailyBar)).colorScheme;
     expect(
       (inputBarWidget.decoration! as BoxDecoration).color,
       colorScheme.primary,
@@ -249,7 +274,7 @@ void main() {
     tester,
   ) async {
     final hourlyBuckets = List<TokenUsageBucket>.generate(24, (hour) {
-      final inputTokens = 24 - hour;
+      final inputTokens = hour == 12 ? 0 : 24 - hour;
       final outputTokens = inputTokens * 2;
       return TokenUsageBucket(
         start: DateTime(2026, 7, 24, hour),
@@ -295,6 +320,14 @@ void main() {
       const ValueKey<String>('token-usage-bar-hour-0-input'),
     );
     expect(firstHourlyBar, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-12-input')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('token-usage-bucket-hour-12-output')),
+      findsNothing,
+    );
     expect(
       tester.getSize(firstHourlyBar).height,
       greaterThan(tester.getSize(firstHourlyBar).width),

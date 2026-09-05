@@ -81,6 +81,7 @@ class TokenUsageTimelineSection extends StatelessWidget {
     this.onBucketSelected,
     this.chartOrientation = TokenUsageChartOrientation.horizontal,
     this.chartMetrics = const <TokenUsageMetric>[TokenUsageMetric.total],
+    this.frameMetrics = false,
   }) : assert(chartMetrics.length > 0);
 
   final List<TokenUsageBucket> dailyBuckets;
@@ -91,6 +92,7 @@ class TokenUsageTimelineSection extends StatelessWidget {
   final ValueChanged<TokenUsageBucket>? onBucketSelected;
   final TokenUsageChartOrientation chartOrientation;
   final List<TokenUsageMetric> chartMetrics;
+  final bool frameMetrics;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +150,7 @@ class TokenUsageTimelineSection extends StatelessWidget {
             onBucketSelected: onBucketSelected,
             orientation: chartOrientation,
             maximum: maximum,
+            framed: frameMetrics,
           ),
         ],
       ],
@@ -164,6 +167,7 @@ class _TokenUsageMetricChart extends StatelessWidget {
     required this.onBucketSelected,
     required this.orientation,
     required this.maximum,
+    required this.framed,
   });
 
   final TokenUsageMetric metric;
@@ -173,11 +177,11 @@ class _TokenUsageMetricChart extends StatelessWidget {
   final ValueChanged<TokenUsageBucket>? onBucketSelected;
   final TokenUsageChartOrientation orientation;
   final int maximum;
+  final bool framed;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      key: ValueKey<String>('token-usage-metric-${metric.name}'),
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         if (showTitle) ...<Widget>[
@@ -197,6 +201,14 @@ class _TokenUsageMetricChart extends StatelessWidget {
           orientation: orientation,
         ),
       ],
+    );
+    final key = ValueKey<String>('token-usage-metric-${metric.name}');
+    if (!framed) return KeyedSubtree(key: key, child: content);
+    return Container(
+      key: key,
+      padding: const EdgeInsets.all(14),
+      decoration: HyveDesktopThemeSpec.statusDecoration(context),
+      child: content,
     );
   }
 }

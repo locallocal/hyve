@@ -14,11 +14,14 @@ final class LinuxBubblewrapSkillSandbox implements SkillScriptSandbox {
   LinuxBubblewrapSkillSandbox({
     this.bubblewrapPath = '/usr/bin/bwrap',
     this.prlimitPath = '/usr/bin/prlimit',
+    this.probeTimeout = const Duration(seconds: 3),
     required SkillInstallationVerifier installationVerifier,
-  }) : _installationVerifier = installationVerifier;
+  }) : assert(probeTimeout > Duration.zero),
+       _installationVerifier = installationVerifier;
 
   final String bubblewrapPath;
   final String prlimitPath;
+  final Duration probeTimeout;
   final SkillInstallationVerifier _installationVerifier;
   SkillSandboxStatus? _cachedStatus;
 
@@ -55,15 +58,15 @@ final class LinuxBubblewrapSkillSandbox implements SkillScriptSandbox {
         environment: const {},
         includeParentEnvironment: false,
       );
+      process.stdout.drain<void>().ignore();
+      process.stderr.drain<void>().ignore();
       final exitCode = await process.exitCode.timeout(
-        const Duration(seconds: 3),
+        probeTimeout,
         onTimeout: () {
           process.kill(ProcessSignal.sigkill);
           return -1;
         },
       );
-      await process.stdout.drain<void>();
-      await process.stderr.drain<void>();
       return _cachedStatus =
           exitCode == 0
               ? const SkillSandboxStatus(
@@ -79,8 +82,12 @@ final class LinuxBubblewrapSkillSandbox implements SkillScriptSandbox {
         reason: 'sandbox_probe_failed',
       );
     } finally {
-      if (probeDirectory != null && await probeDirectory.exists()) {
-        await probeDirectory.delete(recursive: true);
+      try {
+        if (probeDirectory != null && await probeDirectory.exists()) {
+          await probeDirectory.delete(recursive: true);
+        }
+      } on FileSystemException {
+        // A timed-out helper may temporarily retain the probe directory.
       }
     }
   }

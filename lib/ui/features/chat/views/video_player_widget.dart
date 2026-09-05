@@ -8,15 +8,20 @@ import 'package:video_player/video_player.dart';
 /// Renders a local generated video with platform playback controls.
 class VideoPlayerWidget extends StatefulWidget {
   final String videoFilePath;
+  final bool expand;
 
-  const VideoPlayerWidget({super.key, required this.videoFilePath});
+  const VideoPlayerWidget({
+    super.key,
+    required this.videoFilePath,
+    this.expand = false,
+  });
 
   @override
   State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  late VideoPlayerController _videoPlayerController;
+  VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
   bool _isInitialized = false;
   bool _hasError = false;
@@ -29,15 +34,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   Future<void> _initializePlayer() async {
     try {
-      _videoPlayerController = VideoPlayerController.file(
+      final videoPlayerController = VideoPlayerController.file(
         File(widget.videoFilePath),
       );
+      _videoPlayerController = videoPlayerController;
 
-      await _videoPlayerController.initialize();
+      await videoPlayerController.initialize();
 
       _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController,
-        aspectRatio: _videoPlayerController.value.aspectRatio,
+        videoPlayerController: videoPlayerController,
+        aspectRatio: videoPlayerController.value.aspectRatio,
         autoPlay: false,
         looping: false,
         placeholder: Container(color: Colors.black),
@@ -51,10 +57,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         },
       );
 
+      if (!mounted) return;
       setState(() {
         _isInitialized = true;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _hasError = true;
       });
@@ -64,9 +72,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return Container(
-        height: 50,
-        color: Theme.of(context).colorScheme.secondary,
+      return _sizedPlayer(
+        context,
         child: Center(
           child: Text(
             S.of(context).videoLoadFailed,
@@ -77,29 +84,35 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     }
 
     if (!_isInitialized) {
-      return Container(
-        height: 200,
-        color: Theme.of(context).colorScheme.secondary,
+      return _sizedPlayer(
+        context,
         child: const Center(child: CircularProgressIndicator()),
       );
     }
 
+    return _sizedPlayer(context, child: Chewie(controller: _chewieController!));
+  }
+
+  Widget _sizedPlayer(BuildContext context, {required Widget child}) {
+    final player = ColoredBox(
+      color: Theme.of(context).colorScheme.secondary,
+      child: ClipRRect(borderRadius: BorderRadius.circular(8), child: child),
+    );
+    if (widget.expand) {
+      return SizedBox.expand(child: player);
+    }
     return Container(
       width: double.infinity,
-      height: 200,
-      color: Theme.of(context).colorScheme.secondary,
-      margin: const EdgeInsets.only(top: 8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Chewie(controller: _chewieController!),
-      ),
+      height: _hasError ? 50 : 200,
+      margin: const EdgeInsets.only(top: 8),
+      child: player,
     );
   }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
     _chewieController?.dispose();
+    _videoPlayerController?.dispose();
     super.dispose();
   }
 }

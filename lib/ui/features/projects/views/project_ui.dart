@@ -8,7 +8,6 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/utils/theme.dart';
 
 const double projectContentMaxWidth = 920;
-const double projectInspectorWidth = 392;
 const double projectCompactWidth = 560;
 
 bool hasShadProjectTheme(BuildContext context) =>

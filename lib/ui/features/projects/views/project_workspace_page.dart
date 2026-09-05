@@ -287,118 +287,77 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             },
             child: ListenableBuilder(
               listenable: viewModel,
-              builder:
-                  (context, _) => LayoutBuilder(
-                    builder: (context, constraints) {
-                      final copy = ProjectLocalizations.of(context);
-                      final project = viewModel.project;
-                      final title =
-                          project?.name ??
-                          (widget.projectName.trim().isEmpty
-                              ? copy.workspace
-                              : widget.projectName.trim());
-                      final shadTheme = ShadTheme.maybeOf(context);
-                      final inspectorBreakpoint =
-                          shadTheme?.breakpoints.xl.value ?? 1180;
-                      final persistentInspector =
-                          constraints.maxWidth >= inspectorBreakpoint;
-                      return Scaffold(
-                        appBar:
-                            widget.embedded
-                                ? null
-                                : AppBar(
-                                  title: Text(title),
-                                  centerTitle: false,
-                                  scrolledUnderElevation: 0,
-                                  actions: <Widget>[
-                                    ProjectIconAction(
-                                      key: const ValueKey<String>(
-                                        'project-members-button',
-                                      ),
-                                      label:
-                                          showingMembers
-                                              ? copy.backToMessages
-                                              : copy.members,
-                                      onPressed:
-                                          _workspaceController.toggleMembers,
-                                      icon:
-                                          showingMembers
-                                              ? LucideIcons.messageSquareText
-                                              : LucideIcons.bot,
-                                      selected: showingMembers,
-                                    ),
-                                    if (!persistentInspector)
-                                      ProjectIconAction(
-                                        key: const ValueKey<String>(
-                                          'project-artifacts-button',
-                                        ),
-                                        label:
-                                            showingArtifacts
-                                                ? copy.backToMessages
-                                                : copy.artifacts,
-                                        onPressed:
-                                            _workspaceController
-                                                .toggleArtifacts,
-                                        icon:
-                                            showingArtifacts
-                                                ? LucideIcons.messageSquareText
-                                                : LucideIcons.folderKanban,
-                                        selected: showingArtifacts,
-                                      ),
-                                    if (!persistentInspector)
-                                      ProjectIconAction(
-                                        key: const ValueKey<String>(
-                                          'project-execution-button',
-                                        ),
-                                        label:
-                                            showingExecution
-                                                ? copy.backToMessages
-                                                : copy.execution,
-                                        onPressed:
-                                            _workspaceController
-                                                .toggleExecution,
-                                        icon:
-                                            showingExecution
-                                                ? LucideIcons.messageSquareText
-                                                : LucideIcons.activity,
-                                        selected: showingExecution,
-                                      ),
-                                    const SizedBox(width: 4),
-                                  ],
+              builder: (context, _) {
+                final copy = ProjectLocalizations.of(context);
+                final project = viewModel.project;
+                final title =
+                    project?.name ??
+                    (widget.projectName.trim().isEmpty
+                        ? copy.workspace
+                        : widget.projectName.trim());
+                return Scaffold(
+                  appBar:
+                      widget.embedded
+                          ? null
+                          : AppBar(
+                            title: Text(title),
+                            centerTitle: false,
+                            scrolledUnderElevation: 0,
+                            actions: <Widget>[
+                              ProjectIconAction(
+                                key: const ValueKey<String>(
+                                  'project-members-button',
                                 ),
-                        body: SafeArea(
-                          top: false,
-                          child:
-                              persistentInspector
-                                  ? Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: _workspacePane(
-                                          viewModel,
-                                          copy,
-                                          pane: pane,
-                                        ),
-                                      ),
-                                      const VerticalDivider(width: 1),
-                                      SizedBox(
-                                        width: projectInspectorWidth,
-                                        child: _PersistentProjectInspector(
-                                          artifacts: ProjectArtifactsPanel(
-                                            viewModel: viewModel,
-                                          ),
-                                          execution: _executionPanel(
-                                            viewModel,
-                                            embedded: true,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                  : _workspacePane(viewModel, copy, pane: pane),
-                        ),
-                      );
-                    },
+                                label:
+                                    showingMembers
+                                        ? copy.backToMessages
+                                        : copy.members,
+                                onPressed: _workspaceController.toggleMembers,
+                                icon:
+                                    showingMembers
+                                        ? LucideIcons.messageSquareText
+                                        : LucideIcons.bot,
+                                selected: showingMembers,
+                              ),
+                              ProjectIconAction(
+                                key: const ValueKey<String>(
+                                  'project-artifacts-button',
+                                ),
+                                label:
+                                    showingArtifacts
+                                        ? copy.backToMessages
+                                        : copy.artifacts,
+                                onPressed: _workspaceController.toggleArtifacts,
+                                icon:
+                                    showingArtifacts
+                                        ? LucideIcons.messageSquareText
+                                        : LucideIcons.folderKanban,
+                                selected: showingArtifacts,
+                              ),
+                              ProjectIconAction(
+                                key: const ValueKey<String>(
+                                  'project-execution-button',
+                                ),
+                                label:
+                                    showingExecution
+                                        ? copy.backToMessages
+                                        : copy.execution,
+                                onPressed: _workspaceController.toggleExecution,
+                                icon:
+                                    showingExecution
+                                        ? LucideIcons.messageSquareText
+                                        : LucideIcons.activity,
+                                selected: showingExecution,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                          ),
+                  body: SafeArea(
+                    top: false,
+                    child: _workspacePane(viewModel, copy, pane: pane),
                   ),
+                );
+              },
             ),
           );
         },
@@ -522,83 +481,6 @@ final class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   (index) => setState(() => _attachments.removeAt(index)),
               onToggleAttachmentPromotion: _toggleAttachmentPromotion,
               onSend: (draft) => unawaited(_submit(draft)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-final class _PersistentProjectInspector extends StatefulWidget {
-  const _PersistentProjectInspector({
-    required this.artifacts,
-    required this.execution,
-  });
-
-  final Widget artifacts;
-  final Widget execution;
-
-  @override
-  State<_PersistentProjectInspector> createState() =>
-      _PersistentProjectInspectorState();
-}
-
-final class _PersistentProjectInspectorState
-    extends State<_PersistentProjectInspector> {
-  int _selected = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = ProjectLocalizations.of(context);
-    if (hasShadProjectTheme(context)) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: ShadTabs<int>(
-          value: _selected,
-          onChanged: (value) => setState(() => _selected = value),
-          gap: 12,
-          contentConstraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height,
-          ),
-          tabs: <ShadTab<int>>[
-            ShadTab<int>(
-              value: 0,
-              leading: const Icon(LucideIcons.folderKanban, size: 16),
-              content: widget.artifacts,
-              expandContent: true,
-              child: Text(copy.artifacts),
-            ),
-            ShadTab<int>(
-              value: 1,
-              leading: const Icon(LucideIcons.activity, size: 16),
-              content: widget.execution,
-              expandContent: true,
-              child: Text(copy.execution),
-            ),
-          ],
-        ),
-      );
-    }
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: <Widget>[
-          TabBar(
-            tabs: <Tab>[
-              Tab(
-                icon: const Icon(Icons.folder_outlined),
-                text: copy.artifacts,
-              ),
-              Tab(
-                icon: const Icon(Icons.monitor_heart_outlined),
-                text: copy.execution,
-              ),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
-              children: <Widget>[widget.artifacts, widget.execution],
             ),
           ),
         ],

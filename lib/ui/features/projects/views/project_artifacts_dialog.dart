@@ -12,16 +12,6 @@ import 'package:hyve/ui/features/projects/views/project_file_drop_target.dart';
 import 'package:hyve/ui/features/projects/views/project_ui.dart';
 import 'package:hyve/utils/theme.dart';
 
-final class ProjectArtifactsPanel extends StatelessWidget {
-  const ProjectArtifactsPanel({super.key, required this.viewModel});
-
-  final ProjectArtifactsController viewModel;
-
-  @override
-  Widget build(BuildContext context) =>
-      ProjectArtifactsDialog(viewModel: viewModel, embedded: true);
-}
-
 final class ProjectArtifactsDialog extends StatefulWidget {
   const ProjectArtifactsDialog({
     super.key,

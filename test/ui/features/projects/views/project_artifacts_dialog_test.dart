@@ -22,6 +22,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: ListenableBuilder(
             listenable: controller,

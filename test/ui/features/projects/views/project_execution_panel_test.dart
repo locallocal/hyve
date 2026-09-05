@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:hyve/domain/models/models.dart';
@@ -77,6 +76,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: SizedBox(
             width: 900,
@@ -326,12 +327,8 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         locale: Locale('zh', 'CN'),
-        supportedLocales: <Locale>[Locale('zh', 'CN'), Locale('en')],
-        localizationsDelegates: <LocalizationsDelegate<dynamic>>[
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: SizedBox(
             width: 500,
@@ -352,6 +349,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('执行详情'), findsOneWidget);
     expect(find.text('暂无执行记录'), findsOneWidget);
@@ -380,12 +378,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('zh', 'CN'),
-        supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
-        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: SizedBox(
             width: 900,
@@ -420,6 +414,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(ValueKey<String>('project-turn-${turn.id}')));
     await tester.pumpAndSettle();

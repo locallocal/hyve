@@ -123,7 +123,7 @@ void main() {
       Locale('zh', 'TW'): (details: '詳情', refresh: '重新整理'),
       Locale('ja', 'JP'): (details: '詳細', refresh: '更新'),
       Locale('fr', 'FR'): (details: 'Détails', refresh: 'Actualiser'),
-      Locale('de', 'DE'): (details: 'Details', refresh: 'Aktualisieren'),
+      Locale('de', 'DE'): (details: 'Einzelheiten', refresh: 'Aktualisieren'),
       Locale('ko', 'KR'): (details: '세부 정보', refresh: '새로 고침'),
       Locale('ru', 'RU'): (details: 'Сведения', refresh: 'Обновить'),
       Locale('es', 'ES'): (details: 'Detalles', refresh: 'Actualizar'),

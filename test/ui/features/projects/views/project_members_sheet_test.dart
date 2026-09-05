@@ -60,6 +60,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: ProjectMembersSheet(
             viewModel: viewModel,

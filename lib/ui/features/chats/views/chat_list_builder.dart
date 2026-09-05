@@ -6,7 +6,6 @@ import 'package:hyve/ui/core/widgets/desktop_chat_primitives.dart';
 import 'package:hyve/ui/features/chat/views/chat.dart';
 import 'package:hyve/ui/features/chats/views/chat_item.dart';
 import 'package:hyve/ui/features/projects/views/project_workspace_page.dart';
-import 'package:hyve/ui/features/projects/project_localizations.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/utils/utils.dart';
 import 'package:hyve/utils/time.dart';
@@ -78,7 +77,7 @@ class ChatListBuilder extends StatelessWidget {
           final baseDescription = S.of(context).confirmDeleteChat(project.name);
           final deleteDescription =
               project.usesProjectAgentRuntime
-                  ? '$baseDescription\n\n${ProjectLocalizations.of(context).isChinese ? '不会删除智能体、技能、配置或长期记忆。' : 'Agents, skills, configuration, and long-term memory are not deleted.'}'
+                  ? '$baseDescription\n\n${S.of(context).projectDeleteKeepsAgentData}'
                   : baseDescription;
           final confirm =
               isDesktop

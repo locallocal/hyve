@@ -17,7 +17,7 @@ void main() {
       delete: 'Supprimer',
     ),
     Locale('de', 'DE'): (
-      details: 'Details',
+      details: 'Einzelheiten',
       edit: 'Bearbeiten',
       delete: 'Löschen',
     ),

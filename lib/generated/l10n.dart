@@ -4669,6 +4669,17 @@ class S {
     );
   }
 
+  /// `Agents, skills, configuration, and long-term memory are not deleted.`
+  String get projectDeleteKeepsAgentData {
+    return Intl.message(
+      'Agents, skills, configuration, and long-term memory are not deleted.',
+      name: 'projectDeleteKeepsAgentData',
+      desc:
+          'Clarifies that deleting a project chat does not delete its reusable agent data',
+      args: [],
+    );
+  }
+
   /// `{milliseconds} ms`
   String durationMilliseconds(String milliseconds) {
     return Intl.message(
@@ -4686,6 +4697,1908 @@ class S {
       name: 'durationSeconds',
       desc: 'Localized duration measured in seconds',
       args: [seconds],
+    );
+  }
+
+  /// `Project workspace`
+  String get projectWorkspace {
+    return Intl.message(
+      'Project workspace',
+      name: 'projectWorkspace',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Project artifacts`
+  String get projectArtifacts {
+    return Intl.message(
+      'Project artifacts',
+      name: 'projectArtifacts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Browse project files, preview version history, and open files with system apps.`
+  String get projectArtifactsDescription {
+    return Intl.message(
+      'Browse project files, preview version history, and open files with system apps.',
+      name: 'projectArtifactsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Project members`
+  String get projectMembers {
+    return Intl.message(
+      'Project members',
+      name: 'projectMembers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Back to messages`
+  String get projectBackToMessages {
+    return Intl.message(
+      'Back to messages',
+      name: 'projectBackToMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Execution details`
+  String get projectExecutionDetails {
+    return Intl.message(
+      'Execution details',
+      name: 'projectExecutionDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review run history, participation decisions, token usage, and audit events.`
+  String get projectExecutionDescription {
+    return Intl.message(
+      'Review run history, participation decisions, token usage, and audit events.',
+      name: 'projectExecutionDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Close`
+  String get projectClose {
+    return Intl.message('Close', name: 'projectClose', desc: '', args: []);
+  }
+
+  /// `Create`
+  String get projectCreate {
+    return Intl.message('Create', name: 'projectCreate', desc: '', args: []);
+  }
+
+  /// `Search`
+  String get projectSearch {
+    return Intl.message('Search', name: 'projectSearch', desc: '', args: []);
+  }
+
+  /// `unknown`
+  String get projectUnknown {
+    return Intl.message('unknown', name: 'projectUnknown', desc: '', args: []);
+  }
+
+  /// `User`
+  String get projectUser {
+    return Intl.message('User', name: 'projectUser', desc: '', args: []);
+  }
+
+  /// `Agent`
+  String get projectAgent {
+    return Intl.message('Agent', name: 'projectAgent', desc: '', args: []);
+  }
+
+  /// `System`
+  String get projectSystem {
+    return Intl.message('System', name: 'projectSystem', desc: '', args: []);
+  }
+
+  /// `system`
+  String get projectSystemLowercase {
+    return Intl.message(
+      'system',
+      name: 'projectSystemLowercase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This project has no active agents. Messages are saved, but no reply will be generated.`
+  String get projectNoAgentsNotice {
+    return Intl.message(
+      'This project has no active agents. Messages are saved, but no reply will be generated.',
+      name: 'projectNoAgentsNotice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No active agents`
+  String get projectNoAgentsTitle {
+    return Intl.message(
+      'No active agents',
+      name: 'projectNoAgentsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No messages yet`
+  String get projectEmptyTimelineTitle {
+    return Intl.message(
+      'No messages yet',
+      name: 'projectEmptyTimelineTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Send a message to start collaborating. Messages without @ are broadcast.`
+  String get projectEmptyTimeline {
+    return Intl.message(
+      'Send a message to start collaborating. Messages without @ are broadcast.',
+      name: 'projectEmptyTimeline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loading project`
+  String get projectLoadingWorkspace {
+    return Intl.message(
+      'Loading project',
+      name: 'projectLoadingWorkspace',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Load earlier events`
+  String get projectLoadEarlierEvents {
+    return Intl.message(
+      'Load earlier events',
+      name: 'projectLoadEarlierEvents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Jump to latest`
+  String get projectJumpToLatest {
+    return Intl.message(
+      'Jump to latest',
+      name: 'projectJumpToLatest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type a message. Without @ it will be broadcast to all active agents.`
+  String get projectBroadcastHint {
+    return Intl.message(
+      'Type a message. Without @ it will be broadcast to all active agents.',
+      name: 'projectBroadcastHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Attachment {index}`
+  String projectAttachment(int index) {
+    return Intl.message(
+      'Attachment $index',
+      name: 'projectAttachment',
+      desc: '',
+      args: [index],
+    );
+  }
+
+  /// `Add attachment`
+  String get projectAddAttachment {
+    return Intl.message(
+      'Add attachment',
+      name: 'projectAddAttachment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save as a Project artifact`
+  String get projectSaveAsArtifact {
+    return Intl.message(
+      'Save as a Project artifact',
+      name: 'projectSaveAsArtifact',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Will be saved as a Project artifact`
+  String get projectSavedAsArtifact {
+    return Intl.message(
+      'Will be saved as a Project artifact',
+      name: 'projectSavedAsArtifact',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Drop files here to import`
+  String get projectDropFilesToImport {
+    return Intl.message(
+      'Drop files here to import',
+      name: 'projectDropFilesToImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Release to import`
+  String get projectReleaseToImport {
+    return Intl.message(
+      'Release to import',
+      name: 'projectReleaseToImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// ` · run {runId}`
+  String projectRunSuffix(String runId) {
+    return Intl.message(
+      ' · run $runId',
+      name: 'projectRunSuffix',
+      desc: '',
+      args: [runId],
+    );
+  }
+
+  /// `Version {version} · agent {actor}{run}`
+  String projectVersionProvenance(int version, String actor, String run) {
+    return Intl.message(
+      'Version $version · agent $actor$run',
+      name: 'projectVersionProvenance',
+      desc: '',
+      args: [version, actor, run],
+    );
+  }
+
+  /// `{count, plural, one{{count} referencing message} other{{count} referencing messages}}`
+  String projectReferencingMessages(int count) {
+    return Intl.plural(
+      count,
+      one: '$count referencing message',
+      other: '$count referencing messages',
+      name: 'projectReferencingMessages',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Sending`
+  String get projectSending {
+    return Intl.message('Sending', name: 'projectSending', desc: '', args: []);
+  }
+
+  /// `Caught up`
+  String get projectActivityCaughtUp {
+    return Intl.message(
+      'Caught up',
+      name: 'projectActivityCaughtUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deciding`
+  String get projectActivityDeciding {
+    return Intl.message(
+      'Deciding',
+      name: 'projectActivityDeciding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Will reply`
+  String get projectActivityWillReply {
+    return Intl.message(
+      'Will reply',
+      name: 'projectActivityWillReply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skipped`
+  String get projectActivitySkipped {
+    return Intl.message(
+      'Skipped',
+      name: 'projectActivitySkipped',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replying`
+  String get projectActivityReplying {
+    return Intl.message(
+      'Replying',
+      name: 'projectActivityReplying',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Catching up`
+  String get projectActivityCatchingUp {
+    return Intl.message(
+      'Catching up',
+      name: 'projectActivityCatchingUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Paused`
+  String get projectActivityPaused {
+    return Intl.message(
+      'Paused',
+      name: 'projectActivityPaused',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed`
+  String get projectActivityFailed {
+    return Intl.message(
+      'Failed',
+      name: 'projectActivityFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processed {processed} / latest {latest}`
+  String projectProcessed(int processed, int latest) {
+    return Intl.message(
+      'Processed $processed / latest $latest',
+      name: 'projectProcessed',
+      desc: '',
+      args: [processed, latest],
+    );
+  }
+
+  /// `{count} pending`
+  String projectBacklog(int count) {
+    return Intl.message(
+      '$count pending',
+      name: 'projectBacklog',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `No agent needed to add anything to this message.`
+  String get projectNoParticipant {
+    return Intl.message(
+      'No agent needed to add anything to this message.',
+      name: 'projectNoParticipant',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replying to message #{sequence}`
+  String projectReplyingTo(int sequence) {
+    return Intl.message(
+      'Replying to message #$sequence',
+      name: 'projectReplyingTo',
+      desc: '',
+      args: [sequence],
+    );
+  }
+
+  /// `Public reply requested`
+  String get projectRequestedPublicReply {
+    return Intl.message(
+      'Public reply requested',
+      name: 'projectRequestedPublicReply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artifact versions: {ids}`
+  String projectArtifactVersions(String ids) {
+    return Intl.message(
+      'Artifact versions: $ids',
+      name: 'projectArtifactVersions',
+      desc: '',
+      args: [ids],
+    );
+  }
+
+  /// `Audit details`
+  String get projectAuditDetails {
+    return Intl.message(
+      'Audit details',
+      name: 'projectAuditDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Event: {id}`
+  String projectEventId(String id) {
+    return Intl.message(
+      'Event: $id',
+      name: 'projectEventId',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Message ID: {id}`
+  String projectMessageId(String id) {
+    return Intl.message(
+      'Message ID: $id',
+      name: 'projectMessageId',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Turn: {id} · {status}`
+  String projectTurnId(String id, String status) {
+    return Intl.message(
+      'Turn: $id · $status',
+      name: 'projectTurnId',
+      desc: '',
+      args: [id, status],
+    );
+  }
+
+  /// `Source run: {id}`
+  String projectSourceRun(String id) {
+    return Intl.message(
+      'Source run: $id',
+      name: 'projectSourceRun',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Delivery run: {id} · {status}`
+  String projectDeliveryRun(String id, String status) {
+    return Intl.message(
+      'Delivery run: $id · $status',
+      name: 'projectDeliveryRun',
+      desc: '',
+      args: [id, status],
+    );
+  }
+
+  /// `Root run: {id}`
+  String projectRootRun(String id) {
+    return Intl.message(
+      'Root run: $id',
+      name: 'projectRootRun',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Delivery depth: {depth}`
+  String projectDeliveryDepth(int depth) {
+    return Intl.message(
+      'Delivery depth: $depth',
+      name: 'projectDeliveryDepth',
+      desc: '',
+      args: [depth],
+    );
+  }
+
+  /// `Target runs: {value}`
+  String projectTargetRuns(String value) {
+    return Intl.message(
+      'Target runs: $value',
+      name: 'projectTargetRuns',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `A mentioned agent is no longer active. Remove or select it again.`
+  String get projectMentionedAgentInactive {
+    return Intl.message(
+      'A mentioned agent is no longer active. Remove or select it again.',
+      name: 'projectMentionedAgentInactive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Message failed to send ({code})`
+  String projectMessageSendFailed(String code) {
+    return Intl.message(
+      'Message failed to send ($code)',
+      name: 'projectMessageSendFailed',
+      desc: '',
+      args: [code],
+    );
+  }
+
+  /// `New text artifact`
+  String get projectNewTextArtifact {
+    return Intl.message(
+      'New text artifact',
+      name: 'projectNewTextArtifact',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Project-relative path`
+  String get projectRelativePath {
+    return Intl.message(
+      'Project-relative path',
+      name: 'projectRelativePath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Content`
+  String get projectContent {
+    return Intl.message('Content', name: 'projectContent', desc: '', args: []);
+  }
+
+  /// `Move or rename`
+  String get projectMoveOrRename {
+    return Intl.message(
+      'Move or rename',
+      name: 'projectMoveOrRename',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete artifact?`
+  String get projectDeleteArtifactTitle {
+    return Intl.message(
+      'Delete artifact?',
+      name: 'projectDeleteArtifactTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete every version of {path}? Artifacts referenced by a message or delivery cannot be deleted.`
+  String projectDeleteArtifactDescription(String path) {
+    return Intl.message(
+      'Delete every version of $path? Artifacts referenced by a message or delivery cannot be deleted.',
+      name: 'projectDeleteArtifactDescription',
+      desc: '',
+      args: [path],
+    );
+  }
+
+  /// `Search name, path, and content`
+  String get projectSearchArtifacts {
+    return Intl.message(
+      'Search name, path, and content',
+      name: 'projectSearchArtifacts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All types`
+  String get projectAllTypes {
+    return Intl.message(
+      'All types',
+      name: 'projectAllTypes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import files`
+  String get projectImportFiles {
+    return Intl.message(
+      'Import files',
+      name: 'projectImportFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New text`
+  String get projectCreateText {
+    return Intl.message(
+      'New text',
+      name: 'projectCreateText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No matching project artifacts`
+  String get projectNoArtifacts {
+    return Intl.message(
+      'No matching project artifacts',
+      name: 'projectNoArtifacts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All artifacts`
+  String get projectArtifactRoot {
+    return Intl.message(
+      'All artifacts',
+      name: 'projectArtifactRoot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Back to parent folder`
+  String get projectBackToParentFolder {
+    return Intl.message(
+      'Back to parent folder',
+      name: 'projectBackToParentFolder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count, plural, one{{count} artifact} other{{count} artifacts}}`
+  String projectFolderArtifactCount(int count) {
+    return Intl.plural(
+      count,
+      one: '$count artifact',
+      other: '$count artifacts',
+      name: 'projectFolderArtifactCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Preview and version history`
+  String get projectPreviewAndHistory {
+    return Intl.message(
+      'Preview and version history',
+      name: 'projectPreviewAndHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open with system app`
+  String get projectOpenInSystemApp {
+    return Intl.message(
+      'Open with system app',
+      name: 'projectOpenInSystemApp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to open this file with a system app.`
+  String get projectUnableToOpenArtifact {
+    return Intl.message(
+      'Unable to open this file with a system app.',
+      name: 'projectUnableToOpenArtifact',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Write new version`
+  String get projectWriteNewVersion {
+    return Intl.message(
+      'Write new version',
+      name: 'projectWriteNewVersion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create version`
+  String get projectCreateVersion {
+    return Intl.message(
+      'Create version',
+      name: 'projectCreateVersion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source: {value}`
+  String projectSource(String value) {
+    return Intl.message(
+      'Source: $value',
+      name: 'projectSource',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `Unable to read this version`
+  String get projectUnableToReadVersion {
+    return Intl.message(
+      'Unable to read this version',
+      name: 'projectUnableToReadVersion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In-app preview is not supported for this type.\nMIME: {mime}\nSHA-256: {digest}`
+  String projectUnsupportedPreview(String mime, String digest) {
+    return Intl.message(
+      'In-app preview is not supported for this type.\nMIME: $mime\nSHA-256: $digest',
+      name: 'projectUnsupportedPreview',
+      desc: '',
+      args: [mime, digest],
+    );
+  }
+
+  /// `Only the first 32 KiB is shown. Agents can continue reading in chunks.`
+  String get projectPreviewTruncated {
+    return Intl.message(
+      'Only the first 32 KiB is shown. Agents can continue reading in chunks.',
+      name: 'projectPreviewTruncated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Agent {id}`
+  String projectAgentNamed(String id) {
+    return Intl.message(
+      'Agent $id',
+      name: 'projectAgentNamed',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Attachment`
+  String get projectArtifactKindAttachment {
+    return Intl.message(
+      'Attachment',
+      name: 'projectArtifactKindAttachment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Document`
+  String get projectArtifactKindDocument {
+    return Intl.message(
+      'Document',
+      name: 'projectArtifactKindDocument',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Code`
+  String get projectArtifactKindCode {
+    return Intl.message(
+      'Code',
+      name: 'projectArtifactKindCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Image`
+  String get projectArtifactKindImage {
+    return Intl.message(
+      'Image',
+      name: 'projectArtifactKindImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Audio`
+  String get projectArtifactKindAudio {
+    return Intl.message(
+      'Audio',
+      name: 'projectArtifactKindAudio',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Video`
+  String get projectArtifactKindVideo {
+    return Intl.message(
+      'Video',
+      name: 'projectArtifactKindVideo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dataset`
+  String get projectArtifactKindDataset {
+    return Intl.message(
+      'Dataset',
+      name: 'projectArtifactKindDataset',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Archive`
+  String get projectArtifactKindArchive {
+    return Intl.message(
+      'Archive',
+      name: 'projectArtifactKindArchive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generated`
+  String get projectArtifactKindGenerated {
+    return Intl.message(
+      'Generated',
+      name: 'projectArtifactKindGenerated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Other`
+  String get projectArtifactKindOther {
+    return Intl.message(
+      'Other',
+      name: 'projectArtifactKindOther',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use a valid project-relative path.`
+  String get projectArtifactPathInvalid {
+    return Intl.message(
+      'Use a valid project-relative path.',
+      name: 'projectArtifactPathInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `That project path already exists.`
+  String get projectArtifactPathConflict {
+    return Intl.message(
+      'That project path already exists.',
+      name: 'projectArtifactPathConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The file exceeds the artifact size limit.`
+  String get projectArtifactSizeExceeded {
+    return Intl.message(
+      'The file exceeds the artifact size limit.',
+      name: 'projectArtifactSizeExceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This artifact is referenced and cannot be deleted.`
+  String get projectArtifactIsReferenced {
+    return Intl.message(
+      'This artifact is referenced and cannot be deleted.',
+      name: 'projectArtifactIsReferenced',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The current version changed. Reopen it before editing.`
+  String get projectArtifactVersionConflict {
+    return Intl.message(
+      'The current version changed. Reopen it before editing.',
+      name: 'projectArtifactVersionConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Symbolic links cannot be imported.`
+  String get projectArtifactSymlinkRejected {
+    return Intl.message(
+      'Symbolic links cannot be imported.',
+      name: 'projectArtifactSymlinkRejected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artifact operation failed ({code})`
+  String projectArtifactOperationFailed(String code) {
+    return Intl.message(
+      'Artifact operation failed ($code)',
+      name: 'projectArtifactOperationFailed',
+      desc: '',
+      args: [code],
+    );
+  }
+
+  /// `Search agents`
+  String get projectSearchAgents {
+    return Intl.message(
+      'Search agents',
+      name: 'projectSearchAgents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add agent`
+  String get projectAddAgent {
+    return Intl.message(
+      'Add agent',
+      name: 'projectAddAgent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search for an available agent and add it to this project.`
+  String get projectAddAgentDescription {
+    return Intl.message(
+      'Search for an available agent and add it to this project.',
+      name: 'projectAddAgentDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search available agents`
+  String get projectSearchAvailableAgents {
+    return Intl.message(
+      'Search available agents',
+      name: 'projectSearchAvailableAgents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Monitor processing and manage agent order, artifact access, and participation.`
+  String get projectMembersDescription {
+    return Intl.message(
+      'Monitor processing and manage agent order, artifact access, and participation.',
+      name: 'projectMembersDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No project members yet`
+  String get projectNoMembers {
+    return Intl.message(
+      'No project members yet',
+      name: 'projectNoMembers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No agents are available to add`
+  String get projectNoAvailableAgents {
+    return Intl.message(
+      'No agents are available to add',
+      name: 'projectNoAvailableAgents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No matching agents`
+  String get projectNoMatchingAgents {
+    return Intl.message(
+      'No matching agents',
+      name: 'projectNoMatchingAgents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deleted agent`
+  String get projectDeletedAgent {
+    return Intl.message(
+      'Deleted agent',
+      name: 'projectDeletedAgent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pause`
+  String get projectPause {
+    return Intl.message('Pause', name: 'projectPause', desc: '', args: []);
+  }
+
+  /// `Resume`
+  String get projectResume {
+    return Intl.message('Resume', name: 'projectResume', desc: '', args: []);
+  }
+
+  /// `Remove`
+  String get projectRemove {
+    return Intl.message('Remove', name: 'projectRemove', desc: '', args: []);
+  }
+
+  /// `Drag to reorder {name}`
+  String projectReorderMember(String name) {
+    return Intl.message(
+      'Drag to reorder $name',
+      name: 'projectReorderMember',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Artifact access`
+  String get projectStorageAccess {
+    return Intl.message(
+      'Artifact access',
+      name: 'projectStorageAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Updating artifact access`
+  String get projectUpdatingStorageAccess {
+    return Intl.message(
+      'Updating artifact access',
+      name: 'projectUpdatingStorageAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `None`
+  String get projectStorageAccessNone {
+    return Intl.message(
+      'None',
+      name: 'projectStorageAccessNone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read`
+  String get projectStorageAccessRead {
+    return Intl.message(
+      'Read',
+      name: 'projectStorageAccessRead',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read & write`
+  String get projectStorageAccessReadWrite {
+    return Intl.message(
+      'Read & write',
+      name: 'projectStorageAccessReadWrite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove {name}?`
+  String projectRemoveMemberTitle(String name) {
+    return Intl.message(
+      'Remove $name?',
+      name: 'projectRemoveMemberTitle',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `The agent has an active run. Removing it cancels that run; other agents continue.`
+  String get projectRemoveActiveMemberDescription {
+    return Intl.message(
+      'The agent has an active run. Removing it cancels that run; other agents continue.',
+      name: 'projectRemoveActiveMemberDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The agent will stop receiving new project messages.`
+  String get projectRemoveMemberDescription {
+    return Intl.message(
+      'The agent will stop receiving new project messages.',
+      name: 'projectRemoveMemberDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Member update failed ({code})`
+  String projectMemberUpdateFailed(String code) {
+    return Intl.message(
+      'Member update failed ($code)',
+      name: 'projectMemberUpdateFailed',
+      desc: '',
+      args: [code],
+    );
+  }
+
+  /// `Runs`
+  String get projectRuns {
+    return Intl.message('Runs', name: 'projectRuns', desc: '', args: []);
+  }
+
+  /// `Decisions`
+  String get projectDecisions {
+    return Intl.message(
+      'Decisions',
+      name: 'projectDecisions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Passed`
+  String get projectPassed {
+    return Intl.message('Passed', name: 'projectPassed', desc: '', args: []);
+  }
+
+  /// `Input {input} · output {output}`
+  String projectTokenBreakdown(int input, int output) {
+    return Intl.message(
+      'Input $input · output $output',
+      name: 'projectTokenBreakdown',
+      desc: '',
+      args: [input, output],
+    );
+  }
+
+  /// `No execution records yet`
+  String get projectNoExecutions {
+    return Intl.message(
+      'No execution records yet',
+      name: 'projectNoExecutions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run history`
+  String get projectExecutionRuns {
+    return Intl.message(
+      'Run history',
+      name: 'projectExecutionRuns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Message #{sequence}`
+  String projectMessageSequence(int sequence) {
+    return Intl.message(
+      'Message #$sequence',
+      name: 'projectMessageSequence',
+      desc: '',
+      args: [sequence],
+    );
+  }
+
+  /// `{count, plural, one{{count} run} other{{count} runs}}`
+  String projectRunCount(int count) {
+    return Intl.plural(
+      count,
+      one: '$count run',
+      other: '$count runs',
+      name: 'projectRunCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count, plural, one{{count} recipient} other{{count} recipients}}`
+  String projectRecipientCount(int count) {
+    return Intl.plural(
+      count,
+      one: '$count recipient',
+      other: '$count recipients',
+      name: 'projectRecipientCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Targeted`
+  String get projectRoutingTargeted {
+    return Intl.message(
+      'Targeted',
+      name: 'projectRoutingTargeted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Broadcast`
+  String get projectRoutingBroadcast {
+    return Intl.message(
+      'Broadcast',
+      name: 'projectRoutingBroadcast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delivery`
+  String get projectRoutingDelivery {
+    return Intl.message(
+      'Delivery',
+      name: 'projectRoutingDelivery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Created`
+  String get projectTurnCreated {
+    return Intl.message(
+      'Created',
+      name: 'projectTurnCreated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dispatching`
+  String get projectTurnDispatching {
+    return Intl.message(
+      'Dispatching',
+      name: 'projectTurnDispatching',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deciding`
+  String get projectTurnDeciding {
+    return Intl.message(
+      'Deciding',
+      name: 'projectTurnDeciding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replying`
+  String get projectTurnReplying {
+    return Intl.message(
+      'Replying',
+      name: 'projectTurnReplying',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delivering`
+  String get projectTurnDelivering {
+    return Intl.message(
+      'Delivering',
+      name: 'projectTurnDelivering',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Completed`
+  String get projectTurnCompleted {
+    return Intl.message(
+      'Completed',
+      name: 'projectTurnCompleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Partial`
+  String get projectTurnPartial {
+    return Intl.message(
+      'Partial',
+      name: 'projectTurnPartial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed`
+  String get projectTurnFailed {
+    return Intl.message(
+      'Failed',
+      name: 'projectTurnFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled`
+  String get projectTurnCancelled {
+    return Intl.message(
+      'Cancelled',
+      name: 'projectTurnCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Decision`
+  String get projectRunPhaseDecision {
+    return Intl.message(
+      'Decision',
+      name: 'projectRunPhaseDecision',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reply`
+  String get projectRunPhaseReply {
+    return Intl.message(
+      'Reply',
+      name: 'projectRunPhaseReply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delivery`
+  String get projectRunPhaseDelivery {
+    return Intl.message(
+      'Delivery',
+      name: 'projectRunPhaseDelivery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Queued`
+  String get projectRunQueued {
+    return Intl.message('Queued', name: 'projectRunQueued', desc: '', args: []);
+  }
+
+  /// `Deciding`
+  String get projectRunDeciding {
+    return Intl.message(
+      'Deciding',
+      name: 'projectRunDeciding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Passed`
+  String get projectRunPassed {
+    return Intl.message('Passed', name: 'projectRunPassed', desc: '', args: []);
+  }
+
+  /// `Preparing`
+  String get projectRunPreparing {
+    return Intl.message(
+      'Preparing',
+      name: 'projectRunPreparing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Running`
+  String get projectRunRunning {
+    return Intl.message(
+      'Running',
+      name: 'projectRunRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delivering`
+  String get projectRunDelivering {
+    return Intl.message(
+      'Delivering',
+      name: 'projectRunDelivering',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Completed`
+  String get projectRunCompleted {
+    return Intl.message(
+      'Completed',
+      name: 'projectRunCompleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled`
+  String get projectRunCancelled {
+    return Intl.message(
+      'Cancelled',
+      name: 'projectRunCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed`
+  String get projectRunFailed {
+    return Intl.message('Failed', name: 'projectRunFailed', desc: '', args: []);
+  }
+
+  /// `Timed out`
+  String get projectRunTimedOut {
+    return Intl.message(
+      'Timed out',
+      name: 'projectRunTimedOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Limit exceeded`
+  String get projectRunLimitExceeded {
+    return Intl.message(
+      'Limit exceeded',
+      name: 'projectRunLimitExceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Interrupted`
+  String get projectRunInterrupted {
+    return Intl.message(
+      'Interrupted',
+      name: 'projectRunInterrupted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run ID`
+  String get projectRunIdentifierLabel {
+    return Intl.message(
+      'Run ID',
+      name: 'projectRunIdentifierLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel run`
+  String get projectCancelRun {
+    return Intl.message(
+      'Cancel run',
+      name: 'projectCancelRun',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel this run?`
+  String get projectCancelRunTitle {
+    return Intl.message(
+      'Cancel this run?',
+      name: 'projectCancelRunTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Only this run will stop. Other active runs in the turn will continue.`
+  String get projectCancelRunDescription {
+    return Intl.message(
+      'Only this run will stop. Other active runs in the turn will continue.',
+      name: 'projectCancelRunDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel turn`
+  String get projectCancelTurn {
+    return Intl.message(
+      'Cancel turn',
+      name: 'projectCancelTurn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel this turn?`
+  String get projectCancelTurnTitle {
+    return Intl.message(
+      'Cancel this turn?',
+      name: 'projectCancelTurnTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Every active run in this turn will stop. Completed results will be kept.`
+  String get projectCancelTurnDescription {
+    return Intl.message(
+      'Every active run in this turn will stop. Completed results will be kept.',
+      name: 'projectCancelTurnDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel root chain`
+  String get projectCancelRootChain {
+    return Intl.message(
+      'Cancel root chain',
+      name: 'projectCancelRootChain',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel this root message chain?`
+  String get projectCancelRootChainTitle {
+    return Intl.message(
+      'Cancel this root message chain?',
+      name: 'projectCancelRootChainTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Active runs in this root message chain, including descendant deliveries, will stop. Other chains will continue.`
+  String get projectCancelRootChainDescription {
+    return Intl.message(
+      'Active runs in this root message chain, including descendant deliveries, will stop. Other chains will continue.',
+      name: 'projectCancelRootChainDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Context report`
+  String get projectContextReport {
+    return Intl.message(
+      'Context report',
+      name: 'projectContextReport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Audit events`
+  String get projectAuditEvents {
+    return Intl.message(
+      'Audit events',
+      name: 'projectAuditEvents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No audit events yet`
+  String get projectNoAuditEvents {
+    return Intl.message(
+      'No audit events yet',
+      name: 'projectNoAuditEvents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `User message`
+  String get projectEventUserMessage {
+    return Intl.message(
+      'User message',
+      name: 'projectEventUserMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Agent message`
+  String get projectEventAgentMessage {
+    return Intl.message(
+      'Agent message',
+      name: 'projectEventAgentMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Participation decision`
+  String get projectEventParticipationDecision {
+    return Intl.message(
+      'Participation decision',
+      name: 'projectEventParticipationDecision',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Agent delivery`
+  String get projectEventAgentDelivery {
+    return Intl.message(
+      'Agent delivery',
+      name: 'projectEventAgentDelivery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Membership changed`
+  String get projectEventMembershipChanged {
+    return Intl.message(
+      'Membership changed',
+      name: 'projectEventMembershipChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artifact changed`
+  String get projectEventArtifactChanged {
+    return Intl.message(
+      'Artifact changed',
+      name: 'projectEventArtifactChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run status changed`
+  String get projectEventRunStatusChanged {
+    return Intl.message(
+      'Run status changed',
+      name: 'projectEventRunStatusChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System notice`
+  String get projectEventSystemNotice {
+    return Intl.message(
+      'System notice',
+      name: 'projectEventSystemNotice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Event #{sequence}`
+  String projectEventSequence(int sequence) {
+    return Intl.message(
+      'Event #$sequence',
+      name: 'projectEventSequence',
+      desc: '',
+      args: [sequence],
+    );
+  }
+
+  /// `{agentId} is now {current}`
+  String projectMembershipCurrent(String agentId, String current) {
+    return Intl.message(
+      '$agentId is now $current',
+      name: 'projectMembershipCurrent',
+      desc: '',
+      args: [agentId, current],
+    );
+  }
+
+  /// `{agentId} changed from {previous} to {current}`
+  String projectMembershipChanged(
+    String agentId,
+    String previous,
+    String current,
+  ) {
+    return Intl.message(
+      '$agentId changed from $previous to $current',
+      name: 'projectMembershipChanged',
+      desc: '',
+      args: [agentId, previous, current],
+    );
+  }
+
+  /// `{changeKind} · Artifact {artifactId}`
+  String projectArtifactChange(String changeKind, String artifactId) {
+    return Intl.message(
+      '$changeKind · Artifact $artifactId',
+      name: 'projectArtifactChange',
+      desc: '',
+      args: [changeKind, artifactId],
+    );
+  }
+
+  /// `Summary segments`
+  String get projectSummarySegments {
+    return Intl.message(
+      'Summary segments',
+      name: 'projectSummarySegments',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Agent memories`
+  String get projectAgentMemories {
+    return Intl.message(
+      'Agent memories',
+      name: 'projectAgentMemories',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artifact versions`
+  String get projectArtifactVersionIds {
+    return Intl.message(
+      'Artifact versions',
+      name: 'projectArtifactVersionIds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skills`
+  String get projectSkills {
+    return Intl.message('Skills', name: 'projectSkills', desc: '', args: []);
+  }
+
+  /// `Tools`
+  String get projectTools {
+    return Intl.message('Tools', name: 'projectTools', desc: '', args: []);
+  }
+
+  /// `Memory revision`
+  String get projectMemoryRevision {
+    return Intl.message(
+      'Memory revision',
+      name: 'projectMemoryRevision',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Covered through message`
+  String get projectCoveredThroughMessage {
+    return Intl.message(
+      'Covered through message',
+      name: 'projectCoveredThroughMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Active`
+  String get projectActive {
+    return Intl.message('Active', name: 'projectActive', desc: '', args: []);
+  }
+
+  /// `Paused`
+  String get projectPausedStatus {
+    return Intl.message(
+      'Paused',
+      name: 'projectPausedStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reply`
+  String get projectParticipationReply {
+    return Intl.message(
+      'Reply',
+      name: 'projectParticipationReply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pass`
+  String get projectParticipationPass {
+    return Intl.message(
+      'Pass',
+      name: 'projectParticipationPass',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid decision response`
+  String get projectDecisionInvalid {
+    return Intl.message(
+      'Invalid decision response',
+      name: 'projectDecisionInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Decision timed out`
+  String get projectDecisionTimeout {
+    return Intl.message(
+      'Decision timed out',
+      name: 'projectDecisionTimeout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Decision request failed`
+  String get projectDecisionFailed {
+    return Intl.message(
+      'Decision request failed',
+      name: 'projectDecisionFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Decision cancelled`
+  String get projectDecisionCancelled {
+    return Intl.message(
+      'Decision cancelled',
+      name: 'projectDecisionCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duration: {value}`
+  String projectDuration(String value) {
+    return Intl.message(
+      'Duration: $value',
+      name: 'projectDuration',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `Error: {value}`
+  String projectError(String value) {
+    return Intl.message(
+      'Error: $value',
+      name: 'projectError',
+      desc: '',
+      args: [value],
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hyve/generated/l10n.dart';
 import 'package:hyve/l10n/app_localizations.dart';
+import 'package:hyve/ui/features/projects/project_localizations.dart';
 
 void main() {
   final catalogs = <Locale, File>{
@@ -40,8 +41,33 @@ void main() {
     }
   });
 
+  test('non-English catalogs do not silently fall back to English', () {
+    final template = _readCatalog(File('lib/l10n/intl_en.arb'));
+    final messageKeys = _messageKeys(template);
+
+    for (final entry in catalogs.entries) {
+      if (entry.key.languageCode == 'en') continue;
+      final catalog = _readCatalog(entry.value);
+      final fallbackKeys = <String>[
+        for (final key in messageKeys)
+          if (!_localeInvariantMessageKeys.contains(key) &&
+              catalog[key] == template[key])
+            key,
+      ]..sort();
+
+      expect(
+        fallbackKeys,
+        isEmpty,
+        reason:
+            '${entry.value.path} contains untranslated English fallback values',
+      );
+    }
+  });
+
   for (final locale in supportedLocales) {
     testWidgets('${locale.toString()} renders localized UI', (tester) async {
+      final expectedProjectWorkspace =
+          _readCatalog(catalogs[locale]!)['projectWorkspace']! as String;
       await tester.pumpWidget(
         MaterialApp(
           locale: locale,
@@ -55,9 +81,19 @@ void main() {
           home: Builder(
             builder:
                 (context) => Scaffold(
-                  body: Text(
-                    S.of(context).appName,
-                    key: const ValueKey<String>('localized-app-name'),
+                  body: Column(
+                    children: [
+                      Text(
+                        S.of(context).appName,
+                        key: const ValueKey<String>('localized-app-name'),
+                      ),
+                      Text(
+                        ProjectLocalizations.of(context).workspace,
+                        key: const ValueKey<String>(
+                          'localized-project-workspace',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
           ),
@@ -70,6 +106,11 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Hyve'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('localized-project-workspace')),
+        findsOneWidget,
+      );
+      expect(find.text(expectedProjectWorkspace), findsOneWidget);
     });
   }
 }
@@ -99,3 +140,44 @@ Set<String> _placeholders(String message) =>
     RegExp(
       r'\{([A-Za-z][A-Za-z0-9_]*)(?:,|\})',
     ).allMatches(message).map((match) => match.group(1)!).toSet();
+
+/// Product names, protocol labels, loanwords, and units that are intentionally
+/// identical to English in at least one supported locale.
+const _localeInvariantMessageKeys = <String>{
+  'appName',
+  'Bots',
+  'chats',
+  'durationMilliseconds',
+  'durationSeconds',
+  'fileTypeVideo',
+  'mcpArguments',
+  'mcpTransport',
+  'mcpTransportStreamableHttp',
+  'memoryCorrection',
+  'modalityAudio',
+  'modalityFile',
+  'modalityImage',
+  'modalityMulti',
+  'modalityText',
+  'modalityVideo',
+  'name',
+  'projectAgent',
+  'projectAgentNamed',
+  'projectArtifactKindAudio',
+  'projectArtifactKindCode',
+  'projectArtifactKindDocument',
+  'projectArtifactKindImage',
+  'projectArtifactKindVideo',
+  'projectError',
+  'projectMessageSequence',
+  'projectPause',
+  'projectSystem',
+  'projectVersionProvenance',
+  'skillSignature',
+  'skillSource',
+  'skillUpdateManual',
+  'skillVersion',
+  'tokens',
+  'toolSourceMcp',
+  'version',
+};

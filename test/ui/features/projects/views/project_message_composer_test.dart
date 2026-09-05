@@ -145,6 +145,8 @@ void main() {
     ProjectMessageDraft? sent;
     await tester.pumpWidget(
       MaterialApp(
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: ProjectMessageComposer(
             controller: controller,
@@ -183,6 +185,8 @@ void main() {
     ProjectMessageDraft? sent;
     await tester.pumpWidget(
       MaterialApp(
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: ProjectMessageComposer(
             controller: controller,
@@ -219,6 +223,8 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        supportedLocales: hyveTestSupportedLocales,
+        localizationsDelegates: hyveTestLocalizationDelegates,
         home: Scaffold(
           body: ProjectMessageComposer(
             controller: controller,
@@ -263,6 +269,8 @@ void main() {
       tester.view.physicalSize = size;
       await tester.pumpWidget(
         MaterialApp(
+          supportedLocales: hyveTestSupportedLocales,
+          localizationsDelegates: hyveTestLocalizationDelegates,
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,

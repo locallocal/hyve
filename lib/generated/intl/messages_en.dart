@@ -90,19 +90,101 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m31(count) => "${count} tool calls";
 
-  static String m32(error) => "Failed to get response: ${error}";
+  static String m32(id) => "Agent ${id}";
 
-  static String m33(error) => "Could not save image: ${error}";
+  static String m33(changeKind, artifactId) =>
+      "${changeKind} · Artifact ${artifactId}";
 
-  static String m34(count) => "${count} selected";
+  static String m34(code) => "Artifact operation failed (${code})";
 
-  static String m35(error) => "Could not share image: ${error}";
+  static String m35(ids) => "Artifact versions: ${ids}";
 
-  static String m36(error) => "Could not import Skill: ${error}";
+  static String m36(index) => "Attachment ${index}";
 
-  static String m37(duration) => "Thinking complete · ${duration}";
+  static String m37(count) => "${count} pending";
 
-  static String m38(error) => "Video playback error: ${error}";
+  static String m38(path) =>
+      "Delete every version of ${path}? Artifacts referenced by a message or delivery cannot be deleted.";
+
+  static String m39(depth) => "Delivery depth: ${depth}";
+
+  static String m40(id, status) => "Delivery run: ${id} · ${status}";
+
+  static String m41(value) => "Duration: ${value}";
+
+  static String m42(value) => "Error: ${value}";
+
+  static String m43(id) => "Event: ${id}";
+
+  static String m44(sequence) => "Event #${sequence}";
+
+  static String m45(count) =>
+      "${Intl.plural(count, one: '${count} artifact', other: '${count} artifacts')}";
+
+  static String m46(code) => "Member update failed (${code})";
+
+  static String m47(agentId, previous, current) =>
+      "${agentId} changed from ${previous} to ${current}";
+
+  static String m48(agentId, current) => "${agentId} is now ${current}";
+
+  static String m49(id) => "Message ID: ${id}";
+
+  static String m50(code) => "Message failed to send (${code})";
+
+  static String m51(sequence) => "Message #${sequence}";
+
+  static String m52(processed, latest) =>
+      "Processed ${processed} / latest ${latest}";
+
+  static String m53(count) =>
+      "${Intl.plural(count, one: '${count} recipient', other: '${count} recipients')}";
+
+  static String m54(count) =>
+      "${Intl.plural(count, one: '${count} referencing message', other: '${count} referencing messages')}";
+
+  static String m55(name) => "Remove ${name}?";
+
+  static String m56(name) => "Drag to reorder ${name}";
+
+  static String m57(sequence) => "Replying to message #${sequence}";
+
+  static String m58(id) => "Root run: ${id}";
+
+  static String m59(count) =>
+      "${Intl.plural(count, one: '${count} run', other: '${count} runs')}";
+
+  static String m60(runId) => " · run ${runId}";
+
+  static String m61(value) => "Source: ${value}";
+
+  static String m62(id) => "Source run: ${id}";
+
+  static String m63(value) => "Target runs: ${value}";
+
+  static String m64(input, output) => "Input ${input} · output ${output}";
+
+  static String m65(id, status) => "Turn: ${id} · ${status}";
+
+  static String m66(mime, digest) =>
+      "In-app preview is not supported for this type.\nMIME: ${mime}\nSHA-256: ${digest}";
+
+  static String m67(version, actor, run) =>
+      "Version ${version} · agent ${actor}${run}";
+
+  static String m68(error) => "Failed to get response: ${error}";
+
+  static String m69(error) => "Could not save image: ${error}";
+
+  static String m70(count) => "${count} selected";
+
+  static String m71(error) => "Could not share image: ${error}";
+
+  static String m72(error) => "Could not import Skill: ${error}";
+
+  static String m73(duration) => "Thinking complete · ${duration}";
+
+  static String m74(error) => "Video playback error: ${error}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -731,12 +813,406 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "processToolCount": m31,
     "profile": MessageLookupByLibrary.simpleMessage("Profile"),
+    "projectActive": MessageLookupByLibrary.simpleMessage("Active"),
+    "projectActivityCatchingUp": MessageLookupByLibrary.simpleMessage(
+      "Catching up",
+    ),
+    "projectActivityCaughtUp": MessageLookupByLibrary.simpleMessage(
+      "Caught up",
+    ),
+    "projectActivityDeciding": MessageLookupByLibrary.simpleMessage("Deciding"),
+    "projectActivityFailed": MessageLookupByLibrary.simpleMessage("Failed"),
+    "projectActivityPaused": MessageLookupByLibrary.simpleMessage("Paused"),
+    "projectActivityReplying": MessageLookupByLibrary.simpleMessage("Replying"),
+    "projectActivitySkipped": MessageLookupByLibrary.simpleMessage("Skipped"),
+    "projectActivityWillReply": MessageLookupByLibrary.simpleMessage(
+      "Will reply",
+    ),
+    "projectAddAgent": MessageLookupByLibrary.simpleMessage("Add agent"),
+    "projectAddAgentDescription": MessageLookupByLibrary.simpleMessage(
+      "Search for an available agent and add it to this project.",
+    ),
+    "projectAddAttachment": MessageLookupByLibrary.simpleMessage(
+      "Add attachment",
+    ),
+    "projectAgent": MessageLookupByLibrary.simpleMessage("Agent"),
+    "projectAgentMemories": MessageLookupByLibrary.simpleMessage(
+      "Agent memories",
+    ),
+    "projectAgentNamed": m32,
+    "projectAllTypes": MessageLookupByLibrary.simpleMessage("All types"),
+    "projectArtifactChange": m33,
+    "projectArtifactIsReferenced": MessageLookupByLibrary.simpleMessage(
+      "This artifact is referenced and cannot be deleted.",
+    ),
+    "projectArtifactKindArchive": MessageLookupByLibrary.simpleMessage(
+      "Archive",
+    ),
+    "projectArtifactKindAttachment": MessageLookupByLibrary.simpleMessage(
+      "Attachment",
+    ),
+    "projectArtifactKindAudio": MessageLookupByLibrary.simpleMessage("Audio"),
+    "projectArtifactKindCode": MessageLookupByLibrary.simpleMessage("Code"),
+    "projectArtifactKindDataset": MessageLookupByLibrary.simpleMessage(
+      "Dataset",
+    ),
+    "projectArtifactKindDocument": MessageLookupByLibrary.simpleMessage(
+      "Document",
+    ),
+    "projectArtifactKindGenerated": MessageLookupByLibrary.simpleMessage(
+      "Generated",
+    ),
+    "projectArtifactKindImage": MessageLookupByLibrary.simpleMessage("Image"),
+    "projectArtifactKindOther": MessageLookupByLibrary.simpleMessage("Other"),
+    "projectArtifactKindVideo": MessageLookupByLibrary.simpleMessage("Video"),
+    "projectArtifactOperationFailed": m34,
+    "projectArtifactPathConflict": MessageLookupByLibrary.simpleMessage(
+      "That project path already exists.",
+    ),
+    "projectArtifactPathInvalid": MessageLookupByLibrary.simpleMessage(
+      "Use a valid project-relative path.",
+    ),
+    "projectArtifactRoot": MessageLookupByLibrary.simpleMessage(
+      "All artifacts",
+    ),
+    "projectArtifactSizeExceeded": MessageLookupByLibrary.simpleMessage(
+      "The file exceeds the artifact size limit.",
+    ),
+    "projectArtifactSymlinkRejected": MessageLookupByLibrary.simpleMessage(
+      "Symbolic links cannot be imported.",
+    ),
+    "projectArtifactVersionConflict": MessageLookupByLibrary.simpleMessage(
+      "The current version changed. Reopen it before editing.",
+    ),
+    "projectArtifactVersionIds": MessageLookupByLibrary.simpleMessage(
+      "Artifact versions",
+    ),
+    "projectArtifactVersions": m35,
+    "projectArtifacts": MessageLookupByLibrary.simpleMessage(
+      "Project artifacts",
+    ),
+    "projectArtifactsDescription": MessageLookupByLibrary.simpleMessage(
+      "Browse project files, preview version history, and open files with system apps.",
+    ),
+    "projectAttachment": m36,
+    "projectAuditDetails": MessageLookupByLibrary.simpleMessage(
+      "Audit details",
+    ),
+    "projectAuditEvents": MessageLookupByLibrary.simpleMessage("Audit events"),
+    "projectBackToMessages": MessageLookupByLibrary.simpleMessage(
+      "Back to messages",
+    ),
+    "projectBackToParentFolder": MessageLookupByLibrary.simpleMessage(
+      "Back to parent folder",
+    ),
+    "projectBacklog": m37,
+    "projectBroadcastHint": MessageLookupByLibrary.simpleMessage(
+      "Type a message. Without @ it will be broadcast to all active agents.",
+    ),
+    "projectCancelRootChain": MessageLookupByLibrary.simpleMessage(
+      "Cancel root chain",
+    ),
+    "projectCancelRootChainDescription": MessageLookupByLibrary.simpleMessage(
+      "Active runs in this root message chain, including descendant deliveries, will stop. Other chains will continue.",
+    ),
+    "projectCancelRootChainTitle": MessageLookupByLibrary.simpleMessage(
+      "Cancel this root message chain?",
+    ),
+    "projectCancelRun": MessageLookupByLibrary.simpleMessage("Cancel run"),
+    "projectCancelRunDescription": MessageLookupByLibrary.simpleMessage(
+      "Only this run will stop. Other active runs in the turn will continue.",
+    ),
+    "projectCancelRunTitle": MessageLookupByLibrary.simpleMessage(
+      "Cancel this run?",
+    ),
+    "projectCancelTurn": MessageLookupByLibrary.simpleMessage("Cancel turn"),
+    "projectCancelTurnDescription": MessageLookupByLibrary.simpleMessage(
+      "Every active run in this turn will stop. Completed results will be kept.",
+    ),
+    "projectCancelTurnTitle": MessageLookupByLibrary.simpleMessage(
+      "Cancel this turn?",
+    ),
+    "projectClose": MessageLookupByLibrary.simpleMessage("Close"),
+    "projectContent": MessageLookupByLibrary.simpleMessage("Content"),
+    "projectContextReport": MessageLookupByLibrary.simpleMessage(
+      "Context report",
+    ),
+    "projectCoveredThroughMessage": MessageLookupByLibrary.simpleMessage(
+      "Covered through message",
+    ),
+    "projectCreate": MessageLookupByLibrary.simpleMessage("Create"),
+    "projectCreateText": MessageLookupByLibrary.simpleMessage("New text"),
+    "projectCreateVersion": MessageLookupByLibrary.simpleMessage(
+      "Create version",
+    ),
+    "projectDecisionCancelled": MessageLookupByLibrary.simpleMessage(
+      "Decision cancelled",
+    ),
+    "projectDecisionFailed": MessageLookupByLibrary.simpleMessage(
+      "Decision request failed",
+    ),
+    "projectDecisionInvalid": MessageLookupByLibrary.simpleMessage(
+      "Invalid decision response",
+    ),
+    "projectDecisionTimeout": MessageLookupByLibrary.simpleMessage(
+      "Decision timed out",
+    ),
+    "projectDecisions": MessageLookupByLibrary.simpleMessage("Decisions"),
+    "projectDeleteArtifactDescription": m38,
+    "projectDeleteArtifactTitle": MessageLookupByLibrary.simpleMessage(
+      "Delete artifact?",
+    ),
+    "projectDeleteKeepsAgentData": MessageLookupByLibrary.simpleMessage(
+      "Agents, skills, configuration, and long-term memory are not deleted.",
+    ),
+    "projectDeletedAgent": MessageLookupByLibrary.simpleMessage(
+      "Deleted agent",
+    ),
+    "projectDeliveryDepth": m39,
+    "projectDeliveryRun": m40,
+    "projectDropFilesToImport": MessageLookupByLibrary.simpleMessage(
+      "Drop files here to import",
+    ),
+    "projectDuration": m41,
+    "projectEmptyTimeline": MessageLookupByLibrary.simpleMessage(
+      "Send a message to start collaborating. Messages without @ are broadcast.",
+    ),
+    "projectEmptyTimelineTitle": MessageLookupByLibrary.simpleMessage(
+      "No messages yet",
+    ),
+    "projectError": m42,
+    "projectEventAgentDelivery": MessageLookupByLibrary.simpleMessage(
+      "Agent delivery",
+    ),
+    "projectEventAgentMessage": MessageLookupByLibrary.simpleMessage(
+      "Agent message",
+    ),
+    "projectEventArtifactChanged": MessageLookupByLibrary.simpleMessage(
+      "Artifact changed",
+    ),
+    "projectEventId": m43,
+    "projectEventMembershipChanged": MessageLookupByLibrary.simpleMessage(
+      "Membership changed",
+    ),
+    "projectEventParticipationDecision": MessageLookupByLibrary.simpleMessage(
+      "Participation decision",
+    ),
+    "projectEventRunStatusChanged": MessageLookupByLibrary.simpleMessage(
+      "Run status changed",
+    ),
+    "projectEventSequence": m44,
+    "projectEventSystemNotice": MessageLookupByLibrary.simpleMessage(
+      "System notice",
+    ),
+    "projectEventUserMessage": MessageLookupByLibrary.simpleMessage(
+      "User message",
+    ),
+    "projectExecutionDescription": MessageLookupByLibrary.simpleMessage(
+      "Review run history, participation decisions, token usage, and audit events.",
+    ),
+    "projectExecutionDetails": MessageLookupByLibrary.simpleMessage(
+      "Execution details",
+    ),
+    "projectExecutionRuns": MessageLookupByLibrary.simpleMessage("Run history"),
+    "projectFolderArtifactCount": m45,
+    "projectImportFiles": MessageLookupByLibrary.simpleMessage("Import files"),
+    "projectJumpToLatest": MessageLookupByLibrary.simpleMessage(
+      "Jump to latest",
+    ),
+    "projectLoadEarlierEvents": MessageLookupByLibrary.simpleMessage(
+      "Load earlier events",
+    ),
+    "projectLoadingWorkspace": MessageLookupByLibrary.simpleMessage(
+      "Loading project",
+    ),
+    "projectMemberUpdateFailed": m46,
+    "projectMembers": MessageLookupByLibrary.simpleMessage("Project members"),
+    "projectMembersDescription": MessageLookupByLibrary.simpleMessage(
+      "Monitor processing and manage agent order, artifact access, and participation.",
+    ),
+    "projectMembershipChanged": m47,
+    "projectMembershipCurrent": m48,
+    "projectMemoryRevision": MessageLookupByLibrary.simpleMessage(
+      "Memory revision",
+    ),
+    "projectMentionedAgentInactive": MessageLookupByLibrary.simpleMessage(
+      "A mentioned agent is no longer active. Remove or select it again.",
+    ),
+    "projectMessageId": m49,
+    "projectMessageSendFailed": m50,
+    "projectMessageSequence": m51,
+    "projectMoveOrRename": MessageLookupByLibrary.simpleMessage(
+      "Move or rename",
+    ),
     "projectName": MessageLookupByLibrary.simpleMessage("Project name"),
     "projectNameHint": MessageLookupByLibrary.simpleMessage(
       "Enter a project name",
     ),
     "projectNameRequired": MessageLookupByLibrary.simpleMessage(
       "Enter a project name.",
+    ),
+    "projectNewTextArtifact": MessageLookupByLibrary.simpleMessage(
+      "New text artifact",
+    ),
+    "projectNoAgentsNotice": MessageLookupByLibrary.simpleMessage(
+      "This project has no active agents. Messages are saved, but no reply will be generated.",
+    ),
+    "projectNoAgentsTitle": MessageLookupByLibrary.simpleMessage(
+      "No active agents",
+    ),
+    "projectNoArtifacts": MessageLookupByLibrary.simpleMessage(
+      "No matching project artifacts",
+    ),
+    "projectNoAuditEvents": MessageLookupByLibrary.simpleMessage(
+      "No audit events yet",
+    ),
+    "projectNoAvailableAgents": MessageLookupByLibrary.simpleMessage(
+      "No agents are available to add",
+    ),
+    "projectNoExecutions": MessageLookupByLibrary.simpleMessage(
+      "No execution records yet",
+    ),
+    "projectNoMatchingAgents": MessageLookupByLibrary.simpleMessage(
+      "No matching agents",
+    ),
+    "projectNoMembers": MessageLookupByLibrary.simpleMessage(
+      "No project members yet",
+    ),
+    "projectNoParticipant": MessageLookupByLibrary.simpleMessage(
+      "No agent needed to add anything to this message.",
+    ),
+    "projectOpenInSystemApp": MessageLookupByLibrary.simpleMessage(
+      "Open with system app",
+    ),
+    "projectParticipationPass": MessageLookupByLibrary.simpleMessage("Pass"),
+    "projectParticipationReply": MessageLookupByLibrary.simpleMessage("Reply"),
+    "projectPassed": MessageLookupByLibrary.simpleMessage("Passed"),
+    "projectPause": MessageLookupByLibrary.simpleMessage("Pause"),
+    "projectPausedStatus": MessageLookupByLibrary.simpleMessage("Paused"),
+    "projectPreviewAndHistory": MessageLookupByLibrary.simpleMessage(
+      "Preview and version history",
+    ),
+    "projectPreviewTruncated": MessageLookupByLibrary.simpleMessage(
+      "Only the first 32 KiB is shown. Agents can continue reading in chunks.",
+    ),
+    "projectProcessed": m52,
+    "projectRecipientCount": m53,
+    "projectReferencingMessages": m54,
+    "projectRelativePath": MessageLookupByLibrary.simpleMessage(
+      "Project-relative path",
+    ),
+    "projectReleaseToImport": MessageLookupByLibrary.simpleMessage(
+      "Release to import",
+    ),
+    "projectRemove": MessageLookupByLibrary.simpleMessage("Remove"),
+    "projectRemoveActiveMemberDescription": MessageLookupByLibrary.simpleMessage(
+      "The agent has an active run. Removing it cancels that run; other agents continue.",
+    ),
+    "projectRemoveMemberDescription": MessageLookupByLibrary.simpleMessage(
+      "The agent will stop receiving new project messages.",
+    ),
+    "projectRemoveMemberTitle": m55,
+    "projectReorderMember": m56,
+    "projectReplyingTo": m57,
+    "projectRequestedPublicReply": MessageLookupByLibrary.simpleMessage(
+      "Public reply requested",
+    ),
+    "projectResume": MessageLookupByLibrary.simpleMessage("Resume"),
+    "projectRootRun": m58,
+    "projectRoutingBroadcast": MessageLookupByLibrary.simpleMessage(
+      "Broadcast",
+    ),
+    "projectRoutingDelivery": MessageLookupByLibrary.simpleMessage("Delivery"),
+    "projectRoutingTargeted": MessageLookupByLibrary.simpleMessage("Targeted"),
+    "projectRunCancelled": MessageLookupByLibrary.simpleMessage("Cancelled"),
+    "projectRunCompleted": MessageLookupByLibrary.simpleMessage("Completed"),
+    "projectRunCount": m59,
+    "projectRunDeciding": MessageLookupByLibrary.simpleMessage("Deciding"),
+    "projectRunDelivering": MessageLookupByLibrary.simpleMessage("Delivering"),
+    "projectRunFailed": MessageLookupByLibrary.simpleMessage("Failed"),
+    "projectRunIdentifierLabel": MessageLookupByLibrary.simpleMessage("Run ID"),
+    "projectRunInterrupted": MessageLookupByLibrary.simpleMessage(
+      "Interrupted",
+    ),
+    "projectRunLimitExceeded": MessageLookupByLibrary.simpleMessage(
+      "Limit exceeded",
+    ),
+    "projectRunPassed": MessageLookupByLibrary.simpleMessage("Passed"),
+    "projectRunPhaseDecision": MessageLookupByLibrary.simpleMessage("Decision"),
+    "projectRunPhaseDelivery": MessageLookupByLibrary.simpleMessage("Delivery"),
+    "projectRunPhaseReply": MessageLookupByLibrary.simpleMessage("Reply"),
+    "projectRunPreparing": MessageLookupByLibrary.simpleMessage("Preparing"),
+    "projectRunQueued": MessageLookupByLibrary.simpleMessage("Queued"),
+    "projectRunRunning": MessageLookupByLibrary.simpleMessage("Running"),
+    "projectRunSuffix": m60,
+    "projectRunTimedOut": MessageLookupByLibrary.simpleMessage("Timed out"),
+    "projectRuns": MessageLookupByLibrary.simpleMessage("Runs"),
+    "projectSaveAsArtifact": MessageLookupByLibrary.simpleMessage(
+      "Save as a Project artifact",
+    ),
+    "projectSavedAsArtifact": MessageLookupByLibrary.simpleMessage(
+      "Will be saved as a Project artifact",
+    ),
+    "projectSearch": MessageLookupByLibrary.simpleMessage("Search"),
+    "projectSearchAgents": MessageLookupByLibrary.simpleMessage(
+      "Search agents",
+    ),
+    "projectSearchArtifacts": MessageLookupByLibrary.simpleMessage(
+      "Search name, path, and content",
+    ),
+    "projectSearchAvailableAgents": MessageLookupByLibrary.simpleMessage(
+      "Search available agents",
+    ),
+    "projectSending": MessageLookupByLibrary.simpleMessage("Sending"),
+    "projectSkills": MessageLookupByLibrary.simpleMessage("Skills"),
+    "projectSource": m61,
+    "projectSourceRun": m62,
+    "projectStorageAccess": MessageLookupByLibrary.simpleMessage(
+      "Artifact access",
+    ),
+    "projectStorageAccessNone": MessageLookupByLibrary.simpleMessage("None"),
+    "projectStorageAccessRead": MessageLookupByLibrary.simpleMessage("Read"),
+    "projectStorageAccessReadWrite": MessageLookupByLibrary.simpleMessage(
+      "Read & write",
+    ),
+    "projectSummarySegments": MessageLookupByLibrary.simpleMessage(
+      "Summary segments",
+    ),
+    "projectSystem": MessageLookupByLibrary.simpleMessage("System"),
+    "projectSystemLowercase": MessageLookupByLibrary.simpleMessage("system"),
+    "projectTargetRuns": m63,
+    "projectTokenBreakdown": m64,
+    "projectTools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "projectTurnCancelled": MessageLookupByLibrary.simpleMessage("Cancelled"),
+    "projectTurnCompleted": MessageLookupByLibrary.simpleMessage("Completed"),
+    "projectTurnCreated": MessageLookupByLibrary.simpleMessage("Created"),
+    "projectTurnDeciding": MessageLookupByLibrary.simpleMessage("Deciding"),
+    "projectTurnDelivering": MessageLookupByLibrary.simpleMessage("Delivering"),
+    "projectTurnDispatching": MessageLookupByLibrary.simpleMessage(
+      "Dispatching",
+    ),
+    "projectTurnFailed": MessageLookupByLibrary.simpleMessage("Failed"),
+    "projectTurnId": m65,
+    "projectTurnPartial": MessageLookupByLibrary.simpleMessage("Partial"),
+    "projectTurnReplying": MessageLookupByLibrary.simpleMessage("Replying"),
+    "projectUnableToOpenArtifact": MessageLookupByLibrary.simpleMessage(
+      "Unable to open this file with a system app.",
+    ),
+    "projectUnableToReadVersion": MessageLookupByLibrary.simpleMessage(
+      "Unable to read this version",
+    ),
+    "projectUnknown": MessageLookupByLibrary.simpleMessage("unknown"),
+    "projectUnsupportedPreview": m66,
+    "projectUpdatingStorageAccess": MessageLookupByLibrary.simpleMessage(
+      "Updating artifact access",
+    ),
+    "projectUser": MessageLookupByLibrary.simpleMessage("User"),
+    "projectVersionProvenance": m67,
+    "projectWorkspace": MessageLookupByLibrary.simpleMessage(
+      "Project workspace",
+    ),
+    "projectWriteNewVersion": MessageLookupByLibrary.simpleMessage(
+      "Write new version",
     ),
     "provideFeedback": MessageLookupByLibrary.simpleMessage(
       "Provide your suggestions and feedback",
@@ -778,7 +1254,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Stopped · Partial response kept",
     ),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("Reset to Default"),
-    "responseError": m32,
+    "responseError": m68,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("Restore"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage(
       "Recent turns retained",
@@ -789,7 +1265,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("Save and connect"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save Changes"),
     "saveImage": MessageLookupByLibrary.simpleMessage("Save image"),
-    "saveImageFailed": m33,
+    "saveImageFailed": m69,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage(
       "Could not save to gallery",
     ),
@@ -813,11 +1289,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selectProvider": MessageLookupByLibrary.simpleMessage("Select Provider"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("Select Theme"),
-    "selectedBotCount": m34,
+    "selectedBotCount": m70,
     "send": MessageLookupByLibrary.simpleMessage("Send"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "shareImage": MessageLookupByLibrary.simpleMessage("Share image"),
-    "shareImageFailed": m35,
+    "shareImageFailed": m71,
     "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage(
       "Image from Hyve",
     ),
@@ -845,7 +1321,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("Enabled"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("Files"),
-    "skillImportFailed": m36,
+    "skillImportFailed": m72,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage(
       "Skill imported",
     ),
@@ -984,7 +1460,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage(
       "Thinking complete",
     ),
-    "thinkingCompletedWithDuration": m37,
+    "thinkingCompletedWithDuration": m73,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("Thinking…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token usage"),
     "tokens": MessageLookupByLibrary.simpleMessage("tokens"),
@@ -1027,7 +1503,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "videoLoadFailed": MessageLookupByLibrary.simpleMessage(
       "Unable to load video",
     ),
-    "videoPlaybackError": m38,
+    "videoPlaybackError": m74,
     "videoResult": MessageLookupByLibrary.simpleMessage("Video result"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("View summary"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(

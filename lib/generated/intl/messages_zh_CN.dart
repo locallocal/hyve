@@ -84,19 +84,95 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m31(count) => "${count} 次工具调用";
 
-  static String m32(error) => "获取回复失败: ${error}";
+  static String m32(id) => "智能体 ${id}";
 
-  static String m33(error) => "保存图片失败：${error}";
+  static String m33(changeKind, artifactId) =>
+      "${changeKind} · 产物 ${artifactId}";
 
-  static String m34(count) => "已选择 ${count} 个";
+  static String m34(code) => "产物操作失败（${code}）";
 
-  static String m35(error) => "分享图片失败：${error}";
+  static String m35(ids) => "产物版本：${ids}";
 
-  static String m36(error) => "技能导入失败：${error}";
+  static String m36(index) => "附件 ${index}";
 
-  static String m37(duration) => "思考完成 · ${duration}";
+  static String m37(count) => "积压 ${count}";
 
-  static String m38(error) => "视频播放错误：${error}";
+  static String m38(path) => "将删除 ${path} 的全部版本。已被消息或交付引用的产物不会被删除。";
+
+  static String m39(depth) => "交付深度：${depth}";
+
+  static String m40(id, status) => "交付运行：${id} · ${status}";
+
+  static String m41(value) => "耗时：${value}";
+
+  static String m42(value) => "错误：${value}";
+
+  static String m43(id) => "事件：${id}";
+
+  static String m44(sequence) => "事件 #${sequence}";
+
+  static String m45(count) => "${Intl.plural(count, other: '${count} 个产物')}";
+
+  static String m46(code) => "成员更新失败（${code}）";
+
+  static String m47(agentId, previous, current) =>
+      "${agentId} 从 ${previous} 变更为 ${current}";
+
+  static String m48(agentId, current) => "${agentId} 当前状态为 ${current}";
+
+  static String m49(id) => "消息 ID：${id}";
+
+  static String m50(code) => "消息发送失败（${code}）";
+
+  static String m51(sequence) => "消息 #${sequence}";
+
+  static String m52(processed, latest) => "已处理 ${processed} / 最新 ${latest}";
+
+  static String m53(count) => "${Intl.plural(count, other: '${count} 个接收者')}";
+
+  static String m54(count) => "${Intl.plural(count, other: '${count} 条引用消息')}";
+
+  static String m55(name) => "移除 ${name}？";
+
+  static String m56(name) => "拖动以调整 ${name} 的顺序";
+
+  static String m57(sequence) => "回复消息 #${sequence}";
+
+  static String m58(id) => "根运行：${id}";
+
+  static String m59(count) => "${Intl.plural(count, other: '${count} 个运行')}";
+
+  static String m60(runId) => " · 运行 ${runId}";
+
+  static String m61(value) => "来源：${value}";
+
+  static String m62(id) => "来源运行：${id}";
+
+  static String m63(value) => "目标运行：${value}";
+
+  static String m64(input, output) => "输入 ${input} · 输出 ${output}";
+
+  static String m65(id, status) => "轮次：${id} · ${status}";
+
+  static String m66(mime, digest) =>
+      "该类型不支持应用内预览。\nMIME：${mime}\nSHA-256：${digest}";
+
+  static String m67(version, actor, run) =>
+      "版本 ${version} · 智能体 ${actor}${run}";
+
+  static String m68(error) => "获取回复失败: ${error}";
+
+  static String m69(error) => "保存图片失败：${error}";
+
+  static String m70(count) => "已选择 ${count} 个";
+
+  static String m71(error) => "分享图片失败：${error}";
+
+  static String m72(error) => "技能导入失败：${error}";
+
+  static String m73(duration) => "思考完成 · ${duration}";
+
+  static String m74(error) => "视频播放错误：${error}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -564,9 +640,284 @@ class MessageLookup extends MessageLookupByLibrary {
     "processInformation": MessageLookupByLibrary.simpleMessage("过程信息"),
     "processToolCount": m31,
     "profile": MessageLookupByLibrary.simpleMessage("我的"),
+    "projectActive": MessageLookupByLibrary.simpleMessage("活跃"),
+    "projectActivityCatchingUp": MessageLookupByLibrary.simpleMessage("追赶中"),
+    "projectActivityCaughtUp": MessageLookupByLibrary.simpleMessage("已跟上"),
+    "projectActivityDeciding": MessageLookupByLibrary.simpleMessage("判断中"),
+    "projectActivityFailed": MessageLookupByLibrary.simpleMessage("失败"),
+    "projectActivityPaused": MessageLookupByLibrary.simpleMessage("已暂停"),
+    "projectActivityReplying": MessageLookupByLibrary.simpleMessage("回复中"),
+    "projectActivitySkipped": MessageLookupByLibrary.simpleMessage("已跳过"),
+    "projectActivityWillReply": MessageLookupByLibrary.simpleMessage("将回复"),
+    "projectAddAgent": MessageLookupByLibrary.simpleMessage("添加智能体"),
+    "projectAddAgentDescription": MessageLookupByLibrary.simpleMessage(
+      "搜索可用智能体并将其添加到当前项目。",
+    ),
+    "projectAddAttachment": MessageLookupByLibrary.simpleMessage("添加附件"),
+    "projectAgent": MessageLookupByLibrary.simpleMessage("智能体"),
+    "projectAgentMemories": MessageLookupByLibrary.simpleMessage("智能体记忆"),
+    "projectAgentNamed": m32,
+    "projectAllTypes": MessageLookupByLibrary.simpleMessage("全部类型"),
+    "projectArtifactChange": m33,
+    "projectArtifactIsReferenced": MessageLookupByLibrary.simpleMessage(
+      "产物已被消息或交付引用，不能删除。",
+    ),
+    "projectArtifactKindArchive": MessageLookupByLibrary.simpleMessage("压缩包"),
+    "projectArtifactKindAttachment": MessageLookupByLibrary.simpleMessage("附件"),
+    "projectArtifactKindAudio": MessageLookupByLibrary.simpleMessage("音频"),
+    "projectArtifactKindCode": MessageLookupByLibrary.simpleMessage("代码"),
+    "projectArtifactKindDataset": MessageLookupByLibrary.simpleMessage("数据"),
+    "projectArtifactKindDocument": MessageLookupByLibrary.simpleMessage("文档"),
+    "projectArtifactKindGenerated": MessageLookupByLibrary.simpleMessage(
+      "生成内容",
+    ),
+    "projectArtifactKindImage": MessageLookupByLibrary.simpleMessage("图片"),
+    "projectArtifactKindOther": MessageLookupByLibrary.simpleMessage("其他"),
+    "projectArtifactKindVideo": MessageLookupByLibrary.simpleMessage("视频"),
+    "projectArtifactOperationFailed": m34,
+    "projectArtifactPathConflict": MessageLookupByLibrary.simpleMessage(
+      "该项目路径已存在。",
+    ),
+    "projectArtifactPathInvalid": MessageLookupByLibrary.simpleMessage(
+      "路径无效；请使用项目内相对路径。",
+    ),
+    "projectArtifactRoot": MessageLookupByLibrary.simpleMessage("全部产物"),
+    "projectArtifactSizeExceeded": MessageLookupByLibrary.simpleMessage(
+      "文件超过项目产物大小限制。",
+    ),
+    "projectArtifactSymlinkRejected": MessageLookupByLibrary.simpleMessage(
+      "不允许导入符号链接。",
+    ),
+    "projectArtifactVersionConflict": MessageLookupByLibrary.simpleMessage(
+      "当前版本已变化，请重新打开后再编辑。",
+    ),
+    "projectArtifactVersionIds": MessageLookupByLibrary.simpleMessage("产物版本"),
+    "projectArtifactVersions": m35,
+    "projectArtifacts": MessageLookupByLibrary.simpleMessage("项目产物"),
+    "projectArtifactsDescription": MessageLookupByLibrary.simpleMessage(
+      "浏览项目文件、预览版本历史，并使用系统软件打开文件。",
+    ),
+    "projectAttachment": m36,
+    "projectAuditDetails": MessageLookupByLibrary.simpleMessage("审计详情"),
+    "projectAuditEvents": MessageLookupByLibrary.simpleMessage("审计事件"),
+    "projectBackToMessages": MessageLookupByLibrary.simpleMessage("返回消息"),
+    "projectBackToParentFolder": MessageLookupByLibrary.simpleMessage("返回上一级"),
+    "projectBacklog": m37,
+    "projectBroadcastHint": MessageLookupByLibrary.simpleMessage(
+      "输入消息；不选择 @ 时将广播给全部活跃智能体。",
+    ),
+    "projectCancelRootChain": MessageLookupByLibrary.simpleMessage("取消根消息链"),
+    "projectCancelRootChainDescription": MessageLookupByLibrary.simpleMessage(
+      "此根消息链及其后续交付中的活跃运行都将停止；其他消息链将继续。",
+    ),
+    "projectCancelRootChainTitle": MessageLookupByLibrary.simpleMessage(
+      "取消此根消息链？",
+    ),
+    "projectCancelRun": MessageLookupByLibrary.simpleMessage("取消运行"),
+    "projectCancelRunDescription": MessageLookupByLibrary.simpleMessage(
+      "仅停止此运行；同一轮次中的其他活跃运行将继续。",
+    ),
+    "projectCancelRunTitle": MessageLookupByLibrary.simpleMessage("取消此运行？"),
+    "projectCancelTurn": MessageLookupByLibrary.simpleMessage("取消轮次"),
+    "projectCancelTurnDescription": MessageLookupByLibrary.simpleMessage(
+      "此轮次中的所有活跃运行都将停止；已完成的结果会保留。",
+    ),
+    "projectCancelTurnTitle": MessageLookupByLibrary.simpleMessage("取消此轮次？"),
+    "projectClose": MessageLookupByLibrary.simpleMessage("关闭"),
+    "projectContent": MessageLookupByLibrary.simpleMessage("内容"),
+    "projectContextReport": MessageLookupByLibrary.simpleMessage("上下文报告"),
+    "projectCoveredThroughMessage": MessageLookupByLibrary.simpleMessage(
+      "上下文覆盖至消息",
+    ),
+    "projectCreate": MessageLookupByLibrary.simpleMessage("创建"),
+    "projectCreateText": MessageLookupByLibrary.simpleMessage("新建文本"),
+    "projectCreateVersion": MessageLookupByLibrary.simpleMessage("创建版本"),
+    "projectDecisionCancelled": MessageLookupByLibrary.simpleMessage("判断已取消"),
+    "projectDecisionFailed": MessageLookupByLibrary.simpleMessage("判断请求失败"),
+    "projectDecisionInvalid": MessageLookupByLibrary.simpleMessage("判断结果格式无效"),
+    "projectDecisionTimeout": MessageLookupByLibrary.simpleMessage("判断超时"),
+    "projectDecisions": MessageLookupByLibrary.simpleMessage("判断"),
+    "projectDeleteArtifactDescription": m38,
+    "projectDeleteArtifactTitle": MessageLookupByLibrary.simpleMessage("删除产物？"),
+    "projectDeleteKeepsAgentData": MessageLookupByLibrary.simpleMessage(
+      "智能体、技能、配置和长期记忆不会被删除。",
+    ),
+    "projectDeletedAgent": MessageLookupByLibrary.simpleMessage("已删除的智能体"),
+    "projectDeliveryDepth": m39,
+    "projectDeliveryRun": m40,
+    "projectDropFilesToImport": MessageLookupByLibrary.simpleMessage(
+      "拖放文件到此处导入",
+    ),
+    "projectDuration": m41,
+    "projectEmptyTimeline": MessageLookupByLibrary.simpleMessage(
+      "发送消息开始协作；不使用 @ 时将广播。",
+    ),
+    "projectEmptyTimelineTitle": MessageLookupByLibrary.simpleMessage("暂无消息"),
+    "projectError": m42,
+    "projectEventAgentDelivery": MessageLookupByLibrary.simpleMessage("智能体交付"),
+    "projectEventAgentMessage": MessageLookupByLibrary.simpleMessage("智能体消息"),
+    "projectEventArtifactChanged": MessageLookupByLibrary.simpleMessage("产物变更"),
+    "projectEventId": m43,
+    "projectEventMembershipChanged": MessageLookupByLibrary.simpleMessage(
+      "成员变更",
+    ),
+    "projectEventParticipationDecision": MessageLookupByLibrary.simpleMessage(
+      "参与判断",
+    ),
+    "projectEventRunStatusChanged": MessageLookupByLibrary.simpleMessage(
+      "运行状态变更",
+    ),
+    "projectEventSequence": m44,
+    "projectEventSystemNotice": MessageLookupByLibrary.simpleMessage("系统通知"),
+    "projectEventUserMessage": MessageLookupByLibrary.simpleMessage("用户消息"),
+    "projectExecutionDescription": MessageLookupByLibrary.simpleMessage(
+      "查看运行记录、参与判断、Token 用量和审计事件。",
+    ),
+    "projectExecutionDetails": MessageLookupByLibrary.simpleMessage("执行详情"),
+    "projectExecutionRuns": MessageLookupByLibrary.simpleMessage("运行记录"),
+    "projectFolderArtifactCount": m45,
+    "projectImportFiles": MessageLookupByLibrary.simpleMessage("批量导入"),
+    "projectJumpToLatest": MessageLookupByLibrary.simpleMessage("回到最新"),
+    "projectLoadEarlierEvents": MessageLookupByLibrary.simpleMessage("加载更早事件"),
+    "projectLoadingWorkspace": MessageLookupByLibrary.simpleMessage("正在加载项目"),
+    "projectMemberUpdateFailed": m46,
+    "projectMembers": MessageLookupByLibrary.simpleMessage("项目成员"),
+    "projectMembersDescription": MessageLookupByLibrary.simpleMessage(
+      "查看消息处理状态，并管理智能体顺序、产物权限和项目参与状态。",
+    ),
+    "projectMembershipChanged": m47,
+    "projectMembershipCurrent": m48,
+    "projectMemoryRevision": MessageLookupByLibrary.simpleMessage("记忆版本"),
+    "projectMentionedAgentInactive": MessageLookupByLibrary.simpleMessage(
+      "被 @ 的智能体已不在项目中，请删除或重新选择。",
+    ),
+    "projectMessageId": m49,
+    "projectMessageSendFailed": m50,
+    "projectMessageSequence": m51,
+    "projectMoveOrRename": MessageLookupByLibrary.simpleMessage("移动或重命名"),
     "projectName": MessageLookupByLibrary.simpleMessage("项目名称"),
     "projectNameHint": MessageLookupByLibrary.simpleMessage("输入项目名称"),
     "projectNameRequired": MessageLookupByLibrary.simpleMessage("请输入项目名称。"),
+    "projectNewTextArtifact": MessageLookupByLibrary.simpleMessage("新建文本产物"),
+    "projectNoAgentsNotice": MessageLookupByLibrary.simpleMessage(
+      "当前项目没有活跃智能体；消息会被保存，但不会产生回复。",
+    ),
+    "projectNoAgentsTitle": MessageLookupByLibrary.simpleMessage("暂无活跃智能体"),
+    "projectNoArtifacts": MessageLookupByLibrary.simpleMessage("暂无匹配的项目产物"),
+    "projectNoAuditEvents": MessageLookupByLibrary.simpleMessage("暂无审计事件"),
+    "projectNoAvailableAgents": MessageLookupByLibrary.simpleMessage(
+      "没有可添加的智能体",
+    ),
+    "projectNoExecutions": MessageLookupByLibrary.simpleMessage("暂无执行记录"),
+    "projectNoMatchingAgents": MessageLookupByLibrary.simpleMessage(
+      "未找到匹配的智能体",
+    ),
+    "projectNoMembers": MessageLookupByLibrary.simpleMessage("项目暂无成员"),
+    "projectNoParticipant": MessageLookupByLibrary.simpleMessage(
+      "本条消息没有智能体需要补充。",
+    ),
+    "projectOpenInSystemApp": MessageLookupByLibrary.simpleMessage("使用系统软件打开"),
+    "projectParticipationPass": MessageLookupByLibrary.simpleMessage("跳过"),
+    "projectParticipationReply": MessageLookupByLibrary.simpleMessage("回复"),
+    "projectPassed": MessageLookupByLibrary.simpleMessage("已跳过"),
+    "projectPause": MessageLookupByLibrary.simpleMessage("暂停"),
+    "projectPausedStatus": MessageLookupByLibrary.simpleMessage("已暂停"),
+    "projectPreviewAndHistory": MessageLookupByLibrary.simpleMessage("预览与版本历史"),
+    "projectPreviewTruncated": MessageLookupByLibrary.simpleMessage(
+      "预览仅显示前 32 KiB；智能体可按块继续读取。",
+    ),
+    "projectProcessed": m52,
+    "projectRecipientCount": m53,
+    "projectReferencingMessages": m54,
+    "projectRelativePath": MessageLookupByLibrary.simpleMessage("项目内相对路径"),
+    "projectReleaseToImport": MessageLookupByLibrary.simpleMessage("松开即可导入"),
+    "projectRemove": MessageLookupByLibrary.simpleMessage("移除"),
+    "projectRemoveActiveMemberDescription":
+        MessageLookupByLibrary.simpleMessage("该智能体正在运行。移除会取消它的当前运行，其他智能体不受影响。"),
+    "projectRemoveMemberDescription": MessageLookupByLibrary.simpleMessage(
+      "该智能体将不再接收新的项目消息。",
+    ),
+    "projectRemoveMemberTitle": m55,
+    "projectReorderMember": m56,
+    "projectReplyingTo": m57,
+    "projectRequestedPublicReply": MessageLookupByLibrary.simpleMessage(
+      "请求公开回复",
+    ),
+    "projectResume": MessageLookupByLibrary.simpleMessage("恢复"),
+    "projectRootRun": m58,
+    "projectRoutingBroadcast": MessageLookupByLibrary.simpleMessage("广播"),
+    "projectRoutingDelivery": MessageLookupByLibrary.simpleMessage("交付"),
+    "projectRoutingTargeted": MessageLookupByLibrary.simpleMessage("定向"),
+    "projectRunCancelled": MessageLookupByLibrary.simpleMessage("已取消"),
+    "projectRunCompleted": MessageLookupByLibrary.simpleMessage("已完成"),
+    "projectRunCount": m59,
+    "projectRunDeciding": MessageLookupByLibrary.simpleMessage("判断中"),
+    "projectRunDelivering": MessageLookupByLibrary.simpleMessage("交付中"),
+    "projectRunFailed": MessageLookupByLibrary.simpleMessage("失败"),
+    "projectRunIdentifierLabel": MessageLookupByLibrary.simpleMessage("运行 ID"),
+    "projectRunInterrupted": MessageLookupByLibrary.simpleMessage("已中断"),
+    "projectRunLimitExceeded": MessageLookupByLibrary.simpleMessage("超出限制"),
+    "projectRunPassed": MessageLookupByLibrary.simpleMessage("已跳过"),
+    "projectRunPhaseDecision": MessageLookupByLibrary.simpleMessage("判断"),
+    "projectRunPhaseDelivery": MessageLookupByLibrary.simpleMessage("交付"),
+    "projectRunPhaseReply": MessageLookupByLibrary.simpleMessage("回复"),
+    "projectRunPreparing": MessageLookupByLibrary.simpleMessage("准备中"),
+    "projectRunQueued": MessageLookupByLibrary.simpleMessage("排队中"),
+    "projectRunRunning": MessageLookupByLibrary.simpleMessage("运行中"),
+    "projectRunSuffix": m60,
+    "projectRunTimedOut": MessageLookupByLibrary.simpleMessage("已超时"),
+    "projectRuns": MessageLookupByLibrary.simpleMessage("运行"),
+    "projectSaveAsArtifact": MessageLookupByLibrary.simpleMessage("保存为项目正式产物"),
+    "projectSavedAsArtifact": MessageLookupByLibrary.simpleMessage(
+      "将保存为项目正式产物",
+    ),
+    "projectSearch": MessageLookupByLibrary.simpleMessage("搜索"),
+    "projectSearchAgents": MessageLookupByLibrary.simpleMessage("搜索智能体"),
+    "projectSearchArtifacts": MessageLookupByLibrary.simpleMessage(
+      "搜索名称、路径和正文",
+    ),
+    "projectSearchAvailableAgents": MessageLookupByLibrary.simpleMessage(
+      "搜索可添加的智能体",
+    ),
+    "projectSending": MessageLookupByLibrary.simpleMessage("发送中"),
+    "projectSkills": MessageLookupByLibrary.simpleMessage("技能"),
+    "projectSource": m61,
+    "projectSourceRun": m62,
+    "projectStorageAccess": MessageLookupByLibrary.simpleMessage("产物权限"),
+    "projectStorageAccessNone": MessageLookupByLibrary.simpleMessage("无"),
+    "projectStorageAccessRead": MessageLookupByLibrary.simpleMessage("只读"),
+    "projectStorageAccessReadWrite": MessageLookupByLibrary.simpleMessage("读写"),
+    "projectSummarySegments": MessageLookupByLibrary.simpleMessage("摘要片段"),
+    "projectSystem": MessageLookupByLibrary.simpleMessage("系统"),
+    "projectSystemLowercase": MessageLookupByLibrary.simpleMessage("系统"),
+    "projectTargetRuns": m63,
+    "projectTokenBreakdown": m64,
+    "projectTools": MessageLookupByLibrary.simpleMessage("工具"),
+    "projectTurnCancelled": MessageLookupByLibrary.simpleMessage("已取消"),
+    "projectTurnCompleted": MessageLookupByLibrary.simpleMessage("已完成"),
+    "projectTurnCreated": MessageLookupByLibrary.simpleMessage("已创建"),
+    "projectTurnDeciding": MessageLookupByLibrary.simpleMessage("判断中"),
+    "projectTurnDelivering": MessageLookupByLibrary.simpleMessage("交付中"),
+    "projectTurnDispatching": MessageLookupByLibrary.simpleMessage("分发中"),
+    "projectTurnFailed": MessageLookupByLibrary.simpleMessage("失败"),
+    "projectTurnId": m65,
+    "projectTurnPartial": MessageLookupByLibrary.simpleMessage("部分完成"),
+    "projectTurnReplying": MessageLookupByLibrary.simpleMessage("回复中"),
+    "projectUnableToOpenArtifact": MessageLookupByLibrary.simpleMessage(
+      "无法使用系统软件打开此文件。",
+    ),
+    "projectUnableToReadVersion": MessageLookupByLibrary.simpleMessage(
+      "无法读取此版本",
+    ),
+    "projectUnknown": MessageLookupByLibrary.simpleMessage("未知"),
+    "projectUnsupportedPreview": m66,
+    "projectUpdatingStorageAccess": MessageLookupByLibrary.simpleMessage(
+      "正在更新产物权限",
+    ),
+    "projectUser": MessageLookupByLibrary.simpleMessage("用户"),
+    "projectVersionProvenance": m67,
+    "projectWorkspace": MessageLookupByLibrary.simpleMessage("项目工作区"),
+    "projectWriteNewVersion": MessageLookupByLibrary.simpleMessage("写入新版本"),
     "provideFeedback": MessageLookupByLibrary.simpleMessage("提供您的意见和建议"),
     "provider": MessageLookupByLibrary.simpleMessage("供应商"),
     "providerInformation": MessageLookupByLibrary.simpleMessage("提供商信息"),
@@ -587,7 +938,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "replyCancelled": MessageLookupByLibrary.simpleMessage("已取消回复"),
     "replyStoppedPartial": MessageLookupByLibrary.simpleMessage("已停止 · 保留部分回复"),
     "resetToDefault": MessageLookupByLibrary.simpleMessage("恢复默认"),
-    "responseError": m32,
+    "responseError": m68,
     "restoreMemory": MessageLookupByLibrary.simpleMessage("恢复"),
     "retainedRecentTurns": MessageLookupByLibrary.simpleMessage("保留的最近轮次"),
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
@@ -596,7 +947,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "saveAndConnect": MessageLookupByLibrary.simpleMessage("保存并连接"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("保存修改"),
     "saveImage": MessageLookupByLibrary.simpleMessage("保存图片"),
-    "saveImageFailed": m33,
+    "saveImageFailed": m69,
     "saveToGalleryFailed": MessageLookupByLibrary.simpleMessage("保存到相册失败"),
     "savingChanges": MessageLookupByLibrary.simpleMessage("保存中..."),
     "searchBots": MessageLookupByLibrary.simpleMessage("搜索智能体"),
@@ -612,11 +963,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectProjectBots": MessageLookupByLibrary.simpleMessage("添加智能体（可选）"),
     "selectProvider": MessageLookupByLibrary.simpleMessage("选择提供商"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("选择主题"),
-    "selectedBotCount": m34,
+    "selectedBotCount": m70,
     "send": MessageLookupByLibrary.simpleMessage("发送"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "shareImage": MessageLookupByLibrary.simpleMessage("分享图片"),
-    "shareImageFailed": m35,
+    "shareImageFailed": m71,
     "sharedImageFromHyve": MessageLookupByLibrary.simpleMessage("来自 Hyve 的图片"),
     "showApiKey": MessageLookupByLibrary.simpleMessage("显示 API 密钥"),
     "showExecutionStatusDescription": MessageLookupByLibrary.simpleMessage(
@@ -636,7 +987,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "skillDisabled": MessageLookupByLibrary.simpleMessage("已关闭"),
     "skillEnabled": MessageLookupByLibrary.simpleMessage("已开启"),
     "skillFiles": MessageLookupByLibrary.simpleMessage("文件"),
-    "skillImportFailed": m36,
+    "skillImportFailed": m72,
     "skillImportSucceeded": MessageLookupByLibrary.simpleMessage("技能已导入"),
     "skillLibrary": MessageLookupByLibrary.simpleMessage("技能"),
     "skillLibraryDescription": MessageLookupByLibrary.simpleMessage(
@@ -731,7 +1082,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "themeSetToSystem": MessageLookupByLibrary.simpleMessage("已设置为跟随系统主题"),
     "themeSettings": MessageLookupByLibrary.simpleMessage("主题设置"),
     "thinkingCompleted": MessageLookupByLibrary.simpleMessage("思考完成"),
-    "thinkingCompletedWithDuration": m37,
+    "thinkingCompletedWithDuration": m73,
     "thinkingInProgress": MessageLookupByLibrary.simpleMessage("正在思考…"),
     "tokenUsage": MessageLookupByLibrary.simpleMessage("Token 用量"),
     "tokens": MessageLookupByLibrary.simpleMessage("Token"),
@@ -762,7 +1113,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "version": MessageLookupByLibrary.simpleMessage("版本 1.0.0"),
     "videoGenerated": MessageLookupByLibrary.simpleMessage("视频已生成"),
     "videoLoadFailed": MessageLookupByLibrary.simpleMessage("无法加载视频"),
-    "videoPlaybackError": m38,
+    "videoPlaybackError": m74,
     "videoResult": MessageLookupByLibrary.simpleMessage("视频结果"),
     "viewSummary": MessageLookupByLibrary.simpleMessage("查看摘要"),
     "waitForGenerationBeforeLeaving": MessageLookupByLibrary.simpleMessage(

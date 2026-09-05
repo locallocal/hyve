@@ -378,9 +378,9 @@
     "minutesAgo": "{minutes}分钟前",
     "@minutesAgo": {
         "placeholders": {
-        "minutes": {
-            "type": "int"
-        }
+            "minutes": {
+                "type": "int"
+            }
         }
     },
     "justNow": "刚刚",
@@ -391,7 +391,7 @@
     "@chatDeleted": {
         "placeholders": {
             "botName": {
-            "type": "String"
+                "type": "String"
             }
         }
     },
@@ -407,9 +407,9 @@
     "confirmDeleteChat": "删除聊天会清空所有的聊天记录，确定要删除与 {botName} 的聊天吗？",
     "@confirmDeleteChat": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "deleteBot": "删除智能体",
@@ -419,9 +419,9 @@
     "confirmDeleteBot": "删除机器人会删除对应的聊天记录，确定要删除 {botName} 吗？",
     "@confirmDeleteBot": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "saveChanges": "保存修改",
@@ -439,9 +439,9 @@
     "botUpdated": "智能体 {botName} 已更新",
     "@botUpdated": {
         "placeholders": {
-        "botName": {
-            "type": "String"
-        }
+            "botName": {
+                "type": "String"
+            }
         }
     },
     "botGreeting": "你好！我是{botName}，一个AI助手。请随时向我提问，我会尽力帮助你。",
@@ -456,25 +456,25 @@
     },
     "startChatPrompt": "在下方输入框发送消息开始聊天",
     "@startChatPrompt": {
-    "description": "提示用户在输入框中开始聊天的文本"
+        "description": "提示用户在输入框中开始聊天的文本"
     },
     "botIsTyping": "{botName}正在输入...",
     "@botIsTyping": {
-    "description": "提示AI助手正在输入消息",
+        "description": "提示AI助手正在输入消息",
         "placeholders": {
             "botName": {
-            "type": "String",
-            "example": "GPT-4"
+                "type": "String",
+                "example": "GPT-4"
             }
         }
     },
     "pauseGeneration": "暂停生成",
     "@pauseGeneration": {
-    "description": "暂停AI生成回复的按钮提示"
+        "description": "暂停AI生成回复的按钮提示"
     },
     "replyCancelled": "已取消回复",
     "@replyCancelled": {
-    "description": "取消AI回复生成后的提示信息"
+        "description": "取消AI回复生成后的提示信息"
     },
     "confirmDelete": "确认删除",
     "@confirmDelete": {
@@ -492,17 +492,17 @@
     },
     "modelsRetrievedSuccess": "成功获取{count}个模型",
     "@modelsRetrievedSuccess": {
-    "description": "成功获取模型列表时的提示信息",
+        "description": "成功获取模型列表时的提示信息",
         "placeholders": {
             "count": {
-            "type": "String",
-            "example": "10"
+                "type": "String",
+                "example": "10"
             }
         }
     },
     "noModelsRetrieved": "未获取到模型列表",
     "@noModelsRetrieved": {
-    "description": "未获取到模型列表时的提示信息"
+        "description": "未获取到模型列表时的提示信息"
     },
     "messageCopied": "消息已复制到剪贴板",
     "@messageCopied": {
@@ -580,11 +580,11 @@
     },
     "searchChats": "搜索项目",
     "@searchChats": {
-      "description": "搜索项目的输入提示"
+        "description": "搜索项目的输入提示"
     },
     "searchBots": "搜索智能体",
     "@searchBots": {
-      "description": "搜索智能体的输入提示"
+        "description": "搜索智能体的输入提示"
     },
     "desktopPersonalInformation": "个人信息",
     "desktopAppearanceAndLanguage": "外观与语言",
@@ -661,13 +661,17 @@
     "itemCount": "{count} 项",
     "@itemCount": {
         "placeholders": {
-            "count": {"type": "String"}
+            "count": {
+                "type": "String"
+            }
         }
     },
     "fileCount": "{count} 个文件",
     "@fileCount": {
         "placeholders": {
-            "count": {"type": "String"}
+            "count": {
+                "type": "String"
+            }
         }
     },
     "clearAttachments": "清空附件",
@@ -696,38 +700,50 @@
     "saveImageFailed": "保存图片失败：{error}",
     "@saveImageFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "shareImageFailed": "分享图片失败：{error}",
     "@shareImageFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "sharedImageFromHyve": "来自 Hyve 的图片",
     "processDuration": "耗时 {duration}",
     "@processDuration": {
         "placeholders": {
-            "duration": {"type": "String"}
+            "duration": {
+                "type": "String"
+            }
         }
     },
     "processToolCount": "{count} 次工具调用",
     "@processToolCount": {
         "placeholders": {
-            "count": {"type": "String"}
+            "count": {
+                "type": "String"
+            }
         }
     },
     "processCommandCount": "{count} 次命令执行",
     "@processCommandCount": {
         "placeholders": {
-            "count": {"type": "String"}
+            "count": {
+                "type": "String"
+            }
         }
     },
     "processFileCount": "{count} 条文件状态",
     "@processFileCount": {
         "placeholders": {
-            "count": {"type": "String"}
+            "count": {
+                "type": "String"
+            }
         }
     },
     "executionStatus": "执行状态",
@@ -771,7 +787,9 @@
     "thinkingCompletedWithDuration": "思考完成 · {duration}",
     "@thinkingCompletedWithDuration": {
         "placeholders": {
-            "duration": {"type": "String"}
+            "duration": {
+                "type": "String"
+            }
         }
     },
     "pleaseEnterSpeechDescription": "请输入语音描述",
@@ -779,7 +797,9 @@
     "generateSpeechFailed": "生成语音失败：{error}",
     "@generateSpeechFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "pleaseEnterMusicDescription": "请输入音乐描述",
@@ -787,7 +807,9 @@
     "generateMusicFailed": "生成音乐失败：{error}",
     "@generateMusicFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "pleaseEnterVideoDescription": "请输入视频描述",
@@ -795,7 +817,9 @@
     "generateVideoFailed": "生成视频失败：{error}",
     "@generateVideoFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "linkOpenFailed": "无法打开此链接。",
@@ -804,7 +828,9 @@
     "createChatFailed": "创建聊天失败：{error}",
     "@createChatFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "stopGenerationBeforeLeaving": "离开前停止生成？",
@@ -814,7 +840,9 @@
     "deleteChatFailed": "删除项目失败：{error}",
     "@deleteChatFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "tokenUsage": "Token 用量",
@@ -841,7 +869,9 @@
     "skillImportFailed": "技能导入失败：{error}",
     "@skillImportFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "details": "详情",
@@ -852,7 +882,9 @@
     "confirmUninstallSkill": "确定卸载技能“{name}”？相关智能体绑定也会被移除。",
     "@confirmUninstallSkill": {
         "placeholders": {
-            "name": {"type": "String"}
+            "name": {
+                "type": "String"
+            }
         }
     },
     "skillVersion": "版本",
@@ -927,14 +959,18 @@
     "mcpConnectionFailed": "MCP 连接失败：{error}",
     "@mcpConnectionFailed": {
         "placeholders": {
-            "error": {"type": "String"}
+            "error": {
+                "type": "String"
+            }
         }
     },
     "deleteMcpServer": "删除 MCP 服务器",
     "confirmDeleteMcpServer": "确定删除“{name}”？缓存的工具目录和安全凭据也会一并移除。",
     "@confirmDeleteMcpServer": {
         "placeholders": {
-            "name": {"type": "String"}
+            "name": {
+                "type": "String"
+            }
         }
     },
     "mcpTools": "工具",
@@ -967,7 +1003,9 @@
     "mcpHiddenEnvironmentVariableCount": "{count} 个（值已隐藏）",
     "@mcpHiddenEnvironmentVariableCount": {
         "placeholders": {
-            "count": {"type": "int"}
+            "count": {
+                "type": "int"
+            }
         }
     },
     "mcpCommunicationChannel": "通信通道",
@@ -1055,5 +1093,205 @@
     "databaseDowngradeNotSupported": "数据库由更高版本的 Hyve 创建，请升级应用后再打开。",
     "databaseRecoveryFailed": "数据库完整性检查失败，且无法从当前版本备份恢复。",
     "durationMilliseconds": "{milliseconds} 毫秒",
-    "durationSeconds": "{seconds} 秒"
+    "durationSeconds": "{seconds} 秒",
+    "projectDeleteKeepsAgentData": "智能体、技能、配置和长期记忆不会被删除。",
+    "projectWorkspace": "项目工作区",
+    "projectArtifacts": "项目产物",
+    "projectArtifactsDescription": "浏览项目文件、预览版本历史，并使用系统软件打开文件。",
+    "projectMembers": "项目成员",
+    "projectBackToMessages": "返回消息",
+    "projectExecutionDetails": "执行详情",
+    "projectExecutionDescription": "查看运行记录、参与判断、Token 用量和审计事件。",
+    "projectClose": "关闭",
+    "projectCreate": "创建",
+    "projectSearch": "搜索",
+    "projectUnknown": "未知",
+    "projectUser": "用户",
+    "projectAgent": "智能体",
+    "projectSystem": "系统",
+    "projectSystemLowercase": "系统",
+    "projectNoAgentsNotice": "当前项目没有活跃智能体；消息会被保存，但不会产生回复。",
+    "projectNoAgentsTitle": "暂无活跃智能体",
+    "projectEmptyTimelineTitle": "暂无消息",
+    "projectEmptyTimeline": "发送消息开始协作；不使用 @ 时将广播。",
+    "projectLoadingWorkspace": "正在加载项目",
+    "projectLoadEarlierEvents": "加载更早事件",
+    "projectJumpToLatest": "回到最新",
+    "projectBroadcastHint": "输入消息；不选择 @ 时将广播给全部活跃智能体。",
+    "projectAttachment": "附件 {index}",
+    "projectAddAttachment": "添加附件",
+    "projectSaveAsArtifact": "保存为项目正式产物",
+    "projectSavedAsArtifact": "将保存为项目正式产物",
+    "projectDropFilesToImport": "拖放文件到此处导入",
+    "projectReleaseToImport": "松开即可导入",
+    "projectRunSuffix": " · 运行 {runId}",
+    "projectVersionProvenance": "版本 {version} · 智能体 {actor}{run}",
+    "projectReferencingMessages": "{count, plural, other{{count} 条引用消息}}",
+    "projectSending": "发送中",
+    "projectActivityCaughtUp": "已跟上",
+    "projectActivityDeciding": "判断中",
+    "projectActivityWillReply": "将回复",
+    "projectActivitySkipped": "已跳过",
+    "projectActivityReplying": "回复中",
+    "projectActivityCatchingUp": "追赶中",
+    "projectActivityPaused": "已暂停",
+    "projectActivityFailed": "失败",
+    "projectProcessed": "已处理 {processed} / 最新 {latest}",
+    "projectBacklog": "积压 {count}",
+    "projectNoParticipant": "本条消息没有智能体需要补充。",
+    "projectReplyingTo": "回复消息 #{sequence}",
+    "projectRequestedPublicReply": "请求公开回复",
+    "projectArtifactVersions": "产物版本：{ids}",
+    "projectAuditDetails": "审计详情",
+    "projectEventId": "事件：{id}",
+    "projectMessageId": "消息 ID：{id}",
+    "projectTurnId": "轮次：{id} · {status}",
+    "projectSourceRun": "来源运行：{id}",
+    "projectDeliveryRun": "交付运行：{id} · {status}",
+    "projectRootRun": "根运行：{id}",
+    "projectDeliveryDepth": "交付深度：{depth}",
+    "projectTargetRuns": "目标运行：{value}",
+    "projectMentionedAgentInactive": "被 @ 的智能体已不在项目中，请删除或重新选择。",
+    "projectMessageSendFailed": "消息发送失败（{code}）",
+    "projectNewTextArtifact": "新建文本产物",
+    "projectRelativePath": "项目内相对路径",
+    "projectContent": "内容",
+    "projectMoveOrRename": "移动或重命名",
+    "projectDeleteArtifactTitle": "删除产物？",
+    "projectDeleteArtifactDescription": "将删除 {path} 的全部版本。已被消息或交付引用的产物不会被删除。",
+    "projectSearchArtifacts": "搜索名称、路径和正文",
+    "projectAllTypes": "全部类型",
+    "projectImportFiles": "批量导入",
+    "projectCreateText": "新建文本",
+    "projectNoArtifacts": "暂无匹配的项目产物",
+    "projectArtifactRoot": "全部产物",
+    "projectBackToParentFolder": "返回上一级",
+    "projectFolderArtifactCount": "{count, plural, other{{count} 个产物}}",
+    "projectPreviewAndHistory": "预览与版本历史",
+    "projectOpenInSystemApp": "使用系统软件打开",
+    "projectUnableToOpenArtifact": "无法使用系统软件打开此文件。",
+    "projectWriteNewVersion": "写入新版本",
+    "projectCreateVersion": "创建版本",
+    "projectSource": "来源：{value}",
+    "projectUnableToReadVersion": "无法读取此版本",
+    "projectUnsupportedPreview": "该类型不支持应用内预览。\nMIME：{mime}\nSHA-256：{digest}",
+    "projectPreviewTruncated": "预览仅显示前 32 KiB；智能体可按块继续读取。",
+    "projectAgentNamed": "智能体 {id}",
+    "projectArtifactKindAttachment": "附件",
+    "projectArtifactKindDocument": "文档",
+    "projectArtifactKindCode": "代码",
+    "projectArtifactKindImage": "图片",
+    "projectArtifactKindAudio": "音频",
+    "projectArtifactKindVideo": "视频",
+    "projectArtifactKindDataset": "数据",
+    "projectArtifactKindArchive": "压缩包",
+    "projectArtifactKindGenerated": "生成内容",
+    "projectArtifactKindOther": "其他",
+    "projectArtifactPathInvalid": "路径无效；请使用项目内相对路径。",
+    "projectArtifactPathConflict": "该项目路径已存在。",
+    "projectArtifactSizeExceeded": "文件超过项目产物大小限制。",
+    "projectArtifactIsReferenced": "产物已被消息或交付引用，不能删除。",
+    "projectArtifactVersionConflict": "当前版本已变化，请重新打开后再编辑。",
+    "projectArtifactSymlinkRejected": "不允许导入符号链接。",
+    "projectArtifactOperationFailed": "产物操作失败（{code}）",
+    "projectSearchAgents": "搜索智能体",
+    "projectAddAgent": "添加智能体",
+    "projectAddAgentDescription": "搜索可用智能体并将其添加到当前项目。",
+    "projectSearchAvailableAgents": "搜索可添加的智能体",
+    "projectMembersDescription": "查看消息处理状态，并管理智能体顺序、产物权限和项目参与状态。",
+    "projectNoMembers": "项目暂无成员",
+    "projectNoAvailableAgents": "没有可添加的智能体",
+    "projectNoMatchingAgents": "未找到匹配的智能体",
+    "projectDeletedAgent": "已删除的智能体",
+    "projectPause": "暂停",
+    "projectResume": "恢复",
+    "projectRemove": "移除",
+    "projectReorderMember": "拖动以调整 {name} 的顺序",
+    "projectStorageAccess": "产物权限",
+    "projectUpdatingStorageAccess": "正在更新产物权限",
+    "projectStorageAccessNone": "无",
+    "projectStorageAccessRead": "只读",
+    "projectStorageAccessReadWrite": "读写",
+    "projectRemoveMemberTitle": "移除 {name}？",
+    "projectRemoveActiveMemberDescription": "该智能体正在运行。移除会取消它的当前运行，其他智能体不受影响。",
+    "projectRemoveMemberDescription": "该智能体将不再接收新的项目消息。",
+    "projectMemberUpdateFailed": "成员更新失败（{code}）",
+    "projectRuns": "运行",
+    "projectDecisions": "判断",
+    "projectPassed": "已跳过",
+    "projectTokenBreakdown": "输入 {input} · 输出 {output}",
+    "projectNoExecutions": "暂无执行记录",
+    "projectExecutionRuns": "运行记录",
+    "projectMessageSequence": "消息 #{sequence}",
+    "projectRunCount": "{count, plural, other{{count} 个运行}}",
+    "projectRecipientCount": "{count, plural, other{{count} 个接收者}}",
+    "projectRoutingTargeted": "定向",
+    "projectRoutingBroadcast": "广播",
+    "projectRoutingDelivery": "交付",
+    "projectTurnCreated": "已创建",
+    "projectTurnDispatching": "分发中",
+    "projectTurnDeciding": "判断中",
+    "projectTurnReplying": "回复中",
+    "projectTurnDelivering": "交付中",
+    "projectTurnCompleted": "已完成",
+    "projectTurnPartial": "部分完成",
+    "projectTurnFailed": "失败",
+    "projectTurnCancelled": "已取消",
+    "projectRunPhaseDecision": "判断",
+    "projectRunPhaseReply": "回复",
+    "projectRunPhaseDelivery": "交付",
+    "projectRunQueued": "排队中",
+    "projectRunDeciding": "判断中",
+    "projectRunPassed": "已跳过",
+    "projectRunPreparing": "准备中",
+    "projectRunRunning": "运行中",
+    "projectRunDelivering": "交付中",
+    "projectRunCompleted": "已完成",
+    "projectRunCancelled": "已取消",
+    "projectRunFailed": "失败",
+    "projectRunTimedOut": "已超时",
+    "projectRunLimitExceeded": "超出限制",
+    "projectRunInterrupted": "已中断",
+    "projectRunIdentifierLabel": "运行 ID",
+    "projectCancelRun": "取消运行",
+    "projectCancelRunTitle": "取消此运行？",
+    "projectCancelRunDescription": "仅停止此运行；同一轮次中的其他活跃运行将继续。",
+    "projectCancelTurn": "取消轮次",
+    "projectCancelTurnTitle": "取消此轮次？",
+    "projectCancelTurnDescription": "此轮次中的所有活跃运行都将停止；已完成的结果会保留。",
+    "projectCancelRootChain": "取消根消息链",
+    "projectCancelRootChainTitle": "取消此根消息链？",
+    "projectCancelRootChainDescription": "此根消息链及其后续交付中的活跃运行都将停止；其他消息链将继续。",
+    "projectContextReport": "上下文报告",
+    "projectAuditEvents": "审计事件",
+    "projectNoAuditEvents": "暂无审计事件",
+    "projectEventUserMessage": "用户消息",
+    "projectEventAgentMessage": "智能体消息",
+    "projectEventParticipationDecision": "参与判断",
+    "projectEventAgentDelivery": "智能体交付",
+    "projectEventMembershipChanged": "成员变更",
+    "projectEventArtifactChanged": "产物变更",
+    "projectEventRunStatusChanged": "运行状态变更",
+    "projectEventSystemNotice": "系统通知",
+    "projectEventSequence": "事件 #{sequence}",
+    "projectMembershipCurrent": "{agentId} 当前状态为 {current}",
+    "projectMembershipChanged": "{agentId} 从 {previous} 变更为 {current}",
+    "projectArtifactChange": "{changeKind} · 产物 {artifactId}",
+    "projectSummarySegments": "摘要片段",
+    "projectAgentMemories": "智能体记忆",
+    "projectArtifactVersionIds": "产物版本",
+    "projectSkills": "技能",
+    "projectTools": "工具",
+    "projectMemoryRevision": "记忆版本",
+    "projectCoveredThroughMessage": "上下文覆盖至消息",
+    "projectActive": "活跃",
+    "projectPausedStatus": "已暂停",
+    "projectParticipationReply": "回复",
+    "projectParticipationPass": "跳过",
+    "projectDecisionInvalid": "判断结果格式无效",
+    "projectDecisionTimeout": "判断超时",
+    "projectDecisionFailed": "判断请求失败",
+    "projectDecisionCancelled": "判断已取消",
+    "projectDuration": "耗时：{value}",
+    "projectError": "错误：{value}"
 }

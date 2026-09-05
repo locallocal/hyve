@@ -21,6 +21,17 @@ import 'package:hyve/ui/features/bots/views/add_bot.dart';
 import 'package:hyve/ui/features/chats/views/new_chat_dialog.dart';
 import 'package:hyve/utils/theme.dart';
 
+const List<Locale> hyveTestSupportedLocales = supportedLocales;
+
+const List<LocalizationsDelegate<dynamic>> hyveTestLocalizationDelegates =
+    <LocalizationsDelegate<dynamic>>[
+      GlobalShadLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      S.delegate,
+    ];
+
 Future<void> withDesktopPlatform(Future<void> Function() body) async {
   debugDefaultTargetPlatformOverride = TargetPlatform.linux;
   try {
@@ -143,14 +154,8 @@ Widget shadHarness({
             fontSize: 16,
           ),
           locale: locale,
-          supportedLocales: supportedLocales,
-          localizationsDelegates: const [
-            GlobalShadLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            S.delegate,
-          ],
+          supportedLocales: hyveTestSupportedLocales,
+          localizationsDelegates: hyveTestLocalizationDelegates,
           builder: (context, child) => ShadAppBuilder(child: child!),
           home: Builder(builder: homeBuilder),
         ),
